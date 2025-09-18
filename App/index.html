@@ -2,9 +2,170 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Codium</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2D1B69 0%, #8B5Cf6 50%, #C084FC 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        #top-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(45, 27, 105, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        #top-menu h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        #top-menu button {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        #top-menu button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #main-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 80px);
+            text-align: center;
+            z-index: 2;
+        }
+
+        .blob-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #A855F7 0%, #C084FC 50%, #E879F9 100%);
+            opacity: 0.8;
+        }
+
+        .blob:nth-child(1) {
+            width: 300px;
+            height: 250px;
+            top: 20%;
+            left: 5%;
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .blob:nth-child(2) {
+            width: 400px;
+            height: 300px;
+            top: 25%;
+            left: 25%;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .blob:nth-child(3) {
+            width: 350px;
+            height: 280px;
+            top: 20%;
+            right: 20%;
+            border-radius: 70% 30% 50% 50% / 50% 60% 40% 50%;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .blob:nth-child(4) {
+            width: 200px;
+            height: 180px;
+            top: 15%;
+            right: 5%;
+            border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+            animation: float 5s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        #main-content h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            z-index: 3;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #main-content h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            z-index: 3;
+            position: relative;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
 <body>
-
+    <div id="top-menu">
+        <h1>title page</h1>
+        <div class="nav-buttons">
+            <button id="home-button">🏠</button>
+            <button id="teorie-button">Învăţat</button>
+            <button id="exercises-button">Probleme</button>
+            <button type="button" class="limba">RO</button>
+            <button type="button">🌙</button>
+            <button type="button" id="login-button">Loghează-te</button>
+        </div>
+    </div>
+    <div id="main-content">
+        <div class="blob-container">
+            <div class="blob"></div>
+            <div class="blob"></div>
+            <div class="blob"></div>
+            <div class="blob"></div>
+            <div class="blob"></div>
+        </div>
+        <h1>codium/</h1>
+        <h2>Learn/ Code/ Compete/</h2>
+    </div>
 </body>
 </html>
