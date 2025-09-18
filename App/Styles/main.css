@@ -1,3 +1,10 @@
+:root {
+    --primary-dark: #1B0524;
+    --primary-medium: #21052C;
+    --primary-light: rgba(176, 123, 201, 0.20);
+    --border: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
+    --text-color: #FFFFFF;
+}
 * {
     margin: 0;
     padding: 0;
@@ -5,11 +12,7 @@
 }
 
 body {
-    font-family: 'Raleway', sans-serif;
-    background: linear-gradient(135deg, #2D1B69 0%, #8B5Cf6 50%, #C084FC 100%);
-    min-height: 100vh;
-    color: white;
-    overflow-x: hidden;
+    background: var(--primary-dark, #1B0524);
 }
 
 #top-menu {
@@ -17,7 +20,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 40px;
-    background: rgba(45, 27, 105, 0.8);
+    fill: var(--primary-medium, #21052C);
     backdrop-filter: blur(10px);
 }
 
