@@ -8,19 +8,26 @@
     <link rel="stylesheet" href="Styles/main.css">
     <meta charset="UTF-8">
     <title>Codium</title>
+    <script>
+        // Function to load the top menu
+        async function loadTopMenu() {
+            try {
+                const response = await fetch('elements.html');
+                const menuHTML = await response.text();
+                document.getElementById('top-menu-container').innerHTML = menuHTML;
+            } catch (error) {
+                console.error('Error loading top menu:', error);
+            }
+        }
+
+        // Load the menu when the page loads
+        document.addEventListener('DOMContentLoaded', loadTopMenu);
+    </script>
 </head>
 <body>
-    <div id="top-menu">
-        <h1>title page</h1>
-        <div class="nav-buttons">
-            <button id="home-button">🏠</button>
-            <button id="teorie-button">Învăţat</button>
-            <button id="exercises-button">Probleme</button>
-            <button type="button" class="limba">RO</button>
-            <button type="button"><i class="fas fa-moon"></i></button>
-            <button type="button" id="login-button">Loghează-te</button>
-        </div>
-    </div>
+    <!-- Container for the dynamically loaded top menu -->
+    <div id="top-menu-container"></div>
+    
     <div id="main-content">
         <div class="blob-container">
             <div class="blob"></div>
