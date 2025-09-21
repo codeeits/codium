@@ -1,11 +1,18 @@
+/* ========================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ======================================== */
 :root {
     --primary-dark: #1B0524;
     --primary-medium: #21052C;
     --primary-light: rgba(176, 123, 201, 0.20);
-    --border: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
+    --border-gradient: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
     --text-color: #FFFFFF;
+    --svg-color: #B07BC9;
 }
 
+/* ========================================
+   RESET & BASE STYLES
+   ======================================== */
 * {
     margin: 0;
     padding: 0;
@@ -13,19 +20,22 @@
 }
 
 body {
-    background: var(--primary-dark, #1B0524);
-    color: var(--text-color, #FFFFFF);
+    background: var(--primary-dark);
+    color: var(--text-color);
     font-family: 'Raleway', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
 }
 
+/* ========================================
+   NAVIGATION MENU
+   ======================================== */
 #top-menu {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 40px;
-    background: var(--primary-medium, #21052C);
+    background: var(--primary-medium);
     backdrop-filter: blur(10px);
 }
 
@@ -50,7 +60,7 @@ body {
 #top-menu button {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-color);
     font-size: 16px;
     cursor: pointer;
     padding: 8px 16px;
@@ -63,6 +73,9 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* ========================================
+   MAIN CONTENT AREA
+   ======================================== */
 #main-content {
     position: relative;
     display: flex;
@@ -72,33 +85,6 @@ body {
     min-height: calc(100vh - 80px);
     text-align: center;
     z-index: 2;
-}
-
-.bgElement {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bgElement svg {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-}
-
-.bgElement svg path {
-    fill: #B07BC9;
 }
 
 #main-content h1 {
@@ -111,11 +97,53 @@ body {
     font-family: 'Raleway', sans-serif;
 }
 
-#main-content h2 {
+/* ========================================
+   BOTTOM CONTENT AREA
+   ======================================== */
+#bottom-content {
+    position: fixed;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 3;
+}
+
+#bottom-content h2 {
     font-size: 2rem;
     font-weight: 300;
     z-index: 3;
     position: relative;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     font-family: 'Raleway', sans-serif;
+}
+
+/* ========================================
+   BACKGROUND SVG ELEMENT
+   ======================================== */
+.bgElement {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.bgElement svg {
+    width: auto;
+    height: 80vh;
+    max-width: 90vw;
+    z-index: 1;
+}
+
+.bgElement svg path {
+    fill: var(--svg-color);
 }
