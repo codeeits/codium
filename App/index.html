@@ -15,24 +15,13 @@
     <link rel="stylesheet" href="Styles/main.css">
     
     <!-- Scripts -->
-    <script>
-        async function loadTopMenu() {
-            try {
-                const response = await fetch('elements.html');
-                const menuHTML = await response.text();
-                document.getElementById('top-menu-container').innerHTML = menuHTML;
-            } catch (error) {
-                console.error('Error loading top menu:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', loadTopMenu);
-    </script>
+    <script src="Scripts/main.js" defer></script>
+    
+    <meta name="menu-variant" content="default">
 </head>
 <body>
     <!-- Navigation Menu Container -->
     <div id="top-menu-container"></div>
-    
     <!-- Main Content -->
     <div id="main-content">
         <!-- Background SVG Element -->
