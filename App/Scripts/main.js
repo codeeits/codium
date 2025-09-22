@@ -1,6 +1,6 @@
 async function loadTopMenu(variant = 'default') {
     try {
-        const response = await fetch('elements.html');
+        const response = await fetch('/app/elements.html');
         const menuHTML = await response.text();
         
         const tempDiv = document.createElement('div');
