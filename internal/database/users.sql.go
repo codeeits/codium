@@ -7,11 +7,12 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash, username, created_at, updated_at)
-VALUES ($1, $2, $3, NOW(), NOW())
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id, username, email, password_hash, created_at, updated_at
 `
 
@@ -19,10 +20,18 @@ type CreateUserParams struct {
 	Email        string
 	PasswordHash string
 	Username     string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.PasswordHash, arg.Username)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Username,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,

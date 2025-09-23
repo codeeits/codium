@@ -1,10 +1,13 @@
 package main
 
 import (
+	"Codium/internal/auth"
 	"Codium/internal/database"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 /*
@@ -40,10 +43,26 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if p.Email == "" || p.Password == "" || p.Username == "" {
+		cfg.logger.Printf("Missing required fields: email, password, or username")
+		http.Error(w, "Missing required fields: email, password, or username", http.StatusBadRequest)
+		return
+	}
+
+	// Hash the password
+	hashedPassword, err := auth.HashPassword(p.Password)
+	if err != nil {
+		cfg.logger.Printf("Failed to hash password: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	res, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
 		Email:        p.Email,
-		PasswordHash: p.Password,
+		PasswordHash: hashedPassword,
 		Username:     p.Username,
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
 
 	if err != nil {
