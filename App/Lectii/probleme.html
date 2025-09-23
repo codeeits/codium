@@ -1,0 +1,56 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/app/scripts/lessonLoader.js">
+    </script>
+</head>
+<body>
+    <script>
+        function markdownToHtml(markdown) {
+            let html = markdown
+                // Headers
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // Code blocks
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+                // Inline code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // Links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                // Line breaks
+                .replace(/\n/g, '<br>')
+                // Horizontal rules
+                .replace(/^---$/gm, '<hr>');
+            
+            return html;
+        }
+
+        const baseurl = window.location.href;
+        const lessonId = baseurl.split("?id=")[1];
+        console.log("Lesson ID from URL:", lessonId);
+        
+        if (lessonId) {
+            loadLesson(lessonId).then(result => {
+                document.getElementById('lesson-title').textContent = `Lesson ${result.lesson.id}`;
+                document.getElementById('lesson-body').innerHTML = markdownToHtml(result.content);
+            }).catch(error => {
+                document.getElementById('lesson-content').innerHTML = `<p style="color: red;">Error loading lesson: ${error.message}</p>`;
+            });
+        } else {
+            console.log("No lesson ID in URL. Try: probleme.html?id=223");
+            document.getElementById('lesson-content').innerHTML = '<p>No lesson ID provided. Try: probleme.html?id=223</p>';
+        }
+    </script>
+    <div id="lesson-content">
+        <p id="lesson-title"></p>
+        <div id="lesson-body"></div>
+    </div>
+</body>
+</html>
