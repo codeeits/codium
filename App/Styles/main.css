@@ -30,6 +30,7 @@ body {
 /* ========================================
    NAVIGATION MENU
    ======================================== */
+
 #top-menu {
     display: flex;
     justify-content: space-between;
@@ -71,6 +72,117 @@ body {
 
 #top-menu button:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* Language Selector */
+.language-selector {
+    position: relative;
+}
+
+.language-dropdown {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    font-family: 'Raleway', sans-serif;
+    text-decoration: underline;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23FFFFFF' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+}
+
+.language-dropdown:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.language-dropdown option {
+    background: var(--primary-medium);
+    color: var(--text-color);
+    padding: 8px;
+}
+
+/* ========================================
+   LESSON MODE MENU STYLES
+   special styles for title.
+   ======================================== */
+
+/* Lesson title */
+.lesson-title {
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+    font-family: 'Raleway', sans-serif;
+}
+
+/* Center navigation for lesson progress */
+.nav-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.lesson-progress {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 20px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    /* Gradient border effect */
+    position: relative;
+}
+
+.lesson-progress::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: var(--border-gradient);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.lesson-number {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 16px;
+    font-family: 'Raleway', sans-serif;
+}
+
+.lesson-topic {
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Raleway', sans-serif;
+}
+
+/* Lesson mode layout adjustments */
+#top-menu-lesson .nav-left {
+    min-width: 300px;
+}
+
+#top-menu-lesson .nav-buttons {
+    min-width: 200px;
+    justify-content: flex-end;
 }
 
 /* ========================================

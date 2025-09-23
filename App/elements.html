@@ -1,15 +1,52 @@
-<div id="top-menu">
-    <!-- Left navigation group -->
+<!-- Default Top Menu -->
+<div id="top-menu-default" class="menu-variant">
     <div class="nav-left">
         <h1>codium/</h1>
         <button id="teorie-button"><u>> Teorie</u></button>
         <button id="exercises-button"><u>> Probleme</u></button>
     </div>
-    
-    <!-- Right navigation group -->
     <div class="nav-buttons">
-        <button type="button" class="limba"><u>RO</u></button>
+        <div class="language-selector">
+            <select class="language-dropdown">
+                <option value="ro">RO</option>
+                <option value="en">EN</option>
+                <option value="ca">CA</option>
+            </select>
+        </div>
         <button type="button"><i class="fas fa-moon"></i></button>
         <button type="button" id="login-button"><u>Loghează-te</u></button>
+    </div>
+</div>
+
+<!-- Lesson Mode Menu (inspired by the image) -->
+<div id="top-menu-lesson" class="menu-variant">
+    <div class="nav-left">
+        <button type="button" id="back-btn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <span id="back">Ieșire mod învățare</span>
+    </div>
+    
+    <div class="nav-center">
+        <div class="lesson-progress">
+            <span class="lesson-number">II.1</span>
+            <span class="lesson-topic">Tipul char</span>
+        </div>
+    </div>
+    
+    <div class="nav-buttons">
+        <div class="language-selector">
+            <select class="language-dropdown">
+                <option value="ro">RO</option>
+                <option value="en">EN</option>
+                <option value="ca">CA</option>
+            </select>
+        </div>
+        <button type="button">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button type="button" id="login-button">
+            <u>Loghează-te</u>
+        </button>
     </div>
 </div>
