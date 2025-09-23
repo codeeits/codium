@@ -20,18 +20,9 @@ import (
 
 func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Username string `json:"username"`
 		Email    string `json:"email"`
+		Username string `json:"username"`
 		Password string `json:"password"`
-	}
-	cfg.logger.Print("Received request to create user with request body: ", r.Body)
-
-	// Check if database is connected
-
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -40,6 +31,16 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received request to create user with request body: ", p)
+
+	// Check if database is connected
+
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
 
@@ -75,7 +76,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"id": %d, "email": %v, "username": %v, "created_at": %v, "updated_at: %v"}`, res.ID, res.Email, res.Username, res.CreatedAt, res.UpdatedAt)))
+	_, err = w.Write([]byte(fmt.Sprintf(`{"id": %d, "email": "%v", "username": "%v", "created_at": "%v", "updated_at": "%v"}`, res.ID, res.Email, res.Username, res.CreatedAt, res.UpdatedAt)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)

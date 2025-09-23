@@ -17,6 +17,7 @@ type ApiCfg struct {
 	dbUrl    string
 	db       *database.Queries
 	dbLoaded bool
+	secret   string
 }
 
 /*
@@ -50,18 +51,27 @@ func main() {
 			logger:   *log.New(logFile, "[API] ", log.LstdFlags),
 			dbLoaded: false,
 		}
+
+		// Clear the file on startup
+		err = logFile.Truncate(0)
+		if err != nil {
+			panic(err)
+		}
+
 		cfg.logger.Print("Hewwo World! :333")
 	}
 
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		cfg.logger.Print("Warning! Error loading .env file- without it you will not be able to connect to the database or any other external services!")
-		cfg.logger.Print("If you run into issues, please make sure you have a .env file in the root directory with the correct variables.")
-
-		cfg.dbUrl = ""
+		cfg.logger.Fatal("Error loading .env file: ", err)
 	} else {
 		cfg.dbUrl = os.Getenv("DB_URL")
+		cfg.secret = os.Getenv("SECRET")
+	}
+
+	if cfg.secret == "" {
+		cfg.logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
 	}
 
 	if cfg.dbUrl != "" {
