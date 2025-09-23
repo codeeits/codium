@@ -13,9 +13,10 @@ import (
 )
 
 type ApiCfg struct {
-	logger log.Logger
-	dbUrl  string
-	db     *database.Queries
+	logger   log.Logger
+	dbUrl    string
+	db       *database.Queries
+	dbLoaded bool
 }
 
 /*
@@ -46,7 +47,8 @@ func main() {
 		}
 
 		cfg = &ApiCfg{
-			logger: *log.New(logFile, "[API] ", log.LstdFlags),
+			logger:   *log.New(logFile, "[API] ", log.LstdFlags),
+			dbLoaded: false,
 		}
 		cfg.logger.Print("Hewwo World! :333")
 	}
@@ -75,6 +77,7 @@ func main() {
 		}
 
 		cfg.db = database.New(db)
+		cfg.dbLoaded = true
 		cfg.logger.Print("Successfully connected to the database!")
 	}
 
@@ -82,6 +85,7 @@ func main() {
 	{
 		mux := http.NewServeMux()
 		mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("./App/"))))
+		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
 
 		server := &http.Server{
 			Addr:    ":6767",
