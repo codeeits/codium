@@ -79,6 +79,8 @@ func main() {
 		cfg.db = database.New(db)
 		cfg.dbLoaded = true
 		cfg.logger.Print("Successfully connected to the database!")
+	} else {
+		cfg.logger.Print("No Database URL provided- skipping database connection.")
 	}
 
 	// Serve static files from the "App" directory at the "/app/" URL path
