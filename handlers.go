@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 /*
@@ -59,6 +61,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
+		ID:           uuid.New(),
 		Email:        p.Email,
 		PasswordHash: hashedPassword,
 		Username:     p.Username,
@@ -68,15 +71,33 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		cfg.logger.Printf("Failed to create user: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	cfg.logger.Printf("User created: ID=%d, Email=%s, Username=%s", res.ID, res.Email, res.Username)
+	cfg.logger.Printf("User created: ID=%v, Email=%s, Username=%s", res.ID, res.Email, res.Username)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"id": %d, "email": "%v", "username": "%v", "created_at": "%v", "updated_at": "%v"}`, res.ID, res.Email, res.Username, res.CreatedAt, res.UpdatedAt)))
+	_, err = w.Write([]byte(fmt.Sprintf(`{"id": %v, "email": "%v", "username": "%v", "created_at": "%v", "updated_at": "%v"}`, res.ID, res.Email, res.Username, res.CreatedAt, res.UpdatedAt)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
+	err := cfg.db.DeleteUsers(r.Context())
+	if err != nil {
+		cfg.logger.Printf("Failed to delete users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("All users deleted successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
