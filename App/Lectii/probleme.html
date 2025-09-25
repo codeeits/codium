@@ -3,11 +3,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="/app/scripts/lessonLoader.js">
-    </script>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/app/styles/main.css">
+
+    <!-- External Resources REQ. -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script src="/app/scripts/lessonLoader.js"></script>
+    <script src="/app/scripts/main.js" defer></script>
+
+    <meta name="menu-variant" content="lesson">
 </head>
 <body>
-    <script>
+    <div id="top-menu-container"></div>
+    
+    <div class="main-grid">
+        <div class="content-area">
+            <div id="lesson-content">
+                <p id="lesson-title"></p>
+                <div id="lesson-body"></div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <h1>Lol</h1>
+        </div>
+    </div>
+
+    <style>
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 20rem;
+            gap: 20px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .content-area {
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 3px solid var(--purple-accent);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .sidebar-menu {
+                order: -1;
+                height: auto;
+            }
+        }
+    </style>
+    
+    <script> 
+        let firstH1Title = ''; // Variable to store the first H1 content
         function markdownToHtml(markdown) {
             let html = markdown
                 // Headers
@@ -19,7 +85,7 @@
                 // Italic
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 // Code blocks
-                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="code"><code class="language-$1">$2</code></pre>')
                 // Inline code
                 .replace(/`([^`]+)`/g, '<code>$1</code>')
                 // Links
@@ -32,14 +98,25 @@
             return html;
         }
 
+        function extractFirstH1(html) {
+            const h1Match = html.match(/<h1>(.*?)<\/h1>/);
+            return h1Match ? h1Match[1] : '';
+        }
+
         const baseurl = window.location.href;
         const lessonId = baseurl.split("?id=")[1];
         console.log("Lesson ID from URL:", lessonId);
         
         if (lessonId) {
             loadLesson(lessonId).then(result => {
+                const convertedHtml = markdownToHtml(result.content);
+                
+                // Extract and save the first H1
+                firstH1Title = extractFirstH1(convertedHtml);
+                console.log("First H1 title:", firstH1Title);
+                
                 document.getElementById('lesson-title').textContent = `Lesson ${result.lesson.id}`;
-                document.getElementById('lesson-body').innerHTML = markdownToHtml(result.content);
+                document.getElementById('lesson-body').innerHTML = convertedHtml;
             }).catch(error => {
                 document.getElementById('lesson-content').innerHTML = `<p style="color: red;">Error loading lesson: ${error.message}</p>`;
             });
@@ -47,10 +124,7 @@
             console.log("No lesson ID in URL. Try: probleme.html?id=223");
             document.getElementById('lesson-content').innerHTML = '<p>No lesson ID provided. Try: probleme.html?id=223</p>';
         }
+        titleContainer.textContent = firstH1Title;
     </script>
-    <div id="lesson-content">
-        <p id="lesson-title"></p>
-        <div id="lesson-body"></div>
-    </div>
 </body>
 </html>

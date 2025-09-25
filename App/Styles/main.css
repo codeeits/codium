@@ -7,6 +7,7 @@
     --primary-light: rgba(176, 123, 201, 0.20);
     --border-gradient: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
     --text-color: #FFFFFF;
+    --primary-black: #000000;
     --svg-color: #B07BC9;
 }
 
@@ -206,7 +207,7 @@ body {
     z-index: 3;
     position: relative;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Bitcount Grid Double', sans-serif;
 }
 
 /* ========================================
@@ -258,4 +259,24 @@ body {
 
 .bgElement svg path {
     fill: var(--svg-color);
+}
+
+/* ========================================
+   LESSON BODY CONTENT
+   ======================================== */
+
+#lesson-content {
+    margin: 0 0 0 0;
+}
+
+/* ========================================
+   LESSON BODY CONTENT
+   code blocks
+   ======================================== */
+
+.code {
+    background: var(--primary-black);
+    padding: 2rem;
+    border-radius: 1rem;
+    overflow: auto;
 }

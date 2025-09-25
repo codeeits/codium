@@ -1,6 +1,7 @@
 
 let info = []; 
 let content = '';
+const titleContainer = document.getElementById('lesson-topic');
 
 //varianta rudimentara la incercam sa fac inital, presupun ca mere si asa, doar sa existe o interfata grafica sa adaugi lectiile.
 
