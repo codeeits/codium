@@ -99,6 +99,8 @@ func main() {
 		mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("./App/"))))
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
 		mux.Handle("POST /admin/reset", http.HandlerFunc(cfg.AdminResetHandler))
+		mux.Handle("POST /api/login", http.HandlerFunc(cfg.LoginHandler))
+		mux.Handle("POST /api/refresh", http.HandlerFunc(cfg.RefreshHandler))
 
 		server := &http.Server{
 			Addr:    ":6767",
