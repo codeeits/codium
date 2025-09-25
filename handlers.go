@@ -90,7 +90,46 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
-	err := cfg.db.DeleteUsers(r.Context())
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Validate the token
+	uid, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if the user is an admin
+	adminUser, err := cfg.db.GetUserByID(r.Context(), uid)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !adminUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", uid)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	cfg.logger.Print("Admin reset initiated by user: ", uid)
+
+	// Delete all users
+
+	err = cfg.db.DeleteUsers(r.Context())
 	if err != nil {
 		cfg.logger.Printf("Failed to delete users: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -105,6 +144,29 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
+
+	// Add default admin user
+	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
+	if err != nil {
+		cfg.logger.Printf("Failed to hash default admin password: %v", err)
+		return
+	}
+
+	_, err = cfg.db.CreateUser(r.Context(), database.CreateUserParams{
+		ID:           uuid.New(),
+		Email:        "codiumOfficial@lekas.tech",
+		PasswordHash: hashedPassword,
+		Username:     "codiumOfficial",
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		IsAdmin:      true,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to create default admin user: %v", err)
+		return
+	}
+
+	cfg.logger.Print("Default admin user created successfully.")
 }
 
 func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {

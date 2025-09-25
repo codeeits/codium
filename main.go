@@ -13,11 +13,12 @@ import (
 )
 
 type ApiCfg struct {
-	logger   log.Logger
-	dbUrl    string
-	db       *database.Queries
-	dbLoaded bool
-	secret   string
+	logger               log.Logger
+	dbUrl                string
+	db                   *database.Queries
+	dbLoaded             bool
+	secret               string
+	adminDefaultPassword string
 }
 
 /*
@@ -68,6 +69,7 @@ func main() {
 	} else {
 		cfg.dbUrl = os.Getenv("DB_URL")
 		cfg.secret = os.Getenv("SECRET")
+		cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
 	}
 
 	if cfg.secret == "" {
