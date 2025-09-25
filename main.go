@@ -92,7 +92,7 @@ func main() {
 	} else {
 		cfg.logger.Print("No Database URL provided- skipping database connection.")
 	}
-
+	// test
 	// Serve static files from the "App" directory at the "/app/" URL path
 	{
 		mux := http.NewServeMux()
