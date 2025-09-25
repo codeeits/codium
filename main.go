@@ -19,6 +19,7 @@ type ApiCfg struct {
 	dbLoaded             bool
 	secret               string
 	adminDefaultPassword string
+	running              bool
 }
 
 /*
@@ -51,6 +52,7 @@ func main() {
 		cfg = &ApiCfg{
 			logger:   *log.New(logFile, "[API] ", log.LstdFlags),
 			dbLoaded: false,
+			running:  true,
 		}
 
 		// Clear the file on startup
@@ -109,6 +111,7 @@ func main() {
 			Handler: mux,
 		}
 
+		cfg.StartConsole()
 		err = server.ListenAndServe()
 		if err != nil {
 			cfg.logger.Fatal(err)

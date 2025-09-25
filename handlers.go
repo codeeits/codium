@@ -3,6 +3,7 @@ package main
 import (
 	"Codium/internal/auth"
 	"Codium/internal/database"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,46 @@ import (
 
 	"github.com/google/uuid"
 )
+
+/*
+===========================================
+
+	API Functions
+
+===========================================
+*/
+
+func (cfg *ApiCfg) ResetAll() error {
+	err := cfg.db.DeleteUsers(context.Background())
+	if err != nil {
+		cfg.logger.Printf("Failed to delete users: %v", err)
+		return err
+	}
+
+	// Add default admin user
+	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
+	if err != nil {
+		cfg.logger.Printf("Failed to hash default admin password: %v", err)
+		return err
+	}
+
+	_, err = cfg.db.CreateUser(context.Background(), database.CreateUserParams{
+		ID:           uuid.New(),
+		Email:        "codiumOfficial@lekas.tech",
+		PasswordHash: hashedPassword,
+		Username:     "codiumOfficial",
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		IsAdmin:      true,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to create default admin user: %v", err)
+		return err
+	}
+
+	cfg.logger.Print("Default admin user created successfully.")
+	return nil
+}
 
 /*
 ===========================================
@@ -97,6 +138,8 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cfg.logger.Print("Received request to reset admin password")
+
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		cfg.logger.Printf("Unauthorized access attempt: %v", err)
@@ -128,14 +171,12 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.logger.Print("Admin reset initiated by user: ", uid)
 
 	// Delete all users
-
-	err = cfg.db.DeleteUsers(r.Context())
+	err = cfg.ResetAll()
 	if err != nil {
-		cfg.logger.Printf("Failed to delete users: %v", err)
+		cfg.logger.Printf("Failed to reset users: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/plain")
 	_, err = w.Write([]byte("All users deleted successfully."))
@@ -144,29 +185,6 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
-
-	// Add default admin user
-	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
-	if err != nil {
-		cfg.logger.Printf("Failed to hash default admin password: %v", err)
-		return
-	}
-
-	_, err = cfg.db.CreateUser(r.Context(), database.CreateUserParams{
-		ID:           uuid.New(),
-		Email:        "codiumOfficial@lekas.tech",
-		PasswordHash: hashedPassword,
-		Username:     "codiumOfficial",
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		IsAdmin:      true,
-	})
-	if err != nil {
-		cfg.logger.Printf("Failed to create default admin user: %v", err)
-		return
-	}
-
-	cfg.logger.Print("Default admin user created successfully.")
 }
 
 func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
