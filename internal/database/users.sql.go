@@ -13,9 +13,9 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, email, password_hash, username, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, username, email, password_hash, created_at, updated_at
+INSERT INTO users (id, email, password_hash, username, created_at, updated_at, is_admin)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin
 `
 
 type CreateUserParams struct {
@@ -25,6 +25,7 @@ type CreateUserParams struct {
 	Username     string
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	IsAdmin      bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -35,6 +36,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Username,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.IsAdmin,
 	)
 	var i User
 	err := row.Scan(
@@ -44,6 +46,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
@@ -58,7 +61,7 @@ func (q *Queries) DeleteUsers(ctx context.Context) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, updated_at FROM users WHERE email = $1
+SELECT id, username, email, password_hash, created_at, updated_at, is_admin FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -71,6 +74,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }

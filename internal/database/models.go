@@ -27,4 +27,5 @@ type User struct {
 	PasswordHash string
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	IsAdmin      bool
 }

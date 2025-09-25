@@ -68,6 +68,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		Username:     p.Username,
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		IsAdmin:      false,
 	})
 
 	if err != nil {
