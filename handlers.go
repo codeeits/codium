@@ -346,3 +346,43 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get users request")
+	users, err := cfg.db.GetUsers(r.Context(), database.GetUsersParams{
+		Limit:  100,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	//skip password hashes in response
+	for i := range users {
+		users[i].PasswordHash = ""
+	}
+	jsonData, err := json.Marshal(users)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write(jsonData)
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}

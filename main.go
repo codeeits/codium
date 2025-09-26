@@ -105,6 +105,7 @@ func main() {
 		mux.Handle("POST /admin/reset", http.HandlerFunc(cfg.ResetHandler))
 		mux.Handle("POST /api/login", http.HandlerFunc(cfg.LoginHandler))
 		mux.Handle("POST /api/refresh", http.HandlerFunc(cfg.RefreshHandler))
+		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
 
 		server := &http.Server{
 			Addr:    ":6767",
