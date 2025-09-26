@@ -23,6 +23,9 @@ import (
 */
 
 func (cfg *ApiCfg) ResetAll() error {
+
+	cfg.logger.Println("Resetting the database...")
+
 	err := cfg.db.DeleteUsers(context.Background())
 	if err != nil {
 		cfg.logger.Printf("Failed to delete users: %v", err)
@@ -130,7 +133,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -138,7 +141,7 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg.logger.Print("Received request to reset admin password")
+	cfg.logger.Print("Received request to reset the database")
 
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -179,7 +182,7 @@ func (cfg *ApiCfg) AdminResetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/plain")
-	_, err = w.Write([]byte("All users deleted successfully."))
+	_, err = w.Write([]byte("Database has been reset successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)

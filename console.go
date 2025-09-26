@@ -23,12 +23,17 @@ func (cfg *ApiCfg) StartConsole() {
 		cfg.logger.Print("Registering commands")
 		commands = make(map[string]func([]string) error)
 		cfg.RegisterCommand("stop", func(args []string) error {
-			cfg.logger.Print("Stopping application...")
+			cfg.logger.Print("Received stop command via console")
 			fmt.Println("Stopping application...")
 			cfg.running = false
 			return nil
 		})
 		cfg.RegisterCommand("reset", func(args []string) error {
+			cfg.logger.Print("Received reset command via console")
+			fmt.Println("Resetting database...")
+			if !cfg.dbLoaded {
+				return fmt.Errorf("database not connected")
+			}
 			err := cfg.ResetAll()
 			if err != nil {
 				return err
@@ -67,6 +72,10 @@ func (cfg *ApiCfg) StartConsole() {
 				}
 			} else {
 				fmt.Println("Unknown command:", command)
+				err := commands["help"](nil)
+				if err != nil {
+					continue
+				}
 			}
 		}
 		os.Exit(0)
