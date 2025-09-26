@@ -386,3 +386,59 @@ func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	// Extract user ID from URL path
+	var userIDStr string
+	_, err := fmt.Sscanf(r.URL.Path, "/api/user/%s", &userIDStr)
+	if err != nil || userIDStr == "" {
+		cfg.logger.Printf("Invalid user ID in URL: %v", err)
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received get user request for user ID: %v", userID)
+
+	user, err := cfg.db.GetUserByID(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("User not found: %v", userID)
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	user.PasswordHash = "" // Skip password hash in response
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write(jsonData)
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
