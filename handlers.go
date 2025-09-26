@@ -395,36 +395,76 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract user ID from URL path
-	var userIDStr string
-	_, err := fmt.Sscanf(r.URL.Path, "/api/user/%s", &userIDStr)
-	if err != nil || userIDStr == "" {
-		cfg.logger.Printf("Invalid user ID in URL: %v", err)
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	var user database.User
+	var err error
 
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
-		return
-	}
-
-	cfg.logger.Printf("Received get user request for user ID: %v", userID)
-
-	user, err := cfg.db.GetUserByID(r.Context(), userID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("User not found: %v", userID)
-			http.Error(w, "User not found", http.StatusNotFound)
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) > 0 {
+		switch q.Get("search_type") {
+		case "email":
+			userEmail := r.PathValue("searchArg")
+			user, err = cfg.db.GetUserByEmail(r.Context(), userEmail)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					cfg.logger.Printf("User not found: %v", userEmail)
+					http.Error(w, "User not found", http.StatusNotFound)
+					return
+				}
+				cfg.logger.Printf("Failed to retrieve user: %v", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+		case "username":
+			userName := r.PathValue("searchArg")
+			user, err = cfg.db.GetUserByUsername(r.Context(), userName)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					cfg.logger.Printf("User not found: %v", userName)
+					http.Error(w, "User not found", http.StatusNotFound)
+					return
+				}
+				cfg.logger.Printf("Failed to retrieve user: %v", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+		default:
+			cfg.logger.Printf("Invalid search type: %v", q.Get("search_type"))
+			http.Error(w, "Invalid search type", http.StatusBadRequest)
 			return
 		}
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	} else {
+		// Extract user ID from URL path
+		userIDStr := r.PathValue("searchArg")
+		if userIDStr == "" {
+			cfg.logger.Printf("Missing user ID in request")
+			http.Error(w, "Missing user ID", http.StatusBadRequest)
+			return
+		}
 
+		// Parse user ID as UUID
+
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			cfg.logger.Printf("Invalid UUID format: %v", err)
+			http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+			return
+		}
+
+		cfg.logger.Printf("Received get user request for user ID: %v", userID)
+
+		user, err = cfg.db.GetUserByID(r.Context(), userID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				cfg.logger.Printf("User not found: %v", userID)
+				http.Error(w, "User not found", http.StatusNotFound)
+				return
+			}
+			cfg.logger.Printf("Failed to retrieve user: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
 	user.PasswordHash = "" // Skip password hash in response
 
 	w.WriteHeader(http.StatusOK)
