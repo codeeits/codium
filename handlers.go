@@ -8,7 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,6 +59,71 @@ func (cfg *ApiCfg) ResetAll() error {
 
 	cfg.logger.Print("Default admin user created successfully.")
 	return nil
+}
+
+// Upload local upload
+func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, privileged bool, fileExts string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get current working directory: %v", err)
+	}
+
+	appDir := cwd + "/App/"
+	location = strings.TrimSpace(location)
+
+	var filePath string
+
+	switch location {
+	case "images":
+		if strings.HasPrefix(fileType, "image/") == false {
+			return "", fmt.Errorf("invalid file type for images: %v", fileType)
+		}
+		imageDir := appDir + "Images/uploads/"
+		// Ensure the directory exists
+		err := os.MkdirAll(imageDir, os.ModePerm)
+		if err != nil {
+			return "", fmt.Errorf("failed to create image directory: %v", err)
+		}
+		// Handle image upload
+		filePath = fmt.Sprintf("%s/%s.%s", imageDir, uuid.New().String(), fileExts)
+		dst, err := os.Create(filePath)
+		if err != nil {
+			return "", fmt.Errorf("failed to create file: %v", err)
+		}
+		defer func(dst *os.File) {
+			err := dst.Close()
+			if err != nil {
+				cfg.logger.Printf("Error closing the file: %v", err)
+			}
+		}(dst)
+
+		//copy the uploaded file to the destination file
+		_, err = io.Copy(dst, multipart)
+		if err != nil {
+			return "", fmt.Errorf("failed to save file: %v", err)
+		}
+		cfg.logger.Printf("Image uploaded successfully: %s", filePath)
+		// Return the file path or URL
+		filePath = strings.TrimPrefix(filePath, cwd+"/")
+		cfg.logger.Printf("Image accessible at path: %s", filePath)
+		// Return the file path or URL
+	case "lessons":
+		// Check if file is markdown
+		if strings.HasPrefix(fileType, "markdown/") == false {
+			return "", fmt.Errorf("invalid file type for lessons: %v", fileType)
+		}
+		// Lessons are privileged uploads only
+		if !privileged {
+			return "", fmt.Errorf("unauthorized upload attempt to lessons")
+		}
+
+		// Handle lesson upload
+		return "", fmt.Errorf("lesson uploads are not yet implemented")
+	default:
+		return "", fmt.Errorf("invalid location: %v", location)
+	}
+
+	return filePath, nil
 }
 
 /*
@@ -476,6 +545,105 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = w.Write(jsonData)
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
+	//check user credentials
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	//retrieve query parameters
+	q := r.URL.Query()
+	var location string
+	if len(q) > 0 {
+		location = q.Get("location")
+	} else {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
+	if err != nil {
+		cfg.logger.Printf("Error parsing multipart form: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the file from form data
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		cfg.logger.Printf("Error retrieving the file: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			cfg.logger.Printf("Error closing the file: %v", err)
+		}
+	}(file)
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		cfg.logger.Printf("Error reading the file: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	fileType := http.DetectContentType(fileBytes)
+
+	cfg.logger.Printf("Received upload request for file: %v", handler.Filename)
+	cfg.logger.Printf("Upload size: %v", handler.Size)
+	cfg.logger.Printf("Upload type: %v", handler.Header.Get("Content-Type"))
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		cfg.logger.Printf("Error seeking file: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	uploadPath, err := cfg.Upload(file, location, fileType, targetUser.IsAdmin, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:])
+	if err != nil {
+		cfg.logger.Printf("Failed to upload file: %v", err)
+		http.Error(w, "Failed to upload file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`{"file_path": "%v"}`, uploadPath)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
