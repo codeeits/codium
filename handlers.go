@@ -62,7 +62,7 @@ func (cfg *ApiCfg) ResetAll() error {
 }
 
 // Upload local upload
-func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, privileged bool, fileExts string) (string, error) {
+func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExts string) (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("failed to get current working directory: %v", err)
@@ -72,20 +72,21 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	location = strings.TrimSpace(location)
 
 	var filePath string
+	fileId := uuid.New()
 
 	switch location {
 	case "images":
 		if strings.HasPrefix(fileType, "image/") == false {
 			return "", fmt.Errorf("invalid file type for images: %v", fileType)
 		}
-		imageDir := appDir + "Images/uploads/"
+		imageDir := appDir + "Images/uploads"
 		// Ensure the directory exists
 		err := os.MkdirAll(imageDir, os.ModePerm)
 		if err != nil {
 			return "", fmt.Errorf("failed to create image directory: %v", err)
 		}
 		// Handle image upload
-		filePath = fmt.Sprintf("%s/%s.%s", imageDir, uuid.New().String(), fileExts)
+		filePath = fmt.Sprintf("%s/%s.%s", imageDir, fileId.String(), fileExts)
 		dst, err := os.Create(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to create file: %v", err)
@@ -113,7 +114,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", fmt.Errorf("invalid file type for lessons: %v", fileType)
 		}
 		// Lessons are privileged uploads only
-		if !privileged {
+		if !user.IsAdmin {
 			return "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
@@ -121,6 +122,22 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		return "", fmt.Errorf("lesson uploads are not yet implemented")
 	default:
 		return "", fmt.Errorf("invalid location: %v", location)
+	}
+
+	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
+		ID:       fileId,
+		UserID:   user.ID,
+		Filename: fileId.String() + "." + fileExts,
+		Filepath: filePath,
+		Filesize: 0, // TODO: get actual file size
+		UploadedAt: sql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to record file in database: %v", err)
 	}
 
 	return filePath, nil
@@ -634,10 +651,10 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadPath, err := cfg.Upload(file, location, fileType, targetUser.IsAdmin, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:])
+	uploadPath, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:])
 	if err != nil {
 		cfg.logger.Printf("Failed to upload file: %v", err)
-		http.Error(w, "Failed to upload file: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to upload file ", http.StatusInternalServerError)
 		return
 	}
 
