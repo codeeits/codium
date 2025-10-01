@@ -36,6 +36,25 @@ func (cfg *ApiCfg) ResetAll() error {
 		return err
 	}
 
+	cfg.logger.Println("All users deleted.")
+	// Reset the uploaded images
+	_, err = os.Stat("App/Images/uploads")
+	if !os.IsNotExist(err) {
+		err = os.RemoveAll("App/Images/uploads")
+		if err != nil {
+			cfg.logger.Printf("Failed to delete uploaded images: %v", err)
+			return err
+		}
+		cfg.logger.Println("All uploaded images deleted.")
+	}
+
+	err = os.MkdirAll("App/Images/uploads", os.ModePerm)
+	if err != nil {
+		cfg.logger.Printf("Failed to recreate uploads directory: %v", err)
+		return err
+	}
+	cfg.logger.Println("Uploads directory recreated.")
+
 	// Add default admin user
 	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
 	if err != nil {
@@ -107,7 +126,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		// Return the file path or URL
 		filePath = strings.TrimPrefix(filePath, cwd+"/")
 		cfg.logger.Printf("Image accessible at path: %s", filePath)
-		// Return the file path or URL
+
 	case "lessons":
 		// Check if file is markdown
 		if strings.HasPrefix(fileType, "markdown/") == false {
