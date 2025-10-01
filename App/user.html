@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/main.css">
+    <link rel="stylesheet" href="Styles/user.css">
+    
+    <!-- Scripts -->
+    <script src="Scripts/main.js" defer></script>
+    <script src="Scripts/user.js" defer></script>
+    
+    <meta name="menu-variant" content="default">
+</head>
+<body>
+    <!-- Navigation Menu Container -->
+    <div id="top-menu-container"></div>
+    
+    <!-- Main Content -->
+    <div class="user-container">
+        <div class="user-header">
+            <div class="user-avatar">
+                <i class="fas fa-user-circle"></i>
+                <button class="avatar-upload" id="avatarUpload">
+                    <i class="fas fa-camera"></i>
+                </button>
+            </div>
+            <div class="user-info">
+                <h1 id="userName">Loading...</h1>
+                <p id="userEmail">Loading...</p>
+                <span class="user-badge" id="userBadge">Student</span>
+            </div>
+            <div class="user-actions">
+                <button class="btn-primary" id="editProfile">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+                <button class="btn-secondary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="user-content">
+            <div class="user-sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-chart-line"></i> Progress</h3>
+                    <div class="progress-item">
+                        <span>Lessons Completed</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-progress="65"></div>
+                        </div>
+                        <span class="progress-text">13/20</span>
+                    </div>
+                    <div class="progress-item">
+                        <span>Problems Solved</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-progress="40"></div>
+                        </div>
+                        <span class="progress-text">8/20</span>
+                    </div>
+                    <div class="progress-item">
+                        <span>Overall Progress</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-progress="52"></div>
+                        </div>
+                        <span class="progress-text">52%</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-trophy"></i> Achievements</h3>
+                    <div class="achievement-grid">
+                        <div class="achievement earned">
+                            <i class="fas fa-medal"></i>
+                            <span>First Lesson</span>
+                        </div>
+                        <div class="achievement earned">
+                            <i class="fas fa-fire"></i>
+                            <span>Week Streak</span>
+                        </div>
+                        <div class="achievement">
+                            <i class="fas fa-star"></i>
+                            <span>Perfect Score</span>
+                        </div>
+                        <div class="achievement">
+                            <i class="fas fa-rocket"></i>
+                            <span>Speed Solver</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-main">
+                <div class="main-section">
+                    <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Completed "Introduction to Structs"</h4>
+                                <p>Clasa a X-a • 2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon in-progress">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Started "Introduction to C++"</h4>
+                                <p>Clasa a XII-a • 1 day ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Solved Problem #127</h4>
+                                <p>Data Structures • 3 days ago</p>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <h4>Completed "Arrays and Lists"</h4>
+                                <p>Clasa a IX-a • 1 week ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main-section">
+                    <h2><i class="fas fa-bookmark"></i> Bookmarked Lessons</h2>
+                    <div class="bookmark-grid">
+                        <div class="bookmark-card">
+                            <div class="bookmark-header">
+                                <h4>Pointers and References</h4>
+                                <span class="bookmark-class">Clasa a XI-a</span>
+                            </div>
+                            <p>Advanced memory management concepts</p>
+                            <div class="bookmark-actions">
+                                <button class="btn-outline">Continue</button>
+                                <button class="btn-icon"><i class="fas fa-bookmark"></i></button>
+                            </div>
+                        </div>
+                        <div class="bookmark-card">
+                            <div class="bookmark-header">
+                                <h4>Object-Oriented Programming</h4>
+                                <span class="bookmark-class">Clasa a XII-a</span>
+                            </div>
+                            <p>Classes, inheritance, and polymorphism</p>
+                            <div class="bookmark-actions">
+                                <button class="btn-outline">Continue</button>
+                                <button class="btn-icon"><i class="fas fa-bookmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Profile</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editProfileForm" class="modal-form">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">New Password (optional)</label>
+                    <input type="password" id="editPassword" name="password" placeholder="Leave blank to keep current password">
+                </div>
+                <div class="form-group">
+                    <label for="editConfirmPassword">Confirm New Password</label>
+                    <input type="password" id="editConfirmPassword" name="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelEdit">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading and alert states -->
+    <div id="loading" class="loading hidden">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+    
+    <div id="error-alert" class="alert alert-error hidden">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span id="error-message"></span>
+    </div>
+    
+    <div id="success-alert" class="alert alert-success hidden">
+        <i class="fas fa-check-circle"></i>
+        <span id="success-message"></span>
+    </div>
+</body>
+</html>

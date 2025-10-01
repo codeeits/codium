@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/main.css">
+    <link rel="stylesheet" href="Styles/auth.css">
+    
+    <!-- Scripts -->
+    <script src="Scripts/main.js" defer></script>
+    
+    <meta name="menu-variant" content="default">
+</head>
+<body>
+    <!-- Navigation Menu Container -->
+    <div id="top-menu-container"></div>
+    
+    <!-- Main Content -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1><i class="fas fa-sign-in-alt"></i> Welcome Back</h1>
+                <p>Sign in to your Codium account</p>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="Enter your email address" autocomplete="email">
+                    <span class="error-message" id="email-error"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Enter your password" autocomplete="current-password">
+                    <span class="error-message" id="password-error"></span>
+                </div>
+                
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                    
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="auth-button" id="loginButton">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="signup.html">Create one here</a></p>
+            </div>
+            
+            <!-- Loading and error states -->
+            <div id="loading" class="loading hidden">
+                <i class="fas fa-spinner fa-spin"></i> Signing you in...
+            </div>
+            
+            <div id="error-alert" class="alert alert-error hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="error-message"></span>
+            </div>
+            
+            <div id="success-alert" class="alert alert-success hidden">
+                <i class="fas fa-check-circle"></i>
+                <span id="success-message"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const submitButton = document.getElementById('loginButton');
+            const loading = document.getElementById('loading');
+            const errorAlert = document.getElementById('error-alert');
+            const successAlert = document.getElementById('success-alert');
+
+            // Check if user is already logged in
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                // Redirect to dashboard or main page
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Email validation
+                const email = document.getElementById('email').value.trim();
+                const emailError = document.getElementById('email-error');
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    emailError.textContent = 'Please enter a valid email address';
+                    emailError.classList.add('show');
+                    isValid = false;
+                } else {
+                    emailError.classList.remove('show');
+                }
+
+                // Password validation
+                const password = document.getElementById('password').value;
+                const passwordError = document.getElementById('password-error');
+                if (password.length === 0) {
+                    passwordError.textContent = 'Password is required';
+                    passwordError.classList.add('show');
+                    isValid = false;
+                } else {
+                    passwordError.classList.remove('show');
+                }
+
+                return isValid;
+            }
+
+            // Show/hide alerts
+            function showAlert(type, message) {
+                hideAlerts();
+                const alert = type === 'error' ? errorAlert : successAlert;
+                const messageElement = document.getElementById(type === 'error' ? 'error-message' : 'success-message');
+                messageElement.textContent = message;
+                alert.classList.remove('hidden');
+            }
+
+            function hideAlerts() {
+                errorAlert.classList.add('hidden');
+                successAlert.classList.add('hidden');
+            }
+
+            // Form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                hideAlerts();
+                
+                if (!validateForm()) {
+                    return;
+                }
+
+                const formData = {
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value
+                };
+
+                // Show loading state
+                submitButton.disabled = true;
+                loading.classList.remove('hidden');
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        
+                        // Store tokens and user info
+                        localStorage.setItem('authToken', result.auth_token);
+                        localStorage.setItem('refreshToken', result.refresh_token);
+                        
+                        // Store user information for the menu
+                        if (result.user) {
+                            localStorage.setItem('username', result.user.username);
+                            localStorage.setItem('userEmail', result.user.email);
+                            localStorage.setItem('isAdmin', result.user.is_admin || false);
+                        } else {
+                            // Fallback: extract username from email if user object not provided
+                            const email = formData.email;
+                            const username = email.split('@')[0];
+                            localStorage.setItem('username', username);
+                            localStorage.setItem('userEmail', email);
+                            localStorage.setItem('isAdmin', false);
+                        }
+                        
+                        // Store remember me preference
+                        const rememberMe = document.getElementById('rememberMe').checked;
+                        if (rememberMe) {
+                            localStorage.setItem('rememberMe', 'true');
+                        }
+
+                        showAlert('success', 'Login successful! Redirecting...');
+                        
+                        // Refresh auth button if available
+                        if (window.refreshAuthButton) {
+                            window.refreshAuthButton();
+                        }
+                        
+                        // Redirect to dashboard or main page
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    } else {
+                        let errorMessage = 'Invalid email or password';
+                        if (response.status === 500) {
+                            errorMessage = 'Server error. Please try again later.';
+                        }
+                        showAlert('error', errorMessage);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showAlert('error', 'Network error. Please check your connection and try again.');
+                } finally {
+                    // Hide loading state
+                    loading.classList.add('hidden');
+                    submitButton.disabled = false;
+                }
+            });
+
+            // Real-time validation
+            document.getElementById('email').addEventListener('blur', validateForm);
+            document.getElementById('password').addEventListener('blur', validateForm);
+
+            // Auto-fill email if remembered
+            const savedEmail = localStorage.getItem('savedEmail');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+            }
+        });
+    </script>
+</body>
+</html>
