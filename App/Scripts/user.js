@@ -1,4 +1,16 @@
+/*
+ __  __  ___  ____  ____     ____  ___ 
+(  )(  )/ __)( ___)(  _ \   (_  _)/ __)
+ )(__)( \__ \ )__)  )   /  .-_)(  \__ \
+(______)(___/(____)(_)\_)()\____) (___/
+
+Handles user profile management, including viewing and editing profile details,
+avatar upload (soon), and logout functionality.
+
+*/
+
 document.addEventListener('DOMContentLoaded', function() {
+
     // Check authentication
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {

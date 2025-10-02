@@ -30,27 +30,73 @@ async function loadTopMenu(variant = 'default') {
 
 function updateAuthButton() {
     const loginButton = document.getElementById('login-button');
-    if (!loginButton) return;
+    const userButton = document.getElementById('user-button');
+    const logoutButton = document.getElementById('logout-button');
+    const userNameSpan = document.getElementById('user-name');
     
     const authToken = localStorage.getItem('authToken');
     const username = localStorage.getItem('username');
     
     if (authToken && username) {
-        // User is logged in - show username and link to user page
-        loginButton.innerHTML = `<i class="fas fa-user"></i> <u>${username}</u>`;
-        loginButton.onclick = function() {
-            window.location.href = 'user.html';
-        };
-        loginButton.title = 'Go to profile';
-        loginButton.classList.add('user-logged-in');
+        // User is logged in - hide login button, show user and logout buttons
+        if (loginButton) {
+            loginButton.classList.add('hidden');
+        }
+        
+        if (userButton) {
+            userButton.classList.remove('hidden');
+            userButton.onclick = function() {
+                window.location.href = 'user.html';
+            };
+            userButton.title = 'Go to profile';
+        }
+        
+        if (logoutButton) {
+            logoutButton.classList.remove('hidden');
+            logoutButton.onclick = function() {
+                handleLogout();
+            };
+            logoutButton.title = 'Logout';
+        }
+        
+        if (userNameSpan) {
+            userNameSpan.textContent = username;
+        }
     } else {
-        // User is not logged in - show login link
-        loginButton.innerHTML = '<u>Loghează-te</u>';
-        loginButton.onclick = function() {
-            window.location.href = 'login.html';
-        };
-        loginButton.title = 'Login';
-        loginButton.classList.remove('user-logged-in');
+        // User is not logged in - show login button, hide user and logout buttons
+        if (loginButton) {
+            loginButton.classList.remove('hidden');
+            loginButton.onclick = function() {
+                window.location.href = 'login.html';
+            };
+            loginButton.title = 'Login';
+        }
+        
+        if (userButton) {
+            userButton.classList.add('hidden');
+        }
+        
+        if (logoutButton) {
+            logoutButton.classList.add('hidden');
+        }
+    }
+}
+
+// Logout function for the navigation menu
+function handleLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Clear stored data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('isAdmin');
+        
+        // Update the menu immediately
+        updateAuthButton();
+        
+        // Redirect to login or home page
+        window.location.href = 'login.html';
     }
 }
 

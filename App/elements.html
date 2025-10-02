@@ -1,3 +1,6 @@
+
+<!-- Default Menu -->
+
 <div id="top-menu-default" class="menu-variant">
     <div class="nav-left">
         <h1>codium/</h1>
@@ -13,9 +16,19 @@
             </select>
         </div>
         <button type="button"><i class="fas fa-moon"></i></button>
-        <button type="button" id="login-button"><u>Loghează-te</u></button>
+        
+        <!-- Authentication-dependent buttons -->
+        <button type="button" id="login-button" class="auth-logged-out"><u>Loghează-te</u></button>
+        <button type="button" id="user-button" class="auth-logged-in hidden">
+            <i class="fas fa-user"></i> <u id="user-name">User</u>
+        </button>
+        <button type="button" id="logout-button" class="auth-logged-in hidden">
+            <i class="fas fa-sign-out-alt"></i> <u>Logout</u>
+        </button>
     </div>
 </div>
+
+<!-- Lesson Menu -->
 
 <div id="top-menu-lesson" class="menu-variant">
     <div class="nav-left">
@@ -43,8 +56,16 @@
         <button type="button">
             <i class="fas fa-moon"></i>
         </button>
-        <button type="button" id="login-button">
-            <u>Loghează-te</u>
+        
+        <!-- Authentication-dependent buttons -->
+        <button type="button" id="login-button" class="auth-logged-out"><u>Loghează-te</u></button>
+        <button type="button" id="user-button" class="auth-logged-in hidden">
+            <i class="fas fa-user"></i> <u id="user-name">User</u>
+        </button>
+        <button type="button" id="logout-button" class="auth-logged-in hidden">
+            <i class="fas fa-sign-out-alt"></i> <u>Logout</u>
         </button>
     </div>
 </div>
+
+<!-- -->
