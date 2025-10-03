@@ -108,6 +108,7 @@ func main() {
 		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
 		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
 		mux.Handle("POST /api/upload", http.HandlerFunc(cfg.UploadHandler))
+		mux.Handle("GET /api/images/{imageID}", http.HandlerFunc(cfg.GetImageHandler))
 
 		server := &http.Server{
 			Addr:    ":6767",

@@ -717,3 +717,43 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiCfg) GetImageHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get image by id request")
+	imageIDStr := r.PathValue("imageID")
+	if imageIDStr == "" {
+		cfg.logger.Printf("Missing image ID in request")
+		http.Error(w, "Missing image ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse image ID as UUID
+	imageID, err := uuid.Parse(imageIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid image ID format", http.StatusBadRequest)
+		return
+	}
+
+	image, err := cfg.db.GetFileByID(r.Context(), imageID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("Image not found: %v", imageID)
+			http.Error(w, "Image not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve image: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Serve the image file
+	http.ServeFile(w, r, image.Filepath)
+}
