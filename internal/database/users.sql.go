@@ -162,6 +162,35 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const updateUserPassword = `-- name: UpdateUserPassword :one
+UPDATE users
+SET password_hash = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id
+`
+
+type UpdateUserPasswordParams struct {
+	ID           uuid.UUID
+	PasswordHash string
+	UpdatedAt    sql.NullTime
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserPassword, arg.ID, arg.PasswordHash, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+	)
+	return i, err
+}
+
 const updateUserPfp = `-- name: UpdateUserPfp :one
 UPDATE users
 SET profile_pic_id = $2, updated_at = $3

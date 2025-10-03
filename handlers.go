@@ -201,7 +201,7 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		http.Error(w, "Not implemented yet", http.StatusBadRequest)
 	case "password":
 		// Update password
-		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+		cfg.UpdateUserPasswordHandler(w, r)
 	case "email":
 		// Update email
 		http.Error(w, "Not implemented yet", http.StatusBadRequest)
@@ -873,6 +873,94 @@ func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request) 
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to update user profile picture: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(userJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	cfg.logger.Print("Received update user password request for user ID: ", targetId)
+
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Check old password
+	err = auth.CheckPasswordHash(p.OldPassword, targetUser.PasswordHash)
+	if err != nil {
+		cfg.logger.Printf("Invalid old password for user ID: %v", targetId)
+		http.Error(w, "Incorrect old password", http.StatusUnauthorized)
+		return
+	}
+
+	// Hash the new password
+	hashedPassword, err := auth.HashPassword(p.NewPassword)
+	if err != nil {
+		cfg.logger.Printf("Failed to hash new password: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res, err := cfg.db.UpdateUserPassword(r.Context(), database.UpdateUserPasswordParams{
+		ID:           targetUser.ID,
+		PasswordHash: hashedPassword,
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update user password: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
