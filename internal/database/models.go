@@ -37,4 +37,5 @@ type User struct {
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
 	IsAdmin      bool
+	ProfilePicID uuid.NullUUID
 }
