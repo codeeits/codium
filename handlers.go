@@ -276,7 +276,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		cfg.logger.Printf("Failed to create user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
 
@@ -594,6 +594,25 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					cfg.logger.Printf("User not found: %v", userName)
+					http.Error(w, "User not found", http.StatusNotFound)
+					return
+				}
+				cfg.logger.Printf("Failed to retrieve user: %v", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+		case "jwt":
+			jwtToken := r.PathValue("searchArg")
+			uid, err := auth.ValidateJWT(jwtToken, cfg.secret)
+			if err != nil {
+				cfg.logger.Printf("Invalid token: %v", err)
+				http.Error(w, "Invalid token", http.StatusBadRequest)
+				return
+			}
+			user, err = cfg.db.GetUserByID(r.Context(), uid)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					cfg.logger.Printf("User not found: %v", uid)
 					http.Error(w, "User not found", http.StatusNotFound)
 					return
 				}
