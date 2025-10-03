@@ -161,3 +161,32 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	}
 	return items, nil
 }
+
+const updateUserPfp = `-- name: UpdateUserPfp :one
+UPDATE users
+SET profile_pic_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id
+`
+
+type UpdateUserPfpParams struct {
+	ID           uuid.UUID
+	ProfilePicID uuid.NullUUID
+	UpdatedAt    sql.NullTime
+}
+
+func (q *Queries) UpdateUserPfp(ctx context.Context, arg UpdateUserPfpParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserPfp, arg.ID, arg.ProfilePicID, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+	)
+	return i, err
+}

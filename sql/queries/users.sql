@@ -17,3 +17,9 @@ SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2;
 
 -- name: GetUserByUsername :one
 SELECT * FROM users WHERE username = $1;
+
+-- name: UpdateUserPfp :one
+UPDATE users
+SET profile_pic_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

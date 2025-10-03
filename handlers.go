@@ -179,6 +179,43 @@ func PrintUserToJson(user database.User) (string, error) {
 	return string(jsonData), nil
 }
 
+func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	field := q.Get("target_field")
+	if field == "" {
+		cfg.logger.Printf("Missing target_field query parameter")
+		http.Error(w, "Missing target_field query parameter", http.StatusBadRequest)
+		return
+	}
+
+	switch field {
+	case "username":
+		// Update username
+		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+	case "password":
+		// Update password
+		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+	case "email":
+		// Update email
+		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+	case "pfp":
+		// Update profile picture
+		cfg.UpdateUserPfpHandler(w, r)
+
+	default:
+		cfg.logger.Printf("Invalid target_field: %v", field)
+		http.Error(w, "Invalid target_field", http.StatusBadRequest)
+		return
+	}
+}
+
 /*
 ===========================================
 
@@ -756,4 +793,83 @@ func (cfg *ApiCfg) GetImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Serve the image file
 	http.ServeFile(w, r, image.Filepath)
+}
+
+func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		ImageID string `json:"image_id"`
+	}
+
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	cfg.logger.Print("Received update user pfp request for user ID: ", targetId)
+
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Parse image ID as UUID
+	imageID, err := uuid.Parse(p.ImageID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid image ID format", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateUserPfp(r.Context(), database.UpdateUserPfpParams{
+		ID:           targetUser.ID,
+		ProfilePicID: uuid.NullUUID{UUID: imageID, Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update user profile picture: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(userJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
 }
