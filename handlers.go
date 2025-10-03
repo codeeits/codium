@@ -81,10 +81,10 @@ func (cfg *ApiCfg) ResetAll() error {
 }
 
 // Upload local upload
-func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExts string) (string, error) {
+func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExts string) (string, string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return "", fmt.Errorf("failed to get current working directory: %v", err)
+		return "", "", fmt.Errorf("failed to get current working directory: %v", err)
 	}
 
 	appDir := cwd + "/App/"
@@ -96,19 +96,19 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	switch location {
 	case "images":
 		if strings.HasPrefix(fileType, "image/") == false {
-			return "", fmt.Errorf("invalid file type for images: %v", fileType)
+			return "", "", fmt.Errorf("invalid file type for images: %v", fileType)
 		}
 		imageDir := appDir + "Images/uploads"
 		// Ensure the directory exists
 		err := os.MkdirAll(imageDir, os.ModePerm)
 		if err != nil {
-			return "", fmt.Errorf("failed to create image directory: %v", err)
+			return "", "", fmt.Errorf("failed to create image directory: %v", err)
 		}
 		// Handle image upload
 		filePath = fmt.Sprintf("%s/%s.%s", imageDir, fileId.String(), fileExts)
 		dst, err := os.Create(filePath)
 		if err != nil {
-			return "", fmt.Errorf("failed to create file: %v", err)
+			return "", "", fmt.Errorf("failed to create file: %v", err)
 		}
 		defer func(dst *os.File) {
 			err := dst.Close()
@@ -120,7 +120,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		//copy the uploaded file to the destination file
 		_, err = io.Copy(dst, multipart)
 		if err != nil {
-			return "", fmt.Errorf("failed to save file: %v", err)
+			return "", "", fmt.Errorf("failed to save file: %v", err)
 		}
 		cfg.logger.Printf("Image uploaded successfully: %s", filePath)
 		// Return the file path or URL
@@ -130,17 +130,17 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	case "lessons":
 		// Check if file is markdown
 		if strings.HasPrefix(fileType, "markdown/") == false {
-			return "", fmt.Errorf("invalid file type for lessons: %v", fileType)
+			return "", "", fmt.Errorf("invalid file type for lessons: %v", fileType)
 		}
 		// Lessons are privileged uploads only
 		if !user.IsAdmin {
-			return "", fmt.Errorf("unauthorized upload attempt to lessons")
+			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
 		// Handle lesson upload
-		return "", fmt.Errorf("lesson uploads are not yet implemented")
+		return "", "", fmt.Errorf("lesson uploads are not yet implemented")
 	default:
-		return "", fmt.Errorf("invalid location: %v", location)
+		return "", "", fmt.Errorf("invalid location: %v", location)
 	}
 
 	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
@@ -156,10 +156,10 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("failed to record file in database: %v", err)
+		return "", "", fmt.Errorf("failed to record file in database: %v", err)
 	}
 
-	return filePath, nil
+	return filePath, fileId.String(), nil
 }
 
 /*
@@ -701,7 +701,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadPath, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:])
+	uploadPath, uploadID, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:])
 	if err != nil {
 		cfg.logger.Printf("Failed to upload file: %v", err)
 		http.Error(w, "Failed to upload file ", http.StatusInternalServerError)
@@ -710,7 +710,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"file_path": "%v"}`, uploadPath)))
+	_, err = w.Write([]byte(fmt.Sprintf(`{"file_id": "%v", "file_path": "%v"}`, uploadID, uploadPath)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
