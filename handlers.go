@@ -165,6 +165,23 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 /*
 ===========================================
 
+	Helper Functions
+
+===========================================
+*/
+
+func PrintUserToJson(user database.User) (string, error) {
+	user.PasswordHash = "" // Remove password hash for security
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal user: %v", err)
+	}
+	return string(jsonData), nil
+}
+
+/*
+===========================================
+
 	Handlers
 
 ===========================================
@@ -230,7 +247,13 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"id": %v, "email": "%v", "username": "%v", "created_at": "%v","updated_at": "%v"}`, res.ID, res.Email, res.Username, res.CreatedAt, res.UpdatedAt)))
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, userJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -374,7 +397,15 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"auth_token": "%v", "refresh_token": "%v"}`, token, refreshToken)))
+	userJson, err := PrintUserToJson(loginTarget)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	token = strings.TrimSpace(token)
+	refreshToken = strings.TrimSpace(refreshToken)
+	_, err = w.Write([]byte(fmt.Sprintf(`{"user":%v, "auth_token": "%v", "refresh_token": "%v"}`, userJson, token, refreshToken)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -574,13 +605,13 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	jsonData, err := json.Marshal(user)
+	userJson, err := PrintUserToJson(user)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	_, err = w.Write(jsonData)
+	_, err = w.Write([]byte(userJson))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
