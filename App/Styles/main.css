@@ -7,8 +7,12 @@
     --primary-light: rgba(176, 123, 201, 0.20);
     --border-gradient: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
     --text-color: #FFFFFF;
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255, 255, 255, 0.8);
     --primary-black: #000000;
     --svg-color: #B07BC9;
+    --purple-primary: #9B59BB;
+    --purple-accent: #B380CB;
 }
 
 /* ========================================
@@ -73,6 +77,49 @@ body {
 
 #top-menu button:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* User button styling when logged in */
+#login-button.user-logged-in {
+    background: rgba(176, 123, 201, 0.2);
+    border: 1px solid rgba(176, 123, 201, 0.4);
+}
+
+#login-button.user-logged-in:hover {
+    background: rgba(176, 123, 201, 0.3);
+}
+
+/* Authentication state visibility */
+.auth-logged-in {
+    display: flex;
+}
+
+.auth-logged-out {
+    display: flex;
+}
+
+/* Hidden class overrides */
+.hidden {
+    display: none !important;
+}
+
+/* User and logout button styling */
+#user-button {
+    background: rgba(176, 123, 201, 0.2);
+    border: 1px solid rgba(176, 123, 201, 0.4);
+}
+
+#user-button:hover {
+    background: rgba(176, 123, 201, 0.3);
+}
+
+#logout-button {
+    background: rgba(255, 107, 107, 0.2);
+    border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+#logout-button:hover {
+    background: rgba(255, 107, 107, 0.3);
 }
 
 /* Language Selector */
