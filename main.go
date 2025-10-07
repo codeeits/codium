@@ -108,7 +108,7 @@ func main() {
 		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
 		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
 		mux.Handle("POST /api/upload", http.HandlerFunc(cfg.UploadHandler))
-		mux.Handle("GET /api/images/{imageID}", http.HandlerFunc(cfg.GetImageHandler))
+		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
 		mux.Handle("PUT /api/users", http.HandlerFunc(cfg.UpdateUserDisambiguationHandler))
 
 		server := &http.Server{

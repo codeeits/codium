@@ -81,7 +81,7 @@ func (cfg *ApiCfg) ResetAll() error {
 }
 
 // Upload local upload
-func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExts string) (string, string, error) {
+func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExtensions string) (string, string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", "", fmt.Errorf("failed to get current working directory: %v", err)
@@ -105,7 +105,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("failed to create image directory: %v", err)
 		}
 		// Handle image upload
-		filePath = fmt.Sprintf("%s/%s.%s", imageDir, fileId.String(), fileExts)
+		filePath = fmt.Sprintf("%s/%s.%s", imageDir, fileId.String(), fileExtensions)
 		dst, err := os.Create(filePath)
 		if err != nil {
 			return "", "", fmt.Errorf("failed to create file: %v", err)
@@ -146,7 +146,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
 		ID:       fileId,
 		UserID:   user.ID,
-		Filename: fileId.String() + "." + fileExts,
+		Filename: fileId.String() + "." + fileExtensions,
 		Filepath: filePath,
 		Filesize: 0, // TODO: get actual file size
 		UploadedAt: sql.NullTime{
@@ -194,19 +194,12 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	token, err := auth.GetBearerToken(r.Header)
+	targetUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+	targetId := targetUser.ID
 
 	field := q.Get("target_field")
 	if field == "" {
@@ -234,6 +227,27 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
 		return
 	}
+}
+
+func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		return database.User{}, err
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		return database.User{}, err
+	}
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		return database.User{}, err
+	}
+
+	return targetUser, nil
 }
 
 /*
@@ -328,35 +342,19 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.logger.Print("Received request to reset the database")
 
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	// Validate the token
-	uid, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	// Check if the user is an admin
-	adminUser, err := cfg.db.GetUserByID(r.Context(), uid)
+	adminUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	if !adminUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", uid)
+		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", adminUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	cfg.logger.Print("Admin reset initiated by user: ", uid)
+	cfg.logger.Print("Admin reset initiated by user: ", adminUser.ID)
 
 	// Delete all users
 	err = cfg.ResetAll()
@@ -677,8 +675,6 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	user.PasswordHash = "" // Skip password hash in response
-
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(user)
@@ -696,7 +692,6 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
-	//check user credentials
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -704,23 +699,9 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GetBearerToken(r.Header)
+	targetUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -794,7 +775,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) GetImageHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -802,36 +783,36 @@ func (cfg *ApiCfg) GetImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg.logger.Print("Received get image by id request")
-	imageIDStr := r.PathValue("imageID")
-	if imageIDStr == "" {
-		cfg.logger.Printf("Missing image ID in request")
-		http.Error(w, "Missing image ID", http.StatusBadRequest)
+	cfg.logger.Print("Received get file by id request")
+	fileIDStr := r.PathValue("fileID")
+	if fileIDStr == "" {
+		cfg.logger.Printf("Missing file ID in request")
+		http.Error(w, "Missing file ID", http.StatusBadRequest)
 		return
 	}
 
-	// Parse image ID as UUID
-	imageID, err := uuid.Parse(imageIDStr)
+	// Parse file ID as UUID
+	fileID, err := uuid.Parse(fileIDStr)
 	if err != nil {
 		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid image ID format", http.StatusBadRequest)
+		http.Error(w, "Invalid file ID format", http.StatusBadRequest)
 		return
 	}
 
-	image, err := cfg.db.GetFileByID(r.Context(), imageID)
+	file, err := cfg.db.GetFileByID(r.Context(), fileID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("Image not found: %v", imageID)
-			http.Error(w, "Image not found", http.StatusNotFound)
+			cfg.logger.Printf("File not found: %v", fileID)
+			http.Error(w, "File not found", http.StatusNotFound)
 			return
 		}
-		cfg.logger.Printf("Failed to retrieve image: %v", err)
+		cfg.logger.Printf("Failed to retrieve file: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Serve the image file
-	http.ServeFile(w, r, image.Filepath)
+	// Serve the file
+	http.ServeFile(w, r, file.Filepath)
 }
 
 func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
