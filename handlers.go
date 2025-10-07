@@ -188,6 +188,26 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	field := q.Get("target_field")
 	if field == "" {
 		cfg.logger.Printf("Missing target_field query parameter")
@@ -201,13 +221,13 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		http.Error(w, "Not implemented yet", http.StatusBadRequest)
 	case "password":
 		// Update password
-		cfg.UpdateUserPasswordHandler(w, r)
+		cfg.UpdateUserPasswordHandler(w, r, targetId)
 	case "email":
 		// Update email
 		http.Error(w, "Not implemented yet", http.StatusBadRequest)
 	case "pfp":
 		// Update profile picture
-		cfg.UpdateUserPfpHandler(w, r)
+		cfg.UpdateUserPfpHandler(w, r, targetId)
 
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", field)
@@ -814,30 +834,9 @@ func (cfg *ApiCfg) GetImageHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, image.Filepath)
 }
 
-func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
 	type params struct {
 		ImageID string `json:"image_id"`
-	}
-
-	// Check if database is connected
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
 	}
 
 	cfg.logger.Print("Received update user pfp request for user ID: ", targetId)
@@ -893,31 +892,10 @@ func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
 	type params struct {
 		OldPassword string `json:"old_password"`
 		NewPassword string `json:"new_password"`
-	}
-
-	// Check if database is connected
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
 	}
 
 	cfg.logger.Print("Received update user password request for user ID: ", targetId)
@@ -964,6 +942,12 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	//Revoke all refresh tokens for the user
+	err = cfg.db.RevokeAllUserTokens(r.Context(), database.RevokeAllUserTokensParams{
+		UserID:    targetUser.ID,
+		RevokedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")

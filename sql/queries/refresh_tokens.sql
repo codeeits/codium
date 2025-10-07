@@ -20,3 +20,9 @@ SET revoked_at = $1,
     updated_at = $1
 WHERE token = $2
 RETURNING *;
+
+-- name: RevokeAllUserTokens :exec
+UPDATE refresh_tokens
+SET revoked_at = $1,
+    updated_at = $1
+WHERE user_id = $2 AND revoked_at IS NULL;
