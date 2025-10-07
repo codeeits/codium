@@ -4,7 +4,7 @@
   )(   )__)  )    (  )___/ )(__  /(__)\  )(   )__) \__ \  .-_)(  \__ \
  (__) (____)(_/\/\_)(__)  (____)(__)(__)(__) (____)(___/()\____) (___/
 
-Template system for creating reusable UI components, similar to Figma components.
+Template system for creating reusable UI components.
 */
 
 async function loadTemplates(url, templateId) {

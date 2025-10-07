@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/main.css">
+
+    <!-- Scripts -->
+    <script src="Scripts/main.js" defer></script>
+    
+    <meta name="menu-variant" content="default">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+    
+    <div class="main-content-auth">
+        <div class="auth-nav left">
+            <div class="auth-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>Log-in</h2>
+            </div>
+            <form id="loginForm" class="auth-form">
+                <div class="text-container">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="email" id="email" placeholder="e-mail" required>
+                </div>
+                <div class="text-container">
+                    <label for="password"><i class="fa-solid fa-key"></i></label>
+                    <input type="password" name="password" id="password" placeholder="password" required>
+                </div>
+                <div class="auth-remember-me">
+                    <input type="checkbox" name="remember" id="rememberMe">
+                    <label for="rememberMe">remember me?</label>
+                </div>
+                <div class="auth-buttons">
+                    <input type="submit" value="Log in" class="auth-buttn-principal">
+                    <button type="button" class="auth-buttn-second">Cancel</button>
+                </div>
+            </form>
+        </div>
+        <div class="auth-nav right">
+            <h2>codium</h2>
+            <p>Learn/ Code/ Compete/</p>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const submitButton = form.querySelector('input[type="submit"]');
+
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            function validateForm() { // pentru requesturile care ocolesc frontend-ul
+                let isValid = true;
+                
+                const email = document.getElementById('email').value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    console.log('Invalid email format');
+                    isValid = false;
+                }
+
+                const password = document.getElementById('password').value;
+                if (password.length === 0) {
+                    console.log('Password is required');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!validateForm()) {
+                    alert('Please fill in all fields correctly');
+                    return;
+                }
+
+                const formData = {
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value
+                };
+
+                submitButton.disabled = true;
+                submitButton.value = 'Logging in...';
+                form.style.opacity = '0.6';
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        
+                        // Store tokens and user info
+                        localStorage.setItem('authToken', result.auth_token);
+                        localStorage.setItem('refreshToken', result.refresh_token);
+                        
+                        // Store user information for the menu and profile
+                        if (result.user) {
+                            localStorage.setItem('username', result.user.Username);
+                            localStorage.setItem('userEmail', result.user.Email);
+                            localStorage.setItem('isAdmin', result.user.IsAdmin || false);
+                            localStorage.setItem('userID', result.user.ID);
+                            if (result.user.ProfilePicID) {
+                                localStorage.setItem('profilePicID', result.user.ProfilePicID);
+                            }
+                        } else {
+                            // Fallback: extract username from email if user object not provided
+                            const username = formData.email.split('@')[0];
+                            localStorage.setItem('username', username);
+                            localStorage.setItem('userEmail', formData.email);
+                            localStorage.setItem('isAdmin', false);
+                        }
+                        
+                        // Store remember me preference
+                        const rememberMe = document.getElementById('rememberMe').checked;
+                        if (rememberMe) {
+                            localStorage.setItem('rememberMe', 'true');
+                        }
+
+                        // Visual feedback
+                        submitButton.value = 'Success!';
+                        submitButton.style.background = 'var(--purple-accent)';
+                        
+                        // Refresh auth button if available
+                        if (window.refreshAuthButton) {
+                            window.refreshAuthButton();
+                        }
+                        
+                        // Redirect to main page
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    } else {
+                        let errorMessage = 'Invalid email or password';
+                        if (response.status === 500) {
+                            errorMessage = 'Server error. Please try again later.';
+                        }
+                        alert(errorMessage);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Network error. Please check your connection and try again.');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.value = 'Log in';
+                    submitButton.style.background = 'var(--purple-primary)';
+                    form.style.opacity = '1';
+                }
+            });
+
+            document.getElementById('email').addEventListener('input', function() {
+                const email = this.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
+            document.getElementById('password').addEventListener('input', function() {
+                if (this.value.length === 0) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
+            const savedEmail = localStorage.getItem('savedEmail');
+            if (savedEmail) {
+                document.getElementById('email').value = savedEmail;
+            }
+
+            const cancelButton = form.querySelector('button[type="button"]');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', function() {
+                    window.location.href = 'index.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

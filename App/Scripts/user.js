@@ -57,26 +57,108 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showLoading(true);
             
-            // Mock user data for now - replace with actual API call
-            const userData = {
-                username: localStorage.getItem('username') || 'John Doe',
-                email: localStorage.getItem('userEmail') || 'john.doe@example.com',
-                isAdmin: localStorage.getItem('isAdmin') === 'true'
-            };
+            // Get current user ID from stored data or decode from token
+            const userId = localStorage.getItem('userID');
+            if (!userId) {
+                // Try to get user data from login response or redirect to login
+                const userData = {
+                    username: localStorage.getItem('username') || 'Unknown User',
+                    email: localStorage.getItem('userEmail') || 'unknown@example.com',
+                    isAdmin: localStorage.getItem('isAdmin') === 'true',
+                    id: localStorage.getItem('userID'),
+                    profilePicID: localStorage.getItem('profilePicID')
+                };
+                
+                displayUserData(userData);
+                return;
+            }
 
-            userName.textContent = userData.username;
-            userEmail.textContent = userData.email;
-            userBadge.textContent = userData.isAdmin ? 'Admin' : 'Student';
-            
-            if (userData.isAdmin) {
-                userBadge.style.background = 'linear-gradient(135deg, #ff6b6b, #ff8e8e)';
+            // Fetch current user data from API
+            const response = await fetch(`/api/users/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                displayUserData(userData);
+                
+                // Update localStorage with fresh data
+                localStorage.setItem('username', userData.Username);
+                localStorage.setItem('userEmail', userData.Email);
+                localStorage.setItem('isAdmin', userData.IsAdmin.toString());
+                localStorage.setItem('userID', userData.ID);
+                if (userData.ProfilePicID) {
+                    localStorage.setItem('profilePicID', userData.ProfilePicID);
+                }
+            } else {
+                throw new Error('Failed to fetch user data');
             }
 
         } catch (error) {
             console.error('Error loading user profile:', error);
-            showAlert('error', 'Failed to load user profile');
+            
+            // Fallback to localStorage data
+            const userData = {
+                username: localStorage.getItem('username') || 'Unknown User',
+                email: localStorage.getItem('userEmail') || 'unknown@example.com',
+                isAdmin: localStorage.getItem('isAdmin') === 'true',
+                id: localStorage.getItem('userID'),
+                profilePicID: localStorage.getItem('profilePicID')
+            };
+            
+            displayUserData(userData);
+            showAlert('error', 'Failed to load fresh user profile data');
         } finally {
             showLoading(false);
+        }
+    }
+
+    // Display user data in the UI
+    function displayUserData(userData) {
+        userName.textContent = userData.Username || userData.username;
+        userEmail.textContent = userData.Email || userData.email;
+        userBadge.textContent = (userData.IsAdmin || userData.isAdmin) ? 'Admin' : 'Student';
+        
+        if (userData.IsAdmin || userData.isAdmin) {
+            userBadge.style.background = 'linear-gradient(135deg, #ff6b6b, #ff8e8e)';
+        }
+
+        // Load profile picture if available
+        if (userData.ProfilePicID || userData.profilePicID) {
+            loadProfilePicture(userData.ProfilePicID || userData.profilePicID);
+        }
+    }
+
+    // Load profile picture
+    async function loadProfilePicture(profilePicID) {
+        try {
+            const avatarContainer = document.querySelector('.user-avatar');
+            const avatarIcon = avatarContainer.querySelector('i');
+            
+            // Create image element
+            const img = document.createElement('img');
+            img.src = `/api/images/${profilePicID}`;
+            img.alt = 'Profile Picture';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            
+            img.onload = function() {
+                avatarIcon.style.display = 'none';
+                avatarContainer.insertBefore(img, avatarIcon);
+            };
+            
+            img.onerror = function() {
+                console.error('Failed to load profile picture');
+            };
+            
+        } catch (error) {
+            console.error('Error loading profile picture:', error);
         }
     }
 
@@ -130,44 +212,85 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showLoading(true);
             
-            // Prepare update data (only include password if provided)
-            const updateData = {
-                username: formData.username,
-                email: formData.email
-            };
-            
+            const userId = localStorage.getItem('userID');
+            if (!userId) {
+                showAlert('error', 'User ID not found. Please log in again.');
+                return;
+            }
+
+            // Update username if changed
+            if (formData.username !== userName.textContent) {
+                const usernameResponse = await fetch(`/api/users?id=${userId}&target_field=username`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ username: formData.username })
+                });
+
+                if (!usernameResponse.ok) {
+                    throw new Error('Failed to update username');
+                }
+            }
+
+            // Update email if changed
+            if (formData.email !== userEmail.textContent) {
+                const emailResponse = await fetch(`/api/users?id=${userId}&target_field=email`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ email: formData.email })
+                });
+
+                if (!emailResponse.ok) {
+                    throw new Error('Failed to update email');
+                }
+            }
+
+            // Update password if provided
             if (formData.password) {
-                updateData.password = formData.password;
+                const passwordResponse = await fetch(`/api/users?id=${userId}&target_field=password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ password: formData.password })
+                });
+
+                if (!passwordResponse.ok) {
+                    throw new Error('Failed to update password');
+                }
             }
 
-            // Mock API call - replace with actual endpoint
-            const response = await fetch('/api/update_profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify(updateData)
-            });
-
-            if (response.ok) {
-                // Update localStorage
-                localStorage.setItem('username', formData.username);
-                localStorage.setItem('userEmail', formData.email);
-                
-                // Update UI
-                userName.textContent = formData.username;
-                userEmail.textContent = formData.email;
-                
-                closeEditModal();
-                showAlert('success', 'Profile updated successfully!');
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                showAlert('error', errorData.message || 'Failed to update profile');
+            // Update localStorage
+            localStorage.setItem('username', formData.username);
+            localStorage.setItem('userEmail', formData.email);
+            
+            // Update UI
+            userName.textContent = formData.username;
+            userEmail.textContent = formData.email;
+            
+            // Refresh auth button if available
+            if (window.refreshAuthButton) {
+                window.refreshAuthButton();
             }
+            
+            closeEditModal();
+            showAlert('success', 'Profile updated successfully!');
+
         } catch (error) {
             console.error('Error updating profile:', error);
-            showAlert('error', 'Network error. Please try again.');
+            
+            // Check if the update endpoints are not implemented yet
+            if (error.message.includes('Failed to update')) {
+                showAlert('error', 'Profile update feature is not yet implemented on the server.');
+            } else {
+                showAlert('error', 'Network error. Please try again.');
+            }
         } finally {
             showLoading(false);
         }
@@ -236,16 +359,66 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Handle avatar upload
-    function handleAvatarUpload() {
+    async function handleAvatarUpload() {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
         
-        input.onchange = function(e) {
+        input.onchange = async function(e) {
             const file = e.target.files[0];
             if (file) {
-                // Here you would upload the file to your server
-                showAlert('success', 'Avatar upload feature coming soon!');
+                try {
+                    showLoading(true);
+                    
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('location', 'profile_pictures');
+                    
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        
+                        // Update the user's profile picture ID
+                        const userId = localStorage.getItem('userID');
+                        if (userId && result.fileID) {
+                            // Update profile picture ID in user profile
+                            const updateResponse = await fetch(`/api/users?id=${userId}&target_field=profile_pic`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${authToken}`
+                                },
+                                body: JSON.stringify({ profilePicID: result.fileID })
+                            });
+                            
+                            if (updateResponse.ok) {
+                                localStorage.setItem('profilePicID', result.fileID);
+                                loadProfilePicture(result.fileID);
+                                showAlert('success', 'Profile picture updated successfully!');
+                            } else {
+                                showAlert('error', 'Failed to update profile picture in user profile');
+                            }
+                        } else {
+                            showAlert('error', 'Upload successful but failed to link to profile');
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        showAlert('error', `Upload failed: ${errorText}`);
+                    }
+                } catch (error) {
+                    console.error('Avatar upload error:', error);
+                    showAlert('error', 'Failed to upload avatar. Please try again.');
+                } finally {
+                    showLoading(false);
+                }
             }
         };
         
