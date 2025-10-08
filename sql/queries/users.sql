@@ -29,3 +29,15 @@ UPDATE users
 SET password_hash = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: UpdateUserEmail :one
+UPDATE users
+SET email = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserUsername :one
+UPDATE users
+SET username = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

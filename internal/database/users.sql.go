@@ -162,6 +162,35 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const updateUserEmail = `-- name: UpdateUserEmail :one
+UPDATE users
+SET email = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id
+`
+
+type UpdateUserEmailParams struct {
+	ID        uuid.UUID
+	Email     string
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserEmail, arg.ID, arg.Email, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+	)
+	return i, err
+}
+
 const updateUserPassword = `-- name: UpdateUserPassword :one
 UPDATE users
 SET password_hash = $2, updated_at = $3
@@ -206,6 +235,35 @@ type UpdateUserPfpParams struct {
 
 func (q *Queries) UpdateUserPfp(ctx context.Context, arg UpdateUserPfpParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUserPfp, arg.ID, arg.ProfilePicID, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+	)
+	return i, err
+}
+
+const updateUserUsername = `-- name: UpdateUserUsername :one
+UPDATE users
+SET username = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id
+`
+
+type UpdateUserUsernameParams struct {
+	ID        uuid.UUID
+	Username  string
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UpdateUserUsername(ctx context.Context, arg UpdateUserUsernameParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserUsername, arg.ID, arg.Username, arg.UpdatedAt)
 	var i User
 	err := row.Scan(
 		&i.ID,

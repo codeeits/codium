@@ -211,13 +211,13 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 	switch field {
 	case "username":
 		// Update username
-		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+		cfg.UpdateUserUsernameHandler(w, r, targetId)
 	case "password":
 		// Update password
 		cfg.UpdateUserPasswordHandler(w, r, targetId)
 	case "email":
 		// Update email
-		http.Error(w, "Not implemented yet", http.StatusBadRequest)
+		cfg.UpdateUserEmailHandler(w, r, targetId)
 	case "pfp":
 		// Update profile picture
 		cfg.UpdateUserPfpHandler(w, r, targetId)
@@ -929,6 +929,104 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 		UserID:    targetUser.ID,
 		RevokedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(userJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+	type params struct {
+		NewEmail string `json:"email"`
+	}
+
+	cfg.logger.Print("Received update user email request for user ID: ", targetId)
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateUserEmail(r.Context(), database.UpdateUserEmailParams{
+		ID:        targetUser.ID,
+		Email:     p.NewEmail,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(userJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+	type params struct {
+		NewUsername string `json:"username"`
+	}
+
+	cfg.logger.Print("Received update user username request for user ID: ", targetId)
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateUserUsername(r.Context(), database.UpdateUserUsernameParams{
+		ID:        targetUser.ID,
+		Username:  p.NewUsername,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update user username: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
