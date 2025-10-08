@@ -1043,3 +1043,48 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) {
+	userId := r.PathValue("userID")
+	if userId == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	uid, err := uuid.Parse(userId)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received validate email request for user ID: ", uid)
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.db.ValidateEmailForId(r.Context(), database.ValidateEmailForIdParams{
+		ID:        uid,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to validate user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Location", cfg.websiteUrl+"/app/")
+	w.WriteHeader(http.StatusPermanentRedirect)
+	_, err = w.Write([]byte("Email validated successfully. Redirecting to app..."))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}

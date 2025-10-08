@@ -20,6 +20,11 @@ type ApiCfg struct {
 	secret               string
 	adminDefaultPassword string
 	running              bool
+	smtpUrl              string
+	smtpPort             int
+	smtpUser             string
+	smtpPassword         string
+	websiteUrl           string
 }
 
 /*
@@ -72,6 +77,11 @@ func main() {
 		cfg.dbUrl = os.Getenv("DB_URL")
 		cfg.secret = os.Getenv("SECRET")
 		cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+		cfg.smtpUrl = os.Getenv("SMTP_URL")
+		cfg.smtpPort = 587 // Default SMTP port
+		cfg.smtpUser = os.Getenv("SMTP_USER")
+		cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
+		cfg.websiteUrl = os.Getenv("WEBSITE_URL")
 	}
 
 	if cfg.secret == "" {
@@ -110,6 +120,7 @@ func main() {
 		mux.Handle("POST /api/upload", http.HandlerFunc(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
 		mux.Handle("PUT /api/users", http.HandlerFunc(cfg.UpdateUserDisambiguationHandler))
+		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
 
 		server := &http.Server{
 			Addr:    ":6767",

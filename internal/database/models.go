@@ -30,12 +30,13 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID           uuid.UUID
-	Username     string
-	Email        string
-	PasswordHash string
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	IsAdmin      bool
-	ProfilePicID uuid.NullUUID
+	ID             uuid.UUID
+	Username       string
+	Email          string
+	PasswordHash   string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	IsAdmin        bool
+	ProfilePicID   uuid.NullUUID
+	EmailValidated bool
 }

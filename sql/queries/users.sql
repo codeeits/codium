@@ -41,3 +41,9 @@ UPDATE users
 SET username = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: ValidateEmailForId :one
+UPDATE users
+SET email_validated = TRUE, updated_at = $2
+WHERE id = $1
+RETURNING *;
