@@ -164,7 +164,35 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 }
 
 func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
-	err := cfg.db.DeleteUserById(context.Background(), userID)
+	uploadedFiles, err := cfg.db.GetFilesByUserID(context.Background(), database.GetFilesByUserIDParams{
+		UserID: userID,
+		Limit:  2000,
+		Offset: 0,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("No files found for user: %v", userID)
+		}
+		return fmt.Errorf("failed to retrieve user files: %v", err)
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		cfg.logger.Printf("Failed to get current working directory: %v", err)
+		return fmt.Errorf("failed to get current working directory: %v", err)
+	}
+	cfg.logger.Printf("Current working directory: %v", cwd)
+
+	// Delete files from filesystem
+	for _, file := range uploadedFiles {
+		err = os.Remove(cwd + "/" + file.Filepath)
+		if err != nil {
+			cfg.logger.Printf("Failed to delete file from filesystem: %v", err)
+			return fmt.Errorf("failed to delete file from filesystem: %v", err)
+		}
+	}
+
+	err = cfg.db.DeleteUserById(context.Background(), userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %v", err)
 	}
@@ -333,9 +361,10 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if match {
+	if !match {
 		cfg.logger.Printf("Email contains invalid characters")
 		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
 	}
 
 	match, err = regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.Username))
@@ -348,6 +377,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if !match {
 		cfg.logger.Printf("Username contains invalid characters")
 		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
 	}
 
 	// Hash the password
@@ -1195,29 +1225,6 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		cfg.logger.Printf("Invalid UUID format: %v", err)
 		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
 		return
-	}
-
-	uploadedFiles, err := cfg.db.GetFilesByUserID(r.Context(), database.GetFilesByUserIDParams{
-		UserID: userID,
-		Limit:  2000,
-		Offset: 0,
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("No files found for user: %v", userID)
-		}
-		cfg.logger.Printf("Failed to retrieve user files: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	for _, file := range uploadedFiles {
-		err = os.Remove(file.Filepath)
-		if err != nil {
-			cfg.logger.Printf("Failed to delete file from filesystem: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
 	}
 
 	err = cfg.DeleteUser(userID)
