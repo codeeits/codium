@@ -17,7 +17,7 @@
 
     <!-- Scripts -->
     <script src="Scripts/main.js" defer></script>
-    <script src="Scripts/user.js" defer></script>
+    <!--<script src="Scripts/user.js" defer></script>-->
     
     <meta name="menu-variant" content="default">
 </head>
@@ -25,41 +25,54 @@
     <div id="top-menu-container"></div>
     
     <div class="main-content-user">
-        <div class="user-nav top">
-            <div class="user-card">
-                <img src="" alt="User Avatar" id="userAvatar">
-                <div class="user-card-name">
-                    <h2 id="userName">Top</h2>
-                    <p id="userEmail">Email</p>
+        <div class="user-nav top user">
+            <img src="" alt="User Avatar" id="userAvatar">
+            <div class="user-card-name">
+                <h2 id="userName">Top</h2>
+                <p id="userEmail">Email</p>
+            </div>
+            <div class="user-card-buttons">
+                <button class="btn secondary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+                <button type="button" class="btn primary">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+            </div>
+        </div>
+        <div class="user-nav left progress">
+            <div class="user-title">
+                <i class="fa-solid fa-chart-line"></i>
+                <h2>Progress</h2>
+            </div>
+        </div>
+        <div class="user-nav right activitytate">
+            <div class="user-title">
+                <i class="fa-solid fa-list-check"></i>
+                <h2>Activitate recentă</h2>
+            </div>
+            <div class="user-nav-body">
+                <div class="user-nav indivActivity">
+                    <div class="activity-circle">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="activity-info">
+                        <h3>Completed Lesson 5</h3>
+                        <p>2 hours ago</p>
+                    </div>
                 </div>
-                <div class="user-card-buttons">
-                    <button class="btn secondary" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                    <button type="button" class="btn primary">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
-                </div>
             </div>
         </div>
-        <div class="user-nav left">
+        <div class="user-nav left achievements">
             <div class="user-title">
-                <h2>Left 1</h2>
+                <i class="fa-solid fa-trophy"></i>
+                <h2>Achievements</h2>
             </div>
         </div>
-        <div class="user-nav right">
+        <div class="user-nav right bookmarks">
             <div class="user-title">
-                <h2>Right 1</h2>
-            </div>
-        </div>
-        <div class="user-nav left">
-            <div class="user-title">
-                <h2>Left 2</h2>
-            </div>
-        </div>
-        <div class="user-nav right">
-            <div class="user-title">
-                <h2>Right 2</h2>
+                <i class="fa-solid fa-bookmark"></i>
+                <h2>Bookmarks</h2>
             </div>
         </div>
     </div>

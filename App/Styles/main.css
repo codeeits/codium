@@ -14,6 +14,12 @@
     --svg-color: #B07BC9;
     --purple-primary: #9B59BB;
     --purple-accent: #B380CB;
+    --confirm: #659D48;
+    --confirm-border: linear-gradient(262deg, #4F7A38 0%, #659D48 100%);
+    --warning: #9D9548;
+    --warning-border: linear-gradient(262deg, #7A7438 0%, #9D9548 100%);
+    --danger: #592941; 
+    --danger-border: linear-gradient(262deg, #341826 0%, #592941 100%);
 }
 
 /* ========================================
@@ -675,8 +681,12 @@ body {
     justify-content: stretch;
     align-items: center;
     display: grid;
+    grid-template-areas:
+    'user activitytate'
+    'progress activitytate'
+    'achievements bookmarks';
     grid-template-columns: 1fr 2fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto 1fr 1fr;
     gap: 1rem;
     margin: 0;
     box-sizing: border-box;
@@ -721,20 +731,32 @@ body {
     z-index: -1;
 }
 
+.user-nav-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+
+.user-nav .user-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
 /* TOP */
 
 .user-nav.top {
-    grid-row: 1 / 2;
-    grid-column: 1 / 3;
-}
-
-.user-nav.top .user-card {
+    grid-area: user;
     width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: start;
     gap: 1rem;
+    height: auto;
 }
 
 .user-nav.top .user-card-buttons {
@@ -748,7 +770,7 @@ body {
     white-space: nowrap;
 }
 
-.user-nav.top .user-card img {
+.user-nav.top.user img {
     width: 6rem;
     height: 6rem;
     border-radius: 50%;
@@ -761,4 +783,69 @@ body {
 .user-nav.left, .user-nav.right {
     justify-content: start;
     align-items: start;
+}
+
+/*LEFT 1*/
+
+.user-nav.left.progress {
+    grid-area: progress;
+    
+}
+
+/* LEFT 2*/
+
+.user-nav.left.achievements {
+    grid-area: achievements;
+}
+
+/*RIGHT 1*/
+
+.user-nav.right.bookmarks {
+    grid-area: bookmarks;
+}
+
+.user-nav.right.activitytate {
+    grid-area: activitytate;
+}
+
+/* Individual activity item */
+
+.user-nav.indivActivity {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+}
+
+.user-nav.indivActivity .activity-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--confirm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+
+.user-nav.indivActivity .activity-circle::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 1px;
+    background: linear-gradient(262deg, #341826 0%, #592941 100%);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    mask:
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
 }
