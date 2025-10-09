@@ -177,6 +177,35 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const unvalidateEmailForId = `-- name: UnvalidateEmailForId :one
+UPDATE users
+SET email_validated = FALSE, updated_at = $2
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated
+`
+
+type UnvalidateEmailForIdParams struct {
+	ID        uuid.UUID
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UnvalidateEmailForId(ctx context.Context, arg UnvalidateEmailForIdParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, unvalidateEmailForId, arg.ID, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+		&i.EmailValidated,
+	)
+	return i, err
+}
+
 const updateUserEmail = `-- name: UpdateUserEmail :one
 UPDATE users
 SET email = $2, updated_at = $3

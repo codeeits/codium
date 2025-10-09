@@ -970,6 +970,18 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	_, err = cfg.db.UnvalidateEmailForId(r.Context(), database.UnvalidateEmailForIdParams{
+		ID:        targetUser.ID,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to unvalidate user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update email
+
 	res, err := cfg.db.UpdateUserEmail(r.Context(), database.UpdateUserEmailParams{
 		ID:        targetUser.ID,
 		Email:     p.NewEmail,

@@ -51,3 +51,9 @@ RETURNING *;
 -- name: DeleteUserById :exec
 DELETE FROM users
 WHERE id = $1;
+
+-- name: UnvalidateEmailForId :one
+UPDATE users
+SET email_validated = FALSE, updated_at = $2
+WHERE id = $1
+RETURNING *;
