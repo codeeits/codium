@@ -121,7 +121,9 @@ func main() {
 		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
 		mux.Handle("PUT /api/users", http.HandlerFunc(cfg.UpdateUserDisambiguationHandler))
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
+		mux.Handle("DELETE /api/users/{userID}", http.HandlerFunc(cfg.DeleteUserHandler))
 
+		// Start the HTTP server
 		server := &http.Server{
 			Addr:    ":6767",
 			Handler: mux,

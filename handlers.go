@@ -316,6 +316,11 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.logger.Printf("User created: %v", res)
 
+	err = cfg.SendValidationEmail(p.Email, res.ID.String())
+	if err != nil {
+		cfg.logger.Printf("Failed to send validation email: %v", err)
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
@@ -979,6 +984,12 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Send validation email to new address
+	err = cfg.SendValidationEmail(p.NewEmail, res.ID.String())
+	if err != nil {
+		cfg.logger.Printf("Failed to send validation email: %v", err)
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
@@ -1082,6 +1093,62 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Location", cfg.websiteUrl+"/app/")
 	w.WriteHeader(http.StatusPermanentRedirect)
 	_, err = w.Write([]byte("Email validated successfully. Redirecting to app..."))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received delete user request")
+
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract user ID from URL path
+	userIDStr := r.PathValue("userID")
+	if userIDStr == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	if requestingUser.ID.String() != userIDStr && !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete attempt by user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Parse user ID as UUID
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	err = cfg.db.DeleteUserById(r.Context(), userID)
+	if err != nil {
+		cfg.logger.Printf("Failed to delete user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("User deleted successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
