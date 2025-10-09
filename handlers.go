@@ -178,8 +178,8 @@ func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to list users: %v", err)
 	}
-	for _, user := range users {
-		user.PasswordHash = "" // Remove password hash for security
+	for i := range users {
+		users[i].PasswordHash = "" // Remove password hash for security
 	}
 	return users, nil
 }
