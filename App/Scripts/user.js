@@ -12,6 +12,8 @@ avatar upload (soon), and logout functionality.
 document.addEventListener('DOMContentLoaded', function() {
 
     const authToken = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('userID');
+
     if (!authToken) {
         window.location.href = 'login.html';
         return;
@@ -27,22 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserProfile();
 
     async function loadUserProfile() {
+        let userData  = null;
+
         try {
             
-            const userId = localStorage.getItem('userId');
-            if (!userId) {
-                const userData = {
-                    username: localStorage.getItem('username') || 'Unknown User',
-                    email: localStorage.getItem('userEmail') || 'unknown@example.com',
-                    isAdmin: localStorage.getItem('isAdmin') === 'true',
-                    id: localStorage.getItem('userID'),
-                    profilePicID: localStorage.getItem('profilePicID')
-                };
-                
-                displayUserData(userData);
-                return;
-            }
-
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'GET',
                 headers: {
@@ -63,24 +53,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (userData.ProfilePicID) {
                     localStorage.setItem('ProfilePicID', userData.ProfilePicID);
                 }
+                console.log('Works yay :v');
             } else {
                 throw new Error('Failed to fetch user data');
             }
 
         } catch (error) {
-            console.error('Error loading user profile:', error);
-            
-            const userData = {
+
+            console.warn('API call failed');
+            userData = {
                 username: localStorage.getItem('username') || 'Unknown User',
                 email: localStorage.getItem('userEmail') || 'unknown@example.com',
                 isAdmin: localStorage.getItem('isAdmin') === 'true',
                 id: localStorage.getItem('userID'),
                 profilePicID: localStorage.getItem('profilePicID')
             };
-            
             displayUserData(userData);
-            showAlert('error', 'Failed to load fresh user profile data');
-        } finally {
         }
     }
 
