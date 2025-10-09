@@ -316,10 +316,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.logger.Printf("User created: %v", res)
 
-	err = cfg.SendValidationEmail(p.Email, res.ID.String())
-	if err != nil {
-		cfg.logger.Printf("Failed to send validation email: %v", err)
-	}
+	cfg.SendValidationEmail(p.Email, res.ID.String())
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
@@ -985,10 +982,7 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Send validation email to new address
-	err = cfg.SendValidationEmail(p.NewEmail, res.ID.String())
-	if err != nil {
-		cfg.logger.Printf("Failed to send validation email: %v", err)
-	}
+	cfg.SendValidationEmail(p.NewEmail, res.ID.String())
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
