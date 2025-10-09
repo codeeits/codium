@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -310,6 +311,43 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		cfg.logger.Printf("Missing required fields: email, password, or username")
 		http.Error(w, "Missing required fields: email, password, or username", http.StatusBadRequest)
 		return
+	}
+
+	if len(p.Username) < 3 || len(p.Username) > 20 {
+		cfg.logger.Printf("Username must be between 3 and 20 characters")
+		http.Error(w, "Username must be between 3 and 20 characters", http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Email) < 5 || len(p.Email) > 50 {
+		cfg.logger.Printf("Email must be between 5 and 50 characters")
+		http.Error(w, "Email must be between 5 and 50 characters", http.StatusBadRequest)
+		return
+	}
+
+	// Check for not allowed characters in username or email
+	match, err := regexp.Match("^[^\\s@]+@[^\\s@]+.[^\\s@]+$", []byte(p.Email))
+	if err != nil {
+		cfg.logger.Printf("Invalid email address: %v", err)
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	if match {
+		cfg.logger.Printf("Email contains invalid characters")
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+	}
+
+	match, err = regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.Username))
+	if err != nil {
+		cfg.logger.Printf("Invalid username: %v", err)
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	if !match {
+		cfg.logger.Printf("Username contains invalid characters")
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
 	}
 
 	// Hash the password
@@ -1157,6 +1195,29 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		cfg.logger.Printf("Invalid UUID format: %v", err)
 		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
 		return
+	}
+
+	uploadedFiles, err := cfg.db.GetFilesByUserID(r.Context(), database.GetFilesByUserIDParams{
+		UserID: userID,
+		Limit:  2000,
+		Offset: 0,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("No files found for user: %v", userID)
+		}
+		cfg.logger.Printf("Failed to retrieve user files: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	for _, file := range uploadedFiles {
+		err = os.Remove(file.Filepath)
+		if err != nil {
+			cfg.logger.Printf("Failed to delete file from filesystem: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	err = cfg.DeleteUser(userID)
