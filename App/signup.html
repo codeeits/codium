@@ -3,365 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Codium</title>
+    <title>Signup - Codium</title>
     
     <!-- External Resources -->
     <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
     <link rel="stylesheet" href="Styles/main.css">
-    <link rel="stylesheet" href="Styles/auth.css">
-    
+
     <!-- Scripts -->
     <script src="Scripts/main.js" defer></script>
     
     <meta name="menu-variant" content="default">
 </head>
 <body>
-    <!-- Navigation Menu Container -->
     <div id="top-menu-container"></div>
     
-    <!-- Main Content -->
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1><i class="fas fa-user-plus"></i> Create Account</h1>
-                <p>Join the Codium community</p>
+    <div class="main-content-auth">
+        <div class="auth-nav left">
+            <div class="auth-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>Sign-up</h2>
             </div>
-            
             <form id="signupForm" class="auth-form">
-                <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Enter your username" minlength="3" maxlength="50">
-                    <span class="error-message" id="username-error"></span>
+                <div class="text-container">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="username" id="username" placeholder="username" required minlength="3" maxlength="50">
                 </div>
-                
-                <div class="form-group">
-                    <label for="email">
-                        <i class="fas fa-envelope"></i> Email
-                    </label>
-                    <input type="email" id="email" name="email" required 
-                           placeholder="Enter your email address">
-                    <span class="error-message" id="email-error"></span>
+                <div class="text-container">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="email" id="email" placeholder="e-mail" required>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password" minlength="6">
-                    <span class="error-message" id="password-error"></span>
+                <div class="text-container">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" name="password" id="password" placeholder="password" required minlength="6">
                 </div>
-                
-                <div class="form-group">
-                    <label for="confirmPassword">
-                        <i class="fas fa-lock"></i> Confirm Password
-                    </label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required 
-                           placeholder="Confirm your password">
-                    <span class="error-message" id="confirm-password-error"></span>
+                <div class="text-container">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" name="confirmPassword" id="confirmPassword" placeholder="confirm password" required>
                 </div>
-                
-                <button type="submit" class="auth-button" id="signupButton">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
+                <div class="auth-buttons">
+                    <input type="submit" value="Sign up" class="btn primary">
+                    <button type="button" class="btn secondary">Log-in</button>
+                </div>
             </form>
-            
-            <div class="auth-footer">
-                <p>Already have an account? <a href="login.html">Sign in here</a></p>
+        </div>
+        <div class="auth-nav right">
+            <div class="floating-orbs">
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
             </div>
-            
-            <!-- Loading and error states -->
-            <div id="loading" class="loading hidden">
-                <i class="fas fa-spinner fa-spin"></i> Creating account...
-            </div>
-            
-            <div id="error-alert" class="alert alert-error hidden">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="error-message"></span>
-            </div>
-            
-            <div id="success-alert" class="alert alert-success hidden">
-                <i class="fas fa-check-circle"></i>
-                <span id="success-message"></span>
-            </div>
+            <h2>codium</h2>
+            <p>Learn/ Code/ Compete/</p>
         </div>
     </div>
-
-    <style>
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 80px);
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-header h1 {
-            color: var(--text-primary);
-            font-size: 2rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .auth-header p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .form-group label i {
-            margin-right: 8px;
-            width: 16px;
-            color: var(--purple-accent);
-        }
-
-        .form-group input {
-            padding: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--purple-accent);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 3px rgba(176, 123, 201, 0.2);
-        }
-
-        .form-group input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .error-message {
-            color: #ff6b6b;
-            font-size: 0.8rem;
-            margin-top: 4px;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .auth-button {
-            padding: 15px;
-            background: linear-gradient(135deg, var(--purple-primary), var(--purple-accent));
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .auth-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(176, 123, 201, 0.4);
-        }
-
-        .auth-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .auth-footer p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .auth-footer a {
-            color: var(--purple-accent);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-
-        .auth-footer a:hover {
-            color: var(--purple-primary);
-        }
-
-        .loading {
-            text-align: center;
-            color: var(--purple-accent);
-            font-size: 1.1rem;
-            margin-top: 20px;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .alert-error {
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            color: #ff6b6b;
-        }
-
-        .alert-success {
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            color: #4caf50;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @media (max-width: 768px) {
-            .auth-card {
-                padding: 30px 20px;
-                margin: 10px;
-            }
-            
-            .auth-header h1 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('signupForm');
-            const submitButton = document.getElementById('signupButton');
-            const loading = document.getElementById('loading');
-            const errorAlert = document.getElementById('error-alert');
-            const successAlert = document.getElementById('success-alert');
+            const submitButton = form.querySelector('input[type="submit"]');
 
-            // Form validation
-            function validateForm() {
+            const authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            function validateForm() { // pentru requesturile care ocolesc frontend-ul
                 let isValid = true;
                 
-                // Username validation
                 const username = document.getElementById('username').value.trim();
-                const usernameError = document.getElementById('username-error');
                 if (username.length < 3) {
-                    usernameError.textContent = 'Username must be at least 3 characters long';
-                    usernameError.classList.add('show');
+                    console.log('Username must be at least 3 characters long');
                     isValid = false;
-                } else {
-                    usernameError.classList.remove('show');
                 }
 
-                // Email validation
                 const email = document.getElementById('email').value.trim();
-                const emailError = document.getElementById('email-error');
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
-                    emailError.textContent = 'Please enter a valid email address';
-                    emailError.classList.add('show');
+                    console.log('Invalid email format');
                     isValid = false;
-                } else {
-                    emailError.classList.remove('show');
                 }
 
-                // Password validation
                 const password = document.getElementById('password').value;
-                const passwordError = document.getElementById('password-error');
                 if (password.length < 6) {
-                    passwordError.textContent = 'Password must be at least 6 characters long';
-                    passwordError.classList.add('show');
+                    console.log('Password must be at least 6 characters long');
                     isValid = false;
-                } else {
-                    passwordError.classList.remove('show');
                 }
 
-                // Confirm password validation
                 const confirmPassword = document.getElementById('confirmPassword').value;
-                const confirmPasswordError = document.getElementById('confirm-password-error');
                 if (password !== confirmPassword) {
-                    confirmPasswordError.textContent = 'Passwords do not match';
-                    confirmPasswordError.classList.add('show');
+                    console.log('Passwords do not match');
                     isValid = false;
-                } else {
-                    confirmPasswordError.classList.remove('show');
                 }
 
                 return isValid;
             }
 
-            // Show/hide alerts
-            function showAlert(type, message) {
-                hideAlerts();
-                const alert = type === 'error' ? errorAlert : successAlert;
-                const messageElement = document.getElementById(type === 'error' ? 'error-message' : 'success-message');
-                messageElement.textContent = message;
-                alert.classList.remove('hidden');
-            }
-
-            function hideAlerts() {
-                errorAlert.classList.add('hidden');
-                successAlert.classList.add('hidden');
-            }
-
-            // Form submission
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                hideAlerts();
-                
                 if (!validateForm()) {
+                    alert('Please fill in all fields correctly');
                     return;
                 }
 
@@ -371,9 +121,9 @@
                     password: document.getElementById('password').value
                 };
 
-                // Show loading state
                 submitButton.disabled = true;
-                loading.classList.remove('hidden');
+                submitButton.value = 'Creating account...';
+                form.style.opacity = '0.6';
 
                 try {
                     const response = await fetch('/api/create_user', {
@@ -384,37 +134,89 @@
                         body: JSON.stringify(formData)
                     });
 
-                    const result = await response.text();
-
                     if (response.ok) {
-                        showAlert('success', 'Account created successfully! Redirecting to login...');
+                        submitButton.value = 'Success!';
+                        submitButton.style.background = 'var(--purple-accent)';
+                        
+                        alert('Account created successfully! Redirecting to login...');
+                        
                         setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 2000);
+                            window.location.href = 'figma-login.html';
+                        }, 500);
                     } else {
+                        const result = await response.text();
                         let errorMessage = 'Failed to create account. Please try again.';
+                        
                         if (response.status === 400) {
                             errorMessage = 'Invalid input. Please check your information.';
                         } else if (result.includes('email') || result.includes('username')) {
                             errorMessage = 'Email or username already exists.';
                         }
-                        showAlert('error', errorMessage);
+                        
+                        alert(errorMessage);
                     }
                 } catch (error) {
                     console.error('Signup error:', error);
-                    showAlert('error', 'Network error. Please check your connection and try again.');
+                    alert('Network error. Please check your connection and try again.');
                 } finally {
-                    // Hide loading state
-                    loading.classList.add('hidden');
                     submitButton.disabled = false;
+                    submitButton.value = 'Sign up';
+                    submitButton.style.background = 'var(--purple-primary)';
+                    form.style.opacity = '1';
                 }
             });
 
-            // Real-time validation
-            document.getElementById('username').addEventListener('blur', validateForm);
-            document.getElementById('email').addEventListener('blur', validateForm);
-            document.getElementById('password').addEventListener('blur', validateForm);
-            document.getElementById('confirmPassword').addEventListener('blur', validateForm);
+            document.getElementById('username').addEventListener('input', function() {
+                const username = this.value.trim();
+                if (username.length > 0 && username.length < 3) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
+            document.getElementById('email').addEventListener('input', function() {
+                const email = this.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
+            document.getElementById('password').addEventListener('input', function() {
+                const password = this.value;
+                if (password.length > 0 && password.length < 6) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+                
+                const confirmPassword = document.getElementById('confirmPassword');
+                if (confirmPassword.value && confirmPassword.value !== password) {
+                    confirmPassword.style.borderColor = '#ff6b6b';
+                } else if (confirmPassword.value) {
+                    confirmPassword.style.borderColor = 'transparent';
+                }
+            });
+
+            document.getElementById('confirmPassword').addEventListener('input', function() {
+                const password = document.getElementById('password').value;
+                const confirmPassword = this.value;
+                if (confirmPassword && confirmPassword !== password) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
+            const loginButton = form.querySelector('button[type="button"]');
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    window.location.href = 'login.html';
+                });
+            }
         });
     </script>
 </body>

@@ -9,152 +9,93 @@
     <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
     <link rel="stylesheet" href="Styles/main.css">
-    <link rel="stylesheet" href="Styles/auth.css">
-    
+
     <!-- Scripts -->
     <script src="Scripts/main.js" defer></script>
     
     <meta name="menu-variant" content="default">
 </head>
 <body>
-    <!-- Navigation Menu Container -->
     <div id="top-menu-container"></div>
     
-    <!-- Main Content -->
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1><i class="fas fa-sign-in-alt"></i> Welcome Back</h1>
-                <p>Sign in to your Codium account</p>
+    <div class="main-content-auth">
+        <div class="auth-nav left">
+            <div class="auth-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>Log-in</h2>
             </div>
-            
             <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="email">
-                        <i class="fas fa-envelope"></i> Email
-                    </label>
-                    <input type="email" id="email" name="email" required 
-                           placeholder="Enter your email address" autocomplete="email">
-                    <span class="error-message" id="email-error"></span>
+                <div class="text-container">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="email" id="email" placeholder="e-mail" required>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password" autocomplete="current-password">
-                    <span class="error-message" id="password-error"></span>
+                <div class="text-container">
+                    <label for="password"><i class="fa-solid fa-key"></i></label>
+                    <input type="password" name="password" id="password" placeholder="password" required>
                 </div>
-                
-                <div class="form-options">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe">
-                        <span class="checkmark"></span>
-                        Remember me
-                    </label>
-                    
-                    <a href="#" class="forgot-password">Forgot password?</a>
+                <div class="auth-remember-me">
+                    <input type="checkbox" name="remember" id="rememberMe">
+                    <label for="rememberMe">remember me?</label>
                 </div>
-                
-                <button type="submit" class="auth-button" id="loginButton">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </button>
+                <div class="auth-buttons">
+                    <input type="submit" value="Log in" class="btn primary">
+                    <button type="button" class="btn secondary">Sign Up</button>
+                </div>
             </form>
-            
-            <div class="auth-footer">
-                <p>Don't have an account? <a href="signup.html">Create one here</a></p>
+        </div>
+        <div class="auth-nav right">
+            <div class="floating-orbs">
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
+                <div class="orb"></div>
             </div>
-            
-            <!-- Loading and error states -->
-            <div id="loading" class="loading hidden">
-                <i class="fas fa-spinner fa-spin"></i> Signing you in...
-            </div>
-            
-            <div id="error-alert" class="alert alert-error hidden">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="error-message"></span>
-            </div>
-            
-            <div id="success-alert" class="alert alert-success hidden">
-                <i class="fas fa-check-circle"></i>
-                <span id="success-message"></span>
-            </div>
+            <h2>codium</h2>
+            <p>Learn/ Code/ Compete/</p>
         </div>
     </div>
     
-    <script src="/app/scripts/templates.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
-            const submitButton = document.getElementById('loginButton');
-            const loading = document.getElementById('loading');
-            const errorAlert = document.getElementById('error-alert');
-            const successAlert = document.getElementById('success-alert');
+            const submitButton = form.querySelector('input[type="submit"]');
 
-            // Check if user is already logged in
             const authToken = localStorage.getItem('authToken');
             if (authToken) {
-                // Redirect to dashboard or main page
                 window.location.href = 'index.html';
                 return;
             }
 
-            // Form validation
-            function validateForm() {
+            function validateForm() { // pentru requesturile care ocolesc frontend-ul
                 let isValid = true;
                 
-                // Email validation
                 const email = document.getElementById('email').value.trim();
-                const emailError = document.getElementById('email-error');
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
-                    emailError.textContent = 'Please enter a valid email address';
-                    emailError.classList.add('show');
+                    console.log('Invalid email format');
                     isValid = false;
-                } else {
-                    emailError.classList.remove('show');
                 }
 
-                // Password validation
                 const password = document.getElementById('password').value;
-                const passwordError = document.getElementById('password-error');
                 if (password.length === 0) {
-                    passwordError.textContent = 'Password is required';
-                    passwordError.classList.add('show');
+                    console.log('Password is required');
                     isValid = false;
-                } else {
-                    passwordError.classList.remove('show');
                 }
 
                 return isValid;
             }
 
-            // Show/hide alerts
-            function showAlert(type, message) {
-                hideAlerts();
-                const alert = type === 'error' ? errorAlert : successAlert;
-                const messageElement = document.getElementById(type === 'error' ? 'error-message' : 'success-message');
-                messageElement.textContent = message;
-                alert.classList.remove('hidden');
-            }
-
-            function hideAlerts() {
-                errorAlert.classList.add('hidden');
-                successAlert.classList.add('hidden');
-            }
-
-            // Form submission
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                hideAlerts();
-                
                 if (!validateForm()) {
+                    alert('Please fill in all fields correctly');
                     return;
                 }
 
@@ -163,9 +104,9 @@
                     password: document.getElementById('password').value
                 };
 
-                // Show loading state
                 submitButton.disabled = true;
-                loading.classList.remove('hidden');
+                submitButton.value = 'Logging in...';
+                form.style.opacity = '0.6';
 
                 try {
                     const response = await fetch('/api/login', {
@@ -183,7 +124,7 @@
                         localStorage.setItem('authToken', result.auth_token);
                         localStorage.setItem('refreshToken', result.refresh_token);
                         
-                        // Store user information for the menu
+                        // Store user information for the menu and profile
                         if (result.user) {
                             localStorage.setItem('username', result.user.Username);
                             localStorage.setItem('userEmail', result.user.Email);
@@ -194,10 +135,9 @@
                             }
                         } else {
                             // Fallback: extract username from email if user object not provided
-                            const email = formData.email;
-                            const username = email.split('@')[0];
+                            const username = formData.email.split('@')[0];
                             localStorage.setItem('username', username);
-                            localStorage.setItem('userEmail', email);
+                            localStorage.setItem('userEmail', formData.email);
                             localStorage.setItem('isAdmin', false);
                         }
                         
@@ -207,14 +147,16 @@
                             localStorage.setItem('rememberMe', 'true');
                         }
 
-                        showAlert('success', 'Login successful! Redirecting...');
+                        // Visual feedback
+                        submitButton.value = 'Success!';
+                        submitButton.style.background = 'var(--purple-accent)';
                         
                         // Refresh auth button if available
                         if (window.refreshAuthButton) {
                             window.refreshAuthButton();
                         }
                         
-                        // Redirect to dashboard or main page
+                        // Redirect to main page
                         setTimeout(() => {
                             window.location.href = 'index.html';
                         }, 1500);
@@ -223,26 +165,47 @@
                         if (response.status === 500) {
                             errorMessage = 'Server error. Please try again later.';
                         }
-                        showAlert('error', errorMessage);
+                        alert(errorMessage);
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    showAlert('error', 'Network error. Please check your connection and try again.');
+                    alert('Network error. Please check your connection and try again.');
                 } finally {
-                    // Hide loading state
-                    loading.classList.add('hidden');
                     submitButton.disabled = false;
+                    submitButton.value = 'Log in';
+                    submitButton.style.background = 'var(--purple-primary)';
+                    form.style.opacity = '1';
                 }
             });
 
-            // Real-time validation
-            document.getElementById('email').addEventListener('blur', validateForm);
-            document.getElementById('password').addEventListener('blur', validateForm);
+            document.getElementById('email').addEventListener('input', function() {
+                const email = this.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
 
-            // Auto-fill email if remembered
+            document.getElementById('password').addEventListener('input', function() {
+                if (this.value.length === 0) {
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    this.style.borderColor = 'transparent';
+                }
+            });
+
             const savedEmail = localStorage.getItem('savedEmail');
             if (savedEmail) {
                 document.getElementById('email').value = savedEmail;
+            }
+
+            const secondaryButton = form.querySelector('button[type="button"]');
+            if (secondaryButton) {
+                secondaryButton.addEventListener('click', function() {
+                    window.location.href = 'signup.html';
+                });
             }
         });
     </script>

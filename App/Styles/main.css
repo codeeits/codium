@@ -611,6 +611,121 @@ body {
 }
 */
 
+/* Right side navigation with floating orbs */
+.auth-nav.right {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.auth-nav.right h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
+    z-index: 2;
+    position: relative;
+}
+
+.auth-nav.right p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+    margin: 0.5rem 0 0 0;
+    z-index: 2;
+    position: relative;
+}
+
+/* Floating orbs container */
+.floating-orbs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Individual orb styling */
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(138, 43, 226, 0.6), rgba(138, 43, 226, 0.2));
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    animation: float 6s ease-in-out infinite;
+}
+
+.orb:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 15%;
+    animation-delay: 0s;
+    background: radial-gradient(circle at 30% 30%, rgba(138, 43, 226, 0.7), rgba(138, 43, 226, 0.3));
+    border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+.orb:nth-child(2) {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    right: 20%;
+    animation-delay: -2s;
+    background: radial-gradient(circle at 30% 30%, rgba(72, 61, 139, 0.6), rgba(72, 61, 139, 0.2));
+    border: 1px solid rgba(72, 61, 139, 0.3);
+}
+
+.orb:nth-child(3) {
+    width: 60px;
+    height: 60px;
+    bottom: 30%;
+    left: 25%;
+    animation-delay: -4s;
+    background: radial-gradient(circle at 30% 30%, rgba(106, 90, 205, 0.65), rgba(106, 90, 205, 0.25));
+    border: 1px solid rgba(106, 90, 205, 0.35);
+}
+
+.orb:nth-child(4) {
+    width: 100px;
+    height: 100px;
+    top: 40%;
+    right: 10%;
+    animation-delay: -1s;
+    background: radial-gradient(circle at 30% 30%, rgba(123, 104, 238, 0.6), rgba(123, 104, 238, 0.2));
+    border: 1px solid rgba(123, 104, 238, 0.3);
+}
+
+.orb:nth-child(5) {
+    width: 70px;
+    height: 70px;
+    top: 10%;
+    right: 40%;
+    animation-delay: -3s;
+    background: radial-gradient(circle at 30% 30%, rgba(147, 112, 219, 0.6), rgba(147, 112, 219, 0.2));
+    border: 1px solid rgba(147, 112, 219, 0.3);
+}
+
+/* Floating animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-50px) rotate(1deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(-1deg);
+    }
+    75% {
+        transform: translateY(-15px) rotate(0.5deg);
+    }
+}
+
 /*--------------------------------
    Animations! >:3
    ----------------------------*/
