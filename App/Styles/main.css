@@ -817,11 +817,31 @@ body {
     justify-content: start;
 }
 
+
+.activity-circle.positive {
+    background: var(--confirm);
+}
+.activity-circle.warning {
+    background: var(--warning);
+}
+.activity-circle.danger {
+    background: var(--danger);
+}
+
+.activity-circle.positive::before {
+    background: var(--confirm-border);
+}
+.activity-circle.warning::before {
+    background: var(--warning-border);
+}
+.activity-circle.danger::before {
+    background: var(--danger-border);
+}
+
 .user-nav.indivActivity .activity-circle {
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: var(--confirm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -836,7 +856,6 @@ body {
     inset: 0;
     border-radius: 50%;
     padding: 1px;
-    background: linear-gradient(262deg, #341826 0%, #592941 100%);
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box, 
       linear-gradient(#fff 0 0);
