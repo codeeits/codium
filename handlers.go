@@ -162,6 +162,28 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	return filePath, fileId.String(), nil
 }
 
+func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
+	err := cfg.db.DeleteUserById(context.Background(), userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %v", err)
+	}
+	return nil
+}
+
+func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
+	users, err := cfg.db.GetUsers(context.Background(), database.GetUsersParams{
+		Limit:  100,
+		Offset: 0,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users: %v", err)
+	}
+	for _, user := range users {
+		user.PasswordHash = "" // Remove password hash for security
+	}
+	return users, nil
+}
+
 /*
 ===========================================
 
@@ -549,10 +571,7 @@ func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg.logger.Print("Received get users request")
-	users, err := cfg.db.GetUsers(r.Context(), database.GetUsersParams{
-		Limit:  100,
-		Offset: 0,
-	})
+	users, err := cfg.ListUsers()
 	if err != nil {
 		cfg.logger.Printf("Failed to retrieve users: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -561,11 +580,6 @@ func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-
-	//skip password hashes in response
-	for i := range users {
-		users[i].PasswordHash = ""
-	}
 	jsonData, err := json.Marshal(users)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal users: %v", err)
@@ -1145,12 +1159,7 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = cfg.db.DeleteUserById(r.Context(), userID)
-	if err != nil {
-		cfg.logger.Printf("Failed to delete user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	err = cfg.DeleteUser(userID)
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/plain")
