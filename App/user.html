@@ -94,5 +94,328 @@
             </div>
         </div>
     </div>
+
+    <!-- edit modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="edit-modal">
+            <div class="modal-header">
+                <i class="fa-solid fa-pen"></i>
+                <h3>edit profile</h3>
+            </div>
+            <form action="" id="editProfileForm">
+                <div class="modal-field">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="email" id="editEmail" placeholder="email" minlength="3" maxlength="20">
+                    <span class="modal-error" id="editEmailError"></span>
+                </div>
+                <div class="modal-field">
+                    <i class="fa-solid fa-signature"></i>
+                    <input type="text" name="username" id="editUsername" placeholder="username" minlength="3" maxlength="20">
+                    <span class="modal-error" id="editUsernameError"></span>
+                </div>
+                <div class="modal-field">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" name="password" id="oldPassword" placeholder="actual password" minlength="6">
+                    <span class="modal-error" id="oldPasswordError"></span>
+                </div>
+                <div class="modal-field">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" name="confirmPassword" id="newPassword" placeholder=" new password">
+                    <span class="modal-error" id="newPasswordError"></span>
+                </div>
+                <div class="modal-field">
+                    <i class="fa-solid fa-image"></i>
+                    <input type="file" name="profilePicture" id="editProfilePicture" accept="image/*">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn secondary" id="cancelEditBtn">Cancel</button>
+                    <input type="submit" class="btn primary" id="saveEditBtn" value="Save Changes">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const form = document.getElementById('editProfileForm');
+            const submitButton = form.querySelector('input[type="submit"]');
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            const authToken = localStorage.getItem('authToken');
+
+            function validateForm() {
+                let isValid = true;
+
+                //email
+                const email = document.getElementById('editEmail').value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    document.getElementById('editEmailError').textContent = 'Invalid email format';
+                    isValid = false;
+                }
+
+                //username
+                const username = document.getElementById('editUsername').value.trim();
+                if (username && (username.length < 3 || username.length > 20)) {
+                    document.getElementById('editUsernameError').textContent = 'Username must be between 3 and 20 characters';
+                    isValid = false;
+                }
+
+                //password
+                const oldPassword = document.getElementById('oldPassword').value;
+                if (oldPassword && oldPassword.length < 6) {
+                    document.getElementById('oldPasswordError').textContent = 'Password must be at least 6 characters';
+                    isValid = false;
+                } else {
+                    document.getElementById('oldPasswordError').textContent = '';
+                }
+
+                //confirm password
+                const newPassword = document.getElementById('newPassword').value;
+                if (oldPassword && newPassword === oldPassword) {
+                    document.getElementById('newPasswordError').textContent = 'New password must be different from the old password';
+                    isValid = false;
+                } else {
+                    document.getElementById('newPasswordError').textContent = '';
+                }
+
+                return isValid;
+            }
+
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('Form submission started');
+
+                if (!validateForm()) {
+                    console.log('Form validation failed');
+                    alert('Please fill in all fields correctly');
+                    return;
+                }
+
+                const formData = {
+                    email: document.getElementById('editEmail').value.trim() || null,
+                    username: document.getElementById('editUsername').value.trim() || null,
+                    oldPassword: document.getElementById('oldPassword').value || null,
+                    newPassword: document.getElementById('newPassword').value || null,
+                    profilePicture: document.getElementById('editProfilePicture').files[0] || null
+                }
+
+                console.log('Form data collected:', {
+                    email: formData.email,
+                    username: formData.username,
+                    hasOldPassword: !!formData.oldPassword,
+                    hasNewPassword: !!formData.newPassword,
+                    hasProfilePicture: !!formData.profilePicture
+                });
+                console.log('Auth token:', authToken ? 'Present' : 'Missing');
+
+                submitButton.disabled = true;
+                submitButton.value = 'Saving...';
+                form.style.opacity = '0.6';
+
+                // tries uploading the image first
+                let imgID = null;
+                try {
+                    let imageUrl = null;
+                    if (formData.profilePicture) {
+                    console.log('Starting image upload for file:', formData.profilePicture.name);
+                    const imageData = new FormData();
+                    imageData.append('file', formData.profilePicture);
+
+                    const imageResponse = await fetch('/api/upload?location=images', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + authToken,
+                        },
+                        body: imageData,
+                    });
+
+                    console.log('Image upload response status:', imageResponse.status);
+
+                    if (!imageResponse.ok) {
+                        const errorText = await imageResponse.text();
+                        console.log('Image upload failed with response:', errorText);
+                        throw new Error('Image upload failed');
+                    }
+
+                    const result = await imageResponse.json();
+                    console.log('Upload success:', result);
+                    imageUrl = result.file_path;
+                    imgID = result.file_id;
+                    console.log('Image URL:', imageUrl, 'Image ID:', imgID);
+                    } else {
+                        console.log('No profile picture selected, skipping upload');
+                    }
+
+                } catch (error) {
+                    console.error('Image upload error:', error);
+                    alert('An error occurred while uploading the image. Please try again.');
+                    submitButton.disabled = false;
+                    submitButton.value = 'Save Changes';
+                    form.style.opacity = '1';
+                    return;
+                }
+
+                // then updates user data
+                console.log('Starting user data updates...');
+
+                // first tries to upd password if provided
+                if (formData.oldPassword && formData.newPassword) {
+                    console.log('Attempting password update...');
+                    try {
+                        const response = await fetch('/api/users?target_field=password', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + authToken,
+                            },
+                            body: JSON.stringify({ old_password: formData.oldPassword, new_password: formData.newPassword }),
+                        });
+                        
+                        console.log('Password update response status:', response.status);
+                        
+                        if (response.status === 401) {
+                            const responseText = await response.text();
+                            console.log('401 Unauthorized response:', responseText);
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.log('Password update failed with response:', errorText);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        console.log('Password update successful');
+                    } catch (error) {
+                        console.error('Password update error:', error);
+                        submitButton.disabled = false;
+                        submitButton.value = 'Save Changes';
+                        form.style.opacity = '1';
+                    }
+                } else {
+                    console.log('No password update requested');
+                }
+
+                // then email if provided
+                if (formData.email) {
+                    console.log('Attempting email update to:', formData.email);
+                    try {
+                        const response = await fetch('/api/users?target_field=email', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + authToken,
+                            },
+                            body: JSON.stringify({ email: formData.email }),
+                        });
+                        
+                        console.log('Email update response status:', response.status);
+                        
+                        if (response.status === 401) {
+                            const responseText = await response.text();
+                            console.log('401 Unauthorized response:', responseText);
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.log('Email update failed with response:', errorText);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        console.log('Email update successful');
+                    } catch (error) {
+                        console.error('Email update error:', error);
+                        submitButton.disabled = false;
+                        submitButton.value = 'Save Changes';
+                        form.style.opacity = '1';
+                    }
+                } else {
+                    console.log('No email update requested');
+                }
+
+                // then username if provided
+                if (formData.username) {
+                    console.log('Attempting username update to:', formData.username);
+                    try {
+                        const response = await fetch('/api/users?target_field=username', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + authToken,
+                            },
+                            body: JSON.stringify({ username: formData.username }),
+                        });
+                        
+                        console.log('Username update response status:', response.status);
+                        
+                        if (response.status === 401) {
+                            const responseText = await response.text();
+                            console.log('401 Unauthorized response:', responseText);
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.log('Username update failed with response:', errorText);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        console.log('Username update successful');
+                    } catch (error) {
+                        console.error('Username update error:', error);
+                        submitButton.disabled = false;
+                        submitButton.value = 'Save Changes';
+                        form.style.opacity = '1';
+                    }
+                } else {
+                    console.log('No username update requested');
+                }
+                // then profile picture if provided
+                if (imgID) {
+                    console.log('Attempting profile picture update with image ID:', imgID);
+                    try {
+                        const response = await fetch('/api/users?target_field=pfp', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + authToken,
+                            },
+                            body: JSON.stringify({ image_id: imgID }),
+                        });
+                        
+                        console.log('Profile picture update response status:', response.status);
+                        
+                        if (response.status === 401) {
+                            const responseText = await response.text();
+                            console.log('401 Unauthorized response:', responseText);
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.log('Profile picture update failed with response:', errorText);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        console.log('Profile picture update successful');
+                    } catch (error) {
+                        console.error('Profile picture update error:', error);
+                        submitButton.disabled = false;
+                        submitButton.value = 'Save Changes';
+                        form.style.opacity = '1';
+                    }
+                } else {
+                    console.log('No profile picture update requested');
+                }
+
+                console.log('All updates completed');
+                submitButton.disabled = false;
+                submitButton.value = 'Save Changes';
+                form.style.opacity = '1';
+
+        });
+        });
+    </script>
 </body>
 </html>

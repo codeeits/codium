@@ -100,7 +100,6 @@ function handleLogout() {
     }
 }
 
-// Global function to refresh auth button (can be called from other scripts)
 window.refreshAuthButton = updateAuthButton;
 
 function getMenuVariant() {
@@ -117,14 +116,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const variant = getMenuVariant();
     loadTopMenu(variant);
     
-    // Listen for storage changes to update menu when login status changes
     window.addEventListener('storage', function(e) {
         if (e.key === 'authToken' || e.key === 'username') {
             updateAuthButton();
         }
     });
     
-    // Also check for auth changes on focus (for same-tab login/logout)
     window.addEventListener('focus', function() {
         updateAuthButton();
     });
