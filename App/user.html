@@ -325,7 +325,9 @@
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         
-                        console.log('Email update successful');
+                        // Immediately update localStorage with new email
+                        localStorage.setItem('userEmail', formData.email);
+                        console.log('Email update successful, localStorage updated');
                     } catch (error) {
                         console.error('Email update error:', error);
                         submitButton.disabled = false;
@@ -362,7 +364,9 @@
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         
-                        console.log('Username update successful');
+                        // Immediately update localStorage with new username
+                        localStorage.setItem('username', formData.username);
+                        console.log('Username update successful, localStorage updated');
                     } catch (error) {
                         console.error('Username update error:', error);
                         submitButton.disabled = false;
@@ -410,6 +414,13 @@
                 }
 
                 console.log('All updates completed');
+                alert('Profile updated successfully!');
+                
+                // Give a small delay to ensure localStorage is saved, then reload once
+                setTimeout(() => {
+                    location.reload();
+                }, 100);
+                
                 submitButton.disabled = false;
                 submitButton.value = 'Save Changes';
                 form.style.opacity = '1';
