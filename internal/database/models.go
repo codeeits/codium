@@ -20,6 +20,16 @@ type File struct {
 	UploadedAt sql.NullTime
 }
 
+type Lesson struct {
+	ID          uuid.UUID
+	Title       string
+	Description sql.NullString
+	ContentID   uuid.UUID
+	AuthorID    uuid.NullUUID
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time
