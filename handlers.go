@@ -181,10 +181,10 @@ func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
 		cfg.logger.Printf("Failed to get current working directory: %v", err)
 		return fmt.Errorf("failed to get current working directory: %v", err)
 	}
-	cfg.logger.Printf("Current working directory: %v", cwd)
 
 	// Delete files from filesystem
 	for _, file := range uploadedFiles {
+		cfg.logger.Printf("Deleting file: %v/%v", cwd, file.Filepath)
 		err = os.Remove(cwd + "/" + file.Filepath)
 		if err != nil {
 			cfg.logger.Printf("Failed to delete file from filesystem: %v", err)
