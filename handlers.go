@@ -130,8 +130,11 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 
 	case "lessons":
 		// Check if file is markdown
-		if strings.HasPrefix(fileType, "markdown/") == false {
+		if strings.HasPrefix(fileType, "text/") == false {
 			return "", "", fmt.Errorf("invalid file type for lessons: %v", fileType)
+		}
+		if fileExtensions != "md" && fileExtensions != "markdown" {
+			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
 		if !user.IsAdmin {
@@ -139,7 +142,34 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		}
 
 		// Handle lesson upload
-		return "", "", fmt.Errorf("lesson uploads are not yet implemented")
+		lessonDir := appDir + "Lessons"
+		// Ensure the directory exists
+		err := os.MkdirAll(lessonDir, os.ModePerm)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to create lessons directory: %v", err)
+		}
+		filePath = fmt.Sprintf("%s/%s.%s", lessonDir, fileId.String(), fileExtensions)
+
+		dst, err := os.Create(filePath)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to create file: %v", err)
+		}
+		defer func(dst *os.File) {
+			err := dst.Close()
+			if err != nil {
+				cfg.logger.Printf("Error closing the file: %v", err)
+			}
+		}(dst)
+		//copy the uploaded file to the destination file
+		_, err = io.Copy(dst, multipart)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to save file: %v", err)
+		}
+		cfg.logger.Printf("Lesson uploaded successfully: %s", filePath)
+		// Return the file path or URL
+		filePath = strings.TrimPrefix(filePath, cwd+"/")
+		cfg.logger.Printf("Lesson accessible at path: %s", filePath)
+
 	default:
 		return "", "", fmt.Errorf("invalid location: %v", location)
 	}
