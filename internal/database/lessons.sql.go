@@ -13,9 +13,9 @@ import (
 )
 
 const addLesson = `-- name: AddLesson :one
-INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, title, description, content_id, author_id, created_at, updated_at
+INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags
 `
 
 type AddLessonParams struct {
@@ -26,6 +26,7 @@ type AddLessonParams struct {
 	ContentID   uuid.UUID
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	Flags       int32
 }
 
 func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, error) {
@@ -37,6 +38,7 @@ func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, e
 		arg.ContentID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Flags,
 	)
 	var i Lesson
 	err := row.Scan(
@@ -47,12 +49,13 @@ func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, e
 		&i.AuthorID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Flags,
 	)
 	return i, err
 }
 
 const getAllLessons = `-- name: GetAllLessons :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags FROM lessons
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -79,6 +82,7 @@ func (q *Queries) GetAllLessons(ctx context.Context, arg GetAllLessonsParams) ([
 			&i.AuthorID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Flags,
 		); err != nil {
 			return nil, err
 		}
@@ -93,8 +97,29 @@ func (q *Queries) GetAllLessons(ctx context.Context, arg GetAllLessonsParams) ([
 	return items, nil
 }
 
+const getLessonByFlags = `-- name: GetLessonByFlags :one
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags FROM lessons
+WHERE flags = $1
+`
+
+func (q *Queries) GetLessonByFlags(ctx context.Context, flags int32) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, getLessonByFlags, flags)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+	)
+	return i, err
+}
+
 const getLessonByID = `-- name: GetLessonByID :one
-SELECT id, title, description, content_id, author_id, created_at, updated_at FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags FROM lessons
 WHERE id = $1
 `
 
@@ -109,6 +134,7 @@ func (q *Queries) GetLessonByID(ctx context.Context, id uuid.UUID) (Lesson, erro
 		&i.AuthorID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Flags,
 	)
 	return i, err
 }

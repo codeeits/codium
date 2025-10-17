@@ -1268,3 +1268,113 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		ContentID   string `json:"content_id"`
+		Class       int    `json:"class"`
+		Section     int    `json:"section"`
+		Number      int    `json:"number"`
+		Module      int    `json:"module"`
+	}
+
+	//check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received request to add lesson with request body: ", p)
+
+	if p.Title == "" || p.Description == "" || p.ContentID == "" {
+		cfg.logger.Printf("Missing required fields: title, description, or content_id")
+		http.Error(w, "Missing required fields: title, description, or content_id", http.StatusBadRequest)
+		return
+	}
+
+	contentUUID, err := uuid.Parse(p.ContentID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for content_id: %v", err)
+		http.Error(w, "Invalid content_id format", http.StatusBadRequest)
+		return
+	}
+
+	lessonID := uuid.New()
+
+	//check user
+	user, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !user.IsAdmin {
+		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin user: %v", user.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	flags := p.Module<<24 | p.Number<<16 | p.Section<<8 | p.Class
+	existingLesson, err := cfg.db.GetLessonByFlags(r.Context(), int32(flags))
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		cfg.logger.Printf("Failed to check for existing lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if existingLesson.ID != uuid.Nil {
+		cfg.logger.Printf("Lesson with same class, section, number, and module already exists: %v", existingLesson.ID)
+		http.Error(w, "Lesson with same class, section, number, and module already exists", http.StatusConflict)
+		return
+	}
+
+	//check if user is admin
+
+	if !user.IsAdmin {
+		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin user: %v", user.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	res, err := cfg.db.AddLesson(r.Context(), database.AddLessonParams{
+		ID:          lessonID,
+		Title:       p.Title,
+		Description: sql.NullString{String: p.Description, Valid: true},
+		ContentID:   contentUUID,
+		AuthorID:    uuid.NullUUID{UUID: user.ID, Valid: true},
+		Flags:       int32(flags),
+		CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to add lesson: %v", err)
+		http.Error(w, "Failed to add lesson", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`{"lesson_id": "%v", "title": "%v", "description": "%v", "content_id": "%v", "flags": "%v"}`, lessonID, res.Title, res.Description, res.ContentID, res.Flags)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+//// MMMM.ZZZZ.YYYY.XXXX <- INT
+//// X = class
+//// Y = section
+//// Z = lesson number
+//// M = lesson module (for multiple lessons with same class, section, number)

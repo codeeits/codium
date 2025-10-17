@@ -28,6 +28,7 @@ type Lesson struct {
 	AuthorID    uuid.NullUUID
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	Flags       int32
 }
 
 type RefreshToken struct {
