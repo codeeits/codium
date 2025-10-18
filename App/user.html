@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="Styles/main.css">
 
     <!-- Scripts -->
-    <script src="Scripts/main.js" defer></script>
+    <script src="Scripts/main.js" defer></script> 
     <script src="Scripts/user.js" defer></script>
     
     <meta name="menu-variant" content="default">
@@ -32,10 +32,10 @@
                 <p id="userEmail">Email</p>
             </div>
             <div class="user-card-buttons">
-                <button class="btn secondary" id="logoutBtn">
+                <button type="button" class="btn secondary" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
-                <button type="button" class="btn primary">
+                <button type="button" class="btn primary" id="editProfileBtn">
                     <i class="fas fa-edit"></i> Edit Profile
                 </button>
             </div>
@@ -104,31 +104,41 @@
             </div>
             <form action="" id="editProfileForm">
                 <div class="modal-field">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" name="email" id="editEmail" placeholder="email" minlength="3" maxlength="20">
+                    <div class="text-container">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" name="email" id="editEmail" placeholder="email" minlength="3" maxlength="20">
+                    </div>
                     <span class="modal-error" id="editEmailError"></span>
                 </div>
                 <div class="modal-field">
-                    <i class="fa-solid fa-signature"></i>
-                    <input type="text" name="username" id="editUsername" placeholder="username" minlength="3" maxlength="20">
+                    <div class="text-container">
+                        <i class="fa-solid fa-signature"></i>
+                        <input type="text" name="username" id="editUsername" placeholder="username" minlength="3" maxlength="20">
+                    </div>
                     <span class="modal-error" id="editUsernameError"></span>
                 </div>
                 <div class="modal-field">
-                    <i class="fa-solid fa-key"></i>
-                    <input type="password" name="password" id="oldPassword" placeholder="actual password" minlength="6">
+                    <div class="text-container">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" name="password" id="oldPassword" placeholder="actual password" minlength="6">
+                    </div>
                     <span class="modal-error" id="oldPasswordError"></span>
                 </div>
                 <div class="modal-field">
-                    <i class="fa-solid fa-key"></i>
-                    <input type="password" name="confirmPassword" id="newPassword" placeholder=" new password">
+                    <div class="text-container">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" name="confirmPassword" id="newPassword" placeholder=" new password">
+                    </div>
                     <span class="modal-error" id="newPasswordError"></span>
                 </div>
                 <div class="modal-field">
-                    <i class="fa-solid fa-image"></i>
-                    <input type="file" name="profilePicture" id="editProfilePicture" accept="image/*">
+                    <div class="text-container">
+                        <i class="fa-solid fa-image"></i>
+                        <input type="file" name="profilePicture" id="editProfilePicture" accept="image/*">
+                    </div>
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="button" class="btn secondary" id="cancelEditBtn">Cancel</button>
                     <input type="submit" class="btn primary" id="saveEditBtn" value="Save Changes">
                 </div>
             </form>

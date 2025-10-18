@@ -5,7 +5,8 @@
 (______)(___/(____)(_)\_)()\____) (___/
 
 Handles user profile management, including viewing and editing profile details,
-avatar upload (soon), and logout functionality.
+avatar upload, and logout functionality.
+(some of the code that isn't present is contained in the html file itself)
 
 */
 
@@ -14,17 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const authToken = localStorage.getItem('authToken');
     const userId = localStorage.getItem('userID');
 
-    if (!authToken) {
+    /*if (!authToken) {
         window.location.href = 'login.html';
         return;
-    }
+    }*/
 
     // DOM elements
     const userName = document.getElementById('userName');
     const userEmail = document.getElementById('userEmail');
     const avatarImg = document.getElementById('userAvatar');
     const logoutBtn = document.getElementById('logoutBtn');
+    const editBtn = document.getElementById('editProfileBtn');
 
+    const modal = document.getElementById('editProfileModal');
+
+    modal.style.display = 'none';
+    
     // Initialize page
     loadUserProfile();
 
@@ -80,4 +86,17 @@ document.addEventListener('DOMContentLoaded', function() {
             avatarImg.src = `/api/files/${userData.ProfilePicID || userData.profilePicID}`;
         }
     }
+
+    // edit funct.
+
+    editBtn.addEventListener('click', function() {
+        console.log('Edit button clicked');
+        const cancelBtn = document.getElementById('cancelEditBtn');
+
+        modal.style.display = 'flex';
+        
+        cancelBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+    })
 });

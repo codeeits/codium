@@ -6,6 +6,7 @@
     --primary-medium: #21052C;
     --primary-light: rgba(176, 123, 201, 0.20);
     --secondary: rgba(176, 123, 201, 0.2);
+    --secondary-solid: rgb(57, 30, 70);
     --border-gradient: linear-gradient(262deg, #9B59BB 0%, #B380CB 100%);
     --text-color: #FFFFFF;
     --text-primary: #FFFFFF;
@@ -439,11 +440,15 @@ body {
     backdrop-filter: blur(10px);
     color: var(--text-color);
     border-radius: 1rem;
-    padding: .5rem;
+    padding: .6rem;
     position: relative;
     border: 1px solid transparent;
     background-clip: padding-box;
     width: 100%;
+}
+
+.text-container i {
+    font-size: 1.5rem;
 }
 
 /*!!for gradient border effect!!*/
