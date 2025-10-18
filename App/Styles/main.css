@@ -505,6 +505,7 @@ body {
 
 .text-container select {
     border: none;
+    cursor: pointer;
     background: transparent;
     color: var(--text-secondary);
     font-family: 'Raleway', sans-serif;
