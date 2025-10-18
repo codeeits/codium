@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
             avatarImg.src = `/api/files/${userData.ProfilePicID || userData.profilePicID}`;
         }
     }
-
     // edit funct.
 
     editBtn.addEventListener('click', function() {
@@ -96,7 +95,20 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'flex';
         
         cancelBtn.onclick = function() {
-            modal.style.display = 'none';
+
+
+            modal.children[0].classList.add('closing');
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.children[0].classList.remove('closing');
+            }, 700);
         };
-    })
+    });
+
+    // logout funct.
+
+    logoutBtn.addEventListener('click', function() {
+        handleLogout();
+    });
 });

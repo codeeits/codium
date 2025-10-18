@@ -159,6 +159,17 @@
     }
 }
 
+@keyframes slideOut {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
 .edit-modal, .edit-modal form, .edit-modal .modal-header, .edit-modal .modal-buttons {
     animation: slideIn 0.5s ease forwards;
     opacity: 0;
@@ -174,4 +185,25 @@
 
 .edit-modal .modal-buttons {
     animation-delay: 0.3s;
+}
+
+/* Closing animation */
+
+.edit-modal.closing, .edit-modal.closing form, .edit-modal.closing .modal-header, .edit-modal.closing .modal-buttons {
+    animation: slideOut 0.3s ease backwards;
+}
+
+.edit-modal.closing .modal-buttons {
+    animation-delay: 0.1s;
+}
+
+.edit-modal.closing form {
+    animation-delay: 0.2s;
+}
+.edit-modal.closing .modal-header {
+    animation-delay: 0.3s;
+}
+
+.edit-modal.closing {
+    animation-delay: 0.4s;
 }
