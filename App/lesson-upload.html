@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Upload - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
+    <link rel="stylesheet" href="Styles/main.css">
+
+    <!-- Scripts -->
+    <script src="Scripts/main.js" defer></script> 
+    <!-- <script src="Scripts/lesson-upload.js" defer></script> -->
+    
+    <meta name="menu-variant" content="default">
+</head>
+
+<!-- Nevoie de toasts ASAP!!! -->
+
+<body>
+    <div id="top-menu-container"></div>
+    
+    <div class="modal-overlay" id="lessonUploadModal">
+        <div class="modal upload-m">
+            <div class="modal-header">
+                <i class="fa-solid fa-cloud-upload-alt"></i>
+                <h2>quick upload</h2>
+            </div>
+            <form id="lessonUploadForm" enctype="multipart/form-data">
+                <!-- Lesson Metadata -->
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-heading"></i>
+                        <input type="text" id="lessonTitle" name="title" placeholder="Enter lesson title" required>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-align-left"></i>
+                        <textarea id="lessonDescription" name="description" placeholder="Brief description of the lesson" rows="2" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Classification Row -->
+
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-school"></i>
+                        <select id="lessonClass" name="class" placeholder="Alege clasa:" required>
+                            <option value="">Alege clasa:</option>
+                            <option value="9">Clasa a IX-a</option>
+                            <option value="10">Clasa a X-a</option>
+                            <option value="11">Clasa a XI-a</option>
+                            <option value="12">Clasa a XII-a</option>
+                            <option value="67">Neclasificat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonSection">Secțiunea</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <input type="number" id="lessonSection" name="section" placeholder="1" min="1" max="255" required>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonNumber">Lecția #</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-hashtag"></i>
+                        <input type="number" id="lessonNumber" name="number" placeholder="1" min="1" max="255" required>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonModule">Modul [0 - Informatică (Altele disponibile în curând)]</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <input type="number" id="lessonModule" name="module" placeholder="0" min="0" max="0" required>
+                    </div>
+                </div>
+                
+
+                <div class="upload-row">
+
+                    <div class="modal-field">
+                        <label for="lessonFile">Continutul lectiei (.md sau .txt)</label>
+                        <div class="text-container file-upload-container">
+                            <i class="fa-solid fa-file-code"></i>
+                            <input type="file" id="lessonFile" name="lessonFile" accept=".md,.markdown,.txt" required>
+                        </div>
+                        <!-- WIP File Info -->
+                        <div class="file-info" id="fileInfo" style="display: none;">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Preview Section * WIP -->
+                <div class="modal-field preview-section" id="previewSection" style="display: none;">
+                    <div class="modal-field">
+                        <label>Content Preview</label>
+                        <div class="preview-container">
+                            <div class="preview-header">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>Markdown Preview</span>
+                                <button type="button" id="togglePreview" class="btn secondary small">
+                                    <i class="fa-solid fa-code"></i> Show Raw
+                                </button>
+                            </div>
+                            <div class="preview-content" id="previewContent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="modal-buttons">
+                    <button type="button" class="btn secondary" id="clearForm">
+                        <i class="fa-solid fa-times"></i> Clear Form
+                    </button>
+                    <button type="submit" class="btn primary" id="uploadBtn">
+                        <i class="fa-solid fa-upload"></i> Upload Lesson
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

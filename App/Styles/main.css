@@ -21,6 +21,8 @@
     --warning-border: linear-gradient(262deg, #7A7438 0%, #9D9548 100%);
     --danger: #592941; 
     --danger-border: linear-gradient(262deg, #341826 0%, #592941 100%);
+
+    --golden-number: 3.324rem;
 }
 
 /* ========================================
@@ -445,6 +447,7 @@ body {
     border: 1px solid transparent;
     background-clip: padding-box;
     width: 100%;
+    min-height: var(--golden-number);
 }
 
 .text-container i {
@@ -481,6 +484,45 @@ body {
 
 .text-container input::placeholder {
     color: var(--text-secondary);
+}
+
+.text-container textarea {
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-family: 'Raleway', sans-serif;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    min-height: var(--golden-number);
+    max-height: 10rem;
+    resize: vertical;
+}
+
+.text-container textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.text-container select {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Raleway', sans-serif;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23FFFFFF' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+}
+
+.text-container select:valid {
+    color: var(--text-color);
 }
 
 /* Input hover and focus effects */
