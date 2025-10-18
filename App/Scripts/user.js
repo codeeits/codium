@@ -88,6 +88,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // edit funct.
 
+    function closeModal() {
+        modal.children[0].classList.add('closing');
+
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.children[0].classList.remove('closing');
+        }, 700);
+    }
+
     editBtn.addEventListener('click', function() {
         console.log('Edit button clicked');
         const cancelBtn = document.getElementById('cancelEditBtn');
@@ -95,14 +104,13 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'flex';
         
         cancelBtn.onclick = function() {
+            closeModal();
+        };
 
-
-            modal.children[0].classList.add('closing');
-
-            setTimeout(() => {
-                modal.style.display = 'none';
-                modal.children[0].classList.remove('closing');
-            }, 700);
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
         };
     });
 
