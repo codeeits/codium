@@ -418,19 +418,18 @@ func BuildLessonFlags(class int, section int, number int, module int) int32 {
 }
 
 func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
-	// Check for query parameters
-	q := r.URL.Query()
-	if len(q) == 0 {
-		cfg.logger.Printf("Missing query parameters")
-		http.Error(w, "Missing query parameters", http.StatusBadRequest)
-		return
-	}
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
 
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.GetLessonsHandler(w, r)
+		return
+	}
 	searchType := q.Get("search_type")
 	if searchType == "" {
 		cfg.logger.Printf("Missing search_type query parameter")
@@ -441,6 +440,8 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 	switch searchType {
 	case "id":
 		cfg.GetLessonByIDHandler(w, r)
+	default:
+		cfg.logger.Printf("Invalid search_type: %v", searchType)
 	}
 }
 
@@ -1605,6 +1606,7 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
 	if err != nil {
+		x
 		if errors.Is(err, sql.ErrNoRows) {
 			cfg.logger.Printf("Lesson not found: %v", lessonID)
 			http.Error(w, "Lesson not found", http.StatusNotFound)
