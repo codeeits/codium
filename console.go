@@ -88,6 +88,21 @@ func (cfg *ApiCfg) StartConsole() {
 			}
 			return nil
 		})
+		cfg.RegisterCommand("parse_lesson_flags", func(args []string) error {
+			cfg.logger.Print("Received parse_lesson_flags command via console")
+			if len(args) < 1 {
+				return fmt.Errorf("usage: parse_lesson_flags <flags_integer>")
+			}
+			flagsStr := args[0]
+			var flagsInt int64
+			_, err := fmt.Sscanf(flagsStr, "%d", &flagsInt)
+			if err != nil {
+				return fmt.Errorf("invalid flags integer format")
+			}
+			class, section, number, module := ParseLessonFlags(int32(flagsInt))
+			fmt.Printf("Parsed Lesson Flags:\n - Class: %d\n - Section: %d\n - Number: %d\n - Module: %d\n", class, section, number, module)
+			return nil
+		})
 	}
 
 	go func() {

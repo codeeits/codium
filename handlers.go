@@ -31,10 +31,27 @@ func (cfg *ApiCfg) ResetAll() error {
 
 	cfg.logger.Println("Resetting the database...")
 
-	err := cfg.db.DeleteUsers(context.Background())
+	/*
+		The old approach of deleting users is deprecated
+		err := cfg.db.DeleteUsers(context.Background())
+		if err != nil {
+			cfg.logger.Printf("Failed to delete users: %v", err)
+			return err
+		}
+	*/
+
+	// Retrieve all users
+	users, err := cfg.db.GetUsers(context.Background(), database.GetUsersParams{
+		Limit:  1000,
+		Offset: 0,
+	})
 	if err != nil {
-		cfg.logger.Printf("Failed to delete users: %v", err)
+		cfg.logger.Printf("Failed to retrieve users: %v", err)
 		return err
+	}
+	// Delete each user individually, deleting their associated data
+	for _, user := range users {
+		err = cfg.DeleteUser(user.ID)
 	}
 
 	cfg.logger.Println("All users deleted.")
@@ -133,7 +150,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		if strings.HasPrefix(fileType, "text/") == false {
 			return "", "", fmt.Errorf("invalid file type for lessons: %v", fileType)
 		}
-		if fileExtensions != "md" && fileExtensions != "markdown" {
+		if fileExtensions != "md" && fileExtensions != "txt" {
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
@@ -260,6 +277,14 @@ func PrintUserToJson(user database.User) (string, error) {
 	return string(jsonData), nil
 }
 
+func PrintLessonToJson(lesson database.Lesson) (string, error) {
+	jsonData, err := json.Marshal(lesson)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal lesson: %v", err)
+	}
+	return string(jsonData), nil
+}
+
 func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
 	// Check for query parameters
 	q := r.URL.Query()
@@ -329,6 +354,26 @@ func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
 	}
 
 	return targetUser, nil
+}
+
+func ParseLessonFlags(flags int32) (class int, section int, number int, module int) {
+	// e.g. flags = 0x01020304 -> class=4, section=3, number=2, module=1
+	u := uint32(flags)
+	module = int(u >> 24)
+	number = int((u >> 16) & 0xFF)
+	section = int((u >> 8) & 0xFF)
+	class = int(u & 0xFF)
+	return class, section, number, module
+}
+
+func BuildLessonFlags(class int, section int, number int, module int) int32 {
+	var flags uint32
+	flags |= uint32(module) << 24
+	flags |= uint32(number) << 16
+	flags |= uint32(section) << 8
+	flags |= uint32(class)
+
+	return int32(flags)
 }
 
 /*
@@ -1276,8 +1321,9 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		ContentID   string `json:"content_id"`
 		Class       int    `json:"class"`
 		Section     int    `json:"section"`
-		Number      int    `json:"number"`
 		Module      int    `json:"module"`
+		Previous    string `json:"previous"`
+		Next        string `json:"next"`
 	}
 
 	//check if database is connected
@@ -1298,10 +1344,33 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.logger.Print("Received request to add lesson with request body: ", p)
 
-	if p.Title == "" || p.Description == "" || p.ContentID == "" {
+	if p.Title == "" || p.ContentID == "" {
 		cfg.logger.Printf("Missing required fields: title, description, or content_id")
 		http.Error(w, "Missing required fields: title, description, or content_id", http.StatusBadRequest)
 		return
+	}
+
+	var prevLesson uuid.NullUUID
+	var nextLesson uuid.NullUUID
+
+	if p.Previous != "" {
+		prevLesson.UUID, err = uuid.Parse(p.Previous)
+		if err != nil {
+			cfg.logger.Printf("Invalid UUID format for previous lesson: %v", err)
+			http.Error(w, "Invalid previous lesson format", http.StatusBadRequest)
+			return
+		}
+		prevLesson.Valid = true
+	}
+
+	if p.Next != "" {
+		nextLesson.UUID, err = uuid.Parse(p.Next)
+		if err != nil {
+			cfg.logger.Printf("Invalid UUID format for next lesson: %v", err)
+			http.Error(w, "Invalid next lesson format", http.StatusBadRequest)
+			return
+		}
+		nextLesson.Valid = true
 	}
 
 	contentUUID, err := uuid.Parse(p.ContentID)
@@ -1326,18 +1395,25 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flags := p.Module<<24 | p.Number<<16 | p.Section<<8 | p.Class
-	existingLesson, err := cfg.db.GetLessonByFlags(r.Context(), int32(flags))
+	//check for duplicate lesson
+	existingLesson, err := cfg.db.GetLessonByContentID(r.Context(), contentUUID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		cfg.logger.Printf("Failed to check for existing lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	if existingLesson.ID != uuid.Nil {
-		cfg.logger.Printf("Lesson with same class, section, number, and module already exists: %v", existingLesson.ID)
-		http.Error(w, "Lesson with same class, section, number, and module already exists", http.StatusConflict)
+		cfg.logger.Printf("Lesson with content_id %v already exists", contentUUID)
+		http.Error(w, "Duplicate lesson with same content_id", http.StatusConflict)
 		return
 	}
+
+	number, err := cfg.db.CountLessons(r.Context(), database.CountLessonsParams{
+		Flags:   BuildLessonFlags(p.Class, p.Section, 0, p.Module),
+		Flags_2: BuildLessonFlags(p.Class, p.Section, 0, p.Module),
+	})
+
+	flags := BuildLessonFlags(p.Class, p.Section, int(number+1), p.Module)
 
 	//check if user is admin
 
@@ -1363,9 +1439,16 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	lessonJson, err := PrintLessonToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"lesson_id": "%v", "title": "%v", "description": "%v", "content_id": "%v", "flags": "%v"}`, lessonID, res.Title, res.Description, res.ContentID, res.Flags)))
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
