@@ -99,8 +99,8 @@ func (cfg *ApiCfg) StartConsole() {
 			if err != nil {
 				return fmt.Errorf("invalid flags integer format")
 			}
-			class, section, number, module := ParseLessonFlags(int32(flagsInt))
-			fmt.Printf("Parsed Lesson Flags:\n - Class: %d\n - Section: %d\n - Number: %d\n - Module: %d\n", class, section, number, module)
+			parsedFlag := ParseLessonFlags(int32(flagsInt))
+			fmt.Printf("Parsed Lesson Flags:\n - Class: %d\n - Section: %d\n - Number: %d\n - Module: %d\n", parsedFlag.Class, parsedFlag.Section, parsedFlag.Number, parsedFlag.Module)
 			return nil
 		})
 		cfg.RegisterCommand("list_lessons", func(args []string) error {
@@ -114,7 +114,8 @@ func (cfg *ApiCfg) StartConsole() {
 			}
 			fmt.Println("Lessons:")
 			for _, lesson := range lessons {
-				fmt.Printf(" - ID: %s, Title: %s, Author: %v, Flags: [ Class: %v, Section: %v, Number: %v, Module: %v ]\n", lesson.Lesson.ID, lesson.Lesson.Title, lesson.Lesson.AuthorID, lesson.Class, lesson.Section, lesson.Number, lesson.Module)
+				parsedFlags := ParseLessonFlags(lesson.Flags)
+				fmt.Printf(" - ID: %s, Title: %s, Author: %v, Flags: [ Class: %v, Section: %v, Number: %v, Module: %v ]\n", lesson.ID, lesson.Title, lesson.AuthorID, parsedFlags.Class, parsedFlags.Section, parsedFlags.Number, parsedFlags.Module)
 			}
 			return nil
 		})

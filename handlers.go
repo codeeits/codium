@@ -22,6 +22,26 @@ import (
 /*
 ===========================================
 
+	Definitions
+
+===========================================
+*/
+
+type FlagTranslation struct {
+	Class   int `json:"class"`
+	Section int `json:"section"`
+	Number  int `json:"number"`
+	Module  int `json:"module"`
+}
+
+type LessonWithFlags struct {
+	Lesson          database.Lesson `json:"lesson"`
+	FlagTranslation FlagTranslation `json:"flag_translation"`
+}
+
+/*
+===========================================
+
 	API Functions
 
 ===========================================
@@ -260,13 +280,7 @@ func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
 	return users, nil
 }
 
-func (cfg *ApiCfg) ListLessons() ([]struct {
-	Lesson  database.Lesson `json:"lesson"`
-	Class   int             `json:"class"`
-	Section int             `json:"section"`
-	Number  int             `json:"number"`
-	Module  int             `json:"module"`
-}, error) {
+func (cfg *ApiCfg) ListLessons() ([]database.Lesson, error) {
 	lessons, err := cfg.db.GetLessons(context.Background(), database.GetLessonsParams{
 		Limit:  100,
 		Offset: 0,
@@ -275,28 +289,9 @@ func (cfg *ApiCfg) ListLessons() ([]struct {
 		return nil, fmt.Errorf("failed to list lessons: %v", err)
 	}
 
-	var result []struct {
-		Lesson  database.Lesson `json:"lesson"`
-		Class   int             `json:"class"`
-		Section int             `json:"section"`
-		Number  int             `json:"number"`
-		Module  int             `json:"module"`
-	}
+	var result []database.Lesson
 	for _, lesson := range lessons {
-		class, section, number, module := ParseLessonFlags(lesson.Flags)
-		result = append(result, struct {
-			Lesson  database.Lesson `json:"lesson"`
-			Class   int             `json:"class"`
-			Section int             `json:"section"`
-			Number  int             `json:"number"`
-			Module  int             `json:"module"`
-		}{
-			Lesson:  lesson,
-			Class:   class,
-			Section: section,
-			Number:  number,
-			Module:  module,
-		})
+		result = append(result, lesson)
 	}
 	return result, nil
 }
@@ -319,11 +314,15 @@ func PrintUserToJson(user database.User) (string, error) {
 }
 
 func PrintLessonToJson(lesson database.Lesson) (string, error) {
-	jsonData, err := json.Marshal(lesson)
+	flagTranslation := ParseLessonFlags(lesson.Flags)
+	jsonDataWithFlags, err := json.Marshal(LessonWithFlags{
+		Lesson:          lesson,
+		FlagTranslation: flagTranslation,
+	})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal lesson: %v", err)
 	}
-	return string(jsonData), nil
+	return string(jsonDataWithFlags), nil
 }
 
 func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
@@ -397,14 +396,15 @@ func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
 	return targetUser, nil
 }
 
-func ParseLessonFlags(flags int32) (class int, section int, number int, module int) {
+func ParseLessonFlags(flags int32) FlagTranslation {
 	// e.g. flags = 0x01020304 -> class=4, section=3, number=2, module=1
+	var class, section, number, module int
 	u := uint32(flags)
 	module = int(u >> 24)
 	number = int((u >> 16) & 0xFF)
 	section = int((u >> 8) & 0xFF)
 	class = int(u & 0xFF)
-	return class, section, number, module
+	return FlagTranslation{class, section, number, module}
 }
 
 func BuildLessonFlags(class int, section int, number int, module int) int32 {
@@ -415,6 +415,33 @@ func BuildLessonFlags(class int, section int, number int, module int) int32 {
 	flags |= uint32(class)
 
 	return int32(flags)
+}
+
+func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	searchType := q.Get("search_type")
+	if searchType == "" {
+		cfg.logger.Printf("Missing search_type query parameter")
+		http.Error(w, "Missing search_type query parameter", http.StatusBadRequest)
+		return
+	}
+
+	switch searchType {
+	case "id":
+		cfg.GetLessonByIDHandler(w, r)
+	}
 }
 
 /*
@@ -1513,13 +1540,95 @@ func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	jsonData, err := json.Marshal(lessons)
+
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
 	if err != nil {
-		cfg.logger.Printf("Failed to marshal lessons: %v", err)
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lesson := range lessons {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonJson, err := PrintLessonToJson(lesson)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		LessonID string `json:"lesson_id"`
+	}
+
+	var p params
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", p.LessonID)
+	//Database check is done in the disambiguation function
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(p.LessonID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("Lesson not found: %v", lessonID)
+			http.Error(w, "Lesson not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	_, err = w.Write(jsonData)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	lessonJson, err := PrintLessonToJson(lesson)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
 }
 
 //// MMMM.ZZZZ.YYYY.XXXX <- INT
