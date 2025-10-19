@@ -1606,7 +1606,6 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
 	if err != nil {
-		x
 		if errors.Is(err, sql.ErrNoRows) {
 			cfg.logger.Printf("Lesson not found: %v", lessonID)
 			http.Error(w, "Lesson not found", http.StatusNotFound)
