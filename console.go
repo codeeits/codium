@@ -103,6 +103,21 @@ func (cfg *ApiCfg) StartConsole() {
 			fmt.Printf("Parsed Lesson Flags:\n - Class: %d\n - Section: %d\n - Number: %d\n - Module: %d\n", class, section, number, module)
 			return nil
 		})
+		cfg.RegisterCommand("list_lessons", func(args []string) error {
+			cfg.logger.Print("Received list_lessons command via console")
+			if !cfg.dbLoaded {
+				return fmt.Errorf("database not connected")
+			}
+			lessons, err := cfg.ListLessons()
+			if err != nil {
+				return err
+			}
+			fmt.Println("Lessons:")
+			for _, lesson := range lessons {
+				fmt.Printf(" - ID: %s, Title: %s, Author: %v, Flags: [ Class: %v, Section: %v, Number: %v, Module: %v ]\n", lesson.Lesson.ID, lesson.Lesson.Title, lesson.Lesson.AuthorID, lesson.Class, lesson.Section, lesson.Number, lesson.Module)
+			}
+			return nil
+		})
 	}
 
 	go func() {

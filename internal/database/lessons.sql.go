@@ -78,51 +78,6 @@ func (q *Queries) CountLessons(ctx context.Context, arg CountLessonsParams) (int
 	return count, err
 }
 
-const getAllLessons = `-- name: GetAllLessons :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id FROM lessons
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
-`
-
-type GetAllLessonsParams struct {
-	Limit  int32
-	Offset int32
-}
-
-func (q *Queries) GetAllLessons(ctx context.Context, arg GetAllLessonsParams) ([]Lesson, error) {
-	rows, err := q.db.QueryContext(ctx, getAllLessons, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Lesson
-	for rows.Next() {
-		var i Lesson
-		if err := rows.Scan(
-			&i.ID,
-			&i.Title,
-			&i.Description,
-			&i.ContentID,
-			&i.AuthorID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.Flags,
-			&i.NextLessonID,
-			&i.PrevLessonID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getLessonByContentID = `-- name: GetLessonByContentID :one
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id FROM lessons
 WHERE content_id = $1
@@ -190,4 +145,49 @@ func (q *Queries) GetLessonByID(ctx context.Context, id uuid.UUID) (Lesson, erro
 		&i.PrevLessonID,
 	)
 	return i, err
+}
+
+const getLessons = `-- name: GetLessons :many
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id FROM lessons
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetLessonsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetLessons(ctx context.Context, arg GetLessonsParams) ([]Lesson, error) {
+	rows, err := q.db.QueryContext(ctx, getLessons, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Lesson
+	for rows.Next() {
+		var i Lesson
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.ContentID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Flags,
+			&i.NextLessonID,
+			&i.PrevLessonID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

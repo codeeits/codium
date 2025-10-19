@@ -123,6 +123,7 @@ func main() {
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
 		mux.Handle("DELETE /api/users/{userID}", http.HandlerFunc(cfg.DeleteUserHandler))
 		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.AddLessonHandler))
+		mux.Handle("GET /api/lessons/", http.HandlerFunc(cfg.GetLessonsHandler))
 
 		// Start the HTTP server
 		server := &http.Server{

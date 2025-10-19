@@ -7,7 +7,7 @@ RETURNING *;
 SELECT * FROM lessons
 WHERE id = $1;
 
--- name: GetAllLessons :many
+-- name: GetLessons :many
 SELECT * FROM lessons
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;

@@ -260,6 +260,47 @@ func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
 	return users, nil
 }
 
+func (cfg *ApiCfg) ListLessons() ([]struct {
+	Lesson  database.Lesson `json:"lesson"`
+	Class   int             `json:"class"`
+	Section int             `json:"section"`
+	Number  int             `json:"number"`
+	Module  int             `json:"module"`
+}, error) {
+	lessons, err := cfg.db.GetLessons(context.Background(), database.GetLessonsParams{
+		Limit:  100,
+		Offset: 0,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list lessons: %v", err)
+	}
+
+	var result []struct {
+		Lesson  database.Lesson `json:"lesson"`
+		Class   int             `json:"class"`
+		Section int             `json:"section"`
+		Number  int             `json:"number"`
+		Module  int             `json:"module"`
+	}
+	for _, lesson := range lessons {
+		class, section, number, module := ParseLessonFlags(lesson.Flags)
+		result = append(result, struct {
+			Lesson  database.Lesson `json:"lesson"`
+			Class   int             `json:"class"`
+			Section int             `json:"section"`
+			Number  int             `json:"number"`
+			Module  int             `json:"module"`
+		}{
+			Lesson:  lesson,
+			Class:   class,
+			Section: section,
+			Number:  number,
+			Module:  module,
+		})
+	}
+	return result, nil
+}
+
 /*
 ===========================================
 
@@ -1454,6 +1495,31 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+	cfg.logger.Print("Received get lessons request")
+	lessons, err := cfg.ListLessons()
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	jsonData, err := json.Marshal(lessons)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write(jsonData)
 }
 
 //// MMMM.ZZZZ.YYYY.XXXX <- INT
