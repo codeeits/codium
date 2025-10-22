@@ -134,6 +134,30 @@ func (cfg *ApiCfg) StartConsole() {
 			}
 			return nil
 		})
+		cfg.RegisterCommand("delete_file", func(args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("usage: delete_file <file_id>")
+			}
+
+			fileIdStr := args[0]
+			cfg.logger.Printf("Received delete_file command via console for file ID %s", fileIdStr)
+			fmt.Printf("Deleting file with ID %s...\n", fileIdStr)
+			if !cfg.dbLoaded {
+				return fmt.Errorf("database not connected")
+			}
+
+			fileId, err := uuid.Parse(fileIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid file ID format")
+			}
+
+			err = cfg.DeleteFile(fileId)
+			if err != nil {
+				return err
+			}
+			fmt.Println("File deleted successfully.")
+			return nil
+		})
 	}
 
 	go func() {

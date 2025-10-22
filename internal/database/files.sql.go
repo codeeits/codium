@@ -48,6 +48,16 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, e
 	return i, err
 }
 
+const deleteFileByID = `-- name: DeleteFileByID :exec
+DELETE FROM files
+WHERE id = $1
+`
+
+func (q *Queries) DeleteFileByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteFileByID, id)
+	return err
+}
+
 const getFileByID = `-- name: GetFileByID :one
 SELECT id, user_id, filename, filepath, filesize, uploaded_at FROM files
 WHERE id = $1

@@ -17,3 +17,7 @@ LIMIT $2 OFFSET $3;
 SELECT * FROM files
 ORDER BY uploaded_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: DeleteFileByID :exec
+DELETE FROM files
+WHERE id = $1;

@@ -306,6 +306,7 @@ func (cfg *ApiCfg) ListLessons() ([]database.Lesson, error) {
 	return result, nil
 }
 
+// ListFiles List all files
 func (cfg *ApiCfg) ListFiles() ([]database.File, error) {
 	files, err := cfg.db.GetFiles(context.Background(), database.GetFilesParams{
 		Limit:  100,
@@ -332,6 +333,32 @@ func ParseLessonFlags(flags int32) FlagTranslation {
 	section = int((u >> 8) & 0xFF)
 	class = int(u & 0xFF)
 	return FlagTranslation{class, section, number, module}
+}
+
+func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
+	file, err := cfg.db.GetFileByID(context.Background(), fileID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve file: %v", err)
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %v", err)
+	}
+
+	// Delete file from filesystem
+	err = os.Remove(cwd + "/" + file.Filepath)
+	if err != nil {
+		return fmt.Errorf("failed to delete file from filesystem: %v", err)
+	}
+
+	// Delete file record from database
+	err = cfg.db.DeleteFileByID(context.Background(), fileID)
+	if err != nil {
+		return fmt.Errorf("failed to delete file record from database: %v", err)
+	}
+
+	return nil
 }
 
 // BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags
