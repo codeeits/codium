@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Redirect daca e auth
     if (window.apiService.isAuthenticated()) {
-        window.location.href = 'index.html';
+        window.location.href = 'user.html';
         return;
     }
 
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setLoadingState(true);
 
         try {
-            
+            await window.apiService.login(email, password);
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {
