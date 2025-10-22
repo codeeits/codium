@@ -1177,20 +1177,17 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	flag, mask := BuildLessonFlags(p.Class, p.Section, 0, p.Module)
+
+	//get lesson number
 	number, err := cfg.db.CountLessons(r.Context(), database.CountLessonsParams{
-		Flags:   BuildLessonFlags(p.Class, p.Section, 0, p.Module),
-		Flags_2: BuildLessonFlags(p.Class, p.Section, 0, p.Module),
+		Flags:   int32(mask),
+		Flags_2: int32(flag),
 	})
 
-	flags := BuildLessonFlags(p.Class, p.Section, int(number+1), p.Module)
+	flag, _ = BuildLessonFlags(p.Class, p.Section, int(number+1), p.Module)
 
 	//check if user is admin
-
-	if !user.IsAdmin {
-		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin user: %v", user.ID)
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 
 	res, err := cfg.db.AddLesson(r.Context(), database.AddLessonParams{
 		ID:          lessonID,
@@ -1198,7 +1195,7 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		Description: sql.NullString{String: p.Description, Valid: true},
 		ContentID:   contentUUID,
 		AuthorID:    uuid.NullUUID{UUID: user.ID, Valid: true},
-		Flags:       flags,
+		Flags:       int32(flag),
 		CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 	})
