@@ -115,7 +115,22 @@ func (cfg *ApiCfg) StartConsole() {
 			fmt.Println("Lessons:")
 			for _, lesson := range lessons {
 				parsedFlags := ParseLessonFlags(lesson.Flags)
-				fmt.Printf(" - ID: %s, Title: %s, Author: %v, Flags: [ Class: %v, Section: %v, Number: %v, Module: %v ]\n", lesson.ID, lesson.Title, lesson.AuthorID, parsedFlags.Class, parsedFlags.Section, parsedFlags.Number, parsedFlags.Module)
+				fmt.Printf(" - ID: %s, Title: %s, Author: %v, File: %v, Flags: [ Class: %v, Section: %v, Number: %v, Module: %v ]\n", lesson.ID, lesson.Title, lesson.AuthorID, lesson.ContentID, parsedFlags.Class, parsedFlags.Section, parsedFlags.Number, parsedFlags.Module)
+			}
+			return nil
+		})
+		cfg.RegisterCommand("list_files", func(args []string) error {
+			cfg.logger.Print("Received list_files command via console")
+			if !cfg.dbLoaded {
+				return fmt.Errorf("database not connected")
+			}
+			files, err := cfg.ListFiles()
+			if err != nil {
+				return err
+			}
+			fmt.Println("Files:")
+			for _, file := range files {
+				fmt.Printf(" - ID: %s, Filename: %s, FilePath: %v, Uploader: %v, UploadedAt: %v\n", file.ID, file.Filename, file.Filepath, file.UserID, file.UploadedAt)
 			}
 			return nil
 		})

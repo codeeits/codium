@@ -12,3 +12,8 @@ SELECT * FROM files
 WHERE user_id = $1
 ORDER BY uploaded_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: GetFiles :many
+SELECT * FROM files
+ORDER BY uploaded_at DESC
+LIMIT $1 OFFSET $2;

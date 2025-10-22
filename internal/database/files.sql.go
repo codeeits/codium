@@ -67,6 +67,47 @@ func (q *Queries) GetFileByID(ctx context.Context, id uuid.UUID) (File, error) {
 	return i, err
 }
 
+const getFiles = `-- name: GetFiles :many
+SELECT id, user_id, filename, filepath, filesize, uploaded_at FROM files
+ORDER BY uploaded_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetFilesParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetFiles(ctx context.Context, arg GetFilesParams) ([]File, error) {
+	rows, err := q.db.QueryContext(ctx, getFiles, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []File
+	for rows.Next() {
+		var i File
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Filename,
+			&i.Filepath,
+			&i.Filesize,
+			&i.UploadedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFilesByUserID = `-- name: GetFilesByUserID :many
 SELECT id, user_id, filename, filepath, filesize, uploaded_at FROM files
 WHERE user_id = $1

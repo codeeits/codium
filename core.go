@@ -36,6 +36,15 @@ type LessonWithFlags struct {
 	FlagTranslation FlagTranslation `json:"flag_translation"`
 }
 
+type FlagMasks uint32
+
+const (
+	ModuleMask  FlagMasks = 0xFF000000
+	NumberMask  FlagMasks = 0x00FF0000
+	SectionMask FlagMasks = 0x0000FF00
+	ClassMask   FlagMasks = 0x000000FF
+)
+
 /*
 ===========================================
 
@@ -297,6 +306,22 @@ func (cfg *ApiCfg) ListLessons() ([]database.Lesson, error) {
 	return result, nil
 }
 
+func (cfg *ApiCfg) ListFiles() ([]database.File, error) {
+	files, err := cfg.db.GetFiles(context.Background(), database.GetFilesParams{
+		Limit:  100,
+		Offset: 0,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list files: %v", err)
+	}
+
+	var result []database.File
+	for _, file := range files {
+		result = append(result, file)
+	}
+	return result, nil
+}
+
 // ParseLessonFlags Parse the given lesson flags and return respective class, section, module and number
 func ParseLessonFlags(flags int32) FlagTranslation {
 	// e.g. flags = 0x01020304 -> class=4, section=3, number=2, module=1
@@ -309,13 +334,28 @@ func ParseLessonFlags(flags int32) FlagTranslation {
 	return FlagTranslation{class, section, number, module}
 }
 
-// BuildLessonFlags Build the lesson flags from class, section, module and number
-func BuildLessonFlags(class int, section int, number int, module int) int32 {
+// BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags
+// e.g. class=4, section=3, number=2, module=1 -> flags = 0x01020304
+func BuildLessonFlags(class int, section int, number int, module int) (uint32, uint32) {
 	var flags uint32
 	flags |= uint32(module) << 24
 	flags |= uint32(number) << 16
 	flags |= uint32(section) << 8
 	flags |= uint32(class)
 
-	return int32(flags)
+	var mask uint32 = 0
+	if class > 0 {
+		mask |= uint32(ClassMask)
+	}
+	if section > 0 {
+		mask |= uint32(SectionMask)
+	}
+	if number > 0 {
+		mask |= uint32(NumberMask)
+	}
+	if module > 0 {
+		mask |= uint32(ModuleMask)
+	}
+
+	return flags, mask
 }
