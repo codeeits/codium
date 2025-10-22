@@ -17,7 +17,7 @@
 
     <!-- Scripts -->
     <script src="Scripts/main.js" defer></script> 
-    <!-- <script src="Scripts/lesson-upload.js" defer></script> -->
+    <script src="Scripts/lessonsHandler.js" defer></script>
     
     <meta name="menu-variant" content="default">
 </head>
@@ -72,7 +72,7 @@
                         <input type="number" id="lessonSection" name="section" placeholder="1" min="1" max="255" required>
                     </div>
                 </div>
-
+                <!--
                 <div class="modal-field">
                     <label for="lessonNumber">Lecția #</label>
                     <div class="text-container">
@@ -80,7 +80,7 @@
                         <input type="number" id="lessonNumber" name="number" placeholder="1" min="1" max="255" required>
                     </div>
                 </div>
-
+                -->
                 <div class="modal-field">
                     <label for="lessonModule">Modul [0 - Informatică (Altele disponibile în curând)]</label>
                     <div class="text-container">
@@ -99,7 +99,7 @@
                             <input type="file" id="lessonFile" name="lessonFile" accept=".md,.markdown,.txt" required>
                         </div>
                         <!-- WIP File Info -->
-                        <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-info" id="fileInfo">
                             <i class="fa-solid fa-info-circle"></i>
                             <span id="fileName"></span>
                             <span id="fileSize"></span>
