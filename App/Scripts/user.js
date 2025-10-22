@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const authToken = localStorage.getItem('authToken');
     const userId = localStorage.getItem('userID');
 
-    /*if (!authToken) {
+    if (!authToken) {
         window.location.href = 'login.html';
         return;
-    }*/
+    }
 
     // DOM elements
     const userName = document.getElementById('userName');
