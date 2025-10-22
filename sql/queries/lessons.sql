@@ -24,3 +24,15 @@ WHERE flags & $1 = $2;
 -- name: GetLessonByContentID :one
 SELECT * FROM lessons
 WHERE content_id = $1;
+
+-- name: GetLessonsByAuthorID :many
+SELECT * FROM lessons
+WHERE author_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: GetLessonsByFlags :many
+SELECT * FROM lessons
+WHERE flags & $1 = $2
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4;
