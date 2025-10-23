@@ -83,7 +83,10 @@ document.addEventListener('DOMContentLoaded', function() {
         userEmail.textContent = userData.Email || userData.email;
 
         if (userData.ProfilePicID || userData.profilePicID) {
+            avatarImg.style.display = 'block';
             avatarImg.src = `/api/files/${userData.ProfilePicID || userData.profilePicID}`;
+        } else {
+            avatarImg.style.display = 'none';
         }
     }
     // edit funct.
@@ -117,6 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // logout funct.
 
     logoutBtn.addEventListener('click', function() {
-        handleLogout();
+        window.apiService.logout(true);
     });
 });

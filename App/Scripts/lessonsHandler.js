@@ -7,6 +7,11 @@
 
 */
 
+const isAdmin = localStorage.getItem('isAdmin') === 'true';
+if (!isAdmin) {
+    window.location.href = 'index.html';
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
     const uploadModal = document.getElementById("uploadLessonModal");

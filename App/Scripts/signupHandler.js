@@ -83,13 +83,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 email: email,
                 username: username,
                 password: password
-            };            
-            await window.apiService.signup(userData);
+            };
             
+            const result = await window.apiService.signup(userData);
+
             handleSignupSuccess();
 
         } catch (error) {
-            alert('Signup failed: ' + error.message);
+            if (error.message.includes('Failed to create user') && error.status === 500) {
+                alert('This username or email is already taken. Please try different credentials.');
+                return;
+            }
             setLoadingState(false);
         } finally {
             setLoadingState(false);

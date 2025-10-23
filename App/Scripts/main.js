@@ -54,7 +54,7 @@ function updateAuthButton() {
         if (logoutButton) {
             logoutButton.classList.remove('hidden');
             logoutButton.onclick = function() {
-                handleLogout();
+                window.apiService.logout(true);
             };
             logoutButton.title = 'Logout';
         }
@@ -83,7 +83,7 @@ function updateAuthButton() {
 }
 
 // Logout function for the navigation menu
-function handleLogout() {
+/*function handleLogout() {
     if (confirm('Are you sure you want to logout?')) {
         // Clear stored data
         localStorage.removeItem('authToken');
@@ -98,7 +98,7 @@ function handleLogout() {
         // Redirect to login or home page
         window.location.href = 'login.html';
     }
-}
+}*/
 
 window.refreshAuthButton = updateAuthButton;
 

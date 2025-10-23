@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'user.html';
         }, 1670);
     }
 

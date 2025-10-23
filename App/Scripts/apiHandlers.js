@@ -205,11 +205,14 @@ class ApiService {
         return this.post('/api/create_user', userData);
     }
 
-    logout() {
-        this.clearTokens();
-        // Trigger auth button update if available
-        if (window.refreshAuthButton) {
-            window.refreshAuthButton();
+    async logout(confirmMessage = false) {
+        if (confirmMessage ? confirm('Are you sure you want to log out?') : true) {
+            this.clearTokens();
+            window.location.href = 'login.html';
+            // Trigger auth button update if available
+            if (window.refreshAuthButton) {
+                window.refreshAuthButton();
+            }
         }
     }
 
