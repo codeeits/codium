@@ -228,17 +228,18 @@ class ApiService {
         return this.get(`/api/users/${userId}`, true);
     }
 
-    async updateUserField(field, value) {
+    async updateUserField(field, value, pic = false) {
         const data = {};
         data[field] = value;
-        return this.put(`/api/users?target_field=${field}`, data);
+        return this.put(`/api/users?target_field=${pic ? 'pfp' : field}`, data);
     }
 
-    async updatePassword(newPassword, confirmPassword) {
-        return this.updateUserField('password', {
-            password: newPassword,
-            confirm_password: confirmPassword
-        });
+    async updatePassword(oldPassword, newPassword) {
+        const data = {
+            old_password: oldPassword,
+            new_password: newPassword
+        };
+        return this.put(`/api/users?target_field=password`, data);
     }
 
     async updateEmail(newEmail) {
@@ -250,7 +251,7 @@ class ApiService {
     }
 
     async updateProfilePicture(fileId) {
-        return this.updateUserField('pfp', fileId);
+        return this.updateUserField('image_id', fileId, true);
     }
 
     // ===========================================
