@@ -131,7 +131,7 @@ func main() {
 			Handler: mux,
 		}
 
-		cfg.StartConsole()
+		cfg.StartCLI()
 		err = server.ListenAndServe()
 		if err != nil {
 			cfg.logger.Fatal(err)
