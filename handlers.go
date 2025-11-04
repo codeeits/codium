@@ -140,6 +140,8 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 	switch searchType {
 	case "id":
 		cfg.GetLessonByIDHandler(w, r)
+	case "flags":
+		cfg.GetLessonsByFlagsHandler(w, r)
 	default:
 		cfg.logger.Printf("Invalid search_type: %v", searchType)
 	}
@@ -1322,6 +1324,84 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Class   int `json:"class"`
+		Section int `json:"section"`
+		Module  int `json:"module"`
+		Number  int `json:"number"`
+	}
+
+	var p params
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get lesson by flags request for class: ", p.Class, " section: ", p.Section, " module: ", p.Module, " number: ", p.Number)
+	//Database check is done in the disambiguation function
+
+	flag, mask := BuildLessonFlags(p.Class, p.Section, p.Number, p.Module)
+
+	lessons, err := cfg.db.GetLessonsByFlags(r.Context(), database.GetLessonsByFlagsParams{
+		Flags:   int32(mask),
+		Flags_2: int32(flag),
+		Limit:   1000,
+		Offset:  0,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("Lesson not found with specified flags")
+			http.Error(w, "Lesson not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lesson := range lessons {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonJson, err := PrintLessonToJson(lesson)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
