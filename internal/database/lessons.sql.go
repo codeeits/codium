@@ -78,6 +78,16 @@ func (q *Queries) CountLessons(ctx context.Context, arg CountLessonsParams) (int
 	return count, err
 }
 
+const deleteLessonByID = `-- name: DeleteLessonByID :exec
+DELETE FROM lessons
+WHERE id = $1
+`
+
+func (q *Queries) DeleteLessonByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteLessonByID, id)
+	return err
+}
+
 const getLessonByContentID = `-- name: GetLessonByContentID :one
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id FROM lessons
 WHERE content_id = $1

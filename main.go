@@ -124,6 +124,7 @@ func main() {
 		mux.Handle("DELETE /api/users/{userID}", http.HandlerFunc(cfg.DeleteUserHandler))
 		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.AddLessonHandler))
 		mux.Handle("GET /api/lessons", http.HandlerFunc(cfg.GetLessonDisambiguationHandler))
+		mux.Handle("DELETE /api/lessons/{lessonID}", http.HandlerFunc(cfg.DeleteLessonHandler))
 
 		// Start the HTTP server
 		server := &http.Server{

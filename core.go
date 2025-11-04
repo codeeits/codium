@@ -274,6 +274,14 @@ func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
 	return nil
 }
 
+func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
+	err := cfg.db.DeleteLessonByID(context.Background(), lessonID)
+	if err != nil {
+		return fmt.Errorf("failed to delete lesson: %v", err)
+	}
+	return nil
+}
+
 // ListUsers List all users without password hashes
 func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
 	users, err := cfg.db.GetUsers(context.Background(), database.GetUsersParams{

@@ -1408,3 +1408,58 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
+
+func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received delete lesson request")
+
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete lesson attempt by non-admin user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Extract lesson ID from URL path
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	err = cfg.DeleteLesson(lessonID)
+	if err != nil {
+		cfg.logger.Printf("Failed to delete lesson: %v", err)
+		http.Error(w, "Failed to delete lesson", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("Lesson deleted successfully."))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}

@@ -36,3 +36,7 @@ SELECT * FROM lessons
 WHERE flags & $1 = $2
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4;
+
+-- name: DeleteLessonByID :exec
+DELETE FROM lessons
+WHERE id = $1;
