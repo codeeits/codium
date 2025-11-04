@@ -33,6 +33,18 @@ type Lesson struct {
 	PrevLessonID uuid.NullUUID
 }
 
+type LessonsUser struct {
+	ID          uuid.UUID
+	LessonID    uuid.UUID
+	UserID      uuid.UUID
+	Favorited   sql.NullBool
+	Bookmarked  sql.NullBool
+	StartedAt   sql.NullTime
+	CompletedAt sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type RefreshToken struct {
 	Token     string
 	CreatedAt time.Time
