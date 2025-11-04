@@ -228,6 +228,16 @@ class ApiService {
         return this.get(`/api/users/${userId}`, true);
     }
 
+    async getCurrentUserUsername() {
+        const userID = localStorage.getItem('userID');
+        if (!userID) {
+            throw new Error('No user ID found');
+        }
+        let userData = await this.get(`/api/users/${userID}`, true);
+        userData = JSON.parse(userData);
+        return userData.Username;
+    }
+
     async updateUserField(field, value, pic = false) {
         const data = {};
         data[field] = value;
@@ -247,6 +257,7 @@ class ApiService {
     }
 
     async updateUsername(newUsername) {
+        localStorage.setItem('username', newUsername);
         return this.updateUserField('username', newUsername);
     }
 
