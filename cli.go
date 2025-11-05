@@ -139,6 +139,30 @@ func (cfg *ApiCfg) StartCLI() {
 			fmt.Println("File deleted successfully.")
 			return nil
 		})
+		commandsCfg.RegisterCommand("delete_lesson", func(args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("usage: delete_lesson <lesson_id>")
+			}
+
+			lessonIdStr := args[0]
+			cfg.logger.Printf("Received delete_lesson command via console for lesson ID %s", lessonIdStr)
+			fmt.Printf("Deleting lesson with ID %s...\n", lessonIdStr)
+			if !cfg.dbLoaded {
+				return fmt.Errorf("database not connected")
+			}
+
+			lessonId, err := uuid.Parse(lessonIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid lesson ID format")
+			}
+
+			err = cfg.DeleteLesson(lessonId)
+			if err != nil {
+				return err
+			}
+			fmt.Println("Lesson deleted successfully.")
+			return nil
+		})
 	}
 
 	commandsCfg.StartConsole()
