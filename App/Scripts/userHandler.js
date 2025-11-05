@@ -4,10 +4,67 @@
  )(__)( \__ \ )__)  )   / ) _ (  /(__)\  )  (  )(_) ))(__  )__)  )   /  .-_)(  \__ \
 (______)(___/(____)(_)\_)(_) (_)(__)(__)(_)\_)(____/(____)(____)(_)\_)()\____) (___/
 
+We aint talkin about user.js
 */
 
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    // DOM elements
+
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const avatarImg = document.getElementById('userAvatar');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const editBtn = document.getElementById('editProfileBtn');
+
+    // ------------------------------
+    // CHECK AUTHENTICATION
+    // ------------------------------
+
+    const isAuthenticated = window.apiService.isAuthenticated();
+    if (!isAuthenticated) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // ------------------------------
+    // LOGOUT FUNCTIONALITY
+    // ------------------------------
+
+    logoutBtn.addEventListener('click', function() {
+        window.apiService.logout(true);
+    });
+
+    // ------------------------------
+    // Randare USER ELEMENTS
+    // ------------------------------
+
+    async function loadUserProfile() {
+        
+        try {
+            let userData = await window.apiService.getCurrentUser();
+            userData = JSON.parse(userData);
+            console.log(userData);
+            // display the data
+            console.log(userData.Username);
+            userName.textContent = userData.Username;
+            userEmail.textContent = userData.Email;
+            if (userData.ProfilePicID) {
+                const imgUrl = await window.apiService.getFileURL(userData.ProfilePicID);
+                avatarImg.src = imgUrl;
+            } else {
+                avatarImg.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.warn('API call failed');
+            window.handleApiError(error, 'Failed to load user profile.');
+        }
+    
+    }
+
+    loadUserProfile();
 
     // ------------------------------
     // EDIT MODAL
@@ -17,6 +74,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.getElementById('saveEditBtn');
 
     modal.style.display = 'none';
+
+    // handles modal show/hide stuff
+
+    function closeModal() {
+        modal.children[0].classList.add('closing');
+
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.children[0].classList.remove('closing');
+        }, 700);
+    }
+
+    editBtn.addEventListener('click', function() {
+        console.log('Edit button clicked');
+        const cancelBtn = document.getElementById('cancelEditBtn');
+
+        modal.style.display = 'flex';
+        
+        cancelBtn.onclick = function() {
+            closeModal();
+        };
+
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        };
+    });
 
     // function to validate modal form
 
