@@ -1,6 +1,6 @@
 -- name: CreateLessonsUsers :one
-INSERT INTO lessons_users (lesson_id, user_id, favorited, bookmarked, started_at, completed_at, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO lessons_users (lesson_id, user_id, favorited, bookmarked, started_at, completed_at, created_at, updated_at, id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: UpdateLessonsUsersFavorited :one

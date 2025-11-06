@@ -125,6 +125,8 @@ func main() {
 		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.AddLessonHandler))
 		mux.Handle("GET /api/lessons", http.HandlerFunc(cfg.GetLessonDisambiguationHandler))
 		mux.Handle("DELETE /api/lessons/{lessonID}", http.HandlerFunc(cfg.DeleteLessonHandler))
+		mux.Handle("POST /api/lessons/{lessonID}/favorite", http.HandlerFunc(cfg.FavoriteLessonHandler))
+		mux.Handle("GET /api/lessons/{lessonID}/users/{userID}", http.HandlerFunc(cfg.GetLessonUserByLessonAndUserHandler))
 
 		// Start the HTTP server
 		server := &http.Server{

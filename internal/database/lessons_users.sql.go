@@ -25,8 +25,8 @@ func (q *Queries) CountLessonsUsersFavoritedLessonsByLessonID(ctx context.Contex
 }
 
 const createLessonsUsers = `-- name: CreateLessonsUsers :one
-INSERT INTO lessons_users (lesson_id, user_id, favorited, bookmarked, started_at, completed_at, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO lessons_users (lesson_id, user_id, favorited, bookmarked, started_at, completed_at, created_at, updated_at, id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING id, lesson_id, user_id, favorited, bookmarked, started_at, completed_at, created_at, updated_at
 `
 
@@ -39,6 +39,7 @@ type CreateLessonsUsersParams struct {
 	CompletedAt sql.NullTime
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	ID          uuid.UUID
 }
 
 func (q *Queries) CreateLessonsUsers(ctx context.Context, arg CreateLessonsUsersParams) (LessonsUser, error) {
@@ -51,6 +52,7 @@ func (q *Queries) CreateLessonsUsers(ctx context.Context, arg CreateLessonsUsers
 		arg.CompletedAt,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.ID,
 	)
 	var i LessonsUser
 	err := row.Scan(

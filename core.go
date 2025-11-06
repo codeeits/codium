@@ -125,6 +125,43 @@ func (cfg *ApiCfg) ResetAll() error {
 	return nil
 }
 
+func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID) (bool, error) {
+	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+		LessonID: lessonID,
+		UserID:   userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, add favorite
+			_, err := cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+				LessonID:  lessonID,
+				UserID:    userID,
+				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				Favorited: sql.NullBool{Bool: true, Valid: true},
+				ID:        uuid.New(),
+			})
+			if err != nil {
+				return false, fmt.Errorf("failed to add favorite: %v", err)
+			}
+		}
+	}
+
+	// Interaction exists, toggle favorite
+	newFavoriteStatus := !res.Favorited.Bool
+	_, err = cfg.db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
+		Favorited: sql.NullBool{Bool: newFavoriteStatus, Valid: true},
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		LessonID:  lessonID,
+		UserID:    userID,
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed to toggle favorite: %v", err)
+	}
+
+	return newFavoriteStatus, nil
+}
+
 // Upload local upload
 func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExtensions string, fileSize int64) (string, string, error) {
 	cwd, err := os.Getwd()
@@ -275,7 +312,15 @@ func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
 }
 
 func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
-	err := cfg.db.DeleteLessonByID(context.Background(), lessonID)
+	lesson, err := cfg.db.GetLessonByID(context.Background(), lessonID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve lesson: %v", err)
+	}
+	err = cfg.DeleteFile(lesson.ContentID)
+	if err != nil {
+		return fmt.Errorf("failed to delete lesson content file: %v", err)
+	}
+	err = cfg.db.DeleteLessonByID(context.Background(), lessonID)
 	if err != nil {
 		return fmt.Errorf("failed to delete lesson: %v", err)
 	}
