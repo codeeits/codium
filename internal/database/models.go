@@ -37,8 +37,8 @@ type LessonsUser struct {
 	ID          uuid.UUID
 	LessonID    uuid.UUID
 	UserID      uuid.UUID
-	Favorited   sql.NullBool
-	Bookmarked  sql.NullBool
+	Favorited   bool
+	Bookmarked  bool
 	StartedAt   sql.NullTime
 	CompletedAt sql.NullTime
 	CreatedAt   sql.NullTime

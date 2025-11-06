@@ -138,7 +138,7 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-				Favorited: sql.NullBool{Bool: true, Valid: true},
+				Favorited: true,
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -148,9 +148,9 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 	}
 
 	// Interaction exists, toggle favorite
-	newFavoriteStatus := !res.Favorited.Bool
+	newFavoriteStatus := !res.Favorited
 	res, err = cfg.db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
-		Favorited: sql.NullBool{Bool: newFavoriteStatus, Valid: true},
+		Favorited: newFavoriteStatus,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:  lessonID,
 		UserID:    userID,

@@ -33,8 +33,8 @@ RETURNING id, lesson_id, user_id, favorited, bookmarked, started_at, completed_a
 type CreateLessonsUsersParams struct {
 	LessonID    uuid.UUID
 	UserID      uuid.UUID
-	Favorited   sql.NullBool
-	Bookmarked  sql.NullBool
+	Favorited   bool
+	Bookmarked  bool
 	StartedAt   sql.NullTime
 	CompletedAt sql.NullTime
 	CreatedAt   sql.NullTime
@@ -395,7 +395,7 @@ RETURNING id, lesson_id, user_id, favorited, bookmarked, started_at, completed_a
 `
 
 type UpdateLessonsUsersBookmarkedParams struct {
-	Bookmarked sql.NullBool
+	Bookmarked bool
 	UpdatedAt  sql.NullTime
 	LessonID   uuid.UUID
 	UserID     uuid.UUID
@@ -467,7 +467,7 @@ RETURNING id, lesson_id, user_id, favorited, bookmarked, started_at, completed_a
 `
 
 type UpdateLessonsUsersFavoritedParams struct {
-	Favorited sql.NullBool
+	Favorited bool
 	UpdatedAt sql.NullTime
 	LessonID  uuid.UUID
 	UserID    uuid.UUID
