@@ -1526,6 +1526,60 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received bookmark lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+
+	toggledUserLesson, err := cfg.ToggleLessonUserBookmark(lessonID, requestingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to toggle lesson bookmark: %v", err)
+		http.Error(w, "Failed to toggle lesson bookmark", http.StatusInternalServerError)
+		return
+	}
+
+	toggledUserLessonJson, err := PrintLessonUserToJson(toggledUserLesson)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, toggledUserLessonJson)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (cfg *ApiCfg) GetLessonUserByLessonAndUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {

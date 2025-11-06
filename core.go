@@ -138,7 +138,7 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-				Favorited: true,
+				Favorited: false,
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -157,6 +157,43 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 	})
 	if err != nil {
 		return database.LessonsUser{}, fmt.Errorf("failed to toggle favorite: %v", err)
+	}
+
+	return res, nil
+}
+
+func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
+	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+		LessonID: lessonID,
+		UserID:   userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, add bookmark
+			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+				LessonID:   lessonID,
+				UserID:     userID,
+				CreatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				Bookmarked: false,
+				ID:         uuid.New(),
+			})
+			if err != nil {
+				return database.LessonsUser{}, fmt.Errorf("failed to add bookmark: %v", err)
+			}
+		}
+	}
+
+	// Interaction exists, toggle bookmark
+	newBookmarkStatus := !res.Bookmarked
+	res, err = cfg.db.UpdateLessonsUsersBookmarked(context.Background(), database.UpdateLessonsUsersBookmarkedParams{
+		Bookmarked: newBookmarkStatus,
+		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+		LessonID:   lessonID,
+		UserID:     userID,
+	})
+	if err != nil {
+		return database.LessonsUser{}, fmt.Errorf("failed to toggle bookmark: %v", err)
 	}
 
 	return res, nil
