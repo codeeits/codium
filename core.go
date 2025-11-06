@@ -125,7 +125,7 @@ func (cfg *ApiCfg) ResetAll() error {
 	return nil
 }
 
-func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID) (bool, error) {
+func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
 	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
 		LessonID: lessonID,
 		UserID:   userID,
@@ -133,7 +133,7 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// Interaction not initialised yet, add favorite
-			_, err := cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:  lessonID,
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -142,24 +142,24 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 				ID:        uuid.New(),
 			})
 			if err != nil {
-				return false, fmt.Errorf("failed to add favorite: %v", err)
+				return database.LessonsUser{}, fmt.Errorf("failed to add favorite: %v", err)
 			}
 		}
 	}
 
 	// Interaction exists, toggle favorite
 	newFavoriteStatus := !res.Favorited.Bool
-	_, err = cfg.db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
+	res, err = cfg.db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
 		Favorited: sql.NullBool{Bool: newFavoriteStatus, Valid: true},
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:  lessonID,
 		UserID:    userID,
 	})
 	if err != nil {
-		return false, fmt.Errorf("failed to toggle favorite: %v", err)
+		return database.LessonsUser{}, fmt.Errorf("failed to toggle favorite: %v", err)
 	}
 
-	return newFavoriteStatus, nil
+	return res, nil
 }
 
 // Upload local upload

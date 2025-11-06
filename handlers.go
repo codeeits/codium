@@ -1503,16 +1503,22 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request)
 
 	cfg.logger.Printf("Received favorite lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
 
-	newBool, err := cfg.ToggleLessonUserFavorite(lessonID, requestingUser.ID)
+	toggledUserLesson, err := cfg.ToggleLessonUserFavorite(lessonID, requestingUser.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to toggle lesson favorite: %v", err)
 		http.Error(w, "Failed to toggle lesson favorite", http.StatusInternalServerError)
 		return
 	}
 
+	toggledUserLessonJson, err := PrintLessonUserToJson(toggledUserLesson)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"favorite": %v}`, newBool)))
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, toggledUserLessonJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
