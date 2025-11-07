@@ -128,6 +128,7 @@ func main() {
 		mux.Handle("POST /api/lessons/{lessonID}/favorite", http.HandlerFunc(cfg.FavoriteLessonHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/users/{userID}", http.HandlerFunc(cfg.GetLessonUserByLessonAndUserHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/bookmark", http.HandlerFunc(cfg.BookmarkLessonHandler))
+		mux.Handle("GET /api/users/{userID}/bookmarks", http.HandlerFunc(cfg.GetUserBookmarksHandler))
 
 		// Start the HTTP server
 		server := &http.Server{
