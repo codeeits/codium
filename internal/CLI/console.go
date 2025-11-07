@@ -28,10 +28,6 @@ func NewConsoleCfg(logger *log.Logger) *ConsoleCfg {
 }
 
 func (cfg *ConsoleCfg) StartConsole() {
-	// Console mode for imputing Commands
-	cfg.Logger.Print("Starting console...")
-	fmt.Println("Starting console...")
-
 	cfg.RegisterCommand("help", func(args []string) error {
 		fmt.Println("Available Commands:")
 		for cmd := range cfg.Commands {
@@ -39,6 +35,17 @@ func (cfg *ConsoleCfg) StartConsole() {
 		}
 		return nil
 	})
+
+	cfg.RegisterCommand("stop", func(args []string) error {
+		cfg.Logger.Print("Received stop command via console")
+		fmt.Println("Stopping application...")
+		cfg.Running = false
+		return nil
+	})
+
+	// Console mode for imputing Commands
+	cfg.Logger.Print("Starting console...")
+	fmt.Println("Starting console...")
 
 	go func() {
 		reader := bufio.NewReader(os.Stdin)

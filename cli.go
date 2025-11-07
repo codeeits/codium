@@ -13,12 +13,7 @@ func (cfg *ApiCfg) StartCLI() {
 	// Registering Commands
 	{
 		cfg.logger.Print("Registering Commands")
-		commandsCfg.RegisterCommand("stop", func(args []string) error {
-			cfg.logger.Print("Received stop command via console")
-			fmt.Println("Stopping application...")
-			cfg.running = false
-			return nil
-		})
+
 		commandsCfg.RegisterCommand("reset", func(args []string) error {
 			cfg.logger.Print("Received reset command via console")
 			fmt.Println("Resetting database...")
