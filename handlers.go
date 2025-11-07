@@ -157,166 +157,10 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 /*
 ===========================================
 
-	Handlers
+	Authentication Handlers
 
 ===========================================
 */
-
-func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		Email    string `json:"email"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	var p params
-	err := decoder.Decode(&p)
-	if err != nil {
-		cfg.logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	cfg.logger.Print("Received request to create user with request body: ", p)
-
-	// Check if database is connected
-
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	if p.Email == "" || p.Password == "" || p.Username == "" {
-		cfg.logger.Printf("Missing required fields: email, password, or username")
-		http.Error(w, "Missing required fields: email, password, or username", http.StatusBadRequest)
-		return
-	}
-
-	if len(p.Username) < 3 || len(p.Username) > 20 {
-		cfg.logger.Printf("Username must be between 3 and 20 characters")
-		http.Error(w, "Username must be between 3 and 20 characters", http.StatusBadRequest)
-		return
-	}
-
-	if len(p.Email) < 5 || len(p.Email) > 50 {
-		cfg.logger.Printf("Email must be between 5 and 50 characters")
-		http.Error(w, "Email must be between 5 and 50 characters", http.StatusBadRequest)
-		return
-	}
-
-	// Check for not allowed characters in username or email
-	match, err := regexp.Match("^[^\\s@]+@[^\\s@]+.[^\\s@]+$", []byte(p.Email))
-	if err != nil {
-		cfg.logger.Printf("Invalid email address: %v", err)
-		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
-		return
-	}
-
-	if !match {
-		cfg.logger.Printf("Email contains invalid characters")
-		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
-		return
-	}
-
-	match, err = regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.Username))
-	if err != nil {
-		cfg.logger.Printf("Invalid username: %v", err)
-		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
-		return
-	}
-
-	if !match {
-		cfg.logger.Printf("Username contains invalid characters")
-		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
-		return
-	}
-
-	// Hash the password
-	hashedPassword, err := auth.HashPassword(p.Password)
-	if err != nil {
-		cfg.logger.Printf("Failed to hash password: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	res, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
-		ID:           uuid.New(),
-		Email:        p.Email,
-		PasswordHash: hashedPassword,
-		Username:     p.Username,
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		IsAdmin:      false,
-	})
-
-	if err != nil {
-		cfg.logger.Printf("Failed to create user: %v", err)
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
-		return
-	}
-
-	cfg.logger.Printf("User created: %v", res)
-
-	cfg.SendValidationEmail(p.Email, res.ID.String())
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	userJson, err := PrintUserToJson(res)
-	if err != nil {
-		cfg.logger.Printf("Failed to marshal user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	_, err = w.Write([]byte(fmt.Sprintf(`%v`, userJson)))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if database is connected
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	cfg.logger.Print("Received request to reset the database")
-
-	// Check if the user is an admin
-	adminUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	if !adminUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", adminUser.ID)
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	cfg.logger.Print("Admin reset initiated by user: ", adminUser.ID)
-
-	// Delete all users
-	err = cfg.ResetAll()
-	if err != nil {
-		cfg.logger.Printf("Failed to reset users: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
-	_, err = w.Write([]byte("Database has been reset successfully."))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
 
 func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
@@ -483,6 +327,174 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) {
+	userId := r.PathValue("userID")
+	if userId == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	uid, err := uuid.Parse(userId)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received validate email request for user ID: ", uid)
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.db.ValidateEmailForId(r.Context(), database.ValidateEmailForIdParams{
+		ID:        uid,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to validate user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Location", cfg.websiteUrl+"/app/")
+	w.WriteHeader(http.StatusPermanentRedirect)
+	_, err = w.Write([]byte("Email validated successfully. Redirecting to app..."))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+/*
+===========================================
+
+	User CRUD Handlers
+
+===========================================
+*/
+
+func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received request to create user with request body: ", p)
+
+	// Check if database is connected
+
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	if p.Email == "" || p.Password == "" || p.Username == "" {
+		cfg.logger.Printf("Missing required fields: email, password, or username")
+		http.Error(w, "Missing required fields: email, password, or username", http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Username) < 3 || len(p.Username) > 20 {
+		cfg.logger.Printf("Username must be between 3 and 20 characters")
+		http.Error(w, "Username must be between 3 and 20 characters", http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Email) < 5 || len(p.Email) > 50 {
+		cfg.logger.Printf("Email must be between 5 and 50 characters")
+		http.Error(w, "Email must be between 5 and 50 characters", http.StatusBadRequest)
+		return
+	}
+
+	// Check for not allowed characters in username or email
+	match, err := regexp.Match("^[^\\s@]+@[^\\s@]+.[^\\s@]+$", []byte(p.Email))
+	if err != nil {
+		cfg.logger.Printf("Invalid email address: %v", err)
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	if !match {
+		cfg.logger.Printf("Email contains invalid characters")
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	match, err = regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.Username))
+	if err != nil {
+		cfg.logger.Printf("Invalid username: %v", err)
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	if !match {
+		cfg.logger.Printf("Username contains invalid characters")
+		http.Error(w, "Invalid email address or username", http.StatusBadRequest)
+		return
+	}
+
+	// Hash the password
+	hashedPassword, err := auth.HashPassword(p.Password)
+	if err != nil {
+		cfg.logger.Printf("Failed to hash password: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
+		ID:           uuid.New(),
+		Email:        p.Email,
+		PasswordHash: hashedPassword,
+		Username:     p.Username,
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		IsAdmin:      false,
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to create user: %v", err)
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Printf("User created: %v", res)
+
+	cfg.SendValidationEmail(p.Email, res.ID.String())
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	userJson, err := PrintUserToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, userJson)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, _ *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
@@ -628,7 +640,7 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -636,75 +648,42 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	targetUser, err := cfg.AuthenticateUser(r)
+	cfg.logger.Print("Received delete user request")
+
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	//retrieve query parameters
-	q := r.URL.Query()
-	var location string
-	if len(q) > 0 {
-		location = q.Get("location")
-	} else {
-		cfg.logger.Printf("Missing query parameters")
-		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+	// Extract user ID from URL path
+	userIDStr := r.PathValue("userID")
+	if userIDStr == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
 		return
 	}
 
-	err = r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
+	if requestingUser.ID.String() != userIDStr && !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete attempt by user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Parse user ID as UUID
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		cfg.logger.Printf("Error parsing multipart form: %v", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
 		return
 	}
 
-	// Retrieve the file from form data
-
-	file, handler, err := r.FormFile("file")
-	if err != nil {
-		cfg.logger.Printf("Error retrieving the file: %v", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			cfg.logger.Printf("Error closing the file: %v", err)
-		}
-	}(file)
-
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		cfg.logger.Printf("Error reading the file: %v", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	fileType := http.DetectContentType(fileBytes)
-
-	cfg.logger.Printf("Received upload request for file: %v", handler.Filename)
-	cfg.logger.Printf("Upload size: %v", handler.Size)
-	cfg.logger.Printf("Upload type: %v", handler.Header.Get("Content-Type"))
-
-	_, err = file.Seek(0, 0)
-	if err != nil {
-		cfg.logger.Printf("Error seeking file: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	uploadPath, uploadID, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:], handler.Size)
-	if err != nil {
-		cfg.logger.Printf("Failed to upload file: %v", err)
-		http.Error(w, "Failed to upload file ", http.StatusInternalServerError)
-		return
-	}
+	err = cfg.DeleteUser(userID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write([]byte(fmt.Sprintf(`{"file_id": "%v", "file_path": "%v"}`, uploadID, uploadPath)))
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("User deleted successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
@@ -712,45 +691,13 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if database is connected
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
+/*
+===========================================
 
-	cfg.logger.Print("Received get file by id request")
-	fileIDStr := r.PathValue("fileID")
-	if fileIDStr == "" {
-		cfg.logger.Printf("Missing file ID in request")
-		http.Error(w, "Missing file ID", http.StatusBadRequest)
-		return
-	}
+	User Update Handlers
 
-	// Parse file ID as UUID
-	fileID, err := uuid.Parse(fileIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid file ID format", http.StatusBadRequest)
-		return
-	}
-
-	file, err := cfg.db.GetFileByID(r.Context(), fileID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("File not found: %v", fileID)
-			http.Error(w, "File not found", http.StatusNotFound)
-			return
-		}
-		cfg.logger.Printf("Failed to retrieve file: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// Serve the file
-	http.ServeFile(w, r, file.Filepath)
-}
+===========================================
+*/
 
 func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
 	type params struct {
@@ -970,23 +917,15 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) {
-	userId := r.PathValue("userID")
-	if userId == "" {
-		cfg.logger.Printf("Missing user ID in request")
-		http.Error(w, "Missing user ID", http.StatusBadRequest)
-		return
-	}
+/*
+===========================================
 
-	// Parse user ID as UUID
-	uid, err := uuid.Parse(userId)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
-		return
-	}
+	File Management Handlers
 
-	cfg.logger.Print("Received validate email request for user ID: ", uid)
+===========================================
+*/
+
+func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -994,77 +933,129 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, err = cfg.db.ValidateEmailForId(r.Context(), database.ValidateEmailForIdParams{
-		ID:        uid,
-		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-	})
-
-	if err != nil {
-		cfg.logger.Printf("Failed to validate user email: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Location", cfg.websiteUrl+"/app/")
-	w.WriteHeader(http.StatusPermanentRedirect)
-	_, err = w.Write([]byte("Email validated successfully. Redirecting to app..."))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if database is connected
-	if !cfg.dbLoaded {
-		cfg.logger.Println("Database not connected")
-		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	cfg.logger.Print("Received delete user request")
-
-	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
+	targetUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	// Extract user ID from URL path
-	userIDStr := r.PathValue("userID")
-	if userIDStr == "" {
-		cfg.logger.Printf("Missing user ID in request")
-		http.Error(w, "Missing user ID", http.StatusBadRequest)
+	//retrieve query parameters
+	q := r.URL.Query()
+	var location string
+	if len(q) > 0 {
+		location = q.Get("location")
+	} else {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
 		return
 	}
 
-	if requestingUser.ID.String() != userIDStr && !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized delete attempt by user: %v", requestingUser.ID)
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	// Parse user ID as UUID
-	userID, err := uuid.Parse(userIDStr)
+	err = r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
 	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		cfg.logger.Printf("Error parsing multipart form: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	err = cfg.DeleteUser(userID)
+	// Retrieve the file from form data
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		cfg.logger.Printf("Error retrieving the file: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			cfg.logger.Printf("Error closing the file: %v", err)
+		}
+	}(file)
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		cfg.logger.Printf("Error reading the file: %v", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	fileType := http.DetectContentType(fileBytes)
+
+	cfg.logger.Printf("Received upload request for file: %v", handler.Filename)
+	cfg.logger.Printf("Upload size: %v", handler.Size)
+	cfg.logger.Printf("Upload type: %v", handler.Header.Get("Content-Type"))
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		cfg.logger.Printf("Error seeking file: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	uploadPath, uploadID, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:], handler.Size)
+	if err != nil {
+		cfg.logger.Printf("Failed to upload file: %v", err)
+		http.Error(w, "Failed to upload file ", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
-	_, err = w.Write([]byte("User deleted successfully."))
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`{"file_id": "%v", "file_path": "%v"}`, uploadID, uploadPath)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
 }
+
+func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get file by id request")
+	fileIDStr := r.PathValue("fileID")
+	if fileIDStr == "" {
+		cfg.logger.Printf("Missing file ID in request")
+		http.Error(w, "Missing file ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse file ID as UUID
+	fileID, err := uuid.Parse(fileIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid file ID format", http.StatusBadRequest)
+		return
+	}
+
+	file, err := cfg.db.GetFileByID(r.Context(), fileID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("File not found: %v", fileID)
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve file: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Serve the file
+	http.ServeFile(w, r, file.Filepath)
+}
+
+/*
+===========================================
+
+	Lesson CRUD Handlers
+
+===========================================
+*/
 
 func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
@@ -1445,6 +1436,14 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+===========================================
+
+	Lesson User Interaction Handlers
+
+===========================================
+*/
+
 func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
@@ -1796,6 +1795,55 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonUserJson)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+/*
+===========================================
+
+	Admin Handlers
+
+===========================================
+*/
+
+func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received request to reset the database")
+
+	// Check if the user is an admin
+	adminUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if !adminUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", adminUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	cfg.logger.Print("Admin reset initiated by user: ", adminUser.ID)
+
+	// Delete all users
+	err = cfg.ResetAll()
+	if err != nil {
+		cfg.logger.Printf("Failed to reset users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write([]byte("Database has been reset successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
