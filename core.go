@@ -199,6 +199,78 @@ func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID
 	return res, nil
 }
 
+func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
+	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+		LessonID: lessonID,
+		UserID:   userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, create it
+			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+				LessonID:  lessonID,
+				UserID:    userID,
+				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				ID:        uuid.New(),
+			})
+			if err != nil {
+				return database.LessonsUser{}, fmt.Errorf("failed to mark lesson as started: %v", err)
+			}
+		}
+		return res, nil
+	}
+	// Interaction exists, update startedAt
+	res, err = cfg.db.UpdateLessonsUsersStart(context.Background(), database.UpdateLessonsUsersStartParams{
+		StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		LessonID:  lessonID,
+		UserID:    userID,
+	})
+	if err != nil {
+		return database.LessonsUser{}, fmt.Errorf("failed to update lesson startedAt: %v", err)
+	}
+
+	return res, nil
+}
+
+func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
+	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+		LessonID: lessonID,
+		UserID:   userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, create it
+			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+				LessonID:    lessonID,
+				UserID:      userID,
+				CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+				UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+				CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				ID:          uuid.New(),
+			})
+			if err != nil {
+				return database.LessonsUser{}, fmt.Errorf("failed to mark lesson as completed: %v", err)
+			}
+		}
+		return res, nil
+	}
+	// Interaction exists, update completedAt
+	res, err = cfg.db.UpdateLessonsUsersComplete(context.Background(), database.UpdateLessonsUsersCompleteParams{
+		CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+		LessonID:    lessonID,
+		UserID:      userID,
+	})
+	if err != nil {
+		return database.LessonsUser{}, fmt.Errorf("failed to update lesson completedAt: %v", err)
+	}
+
+	return res, nil
+}
+
 // Upload local upload
 func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExtensions string, fileSize int64) (string, string, error) {
 	cwd, err := os.Getwd()

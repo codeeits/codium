@@ -74,7 +74,6 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	targetId := targetUser.ID
 
 	field := q.Get("target_field")
 	if field == "" {
@@ -86,16 +85,16 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 	switch field {
 	case "username":
 		// Update username
-		cfg.UpdateUserUsernameHandler(w, r, targetId)
+		cfg.UpdateUserUsernameHandler(w, r, targetUser)
 	case "password":
 		// Update password
-		cfg.UpdateUserPasswordHandler(w, r, targetId)
+		cfg.UpdateUserPasswordHandler(w, r, targetUser)
 	case "email":
 		// Update email
-		cfg.UpdateUserEmailHandler(w, r, targetId)
+		cfg.UpdateUserEmailHandler(w, r, targetUser)
 	case "pfp":
 		// Update profile picture
-		cfg.UpdateUserPfpHandler(w, r, targetId)
+		cfg.UpdateUserPfpHandler(w, r, targetUser)
 
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", field)
@@ -753,23 +752,16 @@ func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, file.Filepath)
 }
 
-func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
 	type params struct {
 		ImageID string `json:"image_id"`
 	}
 
-	cfg.logger.Print("Received update user pfp request for user ID: ", targetId)
-
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	cfg.logger.Print("Received update user pfp request for user ID: ", targetUser.ID.String())
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -811,24 +803,17 @@ func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, 
 	}
 }
 
-func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
 	type params struct {
 		OldPassword string `json:"old_password"`
 		NewPassword string `json:"new_password"`
 	}
 
-	cfg.logger.Print("Received update user password request for user ID: ", targetId)
-
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	cfg.logger.Print("Received update user password request for user ID: ", targetUser.ID.String())
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -838,7 +823,7 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 	// Check old password
 	err = auth.CheckPasswordHash(p.OldPassword, targetUser.PasswordHash)
 	if err != nil {
-		cfg.logger.Printf("Invalid old password for user ID: %v", targetId)
+		cfg.logger.Printf("Invalid old password for user ID: %v", targetUser.ID.String())
 		http.Error(w, "Incorrect old password", http.StatusUnauthorized)
 		return
 	}
@@ -884,22 +869,16 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
 	type params struct {
 		NewEmail string `json:"email"`
 	}
 
-	cfg.logger.Print("Received update user email request for user ID: ", targetId)
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	cfg.logger.Print("Received update user email request for user ID: ", targetUser.ID.String())
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -948,22 +927,16 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Request, targetId uuid.UUID) {
+func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
 	type params struct {
 		NewUsername string `json:"username"`
 	}
 
-	cfg.logger.Print("Received update user username request for user ID: ", targetId)
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	cfg.logger.Print("Received update user username request for user ID: ", targetUser.ID.String())
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1715,6 +1688,114 @@ func (cfg *ApiCfg) GetUserBookmarksHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received start lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+
+	lessonUser, err := cfg.MarkLessonUserStarted(lessonID, requestingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to mark lesson as started: %v", err)
+		http.Error(w, "Failed to mark lesson as started", http.StatusInternalServerError)
+		return
+	}
+
+	lessonUserJson, err := PrintLessonUserToJson(lessonUser)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonUserJson)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received complete lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+
+	lessonUser, err := cfg.MarkLessonUserCompleted(lessonID, requestingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to mark lesson as completed: %v", err)
+		http.Error(w, "Failed to mark lesson as completed", http.StatusInternalServerError)
+		return
+	}
+
+	lessonUserJson, err := PrintLessonUserToJson(lessonUser)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonUserJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
