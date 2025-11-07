@@ -1,0 +1,342 @@
+package main
+
+//This file is going to contain tests for the entire application stack, divided into sections for each major component.
+
+import (
+	"Codium/internal/database"
+	"bytes"
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"os"
+	"testing"
+
+	"github.com/joho/godotenv"
+)
+
+func TestSuiteStart(t *testing.T) {
+	cfg := &ApiCfg{}
+	cfg.TestSuite(t)
+}
+
+func (cfg *ApiCfg) TestSuite(t *testing.T) {
+	t.Run(".envTests", func(t *testing.T) {
+		// Call .env-related test functions here
+		err := godotenv.Load()
+		if err != nil {
+			t.Fatal("Error loading .env file")
+		} else {
+			cfg.dbUrl = os.Getenv("DB_URL")
+			cfg.secret = os.Getenv("SECRET")
+			cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+			cfg.smtpUrl = os.Getenv("SMTP_URL")
+			cfg.smtpPort = 587 // Default SMTP port
+			cfg.smtpUser = os.Getenv("SMTP_USER")
+			cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
+			cfg.websiteUrl = os.Getenv("WEBSITE_URL")
+
+			if cfg.secret == "" {
+				t.Log("No secret provided")
+				t.Fail()
+			}
+			if cfg.dbUrl == "" {
+				t.Log("No db url provided")
+				t.Fail()
+			}
+			if cfg.adminDefaultPassword == "" {
+				t.Log("No admin default password provided")
+				t.Fail()
+			}
+			if cfg.smtpUrl == "" {
+				t.Log("No SMTP url provided")
+				t.Fail()
+			}
+			if cfg.smtpUser == "" {
+				t.Log("No SMTP user provided")
+				t.Fail()
+			}
+			if cfg.smtpPassword == "" {
+				t.Log("No SMTP password provided")
+				t.Fail()
+			}
+			if cfg.websiteUrl == "" {
+				t.Log("No website url provided")
+				t.Fail()
+			}
+		}
+	})
+
+	t.Run("DatabaseTests", func(t *testing.T) {
+		db, err := sql.Open("postgres", cfg.dbUrl)
+		if err != nil {
+			t.Fatal("Error connecting to the database: ", err)
+		}
+
+		err = db.Ping()
+		if err != nil {
+			t.Fatal("Error pinging database: ", err)
+		}
+
+		cfg.db = database.New(db)
+		cfg.dbLoaded = true
+		t.Log("Successfully connected to the database!")
+	})
+
+	var adminToken string
+	var adminRefreshToken string
+	t.Run("ApiTests", func(t *testing.T) {
+		// Call API-related test functions here
+		if !cfg.dbLoaded {
+			return
+		}
+
+		client := &http.Client{}
+
+		t.Run("TestStaticFileServing", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/app/", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetDefaultAdminUser", func(t *testing.T) {
+			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.adminDefaultPassword + `"}`)
+
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/login", bytes.NewReader(jsonBody))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var params struct {
+				User         database.User `json:"user"`
+				Token        string        `json:"auth_token"`
+				RefreshToken string        `json:"refresh_token"`
+			}
+			err = json.NewDecoder(resp.Body).Decode(&params)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if params.User.IsAdmin != true {
+				t.Fatalf("Expected isAdmin %t, got %t", true, params.User.IsAdmin)
+			}
+			if params.Token == "" {
+				t.Fatal("Expected non-empty token")
+			}
+			if params.RefreshToken == "" {
+				t.Fatal("Expected non-empty refresh token")
+			}
+			adminToken = params.Token
+			adminRefreshToken = params.RefreshToken
+		})
+
+		var averageUserEmail = "testing@nthing.com"
+		var averageUserPassword = "TestPassword123!"
+		t.Run("TestCreateUser", func(t *testing.T) {
+			var averageUserUsername = "TestUser"
+			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `","username":"` + averageUserUsername + `"}"`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/create_user", bytes.NewReader(jsonBody))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusCreated {
+				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+			}
+
+			var user database.User
+			err = json.NewDecoder(resp.Body).Decode(&user)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if user.Email != averageUserEmail {
+				t.Fatalf("Expected email %s, got %s", averageUserEmail, user.Email)
+			}
+			if user.Username != averageUserUsername {
+				t.Fatalf("Expected username %s, got %s", averageUserUsername, user.Username)
+			}
+			if user.IsAdmin != false {
+				t.Fatalf("Expected isAdmin %t, got %t", false, user.IsAdmin)
+			}
+		})
+
+		var averageUserToken string
+		t.Run("TestLoginUser", func(t *testing.T) {
+			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `"}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/login", bytes.NewReader(jsonBody))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var params struct {
+				User         database.User `json:"user"`
+				Token        string        `json:"auth_token"`
+				RefreshToken string        `json:"refresh_token"`
+			}
+			err = json.NewDecoder(resp.Body).Decode(&params)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if params.User.Email != averageUserEmail {
+				t.Fatalf("Expected email %s, got %s", averageUserEmail, params.User.Email)
+			}
+			if params.Token == "" {
+				t.Fatal("Expected non-empty token")
+			}
+			if params.RefreshToken == "" {
+				t.Fatal("Expected non-empty refresh token")
+			}
+			averageUserToken = params.Token
+		})
+
+		t.Run("TestUnauthorizedReset", func(t *testing.T) {
+			req, err := http.NewRequest("POST", "http://localhost:6767/admin/reset", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+averageUserToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusForbidden {
+				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestUpdatingProfileBeforeTokenRefresh", func(t *testing.T) {
+			jsonBody := []byte(`{"username":"UpdatedAdminUser"}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/users?target_field=username", bytes.NewReader(jsonBody))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var user database.User
+			err = json.NewDecoder(resp.Body).Decode(&user)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if user.Username != "UpdatedAdminUser" {
+				t.Fatalf("Expected username %s, got %s", "UpdatedAdminUser", user.Username)
+			}
+		})
+
+		t.Run("TestRefreshToken", func(t *testing.T) {
+			jsonBody := []byte(`{"refresh_token":"` + adminRefreshToken + `"}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/refresh", bytes.NewReader(jsonBody))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var params struct {
+				Token string `json:"auth_token"`
+			}
+			err = json.NewDecoder(resp.Body).Decode(&params)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if params.Token == "" {
+				t.Fatal("Expected non-empty token")
+			}
+			adminToken = params.Token
+		})
+
+	})
+
+	t.Run("CliTests", func(t *testing.T) {
+		// Call CLI-related test functions here
+	})
+
+	t.Run("VulnerabilityTests", func(t *testing.T) {
+		// Call vulnerability-related test functions here
+	})
+
+	t.Run("TestAuthorizedReset", func(t *testing.T) {
+		req, err := http.NewRequest("POST", "http://localhost:6767/admin/reset", bytes.NewReader([]byte("")))
+		if err != nil {
+			t.Fatal("Error creating request: ", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatal("Error making request: ", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+		}
+	})
+}

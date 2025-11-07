@@ -60,7 +60,7 @@ func (cfg *ApiCfg) StartCLI() {
 			}
 			fmt.Println("Users:")
 			for _, user := range users {
-				fmt.Printf(" - ID: %s, Email: %s, CreatedAt: %s\n", user.ID, user.Email, user.CreatedAt)
+				fmt.Printf(" - ID: %s, Email: %s, CreatedAt: %v\n", user.ID, user.Email, user.CreatedAt)
 			}
 			return nil
 		})
