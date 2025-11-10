@@ -1802,6 +1802,42 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.Request) {
+	//Check database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+	}
+
+	cfg.logger.Printf("Received get favorites for lesson request: %v", r.URL.Path)
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+	}
+
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+	}
+
+	faves, err := cfg.db.CountLessonsUsersFavoritedLessonsByLessonID(r.Context(), lessonID)
+	if err != nil {
+		cfg.logger.Printf("Failed to get favorites for lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(fmt.Sprintf(`{"lesson_id":"%v", "num_favorites":%v}`, lessonID, faves)))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+	}
+}
+
 /*
 ===========================================
 
