@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1257,12 +1258,13 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 
 	var p params
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&p)
-	if err != nil {
-		cfg.logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+	queries := r.URL.Query()
+	// One of the queries will be for search_type, so we check if there are more than 1 query parameters
+	if len(queries) > 1 {
+		p.LessonID = queries.Get("lesson_id")
+	}
+	if p.LessonID == "" {
+		http.Error(w, "lesson_id is required", http.StatusBadRequest)
 	}
 
 	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", p.LessonID)
@@ -1311,13 +1313,30 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 		Number  int `json:"number"`
 	}
 
-	var p params
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&p)
-	if err != nil {
-		cfg.logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+	var p = params{
+		0, 0, 0, 0,
+	}
+
+	queries := r.URL.Query()
+	// One of the queries will be for search_type, so we check if there are more than 1 query parameters
+	if len(queries) > 1 {
+		classStr := queries.Get("class")
+		sectionStr := queries.Get("section")
+		moduleStr := queries.Get("module")
+		numberStr := queries.Get("number")
+
+		if classStr != "" {
+			p.Class, _ = strconv.Atoi(classStr)
+		}
+		if sectionStr != "" {
+			p.Section, _ = strconv.Atoi(sectionStr)
+		}
+		if moduleStr != "" {
+			p.Module, _ = strconv.Atoi(moduleStr)
+		}
+		if numberStr != "" {
+			p.Number, _ = strconv.Atoi(numberStr)
+		}
 	}
 
 	cfg.logger.Print("Received get lesson by flags request for class: ", p.Class, " section: ", p.Section, " module: ", p.Module, " number: ", p.Number)
