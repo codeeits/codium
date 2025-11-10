@@ -6,6 +6,8 @@
 
 Pentru caching mai bun si gestionare mai eficientă.
 (pentru my sanity mai tarziu)
+
+Type O Negative - I Don't Wanna Be Me
 */
 
 class ApiService {
@@ -228,6 +230,10 @@ class ApiService {
         return this.get(`/api/users/${userId}`, true);
     }
 
+    async getUserById(userId) {
+        return this.get(`/api/users/${userId}`, true);
+    }
+
     async getCurrentUserUsername() {
         const userID = localStorage.getItem('userID');
         if (!userID) {
@@ -280,7 +286,7 @@ class ApiService {
     }
 
     async getLessonById(lessonId) {
-        return this.get(`/api/lessons/search_type=${lessonId}`, false);
+        return this.get(`/api/lessons?search_type=id&lesson_id=${lessonId}`, false);
     }
 
     async uploadLesson(lessonData, file) {

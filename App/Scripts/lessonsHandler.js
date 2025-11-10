@@ -4,7 +4,7 @@
 (  )  ( ___)/ __)/ __)(  _  )( \( )/ __)( )_( )  /__\  ( \( )(  _ \(  )  ( ___)(  _ \   (_  _)/ __)
  )(__  )__) \__ \\__ \ )(_)(  )  ( \__ \ ) _ (  /(__)\  )  (  )(_) ))(__  )__)  )   /  .-_)(  \__ \
 (____)(____)(___/(___/(_____)(_)\_)(___/(_) (_)(__)(__)(_)\_)(____/(____)(____)(_)\_)()\____) (___/
-
+Handles lesson uploads made by admins.
 */
 
 const isAdmin = localStorage.getItem('isAdmin') === 'true';
@@ -14,16 +14,37 @@ if (!isAdmin) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
+    // ------------------------------
+    // THE PAGE WHERE YOU SEE THE LESSONS
+    // ------------------------------
+
+    
+    
+    // ------------------------------
+    // LESSON UPLOAD HANDLER MODAL
+    // ------------------------------
+
     const uploadModal = document.getElementById("uploadLessonModal");
     const form = document.getElementById("lessonUploadForm");
     const fileInput = document.getElementById("lessonFile");
+    const fileInfo = document.getElementById("fileInfo");
+    const clearForm = document.getElementById("clearForm");
 
+    //clear form funct
+
+    clearForm.addEventListener("click", function(){
+
+        form.reset();
+        if (fileInfo) {
+            fileInfo.style.display = "none";
+        }
+
+    });
     // Show file info when file is selected
     fileInput.addEventListener("change", function(e) {
         const file = e.target.files[0];
         const nameLabel = document.getElementById("fileName");
         const sizeLabel = document.getElementById("fileSize");
-        const fileInfo = document.getElementById("fileInfo");
 
         if (file && nameLabel && sizeLabel && fileInfo) {
             nameLabel.textContent = file.name;
@@ -113,7 +134,11 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log("Lesson uploaded successfully.");
             const responseData = await response.json();
             console.log(responseData);
-            
+            alert(`${responseData.lesson.ID}`);
+
+            if(fileInfo) {
+                fileInfo.style.display = "none";
+            }
             form.reset();
 
         } catch (error) {
