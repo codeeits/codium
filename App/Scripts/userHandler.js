@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarImg = document.getElementById('userAvatar');
     const logoutBtn = document.getElementById('logoutBtn');
     const editBtn = document.getElementById('editProfileBtn');
+    const addLessonBtn = document.getElementById('addLesson');
 
     // ------------------------------
     // CHECK AUTHENTICATION
@@ -36,6 +37,24 @@ document.addEventListener('DOMContentLoaded', function() {
         window.apiService.logout(true);
     });
 
+    // ------------------------------
+    // ADD LESSON BUTTON
+    // ------------------------------
+
+    addLessonBtn.addEventListener('click', function() {
+        window.apiService.getCurrentUser().then(userData => {
+            userData = JSON.parse(userData);
+            if (userData.IsAdmin) {
+                window.location.href = 'lesson-upload.html';
+            } else {
+                alert('Only admins can add lessons.');
+            }
+        }).catch(error => {
+            console.error('Failed to get user data:', error);
+            alert('An error occurred while checking permissions.');
+        });
+    });
+    
     // ------------------------------
     // Randare USER ELEMENTS
     // ------------------------------

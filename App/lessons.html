@@ -1,0 +1,105 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/main.css">
+
+    <!-- External Resources REQ. -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="Scripts/main.js" defer></script>
+    <script src="Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="lesson">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+    
+    <div class="main-grid">
+        <h1>List of all lessons</h1>
+        <div id="lessons-grid" class="lessons-container">
+            <!-- Lessons will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            loadLessons();
+        });
+
+        async function loadLessons() {
+            try {
+                const response = await window.apiService.getLessons();
+                if (!response) {
+                    console.error("Failed to load lessons.");
+                    return;
+                }
+
+                const lessons = JSON.parse(response);
+                console.log("Loaded lessons:", lessons);
+                
+                renderLessonsGrid(lessons);
+            } catch (error) {
+                console.error("Failed to load lessons:", error);
+            }
+        }
+
+        function renderLessonsGrid(lessons) {
+            const lessonsContainer = document.getElementById("lessons-grid");
+            lessonsContainer.innerHTML = '';
+
+            lessons.forEach(lessonData => {
+                const lesson = lessonData.lesson;
+                const flags = lessonData.flag_translation;
+                
+                const lessonCard = document.createElement('div');
+                lessonCard.className = 'lesson-card';
+                
+                // Convert class number to Roman numerals
+                const romanClass = toRoman(flags.class);
+                
+                lessonCard.innerHTML = `
+                    <div class="lesson-header">
+                        <span class="lesson-number">${romanClass}.${flags.module}.${flags.section}</span>
+                        <span class="lesson-class">Clasa ${flags.class}</span>
+                    </div>
+                    <h3 class="lesson-title">${lesson.Title}</h3>
+                    <p class="lesson-description">${lesson.Description.Valid ? lesson.Description.String : 'No description'}</p>
+                    <div class="lesson-footer">
+                        <button class="lesson-view-btn" onclick="openLesson('${lesson.ID}')">
+                            <i class="fas fa-play"></i> Începe lecția
+                        </button>
+                    </div>
+                `;
+                
+                lessonsContainer.appendChild(lessonCard);
+            });
+        }
+
+        function toRoman(n) {
+            return n.toString().split('').reduce((acc, _, i, arr) => {
+                const val = [1000,100,10,1][arr.length-i-1]*1;
+                const roman = [
+                    ["","M","MM","MMM"],
+                    ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM"],
+                    ["","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"],
+                    ["","I","II","III","IV","V","VI","VII","VIII","IX"]
+                ];
+                return acc + roman[i][Math.floor(n/val)%10];
+            }, '');
+        }
+
+        function openLesson(lessonId) {
+            window.location.href = `lesson.html?id=${lessonId}`;
+        }
+    </script>
+</body>
+</html>

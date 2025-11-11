@@ -1,0 +1,83 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/main.css">
+
+    <!-- External Resources REQ. -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="Scripts/main.js" defer></script>
+    <script src="Scripts/apiHandlers.js"></script>
+    <script src="Scripts/lessonsInterface.js"></script>
+
+    <meta name="menu-variant" content="lesson">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+    
+    <div class="main-grid">
+        <div class="content-area">
+            <div id="lesson-content">
+                <h1 id="lesson-title">Lesson 1</h1>
+                <p id="lesson-auth"></p>
+                <ul>
+                    <li><p id="lesson-class"></p></li>
+                    <li><p id="lesson-section"></p></li>
+                    <li><p id="lesson-module"></p></li>
+                </ul>
+                <div id="lesson-body"></div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <h1>Lol</h1>
+        </div>
+    </div>
+
+    <style>
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 20rem;
+            gap: 20px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .content-area {
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 3px solid var(--purple-accent);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .sidebar-menu {
+                order: -1;
+                height: auto;
+            }
+        }
+    </style>
+</body>
+</html>
