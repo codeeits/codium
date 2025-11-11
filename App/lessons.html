@@ -5,6 +5,7 @@
     <title>Document</title>
 
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
     <link rel="stylesheet" href="Styles/main.css">
 
     <!-- External Resources REQ. -->
@@ -18,36 +19,94 @@
     <script src="Scripts/main.js" defer></script>
     <script src="Scripts/apiHandlers.js"></script>
 
-    <meta name="menu-variant" content="lesson">
+    <meta name="menu-variant" content="normal">
 </head>
 <body>
     <div id="top-menu-container"></div>
     
     <div class="main-grid">
-        <h1>List of all lessons</h1>
+            <div class="content-header">
+                <h1>List of all lessons</h1>
+            <p> Sort by
+                <select id="lessonClass" name="class" placeholder="toate clasele" required>
+                    <option value="">toate clasele</option>
+                    <option value="9">Clasa a IX-a</option>
+                    <option value="10">Clasa a X-a</option>
+                    <option value="11">Clasa a XI-a</option>
+                    <option value="12">Clasa a XII-a</option>
+                    <option value="67">Neclasificat</option>
+                </select>
+                and 
+                <select id="lessonModule" name="module" placeholder="toate modulele" required>
+                    <option value="">toate modulele</option>
+                    <option value="1">Modul 1 (INFO)</option>
+                </select>
+            </p>
+        </div>
         <div id="lessons-grid" class="lessons-container">
             <!-- Lessons will be dynamically loaded here -->
         </div>
     </div>
 
     <script>
+        // Global variables for filter values
+        let classValue = '';
+        let moduleValue = '';
+
         document.addEventListener("DOMContentLoaded", function() {
+            const classFilter = document.getElementById("lessonClass");
+            classValue = classFilter.value;
+            const moduleFilter = document.getElementById("lessonModule");
+            moduleValue = moduleFilter.value;
+
+            classFilter.addEventListener("change", function() {
+                if (classValue !== this.value) {
+                    classValue = this.value;
+                    loadLessons();
+                }
+            });
+
+            moduleFilter.addEventListener("change", function() {
+                if (moduleValue !== this.value) {
+                    moduleValue = this.value;
+                    loadLessons();
+                }
+            });
+
             loadLessons();
         });
 
         async function loadLessons() {
             try {
-                const response = await window.apiService.getLessons();
+                let response;
+                if(classValue || moduleValue) {
+                    const filterData = {
+                        class: parseInt(classValue) || 0,
+                        module: parseInt(moduleValue) || 0,
+                    };
+                    response = await window.apiService.getLessonsByFlags(
+                        filterData.class !== 0 ? filterData.class : null,
+                        null,
+                        filterData.module !== 0 ? filterData.module : null
+                    );
+                } else {
+                    response = await window.apiService.getLessons();
+                }
+
                 if (!response) {
                     console.error("Failed to load lessons.");
                     return;
                 }
-
                 const lessons = JSON.parse(response);
                 console.log("Loaded lessons:", lessons);
                 
+                if (lessons.length === 0) {
+                    document.getElementById("lessons-grid").innerHTML = '<p>No lessons found for the selected filters.</p>';
+                    return;
+                }
+
                 renderLessonsGrid(lessons);
-            } catch (error) {
+                } catch (error) {
                 console.error("Failed to load lessons:", error);
             }
         }
@@ -61,7 +120,7 @@
                 const flags = lessonData.flag_translation;
                 
                 const lessonCard = document.createElement('div');
-                lessonCard.className = 'lesson-card';
+                lessonCard.className = 'card lesson-card';
                 
                 // Convert class number to Roman numerals
                 const romanClass = toRoman(flags.class);
@@ -72,9 +131,9 @@
                         <span class="lesson-class">Clasa ${flags.class}</span>
                     </div>
                     <h3 class="lesson-title">${lesson.Title}</h3>
-                    <p class="lesson-description">${lesson.Description.Valid ? lesson.Description.String : 'No description'}</p>
+                    <p class="lesson-description">${lesson.Description.Valid ? truncateText(lesson.Description.String) : 'No description'}</p>
                     <div class="lesson-footer">
-                        <button class="lesson-view-btn" onclick="openLesson('${lesson.ID}')">
+                        <button class="btn primary" onclick="openLesson('${lesson.ID}')">
                             <i class="fas fa-play"></i> Începe lecția
                         </button>
                     </div>
@@ -95,6 +154,16 @@
                 ];
                 return acc + roman[i][Math.floor(n/val)%10];
             }, '');
+        }
+
+        function truncateText(text, maxLines = 3, maxChars = 150) {
+            if (!text || text.length <= maxChars) {
+                return text;
+            }
+            
+            let truncated = text.substring(0, maxChars);
+            
+            return truncated + '...';
         }
 
         function openLesson(lessonId) {

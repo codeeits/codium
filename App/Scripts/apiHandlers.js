@@ -289,6 +289,10 @@ class ApiService {
         return this.get(`/api/lessons?search_type=id&lesson_id=${lessonId}`, false);
     }
 
+    async getLessonsByFlags(classNum = null, section = null, module = null) {
+        return this.get(`/api/lessons?search_type=flags&class=${classNum}&section=${section}&module=${module}`, false);
+    }
+
     async uploadLesson(lessonData, file) {
         // First upload the file
         const fileResponse = await this.uploadFile(file, 'lessons');
