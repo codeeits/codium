@@ -25,6 +25,7 @@ type ApiCfg struct {
 	smtpUser             string
 	smtpPassword         string
 	websiteUrl           string
+	websiteState         string
 }
 
 /*
@@ -82,6 +83,7 @@ func main() {
 		cfg.smtpUser = os.Getenv("SMTP_USER")
 		cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
 		cfg.websiteUrl = os.Getenv("WEBSITE_URL")
+		cfg.websiteState = os.Getenv("WEBSITE_STATE")
 	}
 
 	if cfg.secret == "" {
