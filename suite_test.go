@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"testing"
@@ -518,6 +520,111 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			if resp.StatusCode != http.StatusOK {
 				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetUsersAfterDeletions", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/users", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var users []database.User
+			err = json.NewDecoder(resp.Body).Decode(&users)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			for _, user := range users {
+				if user.ID == averageUserID || user.ID == secondAverageUserID {
+					t.Fatalf("Did not expect to find deleted user with ID %s", user.ID.String())
+				}
+			}
+		})
+
+		//Test files
+		t.Run("TestUploadFile", func(t *testing.T) {
+			cwd, _ := os.Getwd()
+			folderPath := cwd + "/out/test_resources/"
+			filePath := cwd + "/out/test_resources/file_upload.txt"
+			err := os.MkdirAll(folderPath, 0755)
+			if err != nil {
+				t.Fatal("Error creating test resources directory: ", err)
+			}
+			defer os.RemoveAll(cwd + "/out/test_resources/")
+
+			fileContent := []byte("This is a test file for upload.")
+			err = os.WriteFile(filePath, fileContent, 0644)
+			if err != nil {
+				t.Fatal("Error creating test file: ", err)
+			}
+			fileData, err := os.Open(filePath)
+			if err != nil {
+				t.Fatal("Error opening test file: ", err)
+			}
+
+			var requestFileData bytes.Buffer
+
+			writer := multipart.NewWriter(&requestFileData)
+			part, err := writer.CreateFormFile("file", "file_upload.txt")
+			if err != nil {
+				t.Fatal("Error creating form file: ", err)
+			}
+
+			_, err = io.Copy(part, fileData)
+			if err != nil {
+				t.Fatal("Error copying file data: ", err)
+			}
+			err = writer.Close()
+			if err != nil {
+				t.Fatal("Error closing writer: ", err)
+			}
+
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", writer.FormDataContentType())
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			type params struct {
+				FileID   uuid.UUID `json:"file_id"`
+				FilePath string    `json:"file_path"`
+			}
+
+			var responseParams params
+			err = json.NewDecoder(resp.Body).Decode(&responseParams)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if responseParams.FileID == uuid.Nil {
+				t.Fatal("Expected non-nil file ID")
+			}
+			if responseParams.FilePath == "" {
+				t.Fatal("Expected non-empty file path")
 			}
 		})
 	})
