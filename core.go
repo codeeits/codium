@@ -107,7 +107,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		return err
 	}
 
-	_, err = cfg.db.CreateUser(context.Background(), database.CreateUserParams{
+	defaultAdmin, err := cfg.db.CreateUser(context.Background(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Email:        "codiumOfficial@lekas.tech",
 		PasswordHash: hashedPassword,
@@ -121,7 +121,62 @@ func (cfg *ApiCfg) ResetAll() error {
 		return err
 	}
 
-	cfg.logger.Print("Default admin user created successfully.")
+	cfg.logger.Print("[!!!] Default admin user created successfully.")
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		cfg.logger.Printf("Failed to get current working directory: %v", err)
+		return err
+	}
+	//add markdown test lesson
+	testLessonContentPath := cwd + "/markdown_test_all_elements.md"
+	fileContent, err := os.ReadFile(testLessonContentPath)
+	if err != nil {
+		cfg.logger.Printf("Failed to read test lesson content: %v", err)
+		return err
+	}
+
+	lessonFileID := uuid.New()
+	lessonFilePath := fmt.Sprintf("App/Lessons/%s.md", lessonFileID.String())
+
+	err = os.WriteFile(lessonFilePath, fileContent, 0644)
+	if err != nil {
+		cfg.logger.Printf("Failed to write test lesson file: %v", err)
+		return err
+	}
+
+	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
+		ID:       lessonFileID,
+		UserID:   defaultAdmin.ID,
+		Filename: lessonFileID.String() + ".md",
+		Filepath: lessonFilePath,
+		Filesize: int64(len(fileContent)),
+		UploadedAt: sql.NullTime{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to record test lesson file in database: %v", err)
+		return err
+	}
+
+	_, err = cfg.db.AddLesson(context.Background(), database.AddLessonParams{
+		ID:        uuid.New(),
+		Title:     "Markdown Test - All Elements",
+		ContentID: lessonFileID,
+		Flags:     0x01010101, // class=1, section=1, number=1, module=1
+		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to create test lesson in database: %v", err)
+		return err
+	}
+
+	cfg.logger.Println("[!!!] Test lesson created successfully.")
+
+	cfg.logger.Println("[!!!] Database reset completed successfully.")
 	return nil
 }
 
