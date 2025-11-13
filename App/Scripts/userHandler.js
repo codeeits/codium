@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarImg = document.getElementById('userAvatar');
     const logoutBtn = document.getElementById('logoutBtn');
     const editBtn = document.getElementById('editProfileBtn');
-    const addLessonBtn = document.getElementById('addLesson');
+    const addLessonBtn = document.getElementById('addLesson') || document.createElement('div'); // Fallback to avoid errors
 
     // ------------------------------
     // CHECK AUTHENTICATION

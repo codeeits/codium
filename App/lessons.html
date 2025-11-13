@@ -32,7 +32,7 @@
                 <i class="fas fa-plus"></i> Upload New Lesson
             </button>
             <p> Sort by
-                <select id="lessonClass" name="class" placeholder="toate clasele" required>
+                <select id="lessonClass" name="class" class="language-dropdown" placeholder="toate clasele" required>
                     <option value="">toate clasele</option>
                     <option value="9">Clasa a IX-a</option>
                     <option value="10">Clasa a X-a</option>
@@ -41,7 +41,7 @@
                     <option value="67">Neclasificat</option>
                 </select>
                 and 
-                <select id="lessonModule" name="module" placeholder="toate modulele" required>
+                <select id="lessonModule" name="module" class="language-dropdown" placeholder="toate modulele" required>
                     <option value="">toate modulele</option>
                     <option value="1">Modul 1 (INFO)</option>
                 </select>
@@ -141,7 +141,6 @@
                 const lessonCard = document.createElement('div');
                 lessonCard.className = 'card lesson-card';
                 
-                // Convert class number to Roman numerals
                 const romanClass = toRoman(flags.class);
                 
                 lessonCard.innerHTML = `
@@ -163,16 +162,20 @@
         }
 
         function toRoman(n) {
-            return n.toString().split('').reduce((acc, _, i, arr) => {
-                const val = [1000,100,10,1][arr.length-i-1]*1;
-                const roman = [
-                    ["","M","MM","MMM"],
-                    ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM"],
-                    ["","X","XX","XXX","XL","L","LX","LXX","LXXX","XC"],
-                    ["","I","II","III","IV","V","VI","VII","VIII","IX"]
-                ];
-                return acc + roman[i][Math.floor(n/val)%10];
-            }, '');
+            if (n === 0) return "All";
+            if (n >= 67) return "N/A"; // Neclasificat
+            
+            const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+            const symbols = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+            
+            let result = "";
+            for (let i = 0; i < values.length; i++) {
+                while (n >= values[i]) {
+                    result += symbols[i];
+                    n -= values[i];
+                }
+            }
+            return result;
         }
 
         function truncateText(text, maxLines = 3, maxChars = 150) {
