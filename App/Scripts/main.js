@@ -38,6 +38,14 @@ function updateAuthButton() {
     const authToken = localStorage.getItem('authToken');
     const username = localStorage.getItem('username');
     
+    if(lessonsButton) {
+        lessonsButton.onclick = function() {
+            window.location.href = 'lessons.html';
+            console.log('Navigating to lessons page');
+        };
+        lessonsButton.title = 'Lessons';
+    }
+    
     if (authToken && username) {
         // User is logged in - hide login button, show user and logout buttons
         if (loginButton) {
@@ -54,10 +62,6 @@ function updateAuthButton() {
 
         if(lessonsButton) {
             lessonsButton.classList.remove('hidden');
-            lessonsButton.onclick = function() {
-                window.location.href = 'lessons.html';
-            };
-            lessonsButton.title = 'Lessons';
         }
         
         if (logoutButton) {
