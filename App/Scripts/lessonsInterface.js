@@ -90,7 +90,17 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         marked.use({ renderer });
 
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+            }
+        });
+
         lessonContainer.innerHTML = marked.parse(markdown);
+
+        hljs.highlightAll();
         
         // Process MathJax after content is rendered (Safari-compatible)
         if (window.MathJax && window.MathJax.typesetPromise) {
@@ -107,6 +117,31 @@ document.addEventListener("DOMContentLoaded", async function() {
             setTimeout(() => {
                 MathJax.Hub.Queue(["Typeset", MathJax.Hub, lessonContainer]);
             }, 100);
+        }
+
+        if (window.mermaid) {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'dark',
+                themeVariables: {
+                    primaryColor: '#9B59BB',
+                    primaryTextColor: '#FFFFFF',
+                    primaryBorderColor: '#9B59BB',
+                    lineColor: '#B380CB',
+                    secondaryColor: '#B380CB',
+                    tertiaryColor: '#8E44AD',
+                }
+            });
+
+            setTimeout(() => {
+                mermaid.run({
+                    querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
+                }).then(() => {
+                    console.log('Mermaid diagrams rendered');
+                }).catch((err) => {
+                    console.error('Mermaid rendering failed:', err);
+                });
+            }, 200);
         }
     }
 

@@ -34,6 +34,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background: var(--primary-dark);
     color: var(--text-color);
@@ -321,6 +325,7 @@ body {
 
 /* ========================================
    LESSON BODY CONTENT
+   (MARKDOWN STYLES)
    ======================================== */
 
 #lesson-content {
@@ -356,6 +361,7 @@ body {
 #lesson-body a {
     color: var(--purple-primary);
     text-decoration: none;
+    
 }
 
 #lesson-body a:hover {
