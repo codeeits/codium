@@ -109,20 +109,29 @@
             </div>
             <form action="" id="editProfileForm">
                 <div class="modal-field">
+                    <label for="editEmail">Edit email:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-envelope"></i>
                         <input type="email" name="email" id="editEmail" placeholder="email" minlength="3" maxlength="20">
+                        <button type="button" class="delete-text-btn" title="Leave fields empty if you don't want to change them">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                     <span class="modal-error" id="editEmailError"></span>
                 </div>
                 <div class="modal-field">
+                    <label for="editUsername">Edit username:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-signature"></i>
                         <input type="text" name="username" id="editUsername" placeholder="username" minlength="3" maxlength="20">
+                        <button type="button" class="delete-text-btn" title="Leave fields empty if you don't want to change them">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                     <span class="modal-error" id="editUsernameError"></span>
                 </div>
                 <div class="modal-field">
+                    <label for="oldPassword">Edit password:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-key"></i>
                         <input type="password" name="password" id="oldPassword" placeholder="actual password" minlength="6">
@@ -137,9 +146,13 @@
                     <span class="modal-error" id="newPasswordError"></span>
                 </div>
                 <div class="modal-field">
+                    <label for="editProfilePicture">Upload profile picture: </label>
                     <div class="text-container">
                         <i class="fa-solid fa-image"></i>
                         <input type="file" name="profilePicture" id="editProfilePicture" accept="image/*">
+                        <button type="button" class="delete-text-btn" title="Leave fields empty if you don't want to change them">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="modal-buttons">

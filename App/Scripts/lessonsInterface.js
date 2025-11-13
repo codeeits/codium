@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return "Unknown author";
         });
 
+        contentUserID = contentRaw.lesson.AuthorID || null;
         contentClass = contentRaw.flag_translation.class || "Unknown class";
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
@@ -47,7 +48,8 @@ document.addEventListener("DOMContentLoaded", async function() {
     function renderLesson(markdown) {
         
         titleElement.textContent = contentTitle;
-        authElement.textContent = `Author: ${contentAuthor}`;
+        authElement.textContent = `${contentAuthor}`;
+        authElement.href = `user.html?id=${contentUserID}`;
         classElement.textContent = `Class: ${contentClass}`;
         sectionElement.textContent = `Section: ${contentSection}`;
         moduleElement.textContent = `Module: ${contentModule}`;

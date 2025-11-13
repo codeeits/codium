@@ -597,6 +597,17 @@ body {
     color: var(--text-color);
 }
 
+.text-container .delete-text-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s ease;
+}
+
 /* Input hover and focus effects */
 .text-container:hover {
     background: rgba(176, 123, 201, 0.3);

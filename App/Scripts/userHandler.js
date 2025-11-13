@@ -110,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const cancelBtn = document.getElementById('cancelEditBtn');
 
         modal.style.display = 'flex';
+        initializeForm();
+        deleteTextContainer();
         
         cancelBtn.onclick = function() {
             closeModal();
@@ -125,6 +127,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // function to validate modal form
 
     const form = document.getElementById('editProfileForm');
+
+    function initializeForm() {
+        document.getElementById('editEmail').value = localStorage.getItem('userEmail') || '';
+        document.getElementById('editUsername').value = localStorage.getItem('username') || '';
+    }
+
+    function deleteTextContainer() {
+        document.querySelectorAll('.delete-text-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const inputField = this.parentElement.querySelector('input');
+                if (inputField) {
+                    inputField.value = '';
+                }
+            });
+        });
+    }
 
     function validateForm() {
         const email = document.getElementById('editEmail').value.trim();
