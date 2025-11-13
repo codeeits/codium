@@ -327,16 +327,87 @@ body {
     margin: 0 0 0 0;
 }
 
-/* ========================================
-   LESSON BODY CONTENT
-   code blocks
-   ======================================== */
+#lesson-content > *, #lesson-body > * {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+#lesson-title {
+    font-size: 3rem;
+    font-weight: 700;
+}
 
-.code {
+#lesson-content > ul {
+    display: flex;
+    list-style: none;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+#lesson-content > ul > li {
+    text-align: center;
+    background-color: var(--secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#lesson-body a {
+    color: var(--purple-primary);
+    text-decoration: none;
+}
+
+#lesson-body a:hover {
+    text-decoration: underline;
+}
+
+#lesson-body ul, ol {
+    margin-left: 2rem;
+}
+
+#lesson-body blockquote {
+    border-left: 4px solid var(--purple-primary);
+    padding-left: 1rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+#lesson-body pre {
     background: var(--primary-black);
-    padding: 2rem;
+    padding: 1rem;
     border-radius: 1rem;
     overflow: auto;
+    margin-bottom: 1rem;
+}
+
+#lesson-body code, kbd {
+    background: var(--primary-black);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.5rem;
+}
+
+#lesson-body abbr {
+    border: 1px dashed var(--text-secondary);
+    padding: 0 0.2rem;
+    cursor: help;
+    border-radius: .25rem;
+}
+
+#lesson-body table {
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+}
+
+#lesson-body table, th, td {
+    border: 1px solid var(--purple-primary);
+    padding: 0.5rem;
+}
+
+#lesson-body th {
+    background: var(--purple-primary);
+    color: var(--text-color);
 }
 
 /* ========================================

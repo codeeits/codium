@@ -70,7 +70,42 @@ document.addEventListener("DOMContentLoaded", async function() {
             console.error("Lesson container not found!");
             return;
         }
+        
+        const renderer = {
+            heading(token) {
+                
+                const plain = token.text || '';
+                const level = token.depth || 1;
+                const slug = plain
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, '') // remove accents
+                .replace(/[^\w]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+
+                return `<h${level} id="${slug}">${plain}</h${level}>`;
+            }
+        };
+
+        marked.use({ renderer });
+
         lessonContainer.innerHTML = marked.parse(markdown);
+        
+        // Process MathJax after content is rendered (Safari-compatible)
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            // Wait a bit for DOM to settle
+            setTimeout(() => {
+                MathJax.typesetPromise([lessonContainer]).then(() => {
+                    console.log('MathJax processing complete');
+                }).catch((err) => {
+                    console.error('MathJax typeset failed:', err);
+                });
+            }, 100);
+        } else if (window.MathJax && window.MathJax.Hub) {
+            // Fallback for older MathJax versions
+            setTimeout(() => {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, lessonContainer]);
+            }, 100);
+        }
     }
 
 });
