@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             userName.textContent = userData.Username;
             userEmail.textContent = userData.Email;
             if (userData.ProfilePicID) {
-                const imgUrl = await window.apiService.getFileURL(userData.ProfilePicID);
+                const imgUrl = await window.apiService.getFileUrl(userData.ProfilePicID);
                 avatarImg.src = imgUrl;
             } else {
                 avatarImg.style.display = 'none';
