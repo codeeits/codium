@@ -18,6 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="Scripts/main.js" defer></script>
     <script src="Scripts/apiHandlers.js"></script>
+    <script src="Scripts/lessonsHandler.js"></script>
 
     <meta name="menu-variant" content="normal">
 </head>
@@ -25,8 +26,11 @@
     <div id="top-menu-container"></div>
     
     <div class="main-grid">
-            <div class="content-header">
-                <h1>List of all lessons</h1>
+        <div class="content-header">
+            <h1>List of all lessons</h1>
+            <button class="btn primary" id="openUploadModal">
+                <i class="fas fa-plus"></i> Upload New Lesson
+            </button>
             <p> Sort by
                 <select id="lessonClass" name="class" placeholder="toate clasele" required>
                     <option value="">toate clasele</option>
@@ -58,6 +62,21 @@
             classValue = classFilter.value;
             const moduleFilter = document.getElementById("lessonModule");
             moduleValue = moduleFilter.value;
+
+            // Upload modal button
+            const uploadBtn = document.getElementById("openUploadModal");
+            const uploadModal = document.getElementById("uploadLessonModal");
+            
+            uploadBtn.addEventListener("click", function() {
+                uploadModal.style.display = "flex";
+            });
+
+            // Close modal when clicking outside
+            uploadModal.addEventListener("click", function(e) {
+                if (e.target === uploadModal) {
+                    uploadModal.style.display = "none";
+                }
+            });
 
             classFilter.addEventListener("change", function() {
                 if (classValue !== this.value) {
@@ -170,5 +189,88 @@
             window.location.href = `lesson.html?id=${lessonId}`;
         }
     </script>
+
+    <!-- Lesson Upload Modal -->
+    <div class="modal-overlay" id="uploadLessonModal" style="display: none;">
+        <div class="modal upload-m">
+            <div class="modal-header">
+                <i class="fa-solid fa-cloud-upload-alt"></i>
+                <h2>Quick Upload</h2>
+            </div>
+            <form id="lessonUploadForm" enctype="multipart/form-data">
+                <!-- Lesson Metadata -->
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-heading"></i>
+                        <input type="text" id="lessonTitle" name="title" placeholder="Enter lesson title" required>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-align-left"></i>
+                        <textarea id="lessonDescription" name="description" placeholder="Brief description of the lesson" rows="2" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Classification Row -->
+                <div class="modal-field">
+                    <div class="text-container">
+                        <i class="fa-solid fa-school"></i>
+                        <select id="lessonClass" name="class" placeholder="Alege clasa:" required>
+                            <option value="">Alege clasa:</option>
+                            <option value="9">Clasa a IX-a</option>
+                            <option value="10">Clasa a X-a</option>
+                            <option value="11">Clasa a XI-a</option>
+                            <option value="12">Clasa a XII-a</option>
+                            <option value="67">Neclasificat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonSection">Secțiunea</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <input type="number" id="lessonSection" name="section" placeholder="1" min="1" max="255" required>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonModule">Modul [1 - Informatică (Altele disponibile în curând)]</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <input type="number" id="lessonModule" name="module" placeholder="1" min="1" max="1" required>
+                    </div>
+                </div>
+                
+                <div class="upload-row">
+                    <div class="modal-field">
+                        <label for="lessonFile">Continutul lectiei (.md sau .txt)</label>
+                        <div class="text-container file-upload-container">
+                            <i class="fa-solid fa-file-code"></i>
+                            <input type="file" id="lessonFile" name="lessonFile" accept=".md,.markdown,.txt" required>
+                        </div>
+                        <!-- File Info -->
+                        <div class="file-info" id="fileInfo">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="modal-buttons">
+                    <button type="button" class="btn secondary" id="clearForm">
+                        <i class="fa-solid fa-times"></i> Clear Form
+                    </button>
+                    <button type="submit" class="btn primary" id="uploadBtn">
+                        <i class="fa-solid fa-upload"></i> Upload Lesson
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

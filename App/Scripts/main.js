@@ -33,6 +33,7 @@ function updateAuthButton() {
     const userButton = document.getElementById('user-button');
     const logoutButton = document.getElementById('logout-button');
     const userNameSpan = document.getElementById('user-name');
+    const lessonsButton = document.getElementById('teorie-button');
     
     const authToken = localStorage.getItem('authToken');
     const username = localStorage.getItem('username');
@@ -49,6 +50,14 @@ function updateAuthButton() {
                 window.location.href = 'user.html';
             };
             userButton.title = 'Go to profile';
+        }
+
+        if(lessonsButton) {
+            lessonsButton.classList.remove('hidden');
+            lessonsButton.onclick = function() {
+                window.location.href = 'lessons.html';
+            };
+            lessonsButton.title = 'Lessons';
         }
         
         if (logoutButton) {
