@@ -293,9 +293,9 @@
     display: flex;
     flex-direction: row;
     position: relative;
-    text-align: left;
+    text-align: end;
     font-size: 1.2rem;
-    align-items: end;
+    align-items: start;
     backdrop-filter: blur(5px);
     pointer-events: auto;
     min-width: 250px;

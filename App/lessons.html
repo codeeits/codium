@@ -59,10 +59,6 @@
 
         document.addEventListener("DOMContentLoaded", function() {
 
-            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 3000);
-            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 2000);
-            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 4000);
-
             const classFilter = document.getElementById("lessonClass");
             classValue = classFilter.value;
             const moduleFilter = document.getElementById("lessonModule");
@@ -125,6 +121,7 @@
                 console.log("Loaded lessons:", lessons);
                 
                 if (lessons.length === 0) {
+                    toastsLoader.showToast('No lessons found for the selected filters.', 'warning', 1000);
                     document.getElementById("lessons-grid").innerHTML = '<p>No lessons found for the selected filters.</p>';
                     return;
                 }
