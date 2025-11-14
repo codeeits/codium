@@ -145,18 +145,19 @@ func main() {
 		}
 
 		cfg.StartCLI()
-		go func() {
-			err := http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				target := "https://" + r.Host + r.URL.RequestURI()
-				http.Redirect(w, r, target, http.StatusMovedPermanently)
-			}))
-			if err != nil {
-				panic(err)
-			}
-		}()
 		err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
 		if err != nil {
-			cfg.logger.Fatal(err)
+			cfg.logger.Println("Error starting server with certificates: ", err)
+
+			cfg.logger.Println("Starting server without TLS...")
+			server := &http.Server{
+				Addr:    ":6767",
+				Handler: mux,
+			}
+			err = server.ListenAndServe()
+			if err != nil {
+				cfg.logger.Fatal("Error starting server: ", err)
+			}
 		}
 	}
 }
