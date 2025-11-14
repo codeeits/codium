@@ -319,6 +319,55 @@ class ApiService {
 }
 
 // ===========================================
+// Toasts Loader
+// ===========================================
+
+class ToastsLoader {
+    constructor() {
+        this.toastsContainer = null;
+        this.init();
+    }
+
+    init() {
+        if(document.body) {
+            this.createContainer();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.createContainer();
+            });
+        }
+    }
+
+    createContainer() {
+        if(!this.toastsContainer) {
+            this.toastsContainer = document.createElement('div');
+            this.toastsContainer.className = 'toast-container';
+            document.body.appendChild(this.toastsContainer);
+        }
+    }
+
+    showToast(message, type = 'info', duration = 3000) {
+        if (!this.toastsContainer) {
+            console.warn('Toasts container not ready yet');
+            return;
+        }
+        const toast = document.createElement('div');
+        toast.className = `card toast toast-${type}`;
+        toast.textContent = message;
+
+        this.toastsContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            toast.addEventListener('transitionend', () => {
+                toast.remove();
+            });
+        }, duration);
+        //toast.remove();
+    }
+}
+
+// ===========================================
 // Error Handling
 // ===========================================
 
@@ -402,3 +451,13 @@ window.requireAuth = function(redirectTo = 'login.html') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ApiService, ApiError };
 }
+
+let toastsLoader;
+if(document.body) {
+    toastsLoader = new ToastsLoader();
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        toastsLoader = new ToastsLoader();
+    });
+}
+

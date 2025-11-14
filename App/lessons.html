@@ -58,6 +58,11 @@
         let moduleValue = '';
 
         document.addEventListener("DOMContentLoaded", function() {
+
+            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 3000);
+            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 2000);
+            toastsLoader.showToast('Welcome to the Lessons page!', 'info', 4000);
+
             const classFilter = document.getElementById("lessonClass");
             classValue = classFilter.value;
             const moduleFilter = document.getElementById("lessonModule");
@@ -220,7 +225,7 @@
                 <div class="modal-field">
                     <div class="text-container">
                         <i class="fa-solid fa-school"></i>
-                        <select id="lessonClass" name="class" placeholder="Alege clasa:" required>
+                        <select id="modalLessonClass" name="class" placeholder="Alege clasa:" required>
                             <option value="">Alege clasa:</option>
                             <option value="9">Clasa a IX-a</option>
                             <option value="10">Clasa a X-a</option>

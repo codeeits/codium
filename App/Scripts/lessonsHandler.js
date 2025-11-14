@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = {
             title: document.getElementById("lessonTitle").value,
             description: document.getElementById("lessonDescription").value,
-            class: parseInt(document.getElementById("lessonClass").value),
+            class: parseInt(document.getElementById("modalLessonClass").value),
             section: parseInt(document.getElementById("lessonSection").value),
             number: 1,
             module: parseInt(document.getElementById("lessonModule").value),

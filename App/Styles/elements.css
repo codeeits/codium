@@ -274,7 +274,8 @@
 /* toast */
 /* ----------------------------------------
     for errors/succes/info sutff
-    use .card for cards
+    use toastsLoader.showToast('Your message', 'type', duration);
+    types: info, danger, warning, confirm
 */
 
 .toast-container {
@@ -289,18 +290,26 @@
 }
 
 .toast {
-    position: relative; /* Change from inherit to relative */
+    display: flex;
+    flex-direction: row;
+    position: relative;
     text-align: left;
+    font-size: 1.2rem;
     align-items: end;
     backdrop-filter: blur(5px);
     pointer-events: auto;
     min-width: 250px;
     max-width: 400px; 
+    animation: fadeIn 1s ease forwards;
+}
+
+.toast.fade-out {
+    animation: fadeOut 1s ease forwards;
 }
 
 .toast::before {
     content: "";
-    position: absolute; /* Change from inherit to absolute */
+    position: absolute;
     inset: 0;
     border-radius: 1rem;
     padding: 1px;
