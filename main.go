@@ -134,17 +134,30 @@ func main() {
 		mux.Handle("POST /api/lessons/{lessonID}/complete", http.HandlerFunc(cfg.CompleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/start", http.HandlerFunc(cfg.StartLessonHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/faves", http.HandlerFunc(cfg.GetFavoritesForLessonHandler))
+		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
+		}))
 
 		// Start the HTTP server
 		server := &http.Server{
-			Addr:    ":6767",
+			Addr:    ":8443",
 			Handler: mux,
 		}
 
 		cfg.StartCLI()
-		err = server.ListenAndServe()
+		err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
 		if err != nil {
-			cfg.logger.Fatal(err)
+			cfg.logger.Println("Error starting server with certificates: ", err)
+
+			cfg.logger.Println("Starting server without TLS...")
+			server := &http.Server{
+				Addr:    ":6767",
+				Handler: mux,
+			}
+			err = server.ListenAndServe()
+			if err != nil {
+				cfg.logger.Fatal("Error starting server: ", err)
+			}
 		}
 	}
 }

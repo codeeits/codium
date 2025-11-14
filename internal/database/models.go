@@ -87,4 +87,5 @@ type User struct {
 	IsAdmin        bool
 	ProfilePicID   uuid.NullUUID
 	EmailValidated bool
+	CuredEmail     sql.NullString
 }

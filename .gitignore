@@ -2,3 +2,4 @@
 app/[Ii]mages/
 app/Lessons/
 .env
+/certs/

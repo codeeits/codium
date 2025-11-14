@@ -439,6 +439,8 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	curedEmail := strings.Replace(strings.ToLower(p.Email), ".", "", -1) // Normalize email by removing dots
+
 	match, err = regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.Username))
 	if err != nil {
 		cfg.logger.Printf("Invalid username: %v", err)
@@ -468,6 +470,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		IsAdmin:      false,
+		CuredEmail:   sql.NullString{String: curedEmail, Valid: true},
 	})
 
 	if err != nil {
