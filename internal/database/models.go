@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type CodeTest struct {
+	ID             uuid.UUID
+	ProblemID      uuid.UUID
+	TxtInput       sql.NullString
+	FileInput      uuid.NullUUID
+	ExpectedOutput string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	NextTestID     uuid.NullUUID
+	PreviousTestID uuid.NullUUID
+}
+
 type File struct {
 	ID         uuid.UUID
 	UserID     uuid.UUID
@@ -43,6 +55,17 @@ type LessonsUser struct {
 	CompletedAt sql.NullTime
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type Problem struct {
+	ID          uuid.UUID
+	Title       string
+	Description string
+	Tags        int32
+	Source      sql.NullString
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	FirstTest   uuid.NullUUID
 }
 
 type RefreshToken struct {

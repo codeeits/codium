@@ -39,10 +39,32 @@ type LessonWithFlags struct {
 type FlagMasks uint32
 
 const (
+	// ModuleMask Lesson flags are stored as 0xMMNNSSCC where:
+	//MM = Module
+	//NN = Number
+	//SS = Section
+	//CC = Class
 	ModuleMask  FlagMasks = 0xFF000000
 	NumberMask  FlagMasks = 0x00FF0000
 	SectionMask FlagMasks = 0x0000FF00
 	ClassMask   FlagMasks = 0x000000FF
+
+	// ProblemModuleMask coincides with the lesson ModuleMask for problem categorization
+	ProblemModuleMask FlagMasks = 0xFF000000
+	// ProblemDifficultyMask is used to categorize problems by their difficulty level (e.g. easy, medium, hard, expert)
+	ProblemDifficultyMask FlagMasks = 0x00F00000
+	// ProblemSolveTypeMask is used to categorize problems by their solve type (e.g. multiple choice, coding, written essay, etc.)
+	ProblemSolveTypeMask FlagMasks = 0x000F0000
+
+	// ProblemResultTypeMask is used to categorize problems by their result type (e.g. pass/fail, scored, percentage, etc.)
+	ProblemResultTypeMask FlagMasks = 0x0000F000
+	// ProblemVerificationTypeMask is used to categorize problems by their verification type (e.g. auto-graded, peer-reviewed, instructor-reviewed, etc.)
+	ProblemVerificationTypeMask FlagMasks = 0x00000F00
+	// ProblemTypeMask is used to categorize problems by their general type (e.g. quiz, assignment, project, exam, etc.)
+	ProblemTypeMask FlagMasks = 0x000000F0
+
+	// ProblemReservedMask is reserved for future use
+	ProblemReservedMask FlagMasks = 0x0000000F
 )
 
 /*
