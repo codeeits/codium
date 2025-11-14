@@ -7,18 +7,19 @@
 Handles lesson uploads made by admins.
 */
 
-const isAdmin = localStorage.getItem('isAdmin') === 'true';
-if (!isAdmin) {
-    window.location.href = 'index.html';
-}
-
 document.addEventListener("DOMContentLoaded", function() {
 
     // ------------------------------
     // THE PAGE WHERE YOU SEE THE LESSONS
     // ------------------------------
 
-    
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        if (!isAdmin) {
+            const uploadBtn = document.getElementById("openUploadModal");
+            if (uploadBtn) {
+                uploadBtn.style.display = "none";
+            }
+        }
     
     // ------------------------------
     // LESSON UPLOAD HANDLER MODAL

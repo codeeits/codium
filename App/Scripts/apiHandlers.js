@@ -363,10 +363,10 @@ window.apiService = new ApiService();
 
 window.handleApiError = function(error, defaultMessage = 'An error occurred') {
     console.error('API Error:', error);
-    
+    //alert(error);
     if (error instanceof ApiError) {
         if (error.isUnauthorized()) {
-            alert('Session expired. Please log in again.');
+            alert('Invalid credentials or session expired. Please log in again.');
             window.apiService.logout();
             window.location.href = 'login.html';
             return;

@@ -1,3 +1,14 @@
+/*
+ __    ____  ___  ___  _____  _  _  ___  ____  _  _  ____  ____  ____  ____  __    ___  ____     ____  ___ 
+(  )  ( ___)/ __)/ __)(  _  )( \( )/ __)(_  _)( \( )(_  _)( ___)(  _ \( ___)/__\  / __)( ___)   (_  _)/ __)
+ )(__  )__) \__ \\__ \ )(_)(  )  ( \__ \ _)(_  )  (   )(   )__)  )   / )__)/(__)\( (__  )__)   .-_)(  \__ \
+(____)(____)(___/(___/(_____)(_)\_)(___/(____)(_)\_) (__) (____)(_)\_)(__)(__)(__)\___)(____)()\____) (___/
+
+Pentru randarea lectiilor cu marked.js. 
+Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pentru diagrame.
+*/
+
+
 document.addEventListener("DOMContentLoaded", async function() {
     const baseurl = window.location.href;
 

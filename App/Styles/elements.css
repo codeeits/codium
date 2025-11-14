@@ -252,6 +252,7 @@
     position: relative;
     border: 1px solid transparent;
     background-clip: padding-box;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card::before {
@@ -270,4 +271,76 @@
     z-index: -1;
 }
 
+/* toast */
+/* ----------------------------------------
+    for errors/succes/info sutff
+    use .card for cards
+*/
 
+.toast-container {
+    position: fixed;
+    top: 6rem;
+    right: 1rem;
+    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    position: relative; /* Change from inherit to relative */
+    text-align: left;
+    align-items: end;
+    backdrop-filter: blur(5px);
+    pointer-events: auto;
+    min-width: 250px;
+    max-width: 400px; 
+}
+
+.toast::before {
+    content: "";
+    position: absolute; /* Change from inherit to absolute */
+    inset: 0;
+    border-radius: 1rem;
+    padding: 1px;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.toast-info {
+    background-color: var(--secondary);
+}
+
+.toast-info::before {
+    background: var(--border-gradient);
+}
+
+.toast-danger {
+    background-color: var(--danger-transparent);
+}
+
+.toast-danger::before {
+    background: var(--danger-solid);
+}
+
+.toast-warning {
+    background-color: var(--warning-transparent);
+}
+
+.toast-warning::before {
+    background: var(--warning-solid);
+}
+
+.toast-confirm {
+    background-color: var(--confirm-transparent);
+}
+
+.toast-confirm::before {
+    background: var(--confirm-solid);
+}
