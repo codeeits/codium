@@ -231,7 +231,7 @@ class ApiService {
     }
 
     async getUserById(userId) {
-        return this.get(`/api/users/${userId}`, true);
+        return this.get(`/api/users/${userId}`);
     }
 
     async getCurrentUserUsername() {
