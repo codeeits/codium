@@ -6,6 +6,8 @@
 
 Pentru randarea lectiilor cu marked.js. 
 Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pentru diagrame.
+
+Phoenix - Mugur de Fluier
 */
 
 
