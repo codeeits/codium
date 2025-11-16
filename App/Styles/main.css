@@ -53,6 +53,12 @@ body {
    NAVIGATION MENU
    ======================================== */
 
+#top-menu-container {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
 #top-menu {
     display: flex;
     height: 5rem;

@@ -10,6 +10,22 @@ Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pe
 Phoenix - Mugur de Fluier
 */
 
+function toRoman(n) {
+    if (n === 0) return "All";
+    if (n >= 67) return "N/A"; // Neclasificat
+    
+    const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+    const symbols = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+    
+    let result = "";
+    for (let i = 0; i < values.length; i++) {
+        while (n >= values[i]) {
+            result += symbols[i];
+            n -= values[i];
+        }
+    }
+    return result;
+}
 
 document.addEventListener("DOMContentLoaded", async function() {
     const baseurl = window.location.href;
@@ -22,11 +38,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     const sectionElement = document.getElementById("lesson-section");
     const moduleElement = document.getElementById("lesson-module");
 
-    // -- top menu variables (not working yet >.<) --
-
-    const topMenuNumber = document.getElementById("lesson-topmenu-number");
-    const topMenuTopic = document.getElementById("lesson-topmenu-topic");
-
     // Add this check:
 
     let lessonId = baseurl.split("?id=")[1];
@@ -36,10 +47,12 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     if (lessonId) {
         lessonId = lessonId.trim();
-        contentRaw = JSON.parse(await window.apiService.getLessonById(lessonId));
+        contentRaw = JSON.parse(await window.apiService.getLessonById(lessonId));    
 
         contentTitle = contentRaw.lesson.Title || `Lesson ${lessonId}`;
+        document.title = `${contentTitle} - Codium`;
         console.log(contentRaw);
+        console.log(document.title);
 
         contentAuthor = await window.apiService.getUserById(contentRaw.lesson.AuthorID).then(userData => {
             userData = JSON.parse(userData);
@@ -56,11 +69,33 @@ document.addEventListener("DOMContentLoaded", async function() {
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
 
+        const applyTopMenu = () => {
+            const tTopic = document.getElementById("lesson-topmenu-topic");
+            const tNumber = document.getElementById("lesson-topmenu-number");
+            if (tTopic && tNumber) {
+            tTopic.textContent = contentTitle || `Lesson ${lessonId}`;
+            tNumber.textContent = `${toRoman(contentClass)}.${contentModule}.${contentSection}`;
+            return true;
+            }
+            return false;
+        };
+
+        if (!applyTopMenu()) {
+            const mo = new MutationObserver((_, obs) => {
+            if (applyTopMenu()) obs.disconnect();
+            });
+            mo.observe(document.body, { childList: true, subtree: true });
+            // Optional fallback timeout to stop observing after N seconds
+            setTimeout(() => mo.disconnect(), 10000);
+        }
+
         contentRaw = contentRaw.lesson.ContentID;
         contentRaw = await window.apiService.getFile(contentRaw);
         console.log("Fetched lesson content:", contentRaw);
     }
+
     renderLesson(contentRaw);
+
     function renderLesson(markdown) {
         
         titleElement.textContent = contentTitle;
