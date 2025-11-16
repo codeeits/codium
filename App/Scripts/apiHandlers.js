@@ -293,6 +293,18 @@ class ApiService {
         return this.get(`/api/lessons?search_type=flags&class=${classNum}&section=${section}&module=${module}`, false);
     }
 
+    async updateLessonOrder(lessonId, prev = null, next = null) {
+        if (prev == null && next == null) {
+            throw new Error('Either prev or next lesson ID must be provided to update order');   
+        }
+        if (prev != null) {
+            return this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prev }, true);
+        }
+        if (next != null) {
+            return this.put(`/api/lessons/${lessonId}?target_field=next`, { next: next }, true);
+        }
+    }
+
     async uploadLesson(lessonData, file) {
         // First upload the file
         const fileResponse = await this.uploadFile(file, 'lessons');
