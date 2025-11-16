@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!isAuthenticated) {
         window.location.href = 'login.html';
         return;
+    } else {
+        toastsLoader.showToast('auth!', 'confirm');
     }
 
     // ------------------------------

@@ -231,7 +231,7 @@ class ApiService {
     }
 
     async getUserById(userId) {
-        return this.get(`/api/users/${userId}`, true);
+        return this.get(`/api/users/${userId}`);
     }
 
     async getCurrentUserUsername() {
@@ -319,6 +319,76 @@ class ApiService {
 }
 
 // ===========================================
+// Toasts Loader
+// ===========================================
+
+class ToastsLoader {
+    constructor() {
+        this.toastsContainer = null;
+        this.init();
+    }
+
+    init() {
+        if(document.body) {
+            this.createContainer();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.createContainer();
+            });
+        }
+    }
+
+    createContainer() {
+        if(!this.toastsContainer) {
+            this.toastsContainer = document.createElement('div');
+            this.toastsContainer.className = 'toast-container';
+            document.body.appendChild(this.toastsContainer);
+        }
+    }
+
+    showToast(message, type = 'info', duration = 3000) {
+        const validTypes = ['info', 'danger', 'confirm', 'warning'];
+        if (!validTypes.includes(type)) {
+            console.warn(`Invalid toast type: ${type}. Defaulting to 'info'.`);
+            type = 'info';
+        }
+        if (!message || typeof message !== 'string') {
+            console.warn('Invalid toast message');
+            return;
+        }
+        if (!this.toastsContainer) {
+            console.warn('Toasts container not ready yet');
+            return;
+        }
+        if (duration <= 0) {
+            duration = 3000;
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = `card toast toast-${type}`;
+        if(type === validTypes[0]) { // info
+            toast.innerHTML = `<i class="fas fa-info-circle"></i><p>${message}</p>`;
+        } else if(type === validTypes[1]) { // danger
+            toast.innerHTML = `<i class="fas fa-exclamation-triangle"></i><p>${message}</p>`;
+        } else if(type === validTypes[2]) { // confirm
+            toast.innerHTML = `<i class="fas fa-check-circle"></i><p>${message}</p>`;
+        } else if(type === validTypes[3]) { // warning
+            toast.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>${message}</p>`;
+        }
+        this.toastsContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            toast.addEventListener('animationend', () => {
+                toast.remove();
+            });
+        }, duration);
+        //toast.remove();
+
+    }
+}
+
+// ===========================================
 // Error Handling
 // ===========================================
 
@@ -363,29 +433,30 @@ window.apiService = new ApiService();
 
 window.handleApiError = function(error, defaultMessage = 'An error occurred') {
     console.error('API Error:', error);
+    toastsLoader.showToast('An error occurred while processing your request.', 'info', 3000);
     //alert(error);
     if (error instanceof ApiError) {
         if (error.isUnauthorized()) {
-            alert('Invalid credentials or session expired. Please log in again.');
-            window.apiService.logout();
-            window.location.href = 'login.html';
+            toastsLoader.showToast('Invalid credentials or session expired. Please log in again.', 'danger', 3000);
+            //window.apiService.logout();
+            //window.location.href = 'login.html';
             return;
         }
         
         if (error.isNetworkError()) {
-            alert('Network error. Please check your connection and try again.');
+            toastsLoader.showToast('Network error. Please check your connection and try again.', 'warning', 3000);
             return;
         }
         
         if (error.isServerError()) {
-            alert('Server error. Please try again later.');
+            toastsLoader.showToast('Server error. Please try again later.', 'danger', 3000);
             return;
         }
         
         // Show the actual error message for client errors
-        alert(error.message || defaultMessage);
+        toastsLoader.showToast(error.message || defaultMessage, 'info', 3000);
     } else {
-        alert(defaultMessage);
+        toastsLoader.showToast(defaultMessage, 'info', 3000);
     }
 };
 
@@ -402,3 +473,13 @@ window.requireAuth = function(redirectTo = 'login.html') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ApiService, ApiError };
 }
+
+let toastsLoader;
+if(document.body) {
+    toastsLoader = new ToastsLoader();
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        toastsLoader = new ToastsLoader();
+    });
+}
+

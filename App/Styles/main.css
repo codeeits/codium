@@ -16,13 +16,13 @@
     --purple-primary: #9B59BB;
     --purple-accent: #B380CB;
     --confirm-solid: #659D48;
-    --confirm-transparent: rgba(101, 157, 72, 0.2);
+    --confirm-transparent: rgba(101, 157, 72, 0.6);
     --confirm-border: #4F7A38;
     --warning-solid: #9D9548;
-    --warning-transparent: rgba(157, 149, 72, 0.2);
+    --warning-transparent: rgba(157, 149, 72, 0.6);
     --warning-border: #7A7438;
     --danger-solid: #592941; 
-    --danger-transparent: rgba(89, 41, 65, 0.2);
+    --danger-transparent: rgba(89, 41, 65, 0.6);
     --danger-border: #341826;
 
     --golden-number: 3.324rem;
@@ -270,7 +270,7 @@ body {
     font-weight: bold;
     margin-bottom: 20px;
     z-index: 3;
-    position: relative;
+    position: absolute;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     font-family: 'Bitcount Grid Double', sans-serif;
 }
@@ -303,12 +303,11 @@ body {
    BACKGROUND SVG ELEMENT
    ======================================== */
 .bgElement {
-    position: fixed;
+    position: relative;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -316,10 +315,8 @@ body {
 }
 
 .bgElement svg {
-    width: auto;
-    height: 80vh;
-    max-width: 90vw;
-    z-index: 1;
+    width: 100%;
+    height: 100%;
 }
 
 .bgElement svg path {
@@ -872,9 +869,22 @@ body {
 @keyframes fadeIn {
     0% {
         opacity: 0;
+        transform: translateX(-20px);
     }
     100% {
         opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(20px);
     }
 }
 

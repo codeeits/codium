@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSignupSuccess() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
-        
+        toastsLoader.showToast('Signup successful, redirecting...', 'confirm');
         // Redirect to login after a short delay
         setTimeout(() => {
             window.location.href = 'login.html';
@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const validation = validateForm();
         if (!validation.valid) {
-            alert(validation.error);
+            //alert(validation.error);
+            toastsLoader.showToast(validation.error, 'danger', 3000);
             return;
         }
 
@@ -91,7 +92,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             if (error.message.includes('Failed to create user') && error.status === 500) {
-                alert('This username or email is already taken. Please try different credentials.');
+                //alert('This username or email is already taken. Please try different credentials.');
+                toastsLoader.showToast('This username or email is already taken. Please try different credentials.', 'danger', 4000);
                 return;
             }
             setLoadingState(false);

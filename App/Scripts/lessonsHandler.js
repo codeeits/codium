@@ -14,11 +14,17 @@ document.addEventListener("DOMContentLoaded", function() {
     // ------------------------------
 
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        console.log(`Is Admin: ${isAdmin}`);
         if (!isAdmin) {
             const uploadBtn = document.getElementById("openUploadModal");
+            const currentPage = window.location.pathname;
             if (uploadBtn) {
                 uploadBtn.style.display = "none";
+            } else {
+                window.location.href = "user.html";
             }
+        } else {
+            toastsLoader.showToast('auth!', 'confirm');
         }
     
     // ------------------------------
@@ -64,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = {
             title: document.getElementById("lessonTitle").value,
             description: document.getElementById("lessonDescription").value,
-            class: parseInt(document.getElementById("lessonClass").value),
+            class: parseInt(document.getElementById("modalLessonClass").value),
             section: parseInt(document.getElementById("lessonSection").value),
             number: 1,
             module: parseInt(document.getElementById("lessonModule").value),
@@ -78,6 +84,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const fileName = fileS.name;
 
         console.log(`Uploading file: ${fileName} (${fileLength} bytes)`);
+        toastsLoader.showToast(`Uploading file: ${fileName}`, 'info');
 
         const fileData = new FormData();
         fileData.append("file", fileS);
@@ -92,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             if (!response.ok) {
+                toastsLoader.showToast(`Upload failed with status: ${response.status}`, 'danger');
                 throw new Error(`Upload failed with status: ${response.status}`);
             }
 
@@ -115,6 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
+        toastsLoader.showToast(`File uploaded successfully.`, "confirm");
         console.log("File uploaded successfully.");
 
         try {
@@ -135,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log("Lesson uploaded successfully.");
             const responseData = await response.json();
             console.log(responseData);
-            alert(`${responseData.lesson.ID}`);
+            toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
 
             if(fileInfo) {
                 fileInfo.style.display = "none";
@@ -144,6 +153,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         } catch (error) {
             console.error("Lesson upload failed:", error);
+            toastsLoader.showToast(`Lesson upload failed: ${error.message}`, "danger");
             return;
         }
 

@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
         
+        toastsLoader.showToast('Login successful, redirecting...', 'confirm');
+        
         // Refresh auth button if available
         if (window.refreshAuthButton) {
             window.refreshAuthButton();
@@ -60,8 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const validation = validateForm();
+
         if (!validation.valid) {
-            alert(validation.error);
+            toastsLoader.showToast(validation.error, 'danger');
             return;
         }
 
@@ -71,7 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setLoadingState(true);
 
         try {
-            await window.apiService.login(email, password);
+            const result = await window.apiService.login(email, password);
+            
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {

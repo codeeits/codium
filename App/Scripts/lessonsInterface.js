@@ -6,6 +6,8 @@
 
 Pentru randarea lectiilor cu marked.js. 
 Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pentru diagrame.
+
+Phoenix - Mugur de Fluier
 */
 
 
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     const titleElement = document.getElementById("lesson-title");
     const lessonContainer = document.getElementById("lesson-body");
     const authElement = document.getElementById("lesson-auth");
+    const dateElement = document.getElementById("lesson-date");
     const classElement = document.getElementById("lesson-class");
     const sectionElement = document.getElementById("lesson-section");
     const moduleElement = document.getElementById("lesson-module");
@@ -47,6 +50,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
 
         contentUserID = contentRaw.lesson.AuthorID || null;
+        contentDate = new Date(contentRaw.lesson.CreatedAt.Time);
+        contentDate = contentDate.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric' });
         contentClass = contentRaw.flag_translation.class || "Unknown class";
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
@@ -60,6 +65,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         
         titleElement.textContent = contentTitle;
         authElement.textContent = `${contentAuthor}`;
+        dateElement.textContent = contentDate;
         authElement.href = `user.html?id=${contentUserID}`;
         classElement.textContent = `Class: ${contentClass}`;
         sectionElement.textContent = `Section: ${contentSection}`;

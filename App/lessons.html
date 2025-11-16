@@ -58,6 +58,7 @@
         let moduleValue = '';
 
         document.addEventListener("DOMContentLoaded", function() {
+
             const classFilter = document.getElementById("lessonClass");
             classValue = classFilter.value;
             const moduleFilter = document.getElementById("lessonModule");
@@ -120,6 +121,7 @@
                 console.log("Loaded lessons:", lessons);
                 
                 if (lessons.length === 0) {
+                    toastsLoader.showToast('No lessons found for the selected filters.', 'warning', 1000);
                     document.getElementById("lessons-grid").innerHTML = '<p>No lessons found for the selected filters.</p>';
                     return;
                 }
@@ -220,7 +222,7 @@
                 <div class="modal-field">
                     <div class="text-container">
                         <i class="fa-solid fa-school"></i>
-                        <select id="lessonClass" name="class" placeholder="Alege clasa:" required>
+                        <select id="modalLessonClass" name="class" placeholder="Alege clasa:" required>
                             <option value="">Alege clasa:</option>
                             <option value="9">Clasa a IX-a</option>
                             <option value="10">Clasa a X-a</option>
