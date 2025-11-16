@@ -1161,3 +1161,54 @@ body {
     margin: 1rem 0;
     gap: 1rem;
 }
+
+/* ========================================
+   LESSON SIDEBAR STYLES
+   ======================================== */
+
+#lesson-sidebar {
+    position: fixed;
+    right: 0;
+    width: 20rem;
+    height: calc(100vh - 80px);
+    background: var(--primary-medium);
+    padding: 1rem;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 999;
+    border-radius: 1rem 0 0 1rem;
+}
+
+#lesson-sidebar > * {
+    margin-bottom: 1rem;
+}
+
+.lesson-sidebar_section {
+    margin-left: 1rem;
+    margin-bottom: .5rem;
+}
+
+.lesson-sidebar_section-title {
+    margin-bottom: .5rem;
+}
+
+.lesson-sidebar_list {
+    list-style: none;
+    margin-left: 1rem;
+}
+
+.lesson-sidebar_list li{
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+.lesson-sidebar_list li a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.lesson-sidebar_list li:hover {
+    color: var(--purple-primary);
+}
