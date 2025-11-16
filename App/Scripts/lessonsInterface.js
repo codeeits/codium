@@ -199,10 +199,22 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     renderSidebar();
 
-    function renderSidebar() {
+    async function renderSidebar() {
         const sidebar = document.getElementById("lesson-sidebar");
         const sidebarTitle = document.getElementById("lesson-sidebar_title");
 
         sidebarTitle.textContent = `Clasa a ${toRoman(contentClass)}-a`;
+
+        try {
+            const sectionArray = await window.apiService.getSectionsForClass(contentClass);
+            console.log("Sections array:", sectionArray);
+
+            for (const sectionNumber of sectionArray) {
+                const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule);
+                console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult); 
+            }
+        } catch (error) {
+            console.error("Failed to render sidebar:", error);
+        }
     }
 });
