@@ -134,6 +134,7 @@ func main() {
 		mux.Handle("POST /api/lessons/{lessonID}/complete", http.HandlerFunc(cfg.CompleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/start", http.HandlerFunc(cfg.StartLessonHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/faves", http.HandlerFunc(cfg.GetFavoritesForLessonHandler))
+		mux.Handle("PUT /api/lessons/{lessonID}", http.HandlerFunc(cfg.UpdateLessonDisambiguationHandler))
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))
@@ -144,17 +145,28 @@ func main() {
 			Handler: mux,
 		}
 
-		cfg.StartCLI()
-		err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
-		if err != nil {
-			cfg.logger.Println("Error starting server with certificates: ", err)
+		simpleServer := &http.Server{
+			Addr:    ":6767",
+			Handler: mux,
+		}
 
-			cfg.logger.Println("Starting server without TLS...")
-			server := &http.Server{
-				Addr:    ":6767",
-				Handler: mux,
+		cfg.StartCLI()
+		if cfg.websiteState == "production" {
+			cfg.logger.Println("Starting server in production mode with TLS...")
+			err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
+			if err != nil {
+				cfg.logger.Println("Error starting server with certificates: ", err)
+
+				cfg.logger.Println("Starting server without TLS...")
+
+				err = simpleServer.ListenAndServe()
+				if err != nil {
+					cfg.logger.Fatal("Error starting server: ", err)
+				}
 			}
-			err = server.ListenAndServe()
+		} else {
+			cfg.logger.Println("Starting server in development mode without TLS...")
+			err = simpleServer.ListenAndServe()
 			if err != nil {
 				cfg.logger.Fatal("Error starting server: ", err)
 			}

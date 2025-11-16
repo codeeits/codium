@@ -40,3 +40,33 @@ LIMIT $3 OFFSET $4;
 -- name: DeleteLessonByID :exec
 DELETE FROM lessons
 WHERE id = $1;
+
+-- name: UpdateLessonNext :one
+UPDATE lessons
+SET next_lesson_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonPrev :one
+UPDATE lessons
+SET prev_lesson_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonContent :one
+UPDATE lessons
+SET content_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonDetails :one
+UPDATE lessons
+SET title = $2, description = $3, updated_at = $4
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonFlags :one
+UPDATE lessons
+SET flags = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

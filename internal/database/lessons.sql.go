@@ -301,3 +301,164 @@ func (q *Queries) GetLessonsByFlags(ctx context.Context, arg GetLessonsByFlagsPa
 	}
 	return items, nil
 }
+
+const updateLessonContent = `-- name: UpdateLessonContent :one
+UPDATE lessons
+SET content_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id
+`
+
+type UpdateLessonContentParams struct {
+	ID        uuid.UUID
+	ContentID uuid.UUID
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UpdateLessonContent(ctx context.Context, arg UpdateLessonContentParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonContent, arg.ID, arg.ContentID, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+	)
+	return i, err
+}
+
+const updateLessonDetails = `-- name: UpdateLessonDetails :one
+UPDATE lessons
+SET title = $2, description = $3, updated_at = $4
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id
+`
+
+type UpdateLessonDetailsParams struct {
+	ID          uuid.UUID
+	Title       string
+	Description sql.NullString
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) UpdateLessonDetails(ctx context.Context, arg UpdateLessonDetailsParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonDetails,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.UpdatedAt,
+	)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+	)
+	return i, err
+}
+
+const updateLessonFlags = `-- name: UpdateLessonFlags :one
+UPDATE lessons
+SET flags = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id
+`
+
+type UpdateLessonFlagsParams struct {
+	ID        uuid.UUID
+	Flags     int32
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UpdateLessonFlags(ctx context.Context, arg UpdateLessonFlagsParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonFlags, arg.ID, arg.Flags, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+	)
+	return i, err
+}
+
+const updateLessonNext = `-- name: UpdateLessonNext :one
+UPDATE lessons
+SET next_lesson_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id
+`
+
+type UpdateLessonNextParams struct {
+	ID           uuid.UUID
+	NextLessonID uuid.NullUUID
+	UpdatedAt    sql.NullTime
+}
+
+func (q *Queries) UpdateLessonNext(ctx context.Context, arg UpdateLessonNextParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonNext, arg.ID, arg.NextLessonID, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+	)
+	return i, err
+}
+
+const updateLessonPrev = `-- name: UpdateLessonPrev :one
+UPDATE lessons
+SET prev_lesson_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id
+`
+
+type UpdateLessonPrevParams struct {
+	ID           uuid.UUID
+	PrevLessonID uuid.NullUUID
+	UpdatedAt    sql.NullTime
+}
+
+func (q *Queries) UpdateLessonPrev(ctx context.Context, arg UpdateLessonPrevParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonPrev, arg.ID, arg.PrevLessonID, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+	)
+	return i, err
+}
