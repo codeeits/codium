@@ -602,14 +602,14 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 
 // BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags
 // e.g. class=4, section=3, number=2, module=1 -> flags = 0x01020304
-func BuildLessonFlags(class int, section int, number int, module int) (uint32, uint32) {
-	var flags uint32
+func BuildLessonFlags(class int, section int, number int, module int) (flags uint32, mask uint32) {
+	flags = 0
 	flags |= uint32(module) << 24
 	flags |= uint32(number) << 16
 	flags |= uint32(section) << 8
 	flags |= uint32(class)
 
-	var mask uint32 = 0
+	mask = 0
 	if class > 0 {
 		mask |= uint32(ClassMask)
 	}

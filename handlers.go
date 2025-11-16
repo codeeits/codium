@@ -3,6 +3,7 @@ package main
 import (
 	"Codium/internal/auth"
 	"Codium/internal/database"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -125,6 +126,14 @@ func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
 	return targetUser, nil
 }
 
+func (cfg *ApiCfg) GetLessonByID(lessonID uuid.UUID) (database.Lesson, error) {
+	lesson, err := cfg.db.GetLessonByID(context.Background(), lessonID)
+	if err != nil {
+		return database.Lesson{}, fmt.Errorf("failed to retrieve lesson: %v", err)
+	}
+	return lesson, nil
+}
+
 func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -180,6 +189,14 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		cfg.UpdateLessonNextHandler(w, r)
 	case "prev":
 		cfg.UpdateLessonPrevHandler(w, r)
+	case "details":
+		cfg.UpdateLessonDetailsHandler(w, r)
+	case "content":
+		cfg.UpdateLessonContentHandler(w, r)
+	case "flags":
+		cfg.UpdateLessonFlagsHandler(w, r)
+	default:
+		cfg.logger.Printf("Invalid target_field: %v", targetField)
 	}
 }
 
@@ -1605,6 +1622,201 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to update prev lesson next: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	lessonJson, err := PrintLessonToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		ContentID string `json:"content_id"`
+	}
+	//Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	contentUUID, err := uuid.Parse(p.ContentID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for content_id: %v", err)
+		http.Error(w, "Invalid content_id format", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateLessonContent(r.Context(), database.UpdateLessonContentParams{
+		ID:        lessonID,
+		ContentID: contentUUID,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update lesson content: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	lessonJson, err := PrintLessonToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+
+	//Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateLessonDetails(r.Context(), database.UpdateLessonDetailsParams{
+		ID:          lessonID,
+		Title:       p.Title,
+		Description: sql.NullString{String: p.Description, Valid: true},
+		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update lesson details: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	lessonJson, err := PrintLessonToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Class   int `json:"class"`
+		Section int `json:"section"`
+		Module  int `json:"module"`
+		Number  int `json:"number"`
+	}
+
+	//Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	lesson, err := cfg.GetLessonByID(lessonID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	flags, mask := BuildLessonFlags(p.Class, p.Section, p.Number, p.Module)
+
+	flag := (lesson.Flags & ^int32(mask)) | int32(flags)
+
+	res, err := cfg.db.UpdateLessonFlags(r.Context(), database.UpdateLessonFlagsParams{
+		ID:        lessonID,
+		Flags:     int32(flag),
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update lesson flags: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
