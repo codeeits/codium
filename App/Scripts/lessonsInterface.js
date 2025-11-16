@@ -197,4 +197,12 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
     }
 
+    renderSidebar();
+
+    function renderSidebar() {
+        const sidebar = document.getElementById("lesson-sidebar");
+        const sidebarTitle = document.getElementById("lesson-sidebar_title");
+
+        sidebarTitle.textContent = `Clasa a ${toRoman(contentClass)}-a`;
+    }
 });

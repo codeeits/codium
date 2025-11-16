@@ -318,6 +318,19 @@ class ApiService {
         return lessons;
     }
 
+    async getSectionsForClass(classNum, module = null) {
+        const response = await this.getLessonsByFlags(classNum, null, module);
+        const lessonsData = JSON.parse(response);
+        const sectionsSet = new Set();
+
+        lessonsData.forEach(lesson => {
+            sectionsSet.add(lesson.flag_translation.section);
+        })
+        const arrayFromSet = Array.from(sectionsSet);
+        arrayFromSet.sort((a, b) => a - b);
+        return arrayFromSet;
+    }
+
     async updateLessonOrder(lessonId, prev = null, next = null) {
         if (prev == null && next == null) {
             throw new Error('Either prev or next lesson ID must be provided to update order');   
