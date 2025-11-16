@@ -1193,8 +1193,7 @@ body {
 }
 
 .lesson-sidebar_list {
-    list-style: none;
-    margin-left: 1rem;
+    margin-left: 3rem;
 }
 
 .lesson-sidebar_list li{
@@ -1202,6 +1201,22 @@ body {
     cursor: pointer;
     color: var(--text-secondary);
     transition: color 0.3s ease;
+}
+
+.lesson-sidebar_item--active {
+    font-weight: 600;
+    color: var(--purple-accent) !important;
+}
+
+.lesson-sidebar_item--active:hover {
+    color: var(--text-color) !important;
+    cursor: default;
+}
+
+.lesson-sidebar_item--active a {
+    pointer-events: none;
+    cursor: default;
+    color: inherit;
 }
 
 .lesson-sidebar_list li a {

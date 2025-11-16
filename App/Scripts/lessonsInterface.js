@@ -212,6 +212,36 @@ document.addEventListener("DOMContentLoaded", async function() {
             for (const sectionNumber of sectionArray) {
                 const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule);
                 console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult); 
+                // set title
+                const sidebarSection = document.createElement("div");
+                sidebarSection.classList.add("lesson-sidebar_section");
+                const sectionHeader = document.createElement("h3");
+                sectionHeader.classList.add("lesson-sidebar_section-title");
+
+                sectionHeader.textContent = `Sectiunea ${sectionNumber}`;
+                sidebarSection.appendChild(sectionHeader);
+
+                // ul list
+                const lessonsList = document.createElement("ol");
+                lessonsList.classList.add("lesson-sidebar_list");
+
+                for (const lessonData of lessonsListResult) {
+                    const lessonItem = document.createElement("li");
+                    lessonItem.classList.add("lesson-sidebar_item");
+                    const lessonLink = document.createElement("a");
+                    lessonLink.classList.add("lesson-sidebar_link");
+                    lessonLink.href = `lesson.html?id=${lessonData.lesson.ID}`;
+                    lessonLink.textContent = lessonData.lesson.Title || "Untitled Lesson";
+
+                    if (lessonData.lesson.ID === lessonId) {
+                        lessonItem.classList.add("lesson-sidebar_item--active");
+                    }
+
+                    lessonItem.appendChild(lessonLink);
+                    lessonsList.appendChild(lessonItem);
+                }
+                sidebarSection.appendChild(lessonsList);
+                sidebar.appendChild(sidebarSection);
             }
         } catch (error) {
             console.error("Failed to render sidebar:", error);

@@ -34,6 +34,7 @@ function updateAuthButton() {
     const logoutButton = document.getElementById('logout-button');
     const userNameSpan = document.getElementById('user-name');
     const lessonsButton = document.getElementById('teorie-button');
+    const hardLessonsExit = document.getElementById('hard-lessons-exit-btn');
     const backButton = document.getElementById('back-btn');
     
     const authToken = localStorage.getItem('authToken');
@@ -49,6 +50,14 @@ function updateAuthButton() {
             }
         };
         backButton.title = 'Back to lessons';
+    }
+
+    if(hardLessonsExit) {
+        hardLessonsExit.onclick = function() {
+            window.location.href = 'lessons.html';
+            console.log('Exiting hard lessons mode');
+        };
+        hardLessonsExit.title = 'Exit hard lessons mode';
     }
     
     if(lessonsButton) {
