@@ -126,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
         toastsLoader.showToast(`File uploaded successfully.`, "confirm");
         console.log("File uploaded successfully.");
 
+        let responseData;
         try {
             const response = await fetch("/api/lessons", {
                 method: "POST",
@@ -142,20 +143,44 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             console.log("Lesson uploaded successfully.");
-            const responseData = await response.json();
+            responseData = await response.json();
             console.log(responseData);
             toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
 
             if(fileInfo) {
                 fileInfo.style.display = "none";
             }
-            form.reset();
 
         } catch (error) {
             console.error("Lesson upload failed:", error);
             toastsLoader.showToast(`Lesson upload failed: ${error.message}`, "danger");
             return;
         }
+
+        try {
+            let prevLess = document.getElementById("debugPrevLesson").value.trim();
+            let nextLess = document.getElementById("debugNextLesson").value.trim();
+            
+            // Convert empty strings to null
+            prevLess = prevLess === "" ? null : prevLess;
+            nextLess = nextLess === "" ? null : nextLess;
+            
+            console.log('Updating lesson order:', {
+                lessonId: responseData.lesson.ID,
+                prevLess: prevLess,
+                nextLess: nextLess
+            });
+            
+            await window.apiService.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
+            toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
+        } catch (error) {
+            console.error("Updating lesson order failed:", error);
+            toastsLoader.showToast(`Updating lesson order failed: ${error.message}`, "danger");
+            return;
+        }
+
+        // Reset form only after everything is done
+        form.reset();
 
     })
 })

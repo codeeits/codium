@@ -293,6 +293,31 @@ class ApiService {
         return this.get(`/api/lessons?search_type=flags&class=${classNum}&section=${section}&module=${module}`, false);
     }
 
+    async getLessonsSortedByPrevNext(classNum = null, section = null, module = null) {
+        const response = await this.getLessonsByFlags(classNum, section, module);
+        const lessonsData = JSON.parse(response);
+        let lessons = [];
+        let nextId = null;
+
+        for (let i = 0; i < lessonsData.length; i++) {
+            if (lessonsData[i].lesson.PrevLessonID == null) {
+                lessons.push(lessonsData[i]);
+                nextId = lessonsData[i].lesson.NextLessonID;
+                break;
+            }
+        }
+        while (nextId != null) {
+            const nextLesson = lessonsData.find(lesson => lesson.lesson.ID === nextId);
+            if (nextLesson) {
+                lessons.push(nextLesson);
+                nextId = nextLesson.lesson.NextLessonID;
+            } else {
+                nextId = null;
+            }
+        }
+        return lessons;
+    }
+
     async updateLessonOrder(lessonId, prev = null, next = null) {
         if (prev == null && next == null) {
             throw new Error('Either prev or next lesson ID must be provided to update order');   
