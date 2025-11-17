@@ -31,12 +31,27 @@ type FlagTranslation struct {
 	Module  int `json:"module"`
 }
 
+type TagTranslation struct {
+	Module           int `json:"module"`
+	Difficulty       int `json:"difficulty"`
+	SolveType        int `json:"solve_type"`
+	ResultType       int `json:"result_type"`
+	VerificationType int `json:"verification_type"`
+	ProblemType      int `json:"problem_type"`
+}
+
 type LessonWithFlags struct {
 	Lesson          database.Lesson `json:"lesson"`
 	FlagTranslation FlagTranslation `json:"flag_translation"`
 }
 
+type problemWithTags struct {
+	Problem        database.Problem `json:"problem"`
+	TagTranslation TagTranslation   `json:"tag_translation"`
+}
+
 type FlagMasks uint32
+type LessonTagsMask uint32
 
 const (
 	// ModuleMask Lesson flags are stored as 0xMMNNSSCC where:
@@ -45,26 +60,26 @@ const (
 	//SS = Section
 	//CC = Class
 	ModuleMask  FlagMasks = 0xFF000000
-	NumberMask  FlagMasks = 0x00FF0000
+	ClassMask   FlagMasks = 0x00FF0000
 	SectionMask FlagMasks = 0x0000FF00
-	ClassMask   FlagMasks = 0x000000FF
+	NumberMask  FlagMasks = 0x000000FF
 
 	// ProblemModuleMask coincides with the lesson ModuleMask for problem categorization
-	ProblemModuleMask FlagMasks = 0xFF000000
+	ProblemModuleMask LessonTagsMask = 0xFF000000
 	// ProblemDifficultyMask is used to categorize problems by their difficulty level (e.g. easy, medium, hard, expert)
-	ProblemDifficultyMask FlagMasks = 0x00F00000
+	ProblemDifficultyMask LessonTagsMask = 0x00F00000
 	// ProblemSolveTypeMask is used to categorize problems by their solve type (e.g. multiple choice, coding, written essay, etc.)
-	ProblemSolveTypeMask FlagMasks = 0x000F0000
+	ProblemSolveTypeMask LessonTagsMask = 0x000F0000
 
 	// ProblemResultTypeMask is used to categorize problems by their result type (e.g. pass/fail, scored, percentage, etc.)
-	ProblemResultTypeMask FlagMasks = 0x0000F000
+	ProblemResultTypeMask LessonTagsMask = 0x0000F000
 	// ProblemVerificationTypeMask is used to categorize problems by their verification type (e.g. auto-graded, peer-reviewed, instructor-reviewed, etc.)
-	ProblemVerificationTypeMask FlagMasks = 0x00000F00
+	ProblemVerificationTypeMask LessonTagsMask = 0x00000F00
 	// ProblemTypeMask is used to categorize problems by their general type (e.g. quiz, assignment, project, exam, etc.)
-	ProblemTypeMask FlagMasks = 0x000000F0
+	ProblemTypeMask LessonTagsMask = 0x000000F0
 
 	// ProblemReservedMask is reserved for future use
-	ProblemReservedMask FlagMasks = 0x0000000F
+	ProblemReservedMask LessonTagsMask = 0x0000000F
 )
 
 /*
@@ -564,13 +579,13 @@ func (cfg *ApiCfg) ListFiles() ([]database.File, error) {
 
 // ParseLessonFlags Parse the given lesson flags and return respective class, section, module and number
 func ParseLessonFlags(flags int32) FlagTranslation {
-	// e.g. flags = 0x01020304 -> class=4, section=3, number=2, module=1
+	// e.g. flags = 0x01020304 -> number=4, section=3, class=2, module=1
 	var class, section, number, module int
 	u := uint32(flags)
 	module = int(u >> 24)
-	number = int((u >> 16) & 0xFF)
+	class = int((u >> 16) & 0xFF)
 	section = int((u >> 8) & 0xFF)
-	class = int(u & 0xFF)
+	number = int(u & 0xFF)
 	return FlagTranslation{class, section, number, module}
 }
 
@@ -605,9 +620,9 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 func BuildLessonFlags(class int, section int, number int, module int) (flags uint32, mask uint32) {
 	flags = 0
 	flags |= uint32(module) << 24
-	flags |= uint32(number) << 16
+	flags |= uint32(class) << 16
 	flags |= uint32(section) << 8
-	flags |= uint32(class)
+	flags |= uint32(number)
 
 	mask = 0
 	if class > 0 {
@@ -624,4 +639,36 @@ func BuildLessonFlags(class int, section int, number int, module int) (flags uin
 	}
 
 	return flags, mask
+}
+
+func BuildProblemTags(module int, difficulty int, solveType int, resultType int, verificationType int, problemType int) (tags uint32, mask uint32) {
+	tags = 0
+	tags |= uint32(module) << 24
+	tags |= uint32(difficulty) << 20
+	tags |= uint32(solveType) << 16
+	tags |= uint32(resultType) << 12
+	tags |= uint32(verificationType) << 8
+	tags |= uint32(problemType) << 4
+
+	mask = 0
+	if module > 0 {
+		mask |= uint32(ProblemModuleMask)
+	}
+	if difficulty > 0 {
+		mask |= uint32(ProblemDifficultyMask)
+	}
+	if solveType > 0 {
+		mask |= uint32(ProblemSolveTypeMask)
+	}
+	if resultType > 0 {
+		mask |= uint32(ProblemResultTypeMask)
+	}
+	if verificationType > 0 {
+		mask |= uint32(ProblemVerificationTypeMask)
+	}
+	if problemType > 0 {
+		mask |= uint32(ProblemTypeMask)
+	}
+
+	return tags, mask
 }
