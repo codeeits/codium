@@ -43,7 +43,7 @@ type Lesson struct {
 	Flags          int32
 	NextLessonID   uuid.NullUUID
 	PrevLessonID   uuid.NullUUID
-	SectionStarter sql.NullInt32
+	SectionStarter bool
 }
 
 type LessonsUser struct {

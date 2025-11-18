@@ -209,14 +209,15 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID, section int) (
 		return fmt.Errorf("database not connected"), database.Lesson{}
 	}
 
-	err := cfg.db.ResetSectionStarter(context.Background(), sql.NullInt32{Int32: int32(section), Valid: true})
+	lesson, err := cfg.GetLessonByID(lessonID)
 	if err != nil {
-		return fmt.Errorf("failed to reset section starter: %v", err), database.Lesson{}
+		return fmt.Errorf("failed to retrieve lesson: %v", err), database.Lesson{}
 	}
+	sectionStarter := lesson.SectionStarter
 
 	res, err := cfg.db.SetSectionStarter(context.Background(), database.SetSectionStarterParams{
 		ID:             lessonID,
-		SectionStarter: sql.NullInt32{Int32: int32(section), Valid: true},
+		SectionStarter: !sectionStarter,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to set section starter: %v", err), database.Lesson{}

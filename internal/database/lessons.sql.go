@@ -311,7 +311,7 @@ func (q *Queries) GetLessonsByFlags(ctx context.Context, arg GetLessonsByFlagsPa
 
 const getSectionStarterLessons = `-- name: GetSectionStarterLessons :many
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
-WHERE section_starter IS NOT NULL
+WHERE section_starter = TRUE
 ORDER BY section_starter ASC
 `
 
@@ -350,17 +350,6 @@ func (q *Queries) GetSectionStarterLessons(ctx context.Context) ([]Lesson, error
 	return items, nil
 }
 
-const resetSectionStarter = `-- name: ResetSectionStarter :exec
-UPDATE lessons
-SET section_starter = NULL
-WHERE section_starter = $1
-`
-
-func (q *Queries) ResetSectionStarter(ctx context.Context, sectionStarter sql.NullInt32) error {
-	_, err := q.db.ExecContext(ctx, resetSectionStarter, sectionStarter)
-	return err
-}
-
 const setSectionStarter = `-- name: SetSectionStarter :one
 UPDATE lessons
 SET section_starter = $2
@@ -370,7 +359,7 @@ RETURNING id, title, description, content_id, author_id, created_at, updated_at,
 
 type SetSectionStarterParams struct {
 	ID             uuid.UUID
-	SectionStarter sql.NullInt32
+	SectionStarter bool
 }
 
 func (q *Queries) SetSectionStarter(ctx context.Context, arg SetSectionStarterParams) (Lesson, error) {
