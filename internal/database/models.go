@@ -33,16 +33,17 @@ type File struct {
 }
 
 type Lesson struct {
-	ID           uuid.UUID
-	Title        string
-	Description  sql.NullString
-	ContentID    uuid.UUID
-	AuthorID     uuid.NullUUID
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	Flags        int32
-	NextLessonID uuid.NullUUID
-	PrevLessonID uuid.NullUUID
+	ID             uuid.UUID
+	Title          string
+	Description    sql.NullString
+	ContentID      uuid.UUID
+	AuthorID       uuid.NullUUID
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	Flags          int32
+	NextLessonID   uuid.NullUUID
+	PrevLessonID   uuid.NullUUID
+	SectionStarter sql.NullInt32
 }
 
 type LessonsUser struct {
@@ -58,14 +59,15 @@ type LessonsUser struct {
 }
 
 type Problem struct {
-	ID          uuid.UUID
-	Title       string
-	Description string
-	Tags        int32
-	Source      sql.NullString
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	FirstTest   uuid.NullUUID
+	ID              uuid.UUID
+	Title           string
+	Description     string
+	Tags            int32
+	Source          sql.NullString
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	FirstTest       uuid.NullUUID
+	ThumbnailFileID uuid.NullUUID
 }
 
 type RefreshToken struct {

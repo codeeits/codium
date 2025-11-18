@@ -159,6 +159,8 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 		cfg.GetLessonByIDHandler(w, r)
 	case "flags":
 		cfg.GetLessonsByFlagsHandler(w, r)
+	case "section_starters":
+		cfg.GetSectionStarterLessonsHandler(w, r)
 	default:
 		cfg.logger.Printf("Invalid search_type: %v", searchType)
 	}
@@ -195,9 +197,32 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		cfg.UpdateLessonContentHandler(w, r)
 	case "flags":
 		cfg.UpdateLessonFlagsHandler(w, r)
+	case "section_starter":
+		cfg.UpdateLessonsSectionStarterHandler(w, r)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 	}
+}
+
+func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID, section int) (error, database.Lesson) {
+	if !cfg.dbLoaded {
+		return fmt.Errorf("database not connected"), database.Lesson{}
+	}
+
+	err := cfg.db.ResetSectionStarter(context.Background(), sql.NullInt32{Int32: int32(section), Valid: true})
+	if err != nil {
+		return fmt.Errorf("failed to reset section starter: %v", err), database.Lesson{}
+	}
+
+	res, err := cfg.db.SetSectionStarter(context.Background(), database.SetSectionStarterParams{
+		ID:             lessonID,
+		SectionStarter: sql.NullInt32{Int32: int32(section), Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to set section starter: %v", err), database.Lesson{}
+	}
+
+	return nil, res
 }
 
 /*
@@ -1830,6 +1855,111 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Section  int       `json:"section"`
+		LessonID uuid.UUID `json:"lesson_id"`
+	}
+
+	//Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	p.LessonID, err = uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	err, res := cfg.UpdateSectionStartedLesson(p.LessonID, p.Section)
+	if err != nil {
+		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	lessonJson, err := PrintLessonToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(lessonJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetSectionStarterLessonsHandler(w http.ResponseWriter, r *http.Request) {
+	//Database check is done in the disambiguation function
+
+	cfg.logger.Print("Received get section starter lessons request")
+	lessons, err := cfg.db.GetSectionStarterLessons(r.Context())
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve section starter lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lesson := range lessons {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonJson, err := PrintLessonToJson(lesson)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)

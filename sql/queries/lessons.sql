@@ -70,3 +70,19 @@ UPDATE lessons
 SET flags = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: GetSectionStarterLessons :many
+SELECT * FROM lessons
+WHERE section_starter IS NOT NULL
+ORDER BY section_starter ASC;
+
+-- name: ResetSectionStarter :exec
+UPDATE lessons
+SET section_starter = NULL
+WHERE section_starter = $1;
+
+-- name: SetSectionStarter :one
+UPDATE lessons
+SET section_starter = $2
+WHERE id = $1
+RETURNING *;
