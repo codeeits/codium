@@ -204,7 +204,7 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 	}
 }
 
-func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID, section int) (error, database.Lesson) {
+func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, database.Lesson) {
 	if !cfg.dbLoaded {
 		return fmt.Errorf("database not connected"), database.Lesson{}
 	}
@@ -1864,21 +1864,7 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		Section  int       `json:"section"`
-		LessonID uuid.UUID `json:"lesson_id"`
-	}
-
 	//Database check is done in the disambiguation function
-
-	decoder := json.NewDecoder(r.Body)
-	var p params
-	err := decoder.Decode(&p)
-	if err != nil {
-		cfg.logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
 
 	lessonIDStr := r.PathValue("lessonID")
 	if lessonIDStr == "" {
@@ -1888,14 +1874,14 @@ func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *
 	}
 
 	// Parse lesson ID as UUID
-	p.LessonID, err = uuid.Parse(lessonIDStr)
+	LessonID, err := uuid.Parse(lessonIDStr)
 	if err != nil {
 		cfg.logger.Printf("Invalid UUID format: %v", err)
 		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
-	err, res := cfg.UpdateSectionStartedLesson(p.LessonID, p.Section)
+	err, res := cfg.UpdateSectionStartedLesson(LessonID)
 	if err != nil {
 		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
