@@ -258,7 +258,7 @@ func (q *Queries) GetLessonsByAuthorID(ctx context.Context, arg GetLessonsByAuth
 const getLessonsByFlags = `-- name: GetLessonsByFlags :many
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
 WHERE flags & $1 = $2
-ORDER BY created_at DESC
+ORDER BY flags ASC, created_at DESC
 LIMIT $3 OFFSET $4
 `
 

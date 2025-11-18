@@ -34,7 +34,7 @@ LIMIT $2 OFFSET $3;
 -- name: GetLessonsByFlags :many
 SELECT * FROM lessons
 WHERE flags & $1 = $2
-ORDER BY created_at DESC
+ORDER BY flags ASC, created_at DESC
 LIMIT $3 OFFSET $4;
 
 -- name: DeleteLessonByID :exec
