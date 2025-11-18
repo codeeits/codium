@@ -343,6 +343,10 @@ class ApiService {
         }
     }
 
+    async updateLessonSectionStarter(lessonId, sectionNumber) {
+        return this.put(`/api/lessons/${lessonId}?target_field=section_starter`, { section: sectionNumber }, true);
+    }
+
     async uploadLesson(lessonData, file) {
         // First upload the file
         const fileResponse = await this.uploadFile(file, 'lessons');

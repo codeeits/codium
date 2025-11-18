@@ -97,6 +97,26 @@ document.addEventListener("DOMContentLoaded", function() {
             console.log("Lesson uploaded successfully.");
             console.log(responseData);
             toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
+            
+            // Check if this is the first lesson in the section and assign section_starter if needed
+            try {
+                const existingLessons = await window.apiService.getLessonsByFlags(
+                    formData.class, 
+                    formData.section, 
+                    formData.module
+                );
+                
+                const lessonsData = JSON.parse(existingLessons);
+                console.log(`Existing lessons in section ${formData.section}:`, lessonsData);
+                if (lessonsData.length === 1) {
+                    console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
+                    await window.apiService.updateLessonSectionStarter(responseData.lesson.ID, formData.section);
+                    toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
+                }
+            } catch (error) {
+                console.error("Failed to check/update section starter:", error);
+                toastsLoader.showToast("Warning: Could not check section starter status", "warning");
+            }
 
             // Update UI elements if they exist
             const nameLabel = document.getElementById("fileName");
