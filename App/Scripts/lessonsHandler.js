@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
             module: parseInt(document.getElementById("lessonModule").value),
         }
 
-        // upload file
+        // upload file and create lesson
 
         const fileInput = document.getElementById("lessonFile");
         const fileS = fileInput.files[0];
@@ -86,26 +86,17 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log(`Uploading file: ${fileName} (${fileLength} bytes)`);
         toastsLoader.showToast(`Uploading file: ${fileName}`, 'info');
 
-        const fileData = new FormData();
-        fileData.append("file", fileS);
-
+        let responseData;
         try {
-            const response = await fetch("/api/upload?location=lessons", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${authToken}`
-                },
-                body: fileData,
-            });
-
-            if (!response.ok) {
-                toastsLoader.showToast(`Upload failed with status: ${response.status}`, 'danger');
-                throw new Error(`Upload failed with status: ${response.status}`);
+            responseData = await window.apiService.uploadLesson(formData, fileS);
+            
+            if (typeof responseData === 'string') {
+                responseData = JSON.parse(responseData);
             }
-
-            const result = await response.json();
-            const fileID = result.file_id;
-            formData.content_id = fileID;
+            
+            console.log("Lesson uploaded successfully.");
+            console.log(responseData);
+            toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
 
             // Update UI elements if they exist
             const nameLabel = document.getElementById("fileName");
@@ -117,35 +108,6 @@ document.addEventListener("DOMContentLoaded", function() {
             if (sizeLabel) {
                 sizeLabel.textContent = `${(fileLength / 1024).toFixed(2)} KB`;
             }
-
-        } catch (error) {
-            console.error("File upload failed:", error);
-            return;
-        }
-        
-        toastsLoader.showToast(`File uploaded successfully.`, "confirm");
-        console.log("File uploaded successfully.");
-
-        let responseData;
-        try {
-            const response = await fetch("/api/lessons", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${authToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Lesson creation failed with status ${response.status}: ${errorText}`);
-            }
-
-            console.log("Lesson uploaded successfully.");
-            responseData = await response.json();
-            console.log(responseData);
-            toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
 
             if(fileInfo) {
                 fileInfo.style.display = "none";
@@ -174,8 +136,8 @@ document.addEventListener("DOMContentLoaded", function() {
             await window.apiService.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
             toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
         } catch (error) {
-            console.error("Updating lesson order failed:", error);
-            toastsLoader.showToast(`Updating lesson order failed: ${error.message}`, "danger");
+            console.warn("Updating lesson order failed:", error);
+            toastsLoader.showToast(`Updating lesson order failed: ${error.message}`, "warning");
             return;
         }
 
