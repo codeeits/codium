@@ -68,6 +68,7 @@ type Problem struct {
 	UpdatedAt       time.Time
 	FirstTest       uuid.NullUUID
 	ThumbnailFileID uuid.NullUUID
+	AuthorID        uuid.NullUUID
 }
 
 type RefreshToken struct {
