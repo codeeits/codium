@@ -68,16 +68,18 @@
             const uploadBtn = document.getElementById("openUploadModal");
             const uploadModal = document.getElementById("uploadLessonModal");
             
-            uploadBtn.addEventListener("click", function() {
-                uploadModal.style.display = "flex";
-            });
+            if (uploadBtn && uploadModal) {
+                uploadBtn.addEventListener("click", function() {
+                    uploadModal.style.display = "flex";
+                });
 
-            // Close modal when clicking outside
-            uploadModal.addEventListener("click", function(e) {
-                if (e.target === uploadModal) {
-                    uploadModal.style.display = "none";
-                }
-            });
+                // Close modal when clicking outside
+                uploadModal.addEventListener("click", function(e) {
+                    if (e.target === uploadModal) {
+                        uploadModal.style.display = "none";
+                    }
+                });
+            }
 
             classFilter.addEventListener("change", function() {
                 if (classValue !== this.value) {

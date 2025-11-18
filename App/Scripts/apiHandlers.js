@@ -299,13 +299,11 @@ class ApiService {
         let lessons = [];
         let nextId = null;
 
-        for (let i = 0; i < lessonsData.length; i++) {
-            if (lessonsData[i].lesson.PrevLessonID == null) {
-                lessons.push(lessonsData[i]);
-                nextId = lessonsData[i].lesson.NextLessonID;
-                break;
-            }
+        if (lessonsData[0].lesson.SectionStarter == true) {
+                lessons.push(lessonsData[0]);
+                nextId = lessonsData[0].lesson.NextLessonID;
         }
+
         while (nextId != null) {
             const nextLesson = lessonsData.find(lesson => lesson.lesson.ID === nextId);
             if (nextLesson) {
