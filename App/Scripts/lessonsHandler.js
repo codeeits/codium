@@ -37,6 +37,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const fileInfo = document.getElementById("fileInfo");
     const clearForm = document.getElementById("clearForm");
 
+    let prevLess = null;
+    let nextLess = null;
+
     //clear form funct
 
     clearForm.addEventListener("click", function(){
@@ -88,11 +91,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let responseData;
         try {
+
+            // GET LAST LESSON IN SECTION TO SET PREVIOUS LESSON ID
+            let lastLesson = await window.apiService.getLessonsByFlags(
+                formData.class, 
+                formData.section, 
+                formData.module
+            );
+            lastLesson = JSON.parse(lastLesson);
+            lastLesson = lastLesson.length > 0 ? lastLesson[lastLesson.length - 1] : null;
+            let lastLessonID = lastLesson ? lastLesson.lesson.ID : null;
+            console.log(`Last lesson in section:`, lastLesson);
+
+            // UPLOAD THE LESSON
             responseData = await window.apiService.uploadLesson(formData, fileS);
-            
-            if (typeof responseData === 'string') {
-                responseData = JSON.parse(responseData);
-            }
+            responseData = JSON.parse(responseData);
             
             console.log("Lesson uploaded successfully.");
             console.log(responseData);
@@ -112,6 +125,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
                     await window.apiService.updateLessonSectionStarter(responseData.lesson.ID, formData.section);
                     toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
+                } else {
+                    // assign PreviousLessonID to current lesson
+                    prevLess = lastLessonID;
+                    toastsLoader.showToast(`Lesson PreviousLessonID set to ${lastLessonID}`, "info");
                 }
             } catch (error) {
                 console.error("Failed to check/update section starter:", error);
@@ -140,9 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         try {
-            let prevLess = document.getElementById("debugPrevLesson").value.trim();
-            let nextLess = document.getElementById("debugNextLesson").value.trim();
-            
+            if(!prevLess || !nextLess) {
+                console.log('No lesson order update needed.');
+            } else {
+                prevLess = document.getElementById("debugPrevLesson").value.trim();
+                nextLess = document.getElementById("debugNextLesson").value.trim();
+            }
             // Convert empty strings to null
             prevLess = prevLess === "" ? null : prevLess;
             nextLess = nextLess === "" ? null : nextLess;
