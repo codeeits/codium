@@ -13,9 +13,49 @@ import (
 	"github.com/google/uuid"
 )
 
+const countProblems = `-- name: CountProblems :one
+SELECT COUNT(*) FROM problems
+`
+
+func (q *Queries) CountProblems(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countProblems)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countProblemsByAuthorID = `-- name: CountProblemsByAuthorID :one
+SELECT COUNT(*) FROM problems
+WHERE author_id = $1
+`
+
+func (q *Queries) CountProblemsByAuthorID(ctx context.Context, authorID uuid.NullUUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countProblemsByAuthorID, authorID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countProblemsByTag = `-- name: CountProblemsByTag :one
+SELECT COUNT(*) FROM problems
+WHERE $1 & tags = $2
+`
+
+type CountProblemsByTagParams struct {
+	Tags   int32
+	Tags_2 int32
+}
+
+func (q *Queries) CountProblemsByTag(ctx context.Context, arg CountProblemsByTagParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countProblemsByTag, arg.Tags, arg.Tags_2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createProblem = `-- name: CreateProblem :one
-INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id
 `
 
@@ -29,6 +69,7 @@ type CreateProblemParams struct {
 	UpdatedAt       time.Time
 	FirstTest       uuid.NullUUID
 	ThumbnailFileID uuid.NullUUID
+	AuthorID        uuid.NullUUID
 }
 
 func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error) {
@@ -42,6 +83,7 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		arg.UpdatedAt,
 		arg.FirstTest,
 		arg.ThumbnailFileID,
+		arg.AuthorID,
 	)
 	var i Problem
 	err := row.Scan(
@@ -57,6 +99,16 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		&i.AuthorID,
 	)
 	return i, err
+}
+
+const deleteProblem = `-- name: DeleteProblem :exec
+DELETE FROM problems
+WHERE id = $1
+`
+
+func (q *Queries) DeleteProblem(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteProblem, id)
+	return err
 }
 
 const getProblemByID = `-- name: GetProblemByID :one
@@ -95,6 +147,100 @@ type GetProblemsParams struct {
 
 func (q *Queries) GetProblems(ctx context.Context, arg GetProblemsParams) ([]Problem, error) {
 	rows, err := q.db.QueryContext(ctx, getProblems, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Problem
+	for rows.Next() {
+		var i Problem
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Tags,
+			&i.Source,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.FirstTest,
+			&i.ThumbnailFileID,
+			&i.AuthorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProblemsByAuthorID = `-- name: GetProblemsByAuthorID :many
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id FROM problems
+WHERE author_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetProblemsByAuthorIDParams struct {
+	AuthorID uuid.NullUUID
+	Limit    int32
+	Offset   int32
+}
+
+func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAuthorIDParams) ([]Problem, error) {
+	rows, err := q.db.QueryContext(ctx, getProblemsByAuthorID, arg.AuthorID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Problem
+	for rows.Next() {
+		var i Problem
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Tags,
+			&i.Source,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.FirstTest,
+			&i.ThumbnailFileID,
+			&i.AuthorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProblemsBySource = `-- name: GetProblemsBySource :many
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id FROM problems
+WHERE source = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetProblemsBySourceParams struct {
+	Source sql.NullString
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetProblemsBySource(ctx context.Context, arg GetProblemsBySourceParams) ([]Problem, error) {
+	rows, err := q.db.QueryContext(ctx, getProblemsBySource, arg.Source, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -179,4 +325,134 @@ func (q *Queries) GetProblemsByTag(ctx context.Context, arg GetProblemsByTagPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateProblemFirstTest = `-- name: UpdateProblemFirstTest :one
+UPDATE problems
+SET first_test = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id
+`
+
+type UpdateProblemFirstTestParams struct {
+	ID        uuid.UUID
+	FirstTest uuid.NullUUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateProblemFirstTest(ctx context.Context, arg UpdateProblemFirstTestParams) (Problem, error) {
+	row := q.db.QueryRowContext(ctx, updateProblemFirstTest, arg.ID, arg.FirstTest, arg.UpdatedAt)
+	var i Problem
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Tags,
+		&i.Source,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FirstTest,
+		&i.ThumbnailFileID,
+		&i.AuthorID,
+	)
+	return i, err
+}
+
+const updateProblemTags = `-- name: UpdateProblemTags :one
+UPDATE problems
+SET tags = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id
+`
+
+type UpdateProblemTagsParams struct {
+	ID        uuid.UUID
+	Tags      int32
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateProblemTags(ctx context.Context, arg UpdateProblemTagsParams) (Problem, error) {
+	row := q.db.QueryRowContext(ctx, updateProblemTags, arg.ID, arg.Tags, arg.UpdatedAt)
+	var i Problem
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Tags,
+		&i.Source,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FirstTest,
+		&i.ThumbnailFileID,
+		&i.AuthorID,
+	)
+	return i, err
+}
+
+const updateProblemThumbnail = `-- name: UpdateProblemThumbnail :one
+UPDATE problems
+SET thumbnail_file_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id
+`
+
+type UpdateProblemThumbnailParams struct {
+	ID              uuid.UUID
+	ThumbnailFileID uuid.NullUUID
+	UpdatedAt       time.Time
+}
+
+func (q *Queries) UpdateProblemThumbnail(ctx context.Context, arg UpdateProblemThumbnailParams) (Problem, error) {
+	row := q.db.QueryRowContext(ctx, updateProblemThumbnail, arg.ID, arg.ThumbnailFileID, arg.UpdatedAt)
+	var i Problem
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Tags,
+		&i.Source,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FirstTest,
+		&i.ThumbnailFileID,
+		&i.AuthorID,
+	)
+	return i, err
+}
+
+const updateProblemTitleAndDescription = `-- name: UpdateProblemTitleAndDescription :one
+UPDATE problems
+SET title = $2, description = $3, updated_at = $4
+WHERE id = $1
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id
+`
+
+type UpdateProblemTitleAndDescriptionParams struct {
+	ID          uuid.UUID
+	Title       string
+	Description string
+	UpdatedAt   time.Time
+}
+
+func (q *Queries) UpdateProblemTitleAndDescription(ctx context.Context, arg UpdateProblemTitleAndDescriptionParams) (Problem, error) {
+	row := q.db.QueryRowContext(ctx, updateProblemTitleAndDescription,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.UpdatedAt,
+	)
+	var i Problem
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Tags,
+		&i.Source,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FirstTest,
+		&i.ThumbnailFileID,
+		&i.AuthorID,
+	)
+	return i, err
 }
