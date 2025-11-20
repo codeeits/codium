@@ -294,17 +294,70 @@ class ApiService {
     }
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null) {
+        console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module });
+        
         const response = await this.getLessonsByFlags(classNum, section, module);
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
+        
+        console.log(`[DEBUG] lessonsData:`, lessonsData);
+        
         let lessons = [];
         let nextId = null;
 
-        if (lessonsData[0].lesson.SectionStarter == true) {
-                lessons.push(lessonsData[0]);
-                nextId = lessonsData[0].lesson.NextLessonID;
+        // Find the lesson that is the section starter for this section
+        const sectionStarter = lessonsData.find(lesson => {
+            // Check if SectionStarter is a boolean (true) or an object with section number
+            let hasValidStarter = false;
+            
+            if (typeof lesson.lesson.SectionStarter === 'boolean') {
+                hasValidStarter = lesson.lesson.SectionStarter === true;
+            } else if (lesson.lesson.SectionStarter && typeof lesson.lesson.SectionStarter === 'object') {
+                hasValidStarter = lesson.lesson.SectionStarter.Valid && 
+                                 lesson.lesson.SectionStarter.Int32 === section;
+            }
+            
+            console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
+                sectionStarter: lesson.lesson.SectionStarter,
+                hasValidStarter,
+                targetSection: section
+            });
+            return hasValidStarter;
+        });
+
+        console.log(`[DEBUG] Found section starter:`, sectionStarter);
+
+        if (sectionStarter) {
+            lessons.push(sectionStarter);
+            nextId = sectionStarter.lesson.NextLessonID;
+        } else {
+            // Fallback: find lesson with no previous lesson (start of chain)
+            const firstLesson = lessonsData.find(lesson => 
+                lesson.lesson.PrevLessonID === null || lesson.lesson.PrevLessonID === ""
+            );
+            console.log(`[DEBUG] Fallback - found first lesson:`, firstLesson);
+            
+            if (firstLesson) {
+                lessons.push(firstLesson);
+                nextId = firstLesson.lesson.NextLessonID;
+            } else {
+                // If no proper chain exists, just return all lessons sorted by creation date
+                console.log(`[DEBUG] No chain found, returning lessons sorted by creation date`);
+                lessons = lessonsData.sort((a, b) => {
+                    const dateA = new Date(a.lesson.CreatedAt.Time);
+                    const dateB = new Date(b.lesson.CreatedAt.Time);
+                    return dateA - dateB;
+                });
+                return lessons;
+            }
         }
 
         while (nextId != null) {
+            // Prevent infinite loops by checking if we've already processed this lesson
+            if (lessons.some(lesson => lesson.lesson.ID === nextId)) {
+                console.log(`[DEBUG] Detected circular reference, breaking loop at lesson ${nextId}`);
+                break;
+            }
+            
             const nextLesson = lessonsData.find(lesson => lesson.lesson.ID === nextId);
             if (nextLesson) {
                 lessons.push(nextLesson);
@@ -313,6 +366,8 @@ class ApiService {
                 nextId = null;
             }
         }
+        
+        console.log(`[DEBUG] Final sorted lessons:`, lessons);
         return lessons;
     }
 
@@ -330,14 +385,18 @@ class ApiService {
     }
 
     async updateLessonOrder(lessonId, prev = null, next = null) {
-        if (prev == null && next == null) {
+        const prevValue = prev === "" ? null : prev;
+        const nextValue = next === "" ? null : next;
+        
+        if (prevValue == null && nextValue == null) {
             throw new Error('Either prev or next lesson ID must be provided to update order');   
         }
-        if (prev != null) {
-            return this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prev }, true);
+        
+        if (prevValue != null) {
+            return this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prevValue }, true);
         }
-        if (next != null) {
-            return this.put(`/api/lessons/${lessonId}?target_field=next`, { next: next }, true);
+        if (nextValue != null) {
+            return this.put(`/api/lessons/${lessonId}?target_field=next`, { next: nextValue }, true);
         }
     }
 

@@ -26,7 +26,7 @@ function toRoman(n) {
     }
     return result;
 }
-
+// 2 down 1 up
 document.addEventListener("DOMContentLoaded", async function() {
     const baseurl = window.location.href;
 
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     if (lessonId) {
         lessonId = lessonId.trim();
-        contentRaw = JSON.parse(await window.apiService.getLessonById(lessonId));    
+        contentRaw = await window.apiService.getLessonById(lessonId); 
 
         contentTitle = contentRaw.lesson.Title || `Lesson ${lessonId}`;
         document.title = `${contentTitle} - Codium`;
@@ -55,7 +55,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         console.log(document.title);
 
         contentAuthor = await window.apiService.getUserById(contentRaw.lesson.AuthorID).then(userData => {
-            userData = JSON.parse(userData);
             return userData.Username || "Unknown author";
         }).catch(error => {
             console.error("Failed to fetch author data:", error);
@@ -200,48 +199,74 @@ document.addEventListener("DOMContentLoaded", async function() {
     renderSidebar();
 
     async function renderSidebar() {
-        const sidebar = document.getElementById("lesson-sidebar");
-        const sidebarTitle = document.getElementById("lesson-sidebar_title");
-
-        sidebarTitle.textContent = `Clasa a ${toRoman(contentClass)}-a`;
-
         try {
+            const sidebar = document.getElementById("lesson-sidebar");
+            const sidebarTitle = document.getElementById("lesson-sidebar_title");
+
+            if (!sidebar || !sidebarTitle) {
+                console.warn("Sidebar elements not found, skipping sidebar rendering");
+                return;
+            }
+
+            sidebarTitle.textContent = `Clasa a ${toRoman(contentClass)}-a`;
+
             const sectionArray = await window.apiService.getSectionsForClass(contentClass);
             console.log("Sections array:", sectionArray);
 
             for (const sectionNumber of sectionArray) {
-                const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule);
-                console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult); 
-                // set title
-                const sidebarSection = document.createElement("div");
-                sidebarSection.classList.add("lesson-sidebar_section");
-                const sectionHeader = document.createElement("h3");
-                sectionHeader.classList.add("lesson-sidebar_section-title");
+                try {
+                    console.log(`[DEBUG] Calling getLessonsSortedByPrevNext with:`, {
+                        class: contentClass,
+                        section: sectionNumber, 
+                        module: contentModule
+                    });
+                    
+                    const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule);
+                    console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult);
+                    
+                    // Also debug the raw lessons data for this section
+                    const rawLessons = await window.apiService.getLessonsByFlags(contentClass, sectionNumber, contentModule);
+                    console.log(`[DEBUG] Raw lessons for section ${sectionNumber}:`, rawLessons);
+                    
+                    // Skip empty sections
+                    if (!lessonsListResult || lessonsListResult.length === 0) {
+                        console.log(`Skipping empty section ${sectionNumber}`);
+                        continue;
+                    } 
+                    // set title
+                    const sidebarSection = document.createElement("div");
+                    sidebarSection.classList.add("lesson-sidebar_section");
+                    const sectionHeader = document.createElement("h3");
+                    sectionHeader.classList.add("lesson-sidebar_section-title");
 
-                sectionHeader.textContent = `Sectiunea ${sectionNumber}`;
-                sidebarSection.appendChild(sectionHeader);
+                    sectionHeader.textContent = `Sectiunea ${sectionNumber}`;
+                    sidebarSection.appendChild(sectionHeader);
 
-                // ul list
-                const lessonsList = document.createElement("ol");
-                lessonsList.classList.add("lesson-sidebar_list");
+                    // ul list
+                    const lessonsList = document.createElement("ol");
+                    lessonsList.classList.add("lesson-sidebar_list");
 
-                for (const lessonData of lessonsListResult) {
-                    const lessonItem = document.createElement("li");
-                    lessonItem.classList.add("lesson-sidebar_item");
-                    const lessonLink = document.createElement("a");
-                    lessonLink.classList.add("lesson-sidebar_link");
-                    lessonLink.href = `lesson.html?id=${lessonData.lesson.ID}`;
-                    lessonLink.textContent = lessonData.lesson.Title || "Untitled Lesson";
+                    for (const lessonData of lessonsListResult) {
+                        const lessonItem = document.createElement("li");
+                        lessonItem.classList.add("lesson-sidebar_item");
+                        const lessonLink = document.createElement("a");
+                        lessonLink.classList.add("lesson-sidebar_link");
+                        lessonLink.href = `lesson.html?id=${lessonData.lesson.ID}`;
+                        lessonLink.textContent = lessonData.lesson.Title || "Untitled Lesson";
 
-                    if (lessonData.lesson.ID === lessonId) {
-                        lessonItem.classList.add("lesson-sidebar_item--active");
+                        if (lessonData.lesson.ID === lessonId) {
+                            lessonItem.classList.add("lesson-sidebar_item--active");
+                        }
+
+                        lessonItem.appendChild(lessonLink);
+                        lessonsList.appendChild(lessonItem);
                     }
-
-                    lessonItem.appendChild(lessonLink);
-                    lessonsList.appendChild(lessonItem);
+                    sidebarSection.appendChild(lessonsList);
+                    sidebar.appendChild(sidebarSection);
+                } catch (sectionError) {
+                    console.error(`Failed to render section ${sectionNumber}:`, sectionError);
+                    // Continue with next section
                 }
-                sidebarSection.appendChild(lessonsList);
-                sidebar.appendChild(sidebarSection);
             }
         } catch (error) {
             console.error("Failed to render sidebar:", error);

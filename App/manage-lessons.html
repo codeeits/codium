@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Lessons - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
+    <link rel="stylesheet" href="Styles/main.css">
+
+    <!-- Scripts -->
+    <script src="Scripts/main.js" defer></script> 
+    <script src="Scripts/apiHandlers.js"></script>
+    <script src="Scripts/manageLessons.js" defer></script>
+    
+    <meta name="menu-variant" content="default">
+</head>
+
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-content-manage-lessons">
+        <div class="manage-lessons-nav select-section left">
+            <div class="manage-lessons-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>1. Selectează</h2>
+                <p> Sort by
+                <select id="lessonClass" name="class" class="language-dropdown" placeholder="toate clasele" required>
+                    <option value="">toate clasele</option>
+                    <option value="9">Clasa a IX-a</option>
+                    <option value="10">Clasa a X-a</option>
+                    <option value="11">Clasa a XI-a</option>
+                    <option value="12">Clasa a XII-a</option>
+                    <option value="67">Neclasificat</option>
+                </select>
+                and 
+                <select id="lessonModule" name="module" class="language-dropdown" placeholder="toate modulele" required>
+                    <option value="">toate modulele</option>
+                    <option value="1">Modul 1 (INFO)</option>
+                </select>
+                <select id="lessonSection" name="section" class="language-dropdown" placeholder="toate secțiunile" required>
+                    <option value="">toate secțiunile</option>
+                    <!-- Section options will be dynamically added here -->
+                </select>
+            </p>
+            </div>
+        </div>
+        <div class="manage-lessons-nav sort-section left">
+            <div class="manage-lessons-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>2. Aranjează</h2>
+                <div class="arrange-lessons-area" id="arrange-lessons-area">
+                    <p id="status-lessons"></p>
+                    <p> Trage și plasează lecțiile aici pentru a le aranja ordinea: </p>
+                    <div id="arrangeLessonsContainer" class="arrange-lessons-container">
+                        <!-- Lesson items will be dynamically added here -->
+                         <div class="arrange-lesson-item">
+                            <i class="fa-solid fa-grip-lines"></i>
+                            <span>Lecția 1: Introducere în programare</span>
+                         </div>
+                         <div class="arrange-lesson-item">
+                            <i class="fa-solid fa-grip-lines"></i>
+                            <span>Lecția 1: Introducere în programare</span>
+                         </div>
+                         <div class="arrange-lesson-item">
+                            <i class="fa-solid fa-grip-lines"></i>
+                            <span>Lecția 1: Introducere în programare</span>
+                         </div>
+                    </div>
+                </div>
+                <button class="btn primary" id="saveOrder">Save Order</button>
+            </div>
+        </div>
+        <div class="manage-lessons-nav preview left">
+            <div class="manage-lessons-title">
+                <i class="fa-solid fa-id-badge"></i>
+                <h2>3. Previzualizează</h2>
+                <div class="buttons-switch-area">
+                    <button id="rawButton" class="btn primary">Raw</button>
+                    <button id="mdButton" class="btn secondary">Markdown Preview</button>
+                </div>
+                <div class="preview-lesson-area">
+                    <!-- Lesso loaded with markdown after selecting lesson -->
+                    <p>No lesson selected.</p>
+                </div>
+            </div>
+    </div>
+    
+</body>
+</html>

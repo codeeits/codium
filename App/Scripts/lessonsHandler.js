@@ -98,14 +98,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 formData.section, 
                 formData.module
             );
-            lastLesson = JSON.parse(lastLesson);
             lastLesson = lastLesson.length > 0 ? lastLesson[lastLesson.length - 1] : null;
             let lastLessonID = lastLesson ? lastLesson.lesson.ID : null;
             console.log(`Last lesson in section:`, lastLesson);
 
             // UPLOAD THE LESSON
             responseData = await window.apiService.uploadLesson(formData, fileS);
-            responseData = JSON.parse(responseData);
             
             console.log("Lesson uploaded successfully.");
             console.log(responseData);
