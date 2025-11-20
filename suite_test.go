@@ -738,13 +738,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("CreateFilesForLinkingTest", func(t *testing.T) {
 			cwd, _ := os.Getwd()
 			folderPath := cwd + "/out/test_resources/"
-			filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
 			err := os.MkdirAll(folderPath, 0755)
 			if err != nil {
 				t.Fatal("Error creating test resources directory: ", err)
 			}
 
 			for i := 0; i < 250; i++ {
+				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
 				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
 				err = os.WriteFile(filePath, fileContent, 0644)
 				if err != nil {
