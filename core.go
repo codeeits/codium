@@ -196,11 +196,12 @@ func (cfg *ApiCfg) ResetAll() error {
 		return err
 	}
 
+	flags, _ := BuildLessonFlags(67, 0, 0, 0) // No specific flags for the test lesson
 	_, err = cfg.db.AddLesson(context.Background(), database.AddLessonParams{
 		ID:        uuid.New(),
 		Title:     "Markdown Test - All Elements",
 		ContentID: lessonFileID,
-		Flags:     0x01010101, // class=1, section=1, number=1, module=1
+		Flags:     int32(flags),
 		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
