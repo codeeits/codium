@@ -328,8 +328,8 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(loginTarget)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -406,8 +406,8 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`{"auth_token": "%v"}`, token)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -571,8 +571,8 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.SendValidationEmail(p.Email, res.ID.String())
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -603,8 +603,8 @@ func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	jsonData, err := json.Marshal(users)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal users: %v", err)
@@ -716,8 +716,8 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(user)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -773,8 +773,8 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = cfg.DeleteUser(userID)
 
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
 	_, err = w.Write([]byte("User deleted successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -826,8 +826,8 @@ func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -892,8 +892,8 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 		RevokedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -950,8 +950,8 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	// Send validation email to new address
 	cfg.SendValidationEmail(p.NewEmail, res.ID.String())
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -993,8 +993,8 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	userJson, err := PrintUserToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal user: %v", err)
@@ -1091,8 +1091,8 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`{"file_id": "%v", "file_path": "%v"}`, uploadID, uploadPath)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -1278,8 +1278,8 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -1302,8 +1302,8 @@ func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 
 	//Marshal using PrintToJson for proper formatting
 	_, err = w.Write([]byte("["))
@@ -1380,8 +1380,8 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(lesson)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1452,8 +1452,8 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	//Marshal using PrintToJson for proper formatting
 	_, err = w.Write([]byte("["))
 	if err != nil {
@@ -1536,8 +1536,8 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to delete lesson", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
 	_, err = w.Write([]byte("Lesson deleted successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -1600,8 +1600,8 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1669,8 +1669,8 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1733,8 +1733,8 @@ func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1793,8 +1793,8 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1864,8 +1864,8 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1905,8 +1905,8 @@ func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonJson, err := PrintLessonToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson: %v", err)
@@ -1932,8 +1932,8 @@ func (cfg *ApiCfg) GetSectionStarterLessonsHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	//Marshal using PrintToJson for proper formatting
 	_, err = w.Write([]byte("["))
 	if err != nil {
@@ -2023,8 +2023,8 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, toggledUserLessonJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -2077,8 +2077,8 @@ func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, toggledUserLessonJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -2136,8 +2136,8 @@ func (cfg *ApiCfg) GetLessonUserByLessonAndUserHandler(w http.ResponseWriter, r 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	lessonUserJson, err := PrintLessonUserToJson(lessonUser)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal lesson user: %v", err)
@@ -2189,8 +2189,8 @@ func (cfg *ApiCfg) GetUserBookmarksHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 
 	//Marshal using PrintToJson for proper formatting
 	_, err = w.Write([]byte("["))
@@ -2273,8 +2273,8 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonUserJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -2327,8 +2327,8 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`%v`, lessonUserJson)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -2364,8 +2364,8 @@ func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.R
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write([]byte(fmt.Sprintf(`{"lesson_id":"%v", "num_favorites":%v}`, lessonID, faves)))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
@@ -2452,8 +2452,8 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
 	problemJson, err := PrintProblemToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal problem: %v", err)
@@ -2553,8 +2553,8 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
 	testJson, err := PrintProblemTestToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal problem test: %v", err)
@@ -2608,8 +2608,8 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
 	_, err = w.Write([]byte("Database has been reset successfully."))
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)

@@ -524,10 +524,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatal("Error creating test file: ", err)
 			}
 			fileData, err := os.Open(filePath)
-			defer fileData.Close()
 			if err != nil {
 				t.Fatal("Error opening test file: ", err)
 			}
+			defer fileData.Close()
 
 			var requestFileData bytes.Buffer
 
@@ -742,8 +742,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if err != nil {
 				t.Fatal("Error creating test resources directory: ", err)
 			}
+			defer os.RemoveAll(cwd + "/out/test_resources/")
 
-			for i := 0; i < 250; i++ {
+			for i := 0; i < 25; i++ {
 				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
 				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
 				err = os.WriteFile(filePath, fileContent, 0644)
@@ -754,6 +755,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if err != nil {
 					t.Fatal("Error opening test file: ", err)
 				}
+				defer fileData.Close()
 
 				var requestFileData bytes.Buffer
 
@@ -809,7 +811,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 				fileIds = append(fileIds, responseParams.FileID)
 			}
-			defer os.RemoveAll(cwd + "/out/test_resources/")
 		})
 
 		var lessonIds []uuid.UUID

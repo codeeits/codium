@@ -240,7 +240,7 @@ class ApiService {
             throw new Error('No user ID found');
         }
         let userData = await this.get(`/api/users/${userID}`, true);
-        userData = JSON.parse(userData);
+        userData = typeof userData === 'string' ? JSON.parse(userData) : userData;
         return userData.Username;
     }
 
@@ -295,7 +295,7 @@ class ApiService {
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null) {
         const response = await this.getLessonsByFlags(classNum, section, module);
-        const lessonsData = JSON.parse(response);
+        const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
         let lessons = [];
         let nextId = null;
 
@@ -318,7 +318,7 @@ class ApiService {
 
     async getSectionsForClass(classNum, module = null) {
         const response = await this.getLessonsByFlags(classNum, null, module);
-        const lessonsData = JSON.parse(response);
+        const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
         const sectionsSet = new Set();
 
         lessonsData.forEach(lesson => {

@@ -119,7 +119,8 @@
                     console.error("Failed to load lessons.");
                     return;
                 }
-                const lessons = JSON.parse(response);
+                // Handle both parsed objects and JSON strings
+                const lessons = typeof response === 'string' ? JSON.parse(response) : response;
                 console.log("Loaded lessons:", lessons);
                 
                 if (lessons.length === 0) {
