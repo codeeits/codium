@@ -75,11 +75,9 @@ const (
 	ProblemResultTypeMask LessonTagsMask = 0x0000F000
 	// ProblemVerificationTypeMask is used to categorize problems by their verification type (e.g. auto-graded, peer-reviewed, instructor-reviewed, etc.)
 	ProblemVerificationTypeMask LessonTagsMask = 0x00000F00
-	// ProblemTypeMask is used to categorize problems by their general type (e.g. quiz, assignment, project, exam, etc.)
-	ProblemTypeMask LessonTagsMask = 0x000000F0
 
-	// ProblemReservedMask is reserved for future use
-	ProblemReservedMask LessonTagsMask = 0x0000000F
+	// ProblemSectionMask is used to categorize problems by their specific section within a module (e.g. arrays, linked lists, sorting algorithms, etc.)
+	ProblemSectionMask LessonTagsMask = 0x000000FF
 )
 
 /*
@@ -667,7 +665,7 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 		mask |= uint32(ProblemVerificationTypeMask)
 	}
 	if problemType > 0 {
-		mask |= uint32(ProblemTypeMask)
+		mask |= uint32(ProblemSectionMask)
 	}
 
 	return tags, mask

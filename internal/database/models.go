@@ -13,7 +13,6 @@ import (
 
 type CodeTest struct {
 	ID             uuid.UUID
-	ProblemID      uuid.UUID
 	TxtInput       sql.NullString
 	FileInput      uuid.NullUUID
 	ExpectedOutput string

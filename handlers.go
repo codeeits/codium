@@ -56,6 +56,23 @@ func PrintLessonUserToJson(lessonUser database.LessonsUser) (string, error) {
 	return string(jsonData), nil
 }
 
+func PrintProblemToJson(problem database.Problem) (string, error) {
+	jsonData, err := json.Marshal(problem)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal problem: %v", err)
+	}
+	return string(jsonData), nil
+}
+
+func PrintProblemTestToJson(test database.CodeTest) (string, error) {
+	jsonData, err := json.Marshal(test)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal problem test: %v", err)
+	}
+
+	return string(jsonData), nil
+}
+
 func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
 	// Check for query parameters
 	q := r.URL.Query()
@@ -1241,7 +1258,7 @@ func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := cfg.db.AddLesson(r.Context(), database.AddLessonParams{
 		ID:          lessonID,
 		Title:       p.Title,
-		Description: sql.NullString{String: p.Description, Valid: true},
+		Description: sql.NullString{String: p.Description, Valid: p.Description != ""},
 		ContentID:   contentUUID,
 		AuthorID:    uuid.NullUUID{UUID: user.ID, Valid: true},
 		Flags:       int32(flag),
@@ -2353,6 +2370,202 @@ func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.R
 	if err != nil {
 		cfg.logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+	}
+}
+
+/*
+===========================================
+
+	Problem CRUD Handlers
+
+===========================================
+*/
+
+func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		Title            string    `json:"title"`
+		Description      string    `json:"description"`
+		Source           string    `json:"source"`
+		FirstTestID      uuid.UUID `json:"first_test_id"`
+		ThumbnailID      uuid.UUID `json:"thumbnail_id"`
+		Difficulty       int       `json:"difficulty"`
+		Module           int       `json:"module"`
+		SolveType        int       `json:"solve_type"`
+		ResultType       int       `json:"result_type"`
+		VerificationType int       `json:"verification_type"`
+		Section          int       `json:"section"`
+	}
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received create problem request")
+
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized create problem attempt by non-admin user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if p.Title == "" || p.Description == "" {
+		cfg.logger.Printf("Missing required fields in request body")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	tags, _ := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.Section)
+
+	res, err := cfg.db.CreateProblem(r.Context(), database.CreateProblemParams{
+		ID:              uuid.New(),
+		Title:           p.Title,
+		Description:     p.Description,
+		Source:          sql.NullString{String: p.Source, Valid: p.Source != ""},
+		FirstTest:       uuid.NullUUID{UUID: p.FirstTestID, Valid: p.FirstTestID != uuid.Nil},
+		ThumbnailFileID: uuid.NullUUID{UUID: p.ThumbnailID, Valid: p.ThumbnailID != uuid.Nil},
+		Tags:            int32(tags),
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to create problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	problemJson, err := PrintProblemToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(problemJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+/*
+===========================================
+
+	Problem Tests CRUD Handlers
+
+===========================================
+*/
+
+func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		InputText      string    `json:"input_text"`
+		InputFile      uuid.UUID `json:"input_file"`
+		ExpectedOutput string    `json:"expected_output"`
+		PreviousTestID uuid.UUID `json:"previous_test_id"`
+		NextTestID     uuid.UUID `json:"next_test_id"`
+	}
+
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received create problem test request")
+
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized create problem test attempt by non-admin user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err = decoder.Decode(&p)
+
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if p.InputText == "" && p.InputFile == uuid.Nil {
+		cfg.logger.Printf("Missing input data in request body")
+		http.Error(w, "Missing input data", http.StatusBadRequest)
+		return
+	}
+
+	if p.ExpectedOutput == "" {
+		cfg.logger.Printf("Missing expected output in request body")
+		http.Error(w, "Missing expected output", http.StatusBadRequest)
+		return
+	}
+
+	var inputFile bool
+	if p.InputFile != uuid.Nil {
+		inputFile = true
+	} else {
+		inputFile = false
+	}
+
+	res, err := cfg.db.CreateCodeTest(r.Context(), database.CreateCodeTestParams{
+		ID:             uuid.New(),
+		TxtInput:       sql.NullString{String: p.InputText, Valid: !inputFile},
+		FileInput:      uuid.NullUUID{UUID: p.InputFile, Valid: inputFile},
+		ExpectedOutput: p.ExpectedOutput,
+		PreviousTestID: uuid.NullUUID{UUID: p.PreviousTestID, Valid: p.PreviousTestID != uuid.Nil},
+		NextTestID:     uuid.NullUUID{UUID: p.NextTestID, Valid: p.NextTestID != uuid.Nil},
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to create problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
 	}
 }
 
