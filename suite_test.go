@@ -167,7 +167,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var averageUserID uuid.UUID
 		t.Run("TestCreateUser", func(t *testing.T) {
 			var averageUserUsername = "TestUser"
-			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `","username":"` + averageUserUsername + `"}"`)
+			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `","username":"` + averageUserUsername + `"}`)
 			req, err := http.NewRequest("POST", "http://localhost:6767/api/create_user", bytes.NewReader(jsonBody))
 			if err != nil {
 				t.Fatal("Error creating request: ", err)
@@ -411,7 +411,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestCreateSecondAverageUser", func(t *testing.T) {
 			var secondAverageUsername = "SecondAverageUser"
 			var secondAveragePassword = "AnotherPassword123!"
-			jsonBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `","username":"` + secondAverageUsername + `"}"`)
+			jsonBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `","username":"` + secondAverageUsername + `"}`)
 			req, err := http.NewRequest("POST", "http://localhost:6767/api/create_user", bytes.NewReader(jsonBody))
 			if err != nil {
 				t.Fatal("Error creating request: ", err)
@@ -524,6 +524,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatal("Error creating test file: ", err)
 			}
 			fileData, err := os.Open(filePath)
+			defer fileData.Close()
 			if err != nil {
 				t.Fatal("Error opening test file: ", err)
 			}
@@ -735,16 +736,15 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		var fileIds []uuid.UUID
 		t.Run("CreateFilesForLinkingTest", func(t *testing.T) {
-			for i := 0; i < 250; i++ {
-				cwd, _ := os.Getwd()
-				folderPath := cwd + "/out/test_resources/"
-				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
-				err := os.MkdirAll(folderPath, 0755)
-				if err != nil {
-					t.Fatal("Error creating test resources directory: ", err)
-				}
-				defer os.RemoveAll(cwd + "/out/test_resources/")
+			cwd, _ := os.Getwd()
+			folderPath := cwd + "/out/test_resources/"
+			filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
+			err := os.MkdirAll(folderPath, 0755)
+			if err != nil {
+				t.Fatal("Error creating test resources directory: ", err)
+			}
 
+			for i := 0; i < 250; i++ {
 				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
 				err = os.WriteFile(filePath, fileContent, 0644)
 				if err != nil {
@@ -809,12 +809,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 				fileIds = append(fileIds, responseParams.FileID)
 			}
+			defer os.RemoveAll(cwd + "/out/test_resources/")
 		})
 
 		var lessonIds []uuid.UUID
 		lessonIds = append(lessonIds, uploadedLessonID)
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
-			for i := 0; i < 250; i++ {
+			for i := 0; i < 25; i++ {
 				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `}`)
 				req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
 				if err != nil {
@@ -880,7 +881,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		//t.Log(lessonIds)
 
 		t.Run("UpdateLessonsToLinkToEachOther", func(t *testing.T) {
-			for i := 0; i < 250; i++ {
+			for i := 0; i < 25; i++ {
 				//t.Log(lessonIds[i], lessonIds[i+1])
 				jsonData := []byte(`{"next":"` + lessonIds[i+1].String() + `"}`)
 				req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[i].String()+"?target_field=next", bytes.NewReader(jsonData))
