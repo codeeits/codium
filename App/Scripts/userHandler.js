@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addLessonBtn.addEventListener('click', function() {
         window.apiService.getCurrentUser().then(userData => {
-            userData = JSON.parse(userData);
             if (userData.IsAdmin) {
                 window.location.href = 'lesson-upload.html';
             } else {
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             let userData = await window.apiService.getCurrentUser();
-            userData = JSON.parse(userData);
             console.log(userData);
             // display the data
             console.log(userData.Username);
