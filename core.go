@@ -37,7 +37,7 @@ type TagTranslation struct {
 	SolveType        int `json:"solve_type"`
 	ResultType       int `json:"result_type"`
 	VerificationType int `json:"verification_type"`
-	ProblemType      int `json:"problem_type"`
+	SectionType      int `json:"section"`
 }
 
 type LessonWithFlags struct {
@@ -45,7 +45,7 @@ type LessonWithFlags struct {
 	FlagTranslation FlagTranslation `json:"flag_translation"`
 }
 
-type problemWithTags struct {
+type ProblemWithTags struct {
 	Problem        database.Problem `json:"problem"`
 	TagTranslation TagTranslation   `json:"tag_translation"`
 }
@@ -588,6 +588,18 @@ func ParseLessonFlags(flags int32) FlagTranslation {
 	return FlagTranslation{class, section, number, module}
 }
 
+func ParseProblemTags(tags int32) TagTranslation {
+	// e.g. tags = 0x01020304 -> Section = 4, VerificationType=3, ResultType=2, SolveType=1, Difficulty=0, Module=1
+	u := uint32(tags)
+	module := int(u >> 24)
+	difficulty := int((u >> 20) & 0x0F)
+	solveType := int((u >> 16) & 0x0F)
+	resultType := int((u >> 12) & 0x0F)
+	verificationType := int((u >> 8) & 0x0F)
+	sectionType := int(u & 0xFF)
+	return TagTranslation{module, difficulty, solveType, resultType, verificationType, sectionType}
+}
+
 func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 	file, err := cfg.db.GetFileByID(context.Background(), fileID)
 	if err != nil {
@@ -640,14 +652,14 @@ func BuildLessonFlags(class int, section int, number int, module int) (flags uin
 	return flags, mask
 }
 
-func BuildProblemTags(module int, difficulty int, solveType int, resultType int, verificationType int, problemType int) (tags uint32, mask uint32) {
+func BuildProblemTags(module int, difficulty int, solveType int, resultType int, verificationType int, section int) (tags uint32, mask uint32) {
 	tags = 0
 	tags |= uint32(module) << 24
 	tags |= uint32(difficulty) << 20
 	tags |= uint32(solveType) << 16
 	tags |= uint32(resultType) << 12
 	tags |= uint32(verificationType) << 8
-	tags |= uint32(problemType) << 4
+	tags |= uint32(section)
 
 	mask = 0
 	if module > 0 {
@@ -665,7 +677,7 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 	if verificationType > 0 {
 		mask |= uint32(ProblemVerificationTypeMask)
 	}
-	if problemType > 0 {
+	if section > 0 {
 		mask |= uint32(ProblemSectionMask)
 	}
 
