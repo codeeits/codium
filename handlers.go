@@ -57,7 +57,11 @@ func PrintLessonUserToJson(lessonUser database.LessonsUser) (string, error) {
 }
 
 func PrintProblemToJson(problem database.Problem) (string, error) {
-	jsonData, err := json.Marshal(problem)
+	problemJsonData := ProblemWithTags{
+		Problem:        problem,
+		TagTranslation: ParseProblemTags(problem.Tags),
+	}
+	jsonData, err := json.Marshal(problemJsonData)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal problem: %v", err)
 	}
@@ -2445,6 +2449,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 		Tags:            int32(tags),
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
+		AuthorID:        requestingUser.ID,
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to create problem: %v", err)
