@@ -2406,8 +2406,6 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	cfg.logger.Print("Received create problem request")
-
 	//Authenticate the user making the request
 	requestingUser, err := cfg.AuthenticateUser(r)
 	if err != nil {
@@ -2424,6 +2422,8 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 	decoder := json.NewDecoder(r.Body)
 	var p params
 	err = decoder.Decode(&p)
+
+	cfg.logger.Print("Received create problem request with body: ", p)
 
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
