@@ -29,7 +29,7 @@ SELECT COUNT(*) FROM problems
 WHERE author_id = $1
 `
 
-func (q *Queries) CountProblemsByAuthorID(ctx context.Context, authorID uuid.NullUUID) (int64, error) {
+func (q *Queries) CountProblemsByAuthorID(ctx context.Context, authorID uuid.UUID) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countProblemsByAuthorID, authorID)
 	var count int64
 	err := row.Scan(&count)
@@ -69,7 +69,7 @@ type CreateProblemParams struct {
 	UpdatedAt       time.Time
 	FirstTest       uuid.NullUUID
 	ThumbnailFileID uuid.NullUUID
-	AuthorID        uuid.NullUUID
+	AuthorID        uuid.UUID
 }
 
 func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error) {
@@ -187,7 +187,7 @@ LIMIT $2 OFFSET $3
 `
 
 type GetProblemsByAuthorIDParams struct {
-	AuthorID uuid.NullUUID
+	AuthorID uuid.UUID
 	Limit    int32
 	Offset   int32
 }
