@@ -505,56 +505,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
-		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+secondAverageUserID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-		})
-
-		t.Run("TestGetUsersAfterDeletions", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/users", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
-			var users []database.User
-			err = json.NewDecoder(resp.Body).Decode(&users)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-
-			for _, user := range users {
-				if user.ID == averageUserID || user.ID == secondAverageUserID {
-					t.Fatalf("Did not expect to find deleted user with ID %s", user.ID.String())
-				}
-			}
-		})
-
 		//Test files
+		uploadedFileID := uuid.Nil
 		t.Run("TestUploadFile", func(t *testing.T) {
 			cwd, _ := os.Getwd()
 			folderPath := cwd + "/out/test_resources/"
@@ -625,6 +577,112 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			if responseParams.FilePath == "" {
 				t.Fatal("Expected non-empty file path")
+			}
+
+			uploadedFileID = responseParams.FileID
+		})
+
+		t.Run("TestUploadLessonWithoutAuth", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusForbidden {
+				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
+			}
+		})
+
+		//	uploadedLessonID := uuid.Nil
+		t.Run("TestUploadLessonWithAuth", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusCreated {
+				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.Title != "Test Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Test Lesson", lesson.Lesson.Title)
+			}
+			if lesson.FlagTranslation.Class != 9 || lesson.FlagTranslation.Module != 1 || lesson.FlagTranslation.Section != 1 {
+				t.Fatalf("Expected lesson flags class %d, module %d, section %d; got class %d, module %d, section %d", 9, 1, 1, lesson.FlagTranslation.Class, lesson.FlagTranslation.Module, lesson.FlagTranslation.Section)
+			}
+			//uploadedLessonID = lesson.Lesson.ID
+		})
+
+		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+secondAverageUserID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetUsersAfterDeletions", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/users", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var users []database.User
+			err = json.NewDecoder(resp.Body).Decode(&users)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			for _, user := range users {
+				if user.ID == averageUserID || user.ID == secondAverageUserID {
+					t.Fatalf("Did not expect to find deleted user with ID %s", user.ID.String())
+				}
 			}
 		})
 	})
