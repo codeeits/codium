@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -602,7 +603,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
-		//	uploadedLessonID := uuid.Nil
+		uploadedLessonID := uuid.Nil
 		t.Run("TestUploadLessonWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
 			req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
@@ -634,7 +635,308 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.FlagTranslation.Class != 9 || lesson.FlagTranslation.Module != 1 || lesson.FlagTranslation.Section != 1 {
 				t.Fatalf("Expected lesson flags class %d, module %d, section %d; got class %d, module %d, section %d", 9, 1, 1, lesson.FlagTranslation.Class, lesson.FlagTranslation.Module, lesson.FlagTranslation.Section)
 			}
-			//uploadedLessonID = lesson.Lesson.ID
+			uploadedLessonID = lesson.Lesson.ID
+		})
+
+		t.Run("TestUpdateLessonDetailsWithAuth", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Test Lesson","description":"This is an updated test lesson."}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=details", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.Title != "Updated Test Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Updated Test Lesson", lesson.Lesson.Title)
+			}
+			if lesson.Lesson.Description.String != "This is an updated test lesson." {
+				t.Fatalf("Expected lesson description %s, got %s", "This is an updated test lesson.", lesson.Lesson.Description.String)
+			}
+		})
+
+		t.Run("TestUpdateLessonFlagsWithAuth", func(t *testing.T) {
+			jsonData := []byte(`{"class":10,"module":2,"section":3}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=flags", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.FlagTranslation.Class != 10 || lesson.FlagTranslation.Module != 2 || lesson.FlagTranslation.Section != 3 {
+				t.Fatalf("Expected lesson flags class %d, module %d, section %d; got class %d, module %d, section %d", 10, 2, 3, lesson.FlagTranslation.Class, lesson.FlagTranslation.Module, lesson.FlagTranslation.Section)
+			}
+		})
+
+		t.Run("TestUpdateLessonSectionStarterWithAuth", func(t *testing.T) {
+			jsonData := []byte(`{"section_starter": true}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=section_starter", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.SectionStarter != true {
+				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
+			}
+		})
+
+		var fileIds []uuid.UUID
+		t.Run("CreateFilesForLinkingTest", func(t *testing.T) {
+			for i := 0; i < 250; i++ {
+				cwd, _ := os.Getwd()
+				folderPath := cwd + "/out/test_resources/"
+				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
+				err := os.MkdirAll(folderPath, 0755)
+				if err != nil {
+					t.Fatal("Error creating test resources directory: ", err)
+				}
+				defer os.RemoveAll(cwd + "/out/test_resources/")
+
+				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
+				err = os.WriteFile(filePath, fileContent, 0644)
+				if err != nil {
+					t.Fatal("Error creating test file: ", err)
+				}
+				fileData, err := os.Open(filePath)
+				if err != nil {
+					t.Fatal("Error opening test file: ", err)
+				}
+
+				var requestFileData bytes.Buffer
+
+				writer := multipart.NewWriter(&requestFileData)
+				part, err := writer.CreateFormFile("file", "file_linking_"+strconv.Itoa(i)+".txt")
+				if err != nil {
+					t.Fatal("Error creating form file: ", err)
+				}
+
+				_, err = io.Copy(part, fileData)
+				if err != nil {
+					t.Fatal("Error copying file data: ", err)
+				}
+				err = writer.Close()
+				if err != nil {
+					t.Fatal("Error closing writer: ", err)
+				}
+
+				req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				}
+
+				type params struct {
+					FileID   uuid.UUID `json:"file_id"`
+					FilePath string    `json:"file_path"`
+				}
+
+				var responseParams params
+				err = json.NewDecoder(resp.Body).Decode(&responseParams)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+
+				if responseParams.FileID == uuid.Nil {
+					t.Fatal("Expected non-nil file ID")
+				}
+				if responseParams.FilePath == "" {
+					t.Fatal("Expected non-empty file path")
+				}
+
+				fileIds = append(fileIds, responseParams.FileID)
+			}
+		})
+
+		var lessonIds []uuid.UUID
+		lessonIds = append(lessonIds, uploadedLessonID)
+		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
+			for i := 0; i < 250; i++ {
+				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `}`)
+				req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusCreated {
+					t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+				}
+				var lesson LessonWithFlags
+				err = json.NewDecoder(resp.Body).Decode(&lesson)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+
+				if lesson.Lesson.Title != "Linked Lesson "+strconv.Itoa(i) {
+					t.Fatalf("Expected lesson title %s, got %s", "Linked Lesson "+strconv.Itoa(i), lesson.Lesson.Title)
+				}
+
+				lessonIds = append(lessonIds, lesson.Lesson.ID)
+			}
+		})
+
+		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
+			jsonData := []byte(`{"section_starter": true}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[1].String()+"?target_field=section_starter", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.SectionStarter != true {
+				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
+			}
+		})
+
+		//t.Log(lessonIds)
+
+		t.Run("UpdateLessonsToLinkToEachOther", func(t *testing.T) {
+			for i := 0; i < 250; i++ {
+				//t.Log(lessonIds[i], lessonIds[i+1])
+				jsonData := []byte(`{"next":"` + lessonIds[i+1].String() + `"}`)
+				req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[i].String()+"?target_field=next", bytes.NewReader(jsonData))
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				}
+			}
+		})
+
+		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusForbidden {
+				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestDeleteLessonAsAdmin", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
 		})
 
 		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
