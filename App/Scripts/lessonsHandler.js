@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     formData.module
                 );
                 
-                const lessonsData = JSON.parse(existingLessons);
+                const lessonsData = existingLessons;
                 console.log(`Existing lessons in section ${formData.section}:`, lessonsData);
                 if (lessonsData.length === 1) {
                     console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
@@ -155,24 +155,37 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         try {
-            if(!prevLess || !nextLess) {
-                console.log('No lesson order update needed.');
-            } else {
-                prevLess = document.getElementById("debugPrevLesson").value.trim();
-                nextLess = document.getElementById("debugNextLesson").value.trim();
+            // Get debug form values if they exist
+            const debugPrevInput = document.getElementById("debugPrevLesson");
+            const debugNextInput = document.getElementById("debugNextLesson");
+            
+            if (debugPrevInput && debugNextInput) {
+                const debugPrev = debugPrevInput.value.trim();
+                const debugNext = debugNextInput.value.trim();
+                
+                // Only override if debug values are provided
+                if (debugPrev) prevLess = debugPrev;
+                if (debugNext) nextLess = debugNext;
             }
+            
             // Convert empty strings to null
             prevLess = prevLess === "" ? null : prevLess;
             nextLess = nextLess === "" ? null : nextLess;
             
-            console.log('Updating lesson order:', {
-                lessonId: responseData.lesson.ID,
-                prevLess: prevLess,
-                nextLess: nextLess
-            });
-            
-            await window.apiService.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
-            toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
+            // Check if we need to update lesson order
+            if (!prevLess && !nextLess) {
+                console.log('No lesson order update needed.');
+                toastsLoader.showToast('No lesson order update needed.', 'info');
+            } else {
+                console.log('Updating lesson order:', {
+                    lessonId: responseData.lesson.ID,
+                    prevLess: prevLess,
+                    nextLess: nextLess
+                });
+                
+                await window.apiService.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
+                toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
+            }
         } catch (error) {
             console.warn("Updating lesson order failed:", error);
             toastsLoader.showToast(`Updating lesson order failed: ${error.message}`, "warning");

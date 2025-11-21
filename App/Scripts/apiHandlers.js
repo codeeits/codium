@@ -389,14 +389,16 @@ class ApiService {
         const nextValue = next === "" ? null : next;
         
         if (prevValue == null && nextValue == null) {
-            throw new Error('Either prev or next lesson ID must be provided to update order');   
+            await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: null }, true); 
+            await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: null }, true);
+            return;
         }
         
         if (prevValue != null) {
-            return this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prevValue }, true);
+            return await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prevValue }, true);
         }
         if (nextValue != null) {
-            return this.put(`/api/lessons/${lessonId}?target_field=next`, { next: nextValue }, true);
+            return await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: nextValue }, true);
         }
     }
 
