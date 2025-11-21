@@ -1552,7 +1552,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Next uuid.UUID `json:"next"`
+		Next string `json:"next"`
 	}
 
 	//Database check is done in the disambiguation function
@@ -1581,23 +1581,55 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	targetLesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if targetLesson.NextLessonID.Valid {
+		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
+			ID:           targetLesson.NextLessonID.UUID,
+			PrevLessonID: uuid.NullUUID{UUID: uuid.UUID{}, Valid: false},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update next lesson prev: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	nullLesson := p.Next == "null"
+	var nextID uuid.UUID
+	if !nullLesson {
+		nextID, err = uuid.Parse(p.Next)
+		if err != nil {
+			cfg.logger.Printf("Invalid UUID format: %v", err)
+			http.Error(w, "Invalid UUID format", http.StatusBadRequest)
+			return
+		}
+	}
+
 	res, err := cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
 		ID:           lessonID,
-		NextLessonID: uuid.NullUUID{UUID: p.Next, Valid: true},
+		NextLessonID: uuid.NullUUID{UUID: nextID, Valid: !nullLesson},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
-
 	if err != nil {
 		cfg.logger.Printf("Failed to update lesson next: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
-		ID:           p.Next,
-		PrevLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-	})
+	if !nullLesson {
+		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
+			ID:           nextID,
+			PrevLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+	}
+
 	if err != nil {
 		cfg.logger.Printf("Failed to update next lesson prev: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -1622,7 +1654,7 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 
 func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Prev uuid.UUID `json:"prev"`
+		Prev string `json:"prev"`
 	}
 	//Database check is done in the disambiguation function
 
@@ -1650,9 +1682,39 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	targetLesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	if err != nil {
+		cfg.logger.Printf("Failed to get lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if targetLesson.PrevLessonID.Valid {
+		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
+			ID:           targetLesson.PrevLessonID.UUID,
+			NextLessonID: uuid.NullUUID{UUID: uuid.UUID{}, Valid: false},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update next lesson prev: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	nullLesson := p.Prev == "null"
+	var prevID uuid.UUID
+	if !nullLesson {
+		prevID, err = uuid.Parse(p.Prev)
+		if err != nil {
+			cfg.logger.Printf("Invalid UUID format: %v", err)
+			http.Error(w, "Invalid UUID format", http.StatusBadRequest)
+			return
+		}
+	}
+
 	res, err := cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
 		ID:           lessonID,
-		PrevLessonID: uuid.NullUUID{UUID: p.Prev, Valid: true},
+		PrevLessonID: uuid.NullUUID{UUID: prevID, Valid: !nullLesson},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
 
@@ -1662,11 +1724,13 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
-		ID:           p.Prev,
-		NextLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-	})
+	if !nullLesson {
+		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
+			ID:           prevID,
+			NextLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+	}
 	if err != nil {
 		cfg.logger.Printf("Failed to update prev lesson next: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
