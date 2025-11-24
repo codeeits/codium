@@ -124,7 +124,7 @@ func main() {
 		mux.Handle("PUT /api/users", http.HandlerFunc(cfg.UpdateUserDisambiguationHandler))
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
 		mux.Handle("DELETE /api/users/{userID}", http.HandlerFunc(cfg.DeleteUserHandler))
-		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.AddLessonHandler))
+		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.CreateLessonHandler))
 		mux.Handle("GET /api/lessons", http.HandlerFunc(cfg.GetLessonDisambiguationHandler))
 		mux.Handle("DELETE /api/lessons/{lessonID}", http.HandlerFunc(cfg.DeleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/favorite", http.HandlerFunc(cfg.FavoriteLessonHandler))

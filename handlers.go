@@ -1157,7 +1157,7 @@ func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 ===========================================
 */
 
-func (cfg *ApiCfg) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
