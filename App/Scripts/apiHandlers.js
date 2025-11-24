@@ -293,19 +293,19 @@ class ApiService {
         return this.get(`/api/lessons?search_type=flags&class=${classNum}&section=${section}&module=${module}`, false);
     }
 
-    async getLessonsSortedByPrevNext(classNum = null, section = null, module = null) {
-        console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module });
-        
+    async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {
+        console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module, debug });
+
         const response = await this.getLessonsByFlags(classNum, section, module);
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
         
         console.log(`[DEBUG] lessonsData:`, lessonsData);
+
         
         let lessons = [];
         let nextId = null;
-
-        // Find the lesson that is the section starter for this section
-        const sectionStarter = lessonsData.find(lesson => {
+        if (debug === false) {
+            const sectionStarter = lessonsData.find(lesson => {
             // Check if SectionStarter is a boolean (true) or an object with section number
             let hasValidStarter = false;
             
@@ -322,13 +322,12 @@ class ApiService {
                 targetSection: section
             });
             return hasValidStarter;
-        });
-
-        console.log(`[DEBUG] Found section starter:`, sectionStarter);
-
-        if (sectionStarter) {
-            lessons.push(sectionStarter);
-            nextId = sectionStarter.lesson.NextLessonID;
+            });
+            console.log(`[DEBUG] Found section starter:`, sectionStarter);
+            if (sectionStarter) {
+                lessons.push(sectionStarter);
+                nextId = sectionStarter.lesson.NextLessonID;
+            }
         } else {
             // Fallback: find lesson with no previous lesson (start of chain)
             const firstLesson = lessonsData.find(lesson => 
@@ -352,7 +351,6 @@ class ApiService {
         }
 
         while (nextId != null) {
-            // Prevent infinite loops by checking if we've already processed this lesson
             if (lessons.some(lesson => lesson.lesson.ID === nextId)) {
                 console.log(`[DEBUG] Detected circular reference, breaking loop at lesson ${nextId}`);
                 break;
@@ -385,20 +383,16 @@ class ApiService {
     }
 
     async updateLessonOrder(lessonId, prev = null, next = null) {
-        const prevValue = prev === "" ? null : prev;
-        const nextValue = next === "" ? null : next;
-        
-        if (prevValue == null && nextValue == null) {
-            await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: null }, true); 
-            await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: null }, true);
-            return;
+        // Validate lesson ID
+        if (!lessonId || lessonId.trim() === '') {
+            throw new Error('Invalid lesson ID: lesson ID cannot be empty');
         }
-        
-        if (prevValue != null) {
-            return await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prevValue }, true);
+
+        if (prev != null) {
+            return await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prev }, true);
         }
-        if (nextValue != null) {
-            return await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: nextValue }, true);
+        if (next != null) {
+            return await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: next }, true);
         }
     }
 

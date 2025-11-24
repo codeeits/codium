@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                         module: contentModule
                     });
                     
-                    const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule);
+                    const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule, true);
                     console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult);
                     
                     // Also debug the raw lessons data for this section

@@ -161,45 +161,24 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
         
         try {
-            // Get the current lessons data to work with
-            const container = document.getElementById("arrangeLessonsContainer");
-            if (!container) return;
+            console.log('Updating lessons order:', lessonIds);
             
-            const lessonElements = Array.from(container.children);
-            
-            for (let i = 0; i < lessonElements.length; i++) {
-                const currentLessonId = lessonElements[i].dataset.lessonId;
-        
-                let prevLessonId = null;
-                let nextLessonId = null;
-                
-                // Set previous lesson (all except first)
-                if (i > 0) {
-                    prevLessonId = lessonElements[i - 1].dataset.lessonId;
-                }
-                
-                // Set next lesson (all except last)  
-                if (i < lessonElements.length - 1) {
-                    nextLessonId = lessonElements[i + 1].dataset.lessonId;
-                }
-                
-                // Update both relationships
-                if (prevLessonId) {
-                    await window.apiService.updateLessonOrder(currentLessonId, prevLessonId, null);
-                }
-                if (nextLessonId) {
-                    await window.apiService.updateLessonOrder(currentLessonId, null, nextLessonId);
-                }
-                
-                // Clear the opposite relationship for endpoints
-                if (i === 0) { // First lesson
-                    await window.apiService.updateLessonOrder(currentLessonId, "", null); // Clear prev
-                }
-                if (i === lessonElements.length - 1) { // Last lesson  
-                    await window.apiService.updateLessonOrder(currentLessonId, null, ""); // Clear next
-                }
+            // Clear all relationships and remove section starter status
+            for (const lessonId of lessonIds) {
+                await window.apiService.updateLessonOrder(lessonId, null, "00000000-0000-0000-0000-000000000000");
+                await window.apiService.updateLessonSectionStarter(lessonId, false);
             }
             
+            const firstLessonId = lessonIds[0];
+            await window.apiService.updateLessonSectionStarter(firstLessonId, parseInt(sectionValue));
+            
+            for (let i = 1; i < lessonIds.length; i++) {
+                const currentLessonId = lessonIds[i];
+                const prevLessonId = lessonIds[i - 1];
+                await window.apiService.updateLessonOrder(currentLessonId, prevLessonId);
+                console.log(`Updated lesson ${currentLessonId} to follow ${prevLessonId}`);
+            }
+
             toastsLoader.showToast('Lesson order updated successfully!', 'confirm');
         } catch (error) {
             console.error('Failed to update lessons order:', error);
