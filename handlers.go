@@ -105,6 +105,8 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
+	cfg.logger.Printf("Received update user request for field: %v", field)
+
 	switch field {
 	case "username":
 		// Update username
@@ -206,6 +208,8 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 	if targetField == "" {
 		cfg.logger.Printf("Missing search_type query parameter")
 	}
+
+	cfg.logger.Printf("Received update lesson request for field: %v", targetField)
 
 	switch targetField {
 	case "next":
@@ -1552,7 +1556,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Next string `json:"next"`
+		Next uuid.UUID `json:"next"`
 	}
 
 	//Database check is done in the disambiguation function
@@ -1600,20 +1604,9 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	nullLesson := p.Next == "null"
-	var nextID uuid.UUID
-	if !nullLesson {
-		nextID, err = uuid.Parse(p.Next)
-		if err != nil {
-			cfg.logger.Printf("Invalid UUID format: %v", err)
-			http.Error(w, "Invalid UUID format", http.StatusBadRequest)
-			return
-		}
-	}
-
 	res, err := cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
 		ID:           lessonID,
-		NextLessonID: uuid.NullUUID{UUID: nextID, Valid: !nullLesson},
+		NextLessonID: uuid.NullUUID{UUID: p.Next, Valid: p.Next != uuid.Nil},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
@@ -1622,9 +1615,9 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !nullLesson {
+	if p.Next != uuid.Nil {
 		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
-			ID:           nextID,
+			ID:           p.Next,
 			PrevLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
 			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		})
@@ -1654,7 +1647,7 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 
 func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Prev string `json:"prev"`
+		Prev uuid.UUID `json:"prev"`
 	}
 	//Database check is done in the disambiguation function
 
@@ -1701,20 +1694,9 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	nullLesson := p.Prev == "null"
-	var prevID uuid.UUID
-	if !nullLesson {
-		prevID, err = uuid.Parse(p.Prev)
-		if err != nil {
-			cfg.logger.Printf("Invalid UUID format: %v", err)
-			http.Error(w, "Invalid UUID format", http.StatusBadRequest)
-			return
-		}
-	}
-
 	res, err := cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
 		ID:           lessonID,
-		PrevLessonID: uuid.NullUUID{UUID: prevID, Valid: !nullLesson},
+		PrevLessonID: uuid.NullUUID{UUID: p.Prev, Valid: p.Prev != uuid.Nil},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
 
@@ -1724,9 +1706,9 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !nullLesson {
+	if p.Prev != uuid.Nil {
 		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
-			ID:           prevID,
+			ID:           p.Prev,
 			NextLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
 			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		})

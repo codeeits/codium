@@ -905,6 +905,37 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("UnlinkFirstLesson", func(t *testing.T) {
+			jsonData := []byte(`{"next":"00000000-0000-0000-0000-000000000000"}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[0].String()+"?target_field=next", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.NextLessonID.Valid != false {
+				t.Fatalf("Expected lesson next lesson ID to be null, got %v", lesson.Lesson.NextLessonID)
+			}
+		})
+
 		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
 			if err != nil {
