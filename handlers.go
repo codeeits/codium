@@ -1159,14 +1159,14 @@ func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		ContentID   string `json:"content_id"`
-		Class       int    `json:"class"`
-		Section     int    `json:"section"`
-		Module      int    `json:"module"`
-		Previous    string `json:"previous"`
-		Next        string `json:"next"`
+		Title       string    `json:"title"`
+		Description string    `json:"description"`
+		ContentID   string    `json:"content_id"`
+		Class       int       `json:"class"`
+		Section     int       `json:"section"`
+		Module      int       `json:"module"`
+		Previous    uuid.UUID `json:"previous"`
+		Next        uuid.UUID `json:"next"`
 	}
 
 	//check if database is connected
@@ -1196,23 +1196,13 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 	var prevLesson uuid.NullUUID
 	var nextLesson uuid.NullUUID
 
-	if p.Previous != "" {
-		prevLesson.UUID, err = uuid.Parse(p.Previous)
-		if err != nil {
-			cfg.logger.Printf("Invalid UUID format for previous lesson: %v", err)
-			http.Error(w, "Invalid previous lesson format", http.StatusBadRequest)
-			return
-		}
+	if p.Previous != uuid.Nil {
+		prevLesson.UUID = p.Previous
 		prevLesson.Valid = true
 	}
 
-	if p.Next != "" {
-		nextLesson.UUID, err = uuid.Parse(p.Next)
-		if err != nil {
-			cfg.logger.Printf("Invalid UUID format for next lesson: %v", err)
-			http.Error(w, "Invalid next lesson format", http.StatusBadRequest)
-			return
-		}
+	if p.Next != uuid.Nil {
+		nextLesson.UUID = p.Next
 		nextLesson.Valid = true
 	}
 
