@@ -161,3 +161,14 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAuthButton();
     });
 });
+
+window.addEventListener('beforeunload', () => {
+  sessionStorage.setItem('scrollY', window.scrollY);
+});
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const y = sessionStorage.getItem('scrollY');
+    if (y !== null) window.scrollTo({ top: parseFloat(y), behavior: 'smooth' });
+  }, 200);
+});
