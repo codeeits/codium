@@ -1,0 +1,36 @@
+{
+    "app_name": "codium/",
+    "welcome": "Learn/ Code/ Compete/",
+    "login": {
+        "title": "log-in",
+        "email": "e-mail",
+        "password": "password",
+        "forgot_password": "forgot password?",
+        "remember_me": "remember me?",
+        "no_account": "no account?",
+        "register": "sign up"
+    },
+    "signup": {
+        "title": "sign up",
+        "username": "username",
+        "email": "e-mail",
+        "password": "password",
+        "confirm_password": "confirm password"
+    },
+    "log-out": "log out",
+    "top-menu": {
+        "teory": "> theory",
+        "probleme": "> problems"
+    },
+    "buttons": {
+        "save": "save",
+        "cancel": "cancel",
+        "submit": "submit",
+        "edit": "edit",
+        "delete": "delete",
+        "create": "create",
+        "update": "update",
+        "login": "log in",
+        "register": "sign up"
+    }
+}

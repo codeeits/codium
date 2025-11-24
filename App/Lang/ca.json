@@ -1,0 +1,36 @@
+{
+    "app_name": "codium/",
+    "welcome": "Aprènde/ Programa/ Competeix/",
+    "login": {
+        "title": "inicia sessió",
+        "email": "e-mail",
+        "password": "contrasenya",
+        "forgot_password": "has oblidat la contrasenya?",
+        "remember_me": "recorda'm",
+        "no_account": "no tens un compte?",
+        "register": "registra't"
+    },
+    "signup": {
+        "title": "registra't",
+        "username": "nom d'usuari",
+        "email": "e-mail",
+        "password": "contrasenya",
+        "confirm_password": "confirma la contrasenya"
+    },
+    "log-out": "tanca la sessió",
+    "top-menu": {
+        "teory": "> teoria",
+        "probleme": "> problemes"
+    },
+    "buttons": {
+        "save": "desa",
+        "cancel": "anula",
+        "submit": "envia",
+        "edit": "edita",
+        "delete": "elimina",
+        "create": "crea",
+        "update": "actualitza",
+        "login": "autentifica't",
+        "register": "registra't"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "app_name": "codium/",
+    "welcome": "Învăță/ Programează/ Concurează/",
+    "login": {
+        "title": "autentificare",
+        "email": "e-mail",
+        "password": "parolă",
+        "forgot_password": "ai uitat parola?",
+        "remember_me": "ține-mă minte",
+        "no_account": "nu ai un cont?",
+        "register": "înregistrează-te"
+    },
+    "signup": {
+        "title": "înregistrează-te",
+        "username": "nume de utilizator",
+        "email": "e-mail",
+        "password": "parolă",
+        "confirm_password": "confirmă parola"
+    },
+    "log-out": "deconectare",
+    "top-menu": {
+        "teory": "> teorie",
+        "probleme": "> probleme"
+    },
+    "buttons": {
+        "save": "salvează",
+        "cancel": "anulează",
+        "submit": "trimite",
+        "edit": "editează",
+        "delete": "șterge",
+        "create": "creează",
+        "update": "actualizează",
+        "login": "autentifică-te",
+        "register": "înregistrează-te"
+    }
+}

@@ -34,6 +34,7 @@ function updateAuthButton() {
     const logoutButton = document.getElementById('logout-button');
     const userNameSpan = document.getElementById('user-name');
     const lessonsButton = document.getElementById('teorie-button');
+    const languageSelector = document.getElementById('language-selector');
     const hardLessonsExit = document.getElementById('hard-lessons-exit-btn');
     const backButton = document.getElementById('back-btn');
     
@@ -50,6 +51,14 @@ function updateAuthButton() {
             }
         };
         backButton.title = 'Back to lessons';
+    }
+
+    if(languageSelector) {
+        languageSelector.onchange = function() {
+            const selectedLang = languageSelector.value;
+            setLanguage(selectedLang);
+        };
+        languageSelector.title = 'EN';
     }
 
     if(hardLessonsExit) {
@@ -172,3 +181,46 @@ window.addEventListener('load', () => {
     if (y !== null) window.scrollTo({ top: parseFloat(y), behavior: 'smooth' });
   }, 200);
 });
+
+async function loadLanguage(langCode = 'ro') {
+  const response = await fetch(`/app/Lang/${langCode}.json`);
+  const translations = await response.json();
+  applyTranslations(translations);
+}
+
+function getNestedTranslation(key, translations) {
+  return key.split('.').reduce((obj, part) => obj?.[part], translations);
+}
+
+function applyTranslations(translations) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const value = getNestedTranslation(key, translations);
+    if (value) el.textContent = value;
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const value = getNestedTranslation(key, translations);
+    if (value) el.setAttribute('placeholder', value);
+  });
+
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    const value = getNestedTranslation(key, translations);
+    if (value) el.setAttribute('title', value);
+  });
+
+    document.querySelectorAll('[data-i18n-value]').forEach(el => {
+    const key = el.getAttribute('data-i18n-value');
+    const value = getNestedTranslation(key, translations);
+    if (value) el.setAttribute('value', value);
+  });
+}
+
+function setLanguage(langCode) {
+  localStorage.setItem('lang', langCode);
+  loadLanguage(langCode);
+}
+
+loadLanguage(localStorage.getItem('lang') || 'en');

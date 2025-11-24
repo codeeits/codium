@@ -29,28 +29,28 @@
         <div class="auth-nav left">
             <div class="auth-title">
                 <i class="fa-solid fa-id-badge"></i>
-                <h2>Sign-up</h2>
+                <h2 data-i18n="signup.title">Sign-up</h2>
             </div>
             <form id="signupForm" class="auth-form">
                 <div class="text-container">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" name="username" id="username" placeholder="username" required minlength="3" maxlength="50">
+                    <input type="text" name="username" id="username" placeholder="username" data-i18n-placeholder="signup.username" required minlength="3" maxlength="50">
                 </div>
                 <div class="text-container">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="email" name="email" id="email" placeholder="e-mail" required>
+                    <input type="email" name="email" id="email" placeholder="e-mail" data-i18n-placeholder="signup.email" required>
                 </div>
                 <div class="text-container">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" name="password" id="password" placeholder="password" required minlength="6">
+                    <input type="password" name="password" id="password" placeholder="password" data-i18n-placeholder="signup.password" required minlength="6">
                 </div>
                 <div class="text-container">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" name="confirmPassword" id="confirmPassword" placeholder="confirm password" required>
+                    <input type="password" name="confirmPassword" id="confirmPassword" placeholder="confirm password" data-i18n-placeholder="signup.confirm_password" required>
                 </div>
                 <div class="auth-buttons">
-                    <input type="submit" value="Sign up" class="btn primary">
-                    <button type="button" class="btn secondary">Log-in</button>
+                    <input type="submit" value="Sign up" class="btn primary" data-i18n-value="buttons.register">
+                    <button type="button" class="btn secondary" data-i18n="buttons.login">Log-in</button>
                 </div>
             </form>
         </div>
@@ -62,8 +62,8 @@
                 <div class="orb"></div>
                 <div class="orb"></div>
             </div>
-            <h2>codium</h2>
-            <p>Learn/ Code/ Compete/</p>
+            <h2 data-i18n="app_name">codium</h2>
+            <p data-i18n="welcome">Learn/ Code/ Compete/</p>
         </div>
     </div>
 
