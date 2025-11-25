@@ -350,6 +350,17 @@ func (q *Queries) GetSectionStarterLessons(ctx context.Context) ([]Lesson, error
 	return items, nil
 }
 
+const resetSectionStarterForSection = `-- name: ResetSectionStarterForSection :exec
+UPDATE lessons
+SET section_starter = FALSE
+WHERE flags & 65280 = $1
+`
+
+func (q *Queries) ResetSectionStarterForSection(ctx context.Context, flags int32) error {
+	_, err := q.db.ExecContext(ctx, resetSectionStarterForSection, flags)
+	return err
+}
+
 const setSectionStarter = `-- name: SetSectionStarter :one
 UPDATE lessons
 SET section_starter = $2

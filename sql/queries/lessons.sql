@@ -81,3 +81,8 @@ UPDATE lessons
 SET section_starter = $2
 WHERE id = $1
 RETURNING *;
+
+-- name: ResetSectionStarterForSection :exec
+UPDATE lessons
+SET section_starter = FALSE
+WHERE flags & 65280 = $1;

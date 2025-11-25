@@ -240,6 +240,11 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, databa
 	}
 	sectionStarter := lesson.SectionStarter
 
+	err = cfg.db.ResetSectionStarterForSection(context.Background(), lesson.Flags&0x0000FF00)
+	if err != nil {
+		return fmt.Errorf("failed to reset section starters for section: %v", err), database.Lesson{}
+	}
+
 	res, err := cfg.db.SetSectionStarter(context.Background(), database.SetSectionStarterParams{
 		ID:             lessonID,
 		SectionStarter: !sectionStarter,
