@@ -240,7 +240,9 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, databa
 	}
 	sectionStarter := lesson.SectionStarter
 
-	err = cfg.db.ResetSectionStarterForSection(context.Background(), lesson.Flags&0x0000FF00)
+	section := lesson.Flags & 0x0000FF00
+	cfg.logger.Printf("Attempting to reset section starter for section: %v", section>>8)
+	err = cfg.db.ResetSectionStarterForSection(context.Background(), section)
 	if err != nil {
 		return fmt.Errorf("failed to reset section starters for section: %v", err), database.Lesson{}
 	}
@@ -1942,6 +1944,8 @@ func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *
 		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
+
+	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", LessonID)
 
 	err, res := cfg.UpdateSectionStartedLesson(LessonID)
 	if err != nil {
