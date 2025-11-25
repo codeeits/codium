@@ -154,6 +154,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 lessonItem.addEventListener("dragover", handleDragOver);
                 lessonItem.addEventListener("drop", handleDrop);
                 lessonItem.addEventListener("dragend", handleDragEnd);
+                lessonItem.addEventListener("click", handleClick);
                 
                 // Append to container
                 const arrangeLessonsContainer = document.getElementById("arrangeLessonsContainer");
@@ -205,6 +206,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             await updateLessonsOrder(newOrder);
         });
     }
+
     // Drag and Drop Handlers
 
     let draggedItem = null;
@@ -255,6 +257,34 @@ document.addEventListener("DOMContentLoaded", async function() {
             currentHighlight = null;
         }
         draggedItem = null;
+    }
+
+    function handleClick() {
+        const lessonId = this.dataset.lessonId;
+        renderLesson(lessonId, false);
+    }
+
+    // preview area
+
+    const previewArea = document.getElementById("preview-lesson-area");
+    const rawButton = document.getElementById("rawButton");
+    const mdButton = document.getElementById("mdButton");
+
+    async function renderLesson(lessonId, isMarkdown = false) {
+        const contentData = await window.apiService.getLessonById(lessonId);
+        console.log(contentData);
+        window.apiService.getFile(contentData.lesson.ContentID).then(lessonData => {
+            if (isMarkdown) {
+                //const markdownContent = lessonData.Lesson.Content;
+                //const htmlContent = window.markdownService.convertMarkdownToHTML(markdownContent);
+                //previewArea.innerHTML = htmlContent;
+            } else {
+                previewArea.textContent = lessonData;
+            }
+        }).catch(error => {
+            console.error('Failed to load lesson for preview:', error);
+            previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
+        });
     }
 
 });
