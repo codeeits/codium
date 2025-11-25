@@ -17,16 +17,38 @@
         "password": "password",
         "confirm_password": "confirm password"
     },
+    "user-page": {
+        "progress": "progress",
+        "achievements": "achievements",
+        "recent-activity": "recent activity",
+        "bookmarks": "bookmarks"
+    },
     "log-out": "log out",
     "top-menu": {
         "teory": "> theory",
         "probleme": "> problems"
     },
+    "modal": {
+        "edit_profile": {
+            "title": "edit profile",
+            "labels": {
+                "email": "Edit email:",
+                "username": "Edit username:",
+                "password": "Edit password:",
+                "image": "Upload profile picture:"
+            },
+            "email": "e-mail",
+            "username": "username",
+            "current_password": "actual password",
+            "new_password": "new password",
+            "note": "Leave fields empty if you don't want to change them"
+        }
+    },
     "buttons": {
         "save": "save",
         "cancel": "cancel",
         "submit": "submit",
-        "edit": "edit",
+        "edit": "edit profile",
         "delete": "delete",
         "create": "create",
         "update": "update",

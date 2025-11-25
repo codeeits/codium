@@ -70,10 +70,11 @@ document.addEventListener("DOMContentLoaded", async function() {
                     module: parseInt(moduleValue),
                     section: parseInt(sectionValue)
                 };
-                response = await window.apiService.getLessonsByFlags(
+                response = await window.apiService.getLessonsSortedByPrevNext(
                     filterData.class,
                     filterData.section,
-                    filterData.module
+                    filterData.module,
+                    true
                 );
             } else {
                 // Don't load lessons if not all parameters are provided

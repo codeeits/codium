@@ -4,8 +4,8 @@
 <div id="top-menu-default" class="menu-variant">
     <div class="nav-left">
         <h1 data-i18n="app_name">codium/</h1>
-        <button id="teorie-button" data-i18n="top-menu.teory"><u>> Teorie</u></button>
-        <button id="exercises-button" data-i18n="top-menu.probleme"><u>> Probleme</u></button>
+        <button id="teorie-button"><u data-i18n="top-menu.teory">> Teorie</u></button>
+        <button id="exercises-button"><u data-i18n="top-menu.probleme">> Probleme</u></button>
     </div>
     <div class="nav-buttons">
         <div class="language-selector">
@@ -18,12 +18,12 @@
         <button type="button"><i class="fas fa-moon"></i></button>
         
         <!-- Authentication-dependent buttons -->
-        <button type="button" id="login-button" class="auth-logged-out"><u>Loghează-te</u></button>
+        <button type="button" id="login-button" class="auth-logged-out"><u data-i18n="buttons.login">Loghează-te</u></button>
         <button type="button" id="user-button" class="auth-logged-in hidden">
             <i class="fas fa-user"></i> <u id="user-name">User</u>
         </button>
         <button type="button" id="logout-button" class="auth-logged-in hidden">
-            <i class="fas fa-sign-out-alt"></i> <u>Logout</u>
+            <i class="fas fa-sign-out-alt"></i> <u data-i18n="log-out">Logout</u>
         </button>
     </div>
 </div>

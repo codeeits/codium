@@ -17,16 +17,38 @@
         "password": "contrasenya",
         "confirm_password": "confirma la contrasenya"
     },
+    "user-page": {
+        "progress": "progrés",
+        "achievements": "aconseguiments",
+        "recent-activity": "activitat recent",
+        "bookmarks": "marcadors"
+    },
     "log-out": "tanca la sessió",
     "top-menu": {
         "teory": "> teoria",
         "probleme": "> problemes"
     },
+    "modal": {
+        "edit_profile": {
+            "title": "edita el perfil",
+            "labels": {
+                "email": "Edita l'e-mail:",
+                "username": "Edita el nom d'usuari:",
+                "password": "Edita la contrasenya:",
+                "image": "Puja la foto de perfil:"
+            },
+            "email": "e-mail",
+            "username": "nom d'usuari",
+            "current_password": "contrasenya actual",
+            "new_password": "contrasenya nova",
+            "note": "Deixa els camps buits si no vols canviar-los"
+        }
+    },
     "buttons": {
         "save": "desa",
         "cancel": "anula",
         "submit": "envia",
-        "edit": "edita",
+        "edit": "edita el perfil",
         "delete": "elimina",
         "create": "crea",
         "update": "actualitza",

@@ -54,11 +54,12 @@ function updateAuthButton() {
     }
 
     if(languageSelector) {
+        languageSelector.value = localStorage.getItem('lang') || 'ro';
         languageSelector.onchange = function() {
             const selectedLang = languageSelector.value;
             setLanguage(selectedLang);
         };
-        languageSelector.title = 'EN';
+        languageSelector.title = 'Select language';
     }
 
     if(hardLessonsExit) {
@@ -111,6 +112,7 @@ function updateAuthButton() {
         if (loginButton) {
             loginButton.classList.remove('hidden');
             loginButton.onclick = function() {
+                loadLanguage(localStorage.getItem('lang') || 'ro');
                 window.location.href = 'login.html';
             };
             loginButton.title = 'Login';
@@ -169,6 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('focus', function() {
         updateAuthButton();
     });
+
+    loadLanguage(localStorage.getItem('lang') || 'ro');
 });
 
 window.addEventListener('beforeunload', () => {
@@ -222,5 +226,3 @@ function setLanguage(langCode) {
   localStorage.setItem('lang', langCode);
   loadLanguage(langCode);
 }
-
-loadLanguage(localStorage.getItem('lang') || 'en');

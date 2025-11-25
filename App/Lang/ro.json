@@ -17,16 +17,38 @@
         "password": "parolă",
         "confirm_password": "confirmă parola"
     },
+    "user-page": {
+        "progress": "progres",
+        "achievements": "acomplimente",
+        "recent-activity": "activitate recentă",
+        "bookmarks": "lecții salvate"
+    },
     "log-out": "deconectare",
     "top-menu": {
         "teory": "> teorie",
         "probleme": "> probleme"
     },
+    "modal": {
+        "edit_profile": {
+            "title": "editează profilul",
+            "labels": {
+                "email": "Editează e-mailul:",
+                "username": "Editează numele de utilizator:",
+                "password": "Editează parola:",
+                "image": "Încarcă poza de profil:"
+            },
+            "email": "e-mail",
+            "username": "nume de utilizator",
+            "current_password": "parolă curentă",
+            "new_password": "parolă nouă",
+            "note": "Lasă câmpurile goale dacă nu dorești să le schimbi"
+        }
+    },
     "buttons": {
         "save": "salvează",
         "cancel": "anulează",
         "submit": "trimite",
-        "edit": "editează",
+        "edit": "editează profil",
         "delete": "șterge",
         "create": "creează",
         "update": "actualizează",

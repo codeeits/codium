@@ -34,10 +34,10 @@
             </div>
             <div class="user-card-buttons">
                 <button type="button" class="btn secondary" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> <span data-i18n="log-out">Logout</span>
                 </button>
                 <button type="button" class="btn primary" id="editProfileBtn">
-                    <i class="fas fa-edit"></i> Edit Profile
+                    <i class="fas fa-edit"></i> <span data-i18n="buttons.edit">Edit Profile</span>
                 </button>
                 <!--<button type="button" class="btn secondary" id="addLesson">
                     <i class="fas fa-plus"></i> Add Lesson
@@ -47,13 +47,13 @@
         <div class="user-nav left progress">
             <div class="user-title">
                 <i class="fa-solid fa-chart-line"></i>
-                <h2>Progress</h2>
+                <h2 data-i18n="user-page.progress">Progress</h2>
             </div>
         </div>
         <div class="user-nav right activitytate">
             <div class="user-title">
                 <i class="fa-solid fa-list-check"></i>
-                <h2>Activitate recentă</h2>
+                <h2 data-i18n="user-page.recent-activity">Activitate recentă</h2>
             </div>
             <div class="user-nav-body">
                 <div class="user-nav indivActivity">
@@ -88,13 +88,13 @@
         <div class="user-nav left achievements">
             <div class="user-title">
                 <i class="fa-solid fa-trophy"></i>
-                <h2>Achievements</h2>
+                <h2 data-i18n="user-page.achievements">Achievements</h2>
             </div>
         </div>
         <div class="user-nav right bookmarks">
             <div class="user-title">
                 <i class="fa-solid fa-bookmark"></i>
-                <h2>Bookmarks</h2>
+                <h2 data-i18n="user-page.bookmarks">Bookmarks</h2>
             </div>
         </div>
     </div>
@@ -105,14 +105,14 @@
         <div class="modal edit-m">
             <div class="modal-header">
                 <i class="fa-solid fa-pen"></i>
-                <h2>edit profile</h2>
+                <h2 data-i18n="modal.edit_profile.title">edit profile</h2>
             </div>
             <form action="" id="editProfileForm">
                 <div class="modal-field">
-                    <label for="editEmail">Edit email:</label>
+                    <label for="editEmail" data-i18n="modal.edit_profile.labels.email">Edit email:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-envelope"></i>
-                        <input type="email" name="email" id="editEmail" placeholder="email" minlength="3" maxlength="20">
+                        <input type="email" name="email" id="editEmail" placeholder="email" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="20">
                         <button type="button" class="delete-text-btn" title="Leave fields empty if you don't want to change them">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -120,10 +120,10 @@
                     <span class="modal-error" id="editEmailError"></span>
                 </div>
                 <div class="modal-field">
-                    <label for="editUsername">Edit username:</label>
+                    <label for="editUsername" data-i18n="modal.edit_profile.labels.username">Edit username:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-signature"></i>
-                        <input type="text" name="username" id="editUsername" placeholder="username" minlength="3" maxlength="20">
+                        <input type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20">
                         <button type="button" class="delete-text-btn" title="Leave fields empty if you don't want to change them">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -131,22 +131,22 @@
                     <span class="modal-error" id="editUsernameError"></span>
                 </div>
                 <div class="modal-field">
-                    <label for="oldPassword">Edit password:</label>
+                    <label for="oldPassword" data-i18n="modal.edit_profile.labels.password">Edit password:</label>
                     <div class="text-container">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" name="password" id="oldPassword" placeholder="actual password" minlength="6">
+                        <input type="password" name="password" id="oldPassword" placeholder="actual password" data-i18n-placeholder="modal.edit_profile.current_password" minlength="6">
                     </div>
                     <span class="modal-error" id="oldPasswordError"></span>
                 </div>
                 <div class="modal-field">
                     <div class="text-container">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" name="confirmPassword" id="newPassword" placeholder=" new password">
+                        <input type="password" name="confirmPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6">
                     </div>
                     <span class="modal-error" id="newPasswordError"></span>
                 </div>
                 <div class="modal-field">
-                    <label for="editProfilePicture">Upload profile picture: </label>
+                    <label for="editProfilePicture" data-i18n="modal.edit_profile.labels.image">Upload profile picture: </label>
                     <div class="text-container">
                         <i class="fa-solid fa-image"></i>
                         <input type="file" name="profilePicture" id="editProfilePicture" accept="image/*">
@@ -156,12 +156,12 @@
                     </div>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="btn secondary" id="cancelEditBtn">Cancel</button>
-                    <input type="submit" class="btn primary" id="saveEditBtn" value="Save Changes">
+                    <button type="button" class="btn secondary" id="cancelEditBtn" data-i18n="buttons.cancel">Cancel</button>
+                    <input type="submit" class="btn primary" id="saveEditBtn" value="Save Changes" data-i18n-value="buttons.save">
                 </div>
             </form>
             <div class="modal-footer">
-                    <p class="modal-note">Leave fields empty if you don't want to change them</p>
+                    <p class="modal-note" data-i18n="modal.edit_profile.note">Leave fields empty if you don't want to change them</p>
             </div>
         </div>
     </div>
