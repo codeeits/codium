@@ -1,3 +1,13 @@
+/*
+ __  __    __    _  _    __    ___  ____  __    ____  ___  ___  _____  _  _  ___     ____  ___ 
+(  \/  )  /__\  ( \( )  /__\  / __)( ___)(  )  ( ___)/ __)/ __)(  _  )( \( )/ __)   (_  _)/ __)
+ )    (  /(__)\  )  (  /(__)\( (_-. )__)  )(__  )__) \__ \\__ \ )(_)(  )  ( \__ \  .-_)(  \__ \
+(_/\/\_)(__)(__)(_)\_)(__)(__)\___/(____)(____)(____)(___/(___/(_____)(_)\_)(___/()\____) (___/
+
+tudutudutudutudu rapapapam
+
+Bucovina - Zi Dupa Zi, Noapte De Noapte
+*/
 document.addEventListener("DOMContentLoaded", async function() {
 
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
