@@ -193,20 +193,28 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 	q := r.URL.Query()
 	if len(q) == 0 {
 		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
 	}
 
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
 	}
 
 	sendingUser, err := cfg.AuthenticateUser(r)
 	if err != nil || !sendingUser.IsAdmin {
+		cfg.logger.Printf("Failed to authenticate user: %v", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
 
 	targetField := q.Get("target_field")
 	if targetField == "" {
-		cfg.logger.Printf("Missing search_type query parameter")
+		cfg.logger.Printf("Missing target_field query parameter")
+		http.Error(w, "Missing target_field query parameter", http.StatusBadRequest)
+		return
 	}
 
 	cfg.logger.Printf("Received update lesson request for field: %v", targetField)
@@ -226,6 +234,66 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		cfg.UpdateLessonsSectionStarterHandler(w, r)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
+		http.Error(w, "Invalid target_field", http.StatusBadRequest)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	sendingUser, err := cfg.AuthenticateUser(r)
+	if err != nil || !sendingUser.IsAdmin {
+		cfg.logger.Printf("Failed to authenticate user: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+	}
+
+	targetField := q.Get("target_field")
+	if targetField == "" {
+		cfg.logger.Printf("Missing target_field query parameter")
+		http.Error(w, "Missing target_field query parameter", http.StatusBadRequest)
+		return
+	}
+
+	testIDStr := r.PathValue("testID")
+	if testIDStr == "" {
+		cfg.logger.Printf("Missing test ID in request")
+		http.Error(w, "Missing test ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse test ID as UUID
+	testID, err := uuid.Parse(testIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received update problem test request for field: %v", targetField)
+	switch targetField {
+	case "input":
+		cfg.UpdateProblemTestInputHandler(w, r, testID)
+	case "expected_output":
+		cfg.UpdateProblemTestExpectedOutputHandler(w, r, testID)
+	case "prev":
+		cfg.UpdateProblemTestPreviousHandler(w, r, testID)
+	case "next":
+		cfg.UpdateProblemTestNextHandler(w, r, testID)
+	default:
+		cfg.logger.Printf("Invalid target_field: %v", targetField)
+		http.Error(w, "Invalid target_field", http.StatusBadRequest)
+		return
 	}
 }
 
@@ -2605,6 +2673,368 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get problem test by ID request")
+
+	testIDStr := r.PathValue("testID")
+	if testIDStr == "" {
+		cfg.logger.Printf("Missing test ID in request")
+		http.Error(w, "Missing test ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse test ID as UUID
+	testID, err := uuid.Parse(testIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.GetCodeTestByID(r.Context(), testID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received delete problem test request")
+	//Authenticate the user making the request
+	requestingUser, err := cfg.AuthenticateUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !requestingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete problem test attempt by non-admin user: %v", requestingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	testIDStr := r.PathValue("testID")
+	if testIDStr == "" {
+		cfg.logger.Printf("Missing test ID in request")
+		http.Error(w, "Missing test ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse test ID as UUID
+	testID, err := uuid.Parse(testIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format: %v", err)
+		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
+		return
+	}
+
+	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if test.NextTestID.Valid {
+		_, err = cfg.db.UpdatePreviousCodeTest(r.Context(), database.UpdatePreviousCodeTestParams{
+			ID:             test.NextTestID.UUID,
+			PreviousTestID: test.PreviousTestID,
+			UpdatedAt:      time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update next problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if test.PreviousTestID.Valid {
+		_, err = cfg.db.UpdateNextCodeTest(r.Context(), database.UpdateNextCodeTestParams{
+			ID:         test.PreviousTestID.UUID,
+			NextTestID: test.NextTestID,
+			UpdatedAt:  time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update previous problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	err = cfg.db.DeleteCodeTestByID(r.Context(), testID)
+	if err != nil {
+		cfg.logger.Printf("Failed to delete problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("Problem test deleted successfully."))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+	type params struct {
+		InputText string    `json:"input_text"`
+		InputFile uuid.UUID `json:"input_file"`
+	}
+
+	// Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	var inputFile bool
+	if p.InputFile != uuid.Nil {
+		inputFile = true
+	} else {
+		inputFile = false
+	}
+
+	res, err := cfg.db.UpdateCodeTestInputs(r.Context(), database.UpdateCodeTestInputsParams{
+		ID:        testID,
+		TxtInput:  sql.NullString{String: p.InputText, Valid: !inputFile},
+		FileInput: uuid.NullUUID{UUID: p.InputFile, Valid: inputFile},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem test inputs: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+	type params struct {
+		ExpectedOutput string `json:"expected_output"`
+	}
+
+	// Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateCodeTestExpectedOutput(r.Context(), database.UpdateCodeTestExpectedOutputParams{
+		ID:             testID,
+		ExpectedOutput: p.ExpectedOutput,
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem test expected output: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+	type params struct {
+		NextTestID uuid.UUID `json:"next_test_id"`
+	}
+
+	// Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	//Update the old next test's previous ID to null if it exists
+	if test.NextTestID.Valid {
+		_, err = cfg.db.UpdatePreviousCodeTest(r.Context(), database.UpdatePreviousCodeTestParams{
+			ID:             test.NextTestID.UUID,
+			PreviousTestID: uuid.NullUUID{UUID: uuid.Nil, Valid: false},
+			UpdatedAt:      time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update old next problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	res, err := cfg.db.UpdateNextCodeTest(r.Context(), database.UpdateNextCodeTestParams{
+		ID:         testID,
+		NextTestID: uuid.NullUUID{UUID: p.NextTestID, Valid: p.NextTestID != uuid.Nil},
+		UpdatedAt:  time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem test next ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	testJson, err := PrintProblemTestToJson(res)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(testJson))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+	type params struct {
+		PreviousTestID uuid.UUID `json:"previous_test_id"`
+	}
+
+	// Database check is done in the disambiguation function
+
+	decoder := json.NewDecoder(r.Body)
+	var p params
+	err := decoder.Decode(&p)
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	//Update the old previous test's next ID to null if it exists
+	if test.PreviousTestID.Valid {
+		_, err = cfg.db.UpdateNextCodeTest(r.Context(), database.UpdateNextCodeTestParams{
+			ID:         test.PreviousTestID.UUID,
+			NextTestID: uuid.NullUUID{UUID: uuid.Nil, Valid: false},
+			UpdatedAt:  time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update old previous problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	res, err := cfg.db.UpdatePreviousCodeTest(r.Context(), database.UpdatePreviousCodeTestParams{
+		ID:             testID,
+		PreviousTestID: uuid.NullUUID{UUID: p.PreviousTestID, Valid: p.PreviousTestID != uuid.Nil},
+		UpdatedAt:      time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem test previous ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
 	testJson, err := PrintProblemTestToJson(res)
 	if err != nil {
 		cfg.logger.Printf("Failed to marshal problem test: %v", err)

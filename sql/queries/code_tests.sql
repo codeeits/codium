@@ -36,30 +36,10 @@ SET expected_output = $2,
 WHERE id = $1
 RETURNING *;
 
--- name: UpdateCodeTestFileInput :one
-UPDATE code_tests
-SET file_input = $2,
-    updated_at = $3
-WHERE id = $1
-RETURNING *;
-
--- name: UpdateCodeTestTxtInput :one
+-- name: UpdateCodeTestInputs :one
 UPDATE code_tests
 SET txt_input = $2,
-    updated_at = $3
-WHERE id = $1
-RETURNING *;
-
--- name: ResetCodeTestFileInput :one
-UPDATE code_tests
-SET file_input = NULL,
-    updated_at = $2
-WHERE id = $1
-RETURNING *;
-
--- name: ResetCodeTestTxtInput :one
-UPDATE code_tests
-SET txt_input = NULL,
-    updated_at = $2
+    file_input = $3,
+    updated_at = $4
 WHERE id = $1
 RETURNING *;

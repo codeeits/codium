@@ -123,64 +123,6 @@ func (q *Queries) ListCodeTestsByIDs(ctx context.Context, id uuid.UUID) ([]CodeT
 	return items, nil
 }
 
-const resetCodeTestFileInput = `-- name: ResetCodeTestFileInput :one
-UPDATE code_tests
-SET file_input = NULL,
-    updated_at = $2
-WHERE id = $1
-RETURNING id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id
-`
-
-type ResetCodeTestFileInputParams struct {
-	ID        uuid.UUID
-	UpdatedAt time.Time
-}
-
-func (q *Queries) ResetCodeTestFileInput(ctx context.Context, arg ResetCodeTestFileInputParams) (CodeTest, error) {
-	row := q.db.QueryRowContext(ctx, resetCodeTestFileInput, arg.ID, arg.UpdatedAt)
-	var i CodeTest
-	err := row.Scan(
-		&i.ID,
-		&i.TxtInput,
-		&i.FileInput,
-		&i.ExpectedOutput,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.NextTestID,
-		&i.PreviousTestID,
-	)
-	return i, err
-}
-
-const resetCodeTestTxtInput = `-- name: ResetCodeTestTxtInput :one
-UPDATE code_tests
-SET txt_input = NULL,
-    updated_at = $2
-WHERE id = $1
-RETURNING id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id
-`
-
-type ResetCodeTestTxtInputParams struct {
-	ID        uuid.UUID
-	UpdatedAt time.Time
-}
-
-func (q *Queries) ResetCodeTestTxtInput(ctx context.Context, arg ResetCodeTestTxtInputParams) (CodeTest, error) {
-	row := q.db.QueryRowContext(ctx, resetCodeTestTxtInput, arg.ID, arg.UpdatedAt)
-	var i CodeTest
-	err := row.Scan(
-		&i.ID,
-		&i.TxtInput,
-		&i.FileInput,
-		&i.ExpectedOutput,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.NextTestID,
-		&i.PreviousTestID,
-	)
-	return i, err
-}
-
 const updateCodeTestExpectedOutput = `-- name: UpdateCodeTestExpectedOutput :one
 UPDATE code_tests
 SET expected_output = $2,
@@ -211,52 +153,29 @@ func (q *Queries) UpdateCodeTestExpectedOutput(ctx context.Context, arg UpdateCo
 	return i, err
 }
 
-const updateCodeTestFileInput = `-- name: UpdateCodeTestFileInput :one
+const updateCodeTestInputs = `-- name: UpdateCodeTestInputs :one
 UPDATE code_tests
-SET file_input = $2,
-    updated_at = $3
+SET txt_input = $2,
+    file_input = $3,
+    updated_at = $4
 WHERE id = $1
 RETURNING id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id
 `
 
-type UpdateCodeTestFileInputParams struct {
+type UpdateCodeTestInputsParams struct {
 	ID        uuid.UUID
+	TxtInput  sql.NullString
 	FileInput uuid.NullUUID
 	UpdatedAt time.Time
 }
 
-func (q *Queries) UpdateCodeTestFileInput(ctx context.Context, arg UpdateCodeTestFileInputParams) (CodeTest, error) {
-	row := q.db.QueryRowContext(ctx, updateCodeTestFileInput, arg.ID, arg.FileInput, arg.UpdatedAt)
-	var i CodeTest
-	err := row.Scan(
-		&i.ID,
-		&i.TxtInput,
-		&i.FileInput,
-		&i.ExpectedOutput,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.NextTestID,
-		&i.PreviousTestID,
+func (q *Queries) UpdateCodeTestInputs(ctx context.Context, arg UpdateCodeTestInputsParams) (CodeTest, error) {
+	row := q.db.QueryRowContext(ctx, updateCodeTestInputs,
+		arg.ID,
+		arg.TxtInput,
+		arg.FileInput,
+		arg.UpdatedAt,
 	)
-	return i, err
-}
-
-const updateCodeTestTxtInput = `-- name: UpdateCodeTestTxtInput :one
-UPDATE code_tests
-SET txt_input = $2,
-    updated_at = $3
-WHERE id = $1
-RETURNING id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id
-`
-
-type UpdateCodeTestTxtInputParams struct {
-	ID        uuid.UUID
-	TxtInput  sql.NullString
-	UpdatedAt time.Time
-}
-
-func (q *Queries) UpdateCodeTestTxtInput(ctx context.Context, arg UpdateCodeTestTxtInputParams) (CodeTest, error) {
-	row := q.db.QueryRowContext(ctx, updateCodeTestTxtInput, arg.ID, arg.TxtInput, arg.UpdatedAt)
 	var i CodeTest
 	err := row.Scan(
 		&i.ID,
