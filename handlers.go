@@ -219,19 +219,34 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 
 	cfg.logger.Printf("Received update lesson request for field: %v", targetField)
 
+	lessonIDStr := r.PathValue("lessonID")
+	if lessonIDStr == "" {
+		cfg.logger.Printf("Missing lesson ID in request")
+		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse lesson ID as UUID
+	lessonID, err := uuid.Parse(lessonIDStr)
+	if err != nil {
+		cfg.logger.Printf("Invalid lesson ID: %v", lessonIDStr)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
 	switch targetField {
 	case "next":
-		cfg.UpdateLessonNextHandler(w, r)
+		cfg.UpdateLessonNextHandler(w, r, lessonID)
 	case "prev":
-		cfg.UpdateLessonPrevHandler(w, r)
+		cfg.UpdateLessonPrevHandler(w, r, lessonID)
 	case "details":
-		cfg.UpdateLessonDetailsHandler(w, r)
+		cfg.UpdateLessonDetailsHandler(w, r, lessonID)
 	case "content":
-		cfg.UpdateLessonContentHandler(w, r)
+		cfg.UpdateLessonContentHandler(w, r, lessonID)
 	case "flags":
-		cfg.UpdateLessonFlagsHandler(w, r)
+		cfg.UpdateLessonFlagsHandler(w, r, lessonID)
 	case "section_starter":
-		cfg.UpdateLessonsSectionStarterHandler(w, r)
+		cfg.UpdateLessonsSectionStarterHandler(w, r, lessonID)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -1619,7 +1634,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	type params struct {
 		Next uuid.UUID `json:"next"`
 	}
@@ -1632,21 +1647,6 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
-	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -1710,7 +1710,7 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	type params struct {
 		Prev uuid.UUID `json:"prev"`
 	}
@@ -1722,21 +1722,6 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
-	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -1800,7 +1785,7 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	type params struct {
 		ContentID string `json:"content_id"`
 	}
@@ -1812,21 +1797,6 @@ func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
-	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -1864,7 +1834,7 @@ func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	type params struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -1878,21 +1848,6 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
-	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -1924,7 +1879,7 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	type params struct {
 		Class   int `json:"class"`
 		Section int `json:"section"`
@@ -1940,21 +1895,6 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
-	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -1995,27 +1935,12 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
 	//Database check is done in the disambiguation function
 
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
+	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", lessonID)
 
-	// Parse lesson ID as UUID
-	LessonID, err := uuid.Parse(lessonIDStr)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
-		return
-	}
-
-	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", LessonID)
-
-	err, res := cfg.UpdateSectionStartedLesson(LessonID)
+	err, res := cfg.UpdateSectionStartedLesson(lessonID)
 	if err != nil {
 		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
