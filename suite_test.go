@@ -936,6 +936,55 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestDeleteSectionStarterLesson", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+lessonIds[1].String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			//Verify that the next lesson no longer has a prev lesson ID
+			req, err = http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[2].String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp2, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp2.Body.Close()
+
+			if resp2.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp2.StatusCode)
+			}
+
+			var lesson LessonWithFlags
+			err = json.NewDecoder(resp2.Body).Decode(&lesson)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if lesson.Lesson.SectionStarter != true {
+				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
+			}
+			if lesson.Lesson.PrevLessonID.Valid != false {
+				t.Fatalf("Expected lesson previous lesson ID to be null, got %v", lesson.Lesson.PrevLessonID)
+			}
+		})
+
 		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
 			if err != nil {

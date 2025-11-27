@@ -312,14 +312,14 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 	}
 }
 
-func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, database.Lesson) {
+func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (database.Lesson, error) {
 	if !cfg.dbLoaded {
-		return fmt.Errorf("database not connected"), database.Lesson{}
+		return database.Lesson{}, fmt.Errorf("database not connected")
 	}
 
 	lesson, err := cfg.GetLessonByID(lessonID)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve lesson: %v", err), database.Lesson{}
+		return database.Lesson{}, fmt.Errorf("failed to retrieve lesson: %v", err)
 	}
 	sectionStarter := lesson.SectionStarter
 
@@ -327,7 +327,7 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, databa
 	cfg.logger.Printf("Attempting to reset section starter for section: %v", section>>8)
 	err = cfg.db.ResetSectionStarterForSection(context.Background(), section)
 	if err != nil {
-		return fmt.Errorf("failed to reset section starters for section: %v", err), database.Lesson{}
+		return database.Lesson{}, fmt.Errorf("failed to reset section starters for section: %v", err)
 	}
 
 	res, err := cfg.db.SetSectionStarter(context.Background(), database.SetSectionStarterParams{
@@ -335,10 +335,10 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (error, databa
 		SectionStarter: !sectionStarter,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to set section starter: %v", err), database.Lesson{}
+		return database.Lesson{}, fmt.Errorf("failed to set section starter: %v", err)
 	}
 
-	return nil, res
+	return res, nil
 }
 
 /*
@@ -1618,6 +1618,52 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("Lesson not found: %v", lessonID)
+			http.Error(w, "Lesson not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update previous lesson's next pointer
+	if lesson.PrevLessonID.Valid {
+		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
+			ID:           lesson.PrevLessonID.UUID,
+			NextLessonID: uuid.NullUUID{UUID: uuid.UUID{}, Valid: false},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update previous lesson's next pointer: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Update next lesson's previous pointer
+	if lesson.NextLessonID.Valid {
+		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
+			ID:           lesson.NextLessonID.UUID,
+			PrevLessonID: uuid.NullUUID{UUID: uuid.UUID{}, Valid: false},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update next lesson's previous pointer: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if lesson.SectionStarter && lesson.NextLessonID.Valid {
+		_, err = cfg.UpdateSectionStartedLesson(lesson.NextLessonID.UUID)
+	}
+
+	// Delete the lesson
+
 	err = cfg.DeleteLesson(lessonID)
 	if err != nil {
 		cfg.logger.Printf("Failed to delete lesson: %v", err)
@@ -1940,7 +1986,7 @@ func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *
 
 	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", lessonID)
 
-	err, res := cfg.UpdateSectionStartedLesson(lessonID)
+	res, err := cfg.UpdateSectionStartedLesson(lessonID)
 	if err != nil {
 		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
