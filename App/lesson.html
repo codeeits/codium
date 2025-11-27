@@ -6,6 +6,7 @@
     <title>Lecție - Codium</title>
 
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="Styles/elements.css">
     <link rel="stylesheet" href="Styles/main.css">
 
     <!-- External Resources REQ. -->
@@ -65,10 +66,18 @@
                     <li><p id="lesson-module"></p></li>
                 </ul>
                 <div id="account_buttons">
-                    <button id="bookmarkButton" class="btn primary">Bookmark</button>
+                    <button id="bookmarkButton" class="btn primary"><i class="fas fa-bookmark"></i> Bookmark</button>
                 </div>
                 <hr>
                 <div id="lesson-body"></div>
+            </div>
+            <div class="bottom-buttons">
+                <button id="prev-lesson-btn" class="btn secondary">
+                    <i class="fas fa-chevron-left"></i> Previous Lesson
+                </button>
+                <button id="next-lesson-btn" class="btn primary">
+                    Next Lesson <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
         
@@ -79,6 +88,7 @@
 
             <!-- automatic sidebar content will be generated here -->
         </div>
+
     </div>
 
     <style>

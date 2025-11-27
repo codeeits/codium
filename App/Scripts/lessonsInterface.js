@@ -38,6 +38,8 @@ document.addEventListener("DOMContentLoaded", async function() {
     const sectionElement = document.getElementById("lesson-section");
     const moduleElement = document.getElementById("lesson-module");
     const bookmarkButton = document.getElementById("bookmarkButton");
+    const prevLessonBtn = document.getElementById("prev-lesson-btn");
+    const nextLessonBtn = document.getElementById("next-lesson-btn");
 
     // Add this check:
 
@@ -50,6 +52,10 @@ document.addEventListener("DOMContentLoaded", async function() {
         lessonId = lessonId.trim();
         contentRaw = await window.apiService.getLessonById(lessonId); 
 
+        window.apiService.startLesson(lessonId).catch(error => {
+            console.error("Failed to mark lesson as started:", error);
+        });
+        
         contentTitle = contentRaw.lesson.Title || `Lesson ${lessonId}`;
         document.title = `${contentTitle} - Codium`;
         console.log(contentRaw);
@@ -71,6 +77,26 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         if (bookmarkButton) {
             bookmarkButton.addEventListener("click", bookmarkToggle);
+        }
+
+        if (nextLessonBtn) {
+            let nextLessonId = contentRaw.lesson.NextLessonID;
+            nextLessonBtn.addEventListener("click", () => nextButtonHandler(nextLessonId));
+            if (!nextLessonId) {
+                nextLessonBtn.disabled = true;
+                nextLessonBtn.style.opacity = "0.5";
+                nextLessonBtn.title = "No next lesson available";
+            }
+        }
+
+        if (prevLessonBtn) {
+            let prevLessonId = contentRaw.lesson.PrevLessonID;
+            prevLessonBtn.addEventListener("click", () => prevButtonHandler(prevLessonId));
+            if (!prevLessonId) {
+                prevLessonBtn.disabled = true;
+                prevLessonBtn.style.opacity = "0.5";
+                prevLessonBtn.title = "No previous lesson available";
+            }
         }
 
         const applyTopMenu = () => {
@@ -287,10 +313,10 @@ document.addEventListener("DOMContentLoaded", async function() {
         
         window.apiService.getBookmarkStatus(lessonId).then(isBookmarked => {
             if (isBookmarked) {
-                bookmarkButton.textContent = "Remove Bookmark";
+                bookmarkButton.innerHTML = "<i class='fas fa-bookmark'></i> Remove Bookmark";
                 toastsLoader.showToast("Lesson bookmarked", "confirm");
             } else {
-                bookmarkButton.textContent = "Bookmark";
+                bookmarkButton.innerHTML = "<i class='fas fa-bookmark'></i> Bookmark";
                 toastsLoader.showToast("Bookmark removed", "info");
             }
         }).catch(error => {
@@ -306,5 +332,18 @@ document.addEventListener("DOMContentLoaded", async function() {
             console.error("Bookmark toggle failed:", error);
             toastsLoader.showToast("Failed to toggle bookmark", "danger");
         });
+    }
+
+    async function nextButtonHandler(nextLessonId) {
+        if (!nextLessonBtn) return;
+        window.location.href = `lesson.html?id=${nextLessonId}`;
+        window.apiService.finishLesson(lessonId).catch(error => {
+            console.error("Failed to mark lesson as finished:", error);
+        });
+    }
+
+    async function prevButtonHandler(prevLessonId) {
+        if (!prevLessonBtn) return;
+        window.location.href = `lesson.html?id=${prevLessonId}`;
     }
 });

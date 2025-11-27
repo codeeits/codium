@@ -403,6 +403,14 @@ class ApiService {
         return isBookmarked;
     }
 
+    async finishLesson(lessonId) {
+        return this.post(`/api/lessons/${lessonId}/complete`, {}, true);
+    }
+
+    async startLesson(lessonId) {
+        return this.post(`/api/lessons/${lessonId}/start`, {}, true);
+    }
+
     async updateLessonOrder(lessonId, prev = null, next = null) {
         // Validate lesson ID
         if (!lessonId || lessonId.trim() === '') {
@@ -420,7 +428,6 @@ class ApiService {
     async updateLessonSectionStarter(lessonId, sectionNumber) {
         return this.put(`/api/lessons/${lessonId}?target_field=section_starter`, { section: sectionNumber }, true);
     }
-
 
     async updateLessonContent(lessonId, file) {
         // First upload the file
