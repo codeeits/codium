@@ -382,6 +382,27 @@ class ApiService {
         return arrayFromSet;
     }
 
+    async modifyBookmark(lessonId) {
+        return this.post(`/api/lessons/${lessonId}/bookmark`, {}, true);
+    }
+
+    async getBookmarks(userId) {
+        return this.get(`/api/users/${userId}/bookmarks`);
+    }
+
+    async getBookmarkStatus(lessonId, userId = null) {
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        
+        const bookmarks = await this.getBookmarks(userId);
+        console.log('Bookmarks:', bookmarks);
+        const isBookmarked = bookmarks.some(bookmark => bookmark.LessonID === lessonId);
+        return isBookmarked;
+    }
+
     async updateLessonOrder(lessonId, prev = null, next = null) {
         // Validate lesson ID
         if (!lessonId || lessonId.trim() === '') {

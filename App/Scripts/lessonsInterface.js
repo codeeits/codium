@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     const classElement = document.getElementById("lesson-class");
     const sectionElement = document.getElementById("lesson-section");
     const moduleElement = document.getElementById("lesson-module");
+    const bookmarkButton = document.getElementById("bookmarkButton");
 
     // Add this check:
 
@@ -67,6 +68,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         contentClass = contentRaw.flag_translation.class || "Unknown class";
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
+
+        bookmarkButton.addEventListener("click", bookmarkToggle);
 
         const applyTopMenu = () => {
             const tTopic = document.getElementById("lesson-topmenu-topic");
@@ -197,6 +200,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     renderSidebar();
+    bookmarkHandler();
 
     async function renderSidebar() {
         try {
@@ -271,5 +275,29 @@ document.addEventListener("DOMContentLoaded", async function() {
         } catch (error) {
             console.error("Failed to render sidebar:", error);
         }
+    }
+
+    function bookmarkHandler() {
+        window.apiService.getBookmarkStatus(lessonId).then(isBookmarked => {
+            if (isBookmarked) {
+                bookmarkButton.textContent = "Remove Bookmark";
+                toastsLoader.showToast("Lesson bookmarked", "confirm");
+            } else {
+                bookmarkButton.textContent = "Bookmark";
+                toastsLoader.showToast("Bookmark removed", "info");
+            }
+        }).catch(error => {
+            console.error("Bookmark toggle failed:", error);
+            toastsLoader.showToast("Failed to toggle bookmark", "danger");
+        });
+    }
+
+    function bookmarkToggle() {
+        window.apiService.modifyBookmark(lessonId).then(() => {
+            bookmarkHandler();
+        }).catch(error => {
+            console.error("Bookmark toggle failed:", error);
+            toastsLoader.showToast("Failed to toggle bookmark", "danger");
+        });
     }
 });
