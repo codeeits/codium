@@ -16,6 +16,34 @@
     <link rel="stylesheet" href="Styles/main.css">
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- MathJax Configuration (Safari-compatible) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            startup: {
+                ready: function () {
+                    console.log('MathJax is ready');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <script src="Scripts/main.js" defer></script> 
     <script src="Scripts/apiHandlers.js"></script>
     <script src="Scripts/manageLessons.js" defer></script>
@@ -86,10 +114,9 @@
                     <button id="rawButton" class="btn primary">Raw</button>
                     <button id="mdButton" class="btn secondary">Markdown Preview</button>
                 </div>
-                <div class="preview-lesson-area">
+            </div>
+            <div class="preview-lesson-area" id="lesson-body">
                     <!-- Lesso loaded with markdown after selecting lesson -->
-                    <textarea id="preview-lesson-area" readonly>No lesson selected.</textarea>
-                </div>
             </div>
     </div>
     

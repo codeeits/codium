@@ -259,14 +259,20 @@ document.addEventListener("DOMContentLoaded", async function() {
         draggedItem = null;
     }
 
+    lessonIdClicked = null;
+
     function handleClick() {
-        const lessonId = this.dataset.lessonId;
-        renderLesson(lessonId, false);
+        lessonIdClicked = this.dataset.lessonId;
+        rawButton.classList.add("primary");
+        rawButton.classList.remove("secondary");
+        mdButton.classList.add("secondary");
+        mdButton.classList.remove("primary");
+        renderLesson(lessonIdClicked, false);
     }
 
     // preview area
 
-    const previewArea = document.getElementById("preview-lesson-area");
+    const previewArea = document.getElementById("lesson-body");
     const rawButton = document.getElementById("rawButton");
     const mdButton = document.getElementById("mdButton");
 
@@ -278,13 +284,115 @@ document.addEventListener("DOMContentLoaded", async function() {
                 //const markdownContent = lessonData.Lesson.Content;
                 //const htmlContent = window.markdownService.convertMarkdownToHTML(markdownContent);
                 //previewArea.innerHTML = htmlContent;
+                MarkdownToHtml(lessonData);
             } else {
-                previewArea.textContent = lessonData;
+                const textarea = document.createElement('textarea');
+                textarea.value = lessonData;
+                textarea.readOnly = true;
+                textarea.id = "preview-lesson-textarea";
+                previewArea.innerHTML = '';
+                previewArea.appendChild(textarea);
             }
         }).catch(error => {
             console.error('Failed to load lesson for preview:', error);
             previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
         });
     }
+
+    // handler buttons
+
+    rawButton.addEventListener("click", function(){
+        const lessonId = lessonIdClicked;
+        rawButton.classList.add("primary");
+        rawButton.classList.remove("secondary");
+        mdButton.classList.add("secondary");
+        mdButton.classList.remove("primary");
+        renderLesson(lessonId, false);
+    });
+
+    mdButton.addEventListener("click", function(){
+        const lessonId = lessonIdClicked;
+        mdButton.classList.add("primary");
+        mdButton.classList.remove("secondary");
+        rawButton.classList.add("secondary");
+        rawButton.classList.remove("primary");
+        renderLesson(lessonId, true);
+    });
+
+    // I was to lazy to make this a uuhhh nvm
+
+    function MarkdownToHtml(markdown) {
+        const renderer = {
+            heading(token) {
+                
+                const plain = token.text || '';
+                const level = token.depth || 1;
+                const slug = plain
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, '') // remove accents
+                .replace(/[^\w]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+
+                return `<h${level} id="${slug}">${plain}</h${level}>`;
+            }
+        };
+
+        marked.use({ renderer });
+
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+            }
+        });
+
+        previewArea.innerHTML = marked.parse(markdown);
+
+        hljs.highlightAll();
+        
+        // Process MathJax after content is rendered (Safari-compatible)
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            // Wait a bit for DOM to settle
+            setTimeout(() => {
+                MathJax.typesetPromise([previewArea]).then(() => {
+                    console.log('MathJax processing complete');
+                }).catch((err) => {
+                    console.error('MathJax typeset failed:', err);
+                });
+            }, 100);
+        } else if (window.MathJax && window.MathJax.Hub) {
+            // Fallback for older MathJax versions
+            setTimeout(() => {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, previewArea]);
+            }, 100);
+        }
+
+        if (window.mermaid) {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'dark',
+                themeVariables: {
+                    primaryColor: '#9B59BB',
+                    primaryTextColor: '#FFFFFF',
+                    primaryBorderColor: '#9B59BB',
+                    lineColor: '#B380CB',
+                    secondaryColor: '#B380CB',
+                    tertiaryColor: '#8E44AD',
+                }
+            });
+
+            setTimeout(() => {
+                mermaid.run({
+                    querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
+                }).then(() => {
+                    console.log('Mermaid diagrams rendered');
+                }).catch((err) => {
+                    console.error('Mermaid rendering failed:', err);
+                });
+            }, 200);
+        }
+    }
+
 
 });

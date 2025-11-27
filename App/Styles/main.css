@@ -425,6 +425,13 @@ body {
     color: var(--text-color);
 }
 
+.manage-lessons-nav.preview.left .preview-lesson-area {
+    overflow-y: auto;
+    /*max-height: 80vh;*/
+    overflow-x: hidden;
+    width: 100%;
+}
+
 /* ========================================
    AUTH PAGE STYLES
    ======================================== */
@@ -1012,6 +1019,7 @@ body {
 
 .arrange-lesson-item {
     background: var(--secondary);
+    cursor: pointer;
     padding: .5rem;
     border-radius: 1rem;
     display: flex;
@@ -1025,8 +1033,8 @@ body {
     background-clip: padding-box;
 }
 
-#preview-lesson-area {
-    width: 25rem;
+#preview-lesson-textarea {
+    width: 100%;
     height: 30rem;
     border: none;
     /* border-radius: 1rem; */
