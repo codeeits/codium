@@ -177,12 +177,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('beforeunload', () => {
   sessionStorage.setItem('scrollY', window.scrollY);
+  sessionStorage.setItem('currentPage', window.location.href);
 });
 
 window.addEventListener('load', () => {
   setTimeout(() => {
     const y = sessionStorage.getItem('scrollY');
-    if (y !== null) window.scrollTo({ top: parseFloat(y), behavior: 'smooth' });
+    const savedPage = sessionStorage.getItem('currentPage');
+    if (y !== null && savedPage === window.location.href) {
+      window.scrollTo({ top: parseFloat(y), behavior: 'smooth' });
+    }
   }, 200);
 });
 
