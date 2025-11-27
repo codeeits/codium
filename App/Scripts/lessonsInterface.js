@@ -69,7 +69,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
 
-        bookmarkButton.addEventListener("click", bookmarkToggle);
+        if (bookmarkButton) {
+            bookmarkButton.addEventListener("click", bookmarkToggle);
+        }
 
         const applyTopMenu = () => {
             const tTopic = document.getElementById("lesson-topmenu-topic");
@@ -278,6 +280,11 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     function bookmarkHandler() {
+        if (!bookmarkButton) {
+            console.warn("Bookmark button not found in DOM");
+            return;
+        }
+        
         window.apiService.getBookmarkStatus(lessonId).then(isBookmarked => {
             if (isBookmarked) {
                 bookmarkButton.textContent = "Remove Bookmark";

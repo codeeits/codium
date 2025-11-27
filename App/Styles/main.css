@@ -1182,6 +1182,21 @@ body {
     grid-area: activitytate;
 }
 
+#bookmarksContainer {
+    overflow-y: auto;
+    max-height: 25vh;
+}
+
+/* Individual bookmark item */
+
+.user-nav.indiv_bookmark {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    cursor: pointer;
+}
+
 /* Individual activity item */
 
 .user-nav.indivActivity {

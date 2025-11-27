@@ -8,7 +8,9 @@ We aint talkin about user.js
 */
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+
+    let userId = null;
 
     // DOM elements
 
@@ -28,7 +30,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'login.html';
         return;
     } else {
-        toastsLoader.showToast('auth!', 'confirm');
+        const currentUser = await window.apiService.getCurrentUser();
+        const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+        userId = userData.ID;
+        console.log('Current User ID:', userId);
     }
 
     // ------------------------------
@@ -229,5 +234,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     });
 
+    // ------------------------------
+    // BOOKMARKS STUFF
+    // ------------------------------
+
+    const bookmarksContainer = document.getElementById('bookmarksContainer');
+    const bookmarkTemplate = document.getElementById('bookmarkTemplate');
+
+    let bookmarks = [];
+
+    bookmarks = await window.apiService.getBookmarks(userId);
+
+    if (bookmarks.length === 0) {
+        bookmarksContainer.innerHTML = '<p>No bookmarks yet.</p>';
+    } else {
+        bookmarksContainer.innerHTML = '';
+        for(const bookmarkEle of bookmarks) {
+            const lessonData = await window.apiService.getLessonById(bookmarkEle.LessonID);
+            const bookmarkClone = bookmarkTemplate.cloneNode(true);
+            bookmarkClone.style.display = 'flex';
+            bookmarkClone.id = `bookmark-${lessonData.lesson.ID}`;
+            bookmarkClone.querySelector('h3').textContent = lessonData.lesson.Title;
+            bookmarkClone.querySelector('.Module').textContent = `Module ${lessonData.flag_translation.module}`;
+            bookmarkClone.querySelector('.Class').textContent = `Class ${lessonData.flag_translation.class}`;
+            bookmarkClone.querySelector('.Section').textContent = `Section ${lessonData.flag_translation.section}`;
+            bookmarkClone.onclick = function() {
+                window.location.href = `lesson.html?id=${lessonData.lesson.ID}`;
+            };
+            bookmarksContainer.appendChild(bookmarkClone);
+            console.log('Lesson data for bookmark:', lessonData);
+    }
+    }
 
 });
