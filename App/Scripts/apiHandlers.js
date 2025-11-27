@@ -400,6 +400,14 @@ class ApiService {
         return this.put(`/api/lessons/${lessonId}?target_field=section_starter`, { section: sectionNumber }, true);
     }
 
+
+    async updateLessonContent(lessonId, file) {
+        // First upload the file
+        const fileResponse = await this.uploadFile(file, 'lessons');
+        // here we could also delete the old file :D
+        return this.put(`/api/lessons/${lessonId}?target_field=content`, { content_id: fileResponse.file_id }, true);
+    }
+
     async uploadLesson(lessonData, file) {
         // First upload the file
         const fileResponse = await this.uploadFile(file, 'lessons');

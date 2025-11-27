@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         rawButton.classList.remove("secondary");
         mdButton.classList.add("secondary");
         mdButton.classList.remove("primary");
-        renderLesson(lessonIdClicked, false);
+        renderLesson(lessonIdClicked, false, true);
     }
 
     // preview area
@@ -275,28 +275,52 @@ document.addEventListener("DOMContentLoaded", async function() {
     const previewArea = document.getElementById("lesson-body");
     const rawButton = document.getElementById("rawButton");
     const mdButton = document.getElementById("mdButton");
+    const saveButton = document.getElementById("saveButton");
+    let contentData = null;
 
-    async function renderLesson(lessonId, isMarkdown = false) {
-        const contentData = await window.apiService.getLessonById(lessonId);
-        console.log(contentData);
-        window.apiService.getFile(contentData.lesson.ContentID).then(lessonData => {
-            if (isMarkdown) {
-                //const markdownContent = lessonData.Lesson.Content;
-                //const htmlContent = window.markdownService.convertMarkdownToHTML(markdownContent);
-                //previewArea.innerHTML = htmlContent;
-                MarkdownToHtml(lessonData);
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = lessonData;
-                textarea.readOnly = true;
-                textarea.id = "preview-lesson-textarea";
-                previewArea.innerHTML = '';
-                previewArea.appendChild(textarea);
-            }
-        }).catch(error => {
-            console.error('Failed to load lesson for preview:', error);
-            previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
-        });
+    async function renderLesson(lessonId, isMarkdown = false, firstCall = false) {
+        if (!lessonId) {
+            console.warn('No lesson ID provided for rendering');
+            return;
+        }
+        if (firstCall) {
+            toastsLoader.showToast('Loading lesson preview...', 'info');
+            const result = await window.apiService.getLessonById(lessonId);
+            console.log(window.apiService.getFile(result.lesson.ContentID));
+            window.apiService.getFile(result.lesson.ContentID).then(lessonData => {
+                contentData = lessonData;
+                renderLesson(lessonId, isMarkdown);
+            }).catch(error => {
+                console.error('Failed to load lesson for preview:', error);
+                toastsLoader.showToast('Failed to load lesson preview.', 'danger');
+                previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
+            });
+        }
+
+        if (isMarkdown) {
+            //const markdownContent = lessonData.Lesson.Content;
+            //const htmlContent = window.markdownService.convertMarkdownToHTML(markdownContent);
+            //previewArea.innerHTML = htmlContent;
+            MarkdownToHtml(contentData);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = contentData;
+            textarea.readOnly = false;
+            textarea.id = "preview-lesson-textarea";
+            previewArea.innerHTML = '';
+            previewArea.appendChild(textarea);
+
+            textarea.addEventListener('input', function() {
+                contentData = textarea.value;
+                console.log('Content updated:', contentData.length, 'characters');
+            });
+            
+            textarea.addEventListener('blur', function() {
+                contentData = textarea.value;
+                toastsLoader.showToast('Content saved locally', 'info', 1000);
+            });
+        }
+
     }
 
     // handler buttons
@@ -317,6 +341,21 @@ document.addEventListener("DOMContentLoaded", async function() {
         rawButton.classList.add("secondary");
         rawButton.classList.remove("primary");
         renderLesson(lessonId, true);
+    });
+
+    saveButton.addEventListener("click", async function(){
+        if (!lessonIdClicked) {
+            toastsLoader.showToast('No lesson selected to save.', 'warning');
+            return;
+        }
+        try {
+            const file = new File([contentData], 'lesson.md', { type: 'text/markdown' });
+            await window.apiService.updateLessonContent(lessonIdClicked, file);
+            toastsLoader.showToast('Lesson content saved successfully!', 'confirm');
+        } catch (error) {
+            console.error('Failed to save lesson content:', error);
+            toastsLoader.showToast('Failed to save lesson content.', 'danger');
+        }
     });
 
     // I was to lazy to make this a uuhhh nvm
