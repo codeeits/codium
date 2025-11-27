@@ -1344,19 +1344,47 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 	//check if user is admin
 
 	res, err := cfg.db.AddLesson(r.Context(), database.AddLessonParams{
-		ID:          lessonID,
-		Title:       p.Title,
-		Description: sql.NullString{String: p.Description, Valid: p.Description != ""},
-		ContentID:   contentUUID,
-		AuthorID:    uuid.NullUUID{UUID: user.ID, Valid: true},
-		Flags:       int32(flag),
-		CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+		ID:           lessonID,
+		Title:        p.Title,
+		Description:  sql.NullString{String: p.Description, Valid: p.Description != ""},
+		ContentID:    contentUUID,
+		AuthorID:     uuid.NullUUID{UUID: user.ID, Valid: true},
+		Flags:        int32(flag),
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		PrevLessonID: prevLesson,
+		NextLessonID: nextLesson,
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to add lesson: %v", err)
 		http.Error(w, "Failed to add lesson", http.StatusInternalServerError)
 		return
+	}
+
+	if prevLesson.Valid {
+		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
+			ID:           prevLesson.UUID,
+			NextLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update previous lesson's next field: %v", err)
+			http.Error(w, "Failed to link lessons", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if nextLesson.Valid {
+		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
+			ID:           nextLesson.UUID,
+			PrevLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		})
+		if err != nil {
+			cfg.logger.Printf("Failed to update next lesson's previous field: %v", err)
+			http.Error(w, "Failed to link lessons", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	lessonJson, err := PrintLessonToJson(res)
@@ -2635,11 +2663,38 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	})
-
 	if err != nil {
 		cfg.logger.Printf("Failed to create problem test: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	}
+
+	if p.PreviousTestID != uuid.Nil {
+		_, err = cfg.db.UpdateNextCodeTest(r.Context(), database.UpdateNextCodeTestParams{
+			ID:         p.PreviousTestID,
+			NextTestID: uuid.NullUUID{UUID: res.ID, Valid: true},
+			UpdatedAt:  time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update previous problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if p.NextTestID != uuid.Nil {
+		_, err = cfg.db.UpdatePreviousCodeTest(r.Context(), database.UpdatePreviousCodeTestParams{
+			ID:             p.NextTestID,
+			PreviousTestID: uuid.NullUUID{UUID: res.ID, Valid: true},
+			UpdatedAt:      time.Now(),
+		})
+
+		if err != nil {
+			cfg.logger.Printf("Failed to update next problem test: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

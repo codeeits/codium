@@ -817,7 +817,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		lessonIds = append(lessonIds, uploadedLessonID)
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
-				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `}`)
+				t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
+				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `"}`)
 				req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
 				if err != nil {
 					t.Fatal("Error creating request: ", err)
@@ -842,6 +843,18 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 				if lesson.Lesson.Title != "Linked Lesson "+strconv.Itoa(i) {
 					t.Fatalf("Expected lesson title %s, got %s", "Linked Lesson "+strconv.Itoa(i), lesson.Lesson.Title)
+				}
+
+				if lesson.Lesson.PrevLessonID.Valid != true || lesson.Lesson.PrevLessonID.UUID != lessonIds[len(lessonIds)-1] {
+					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[len(lessonIds)-1].String(), lesson.Lesson.PrevLessonID.UUID.String())
+				}
+
+				prevLesson, err := cfg.GetLessonByID(lesson.Lesson.PrevLessonID.UUID)
+				if err != nil {
+					t.Fatal("Error getting previous lesson: ", err)
+				}
+				if prevLesson.NextLessonID.Valid != true || prevLesson.NextLessonID.UUID != lesson.Lesson.ID {
+					t.Fatalf("Expected previous lesson next lesson ID %s, got %s", lesson.Lesson.ID.String(), prevLesson.NextLessonID.UUID.String())
 				}
 
 				lessonIds = append(lessonIds, lesson.Lesson.ID)
