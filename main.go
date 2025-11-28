@@ -139,6 +139,9 @@ func main() {
 		mux.Handle("POST /api/tests", http.HandlerFunc(cfg.CreateProblemTestHandler))
 		mux.Handle("GET /api/tests", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
 		mux.Handle("PUT /api/tests/{testID}", http.HandlerFunc(cfg.UpdateProblemTestDisambiguationHandler))
+		mux.Handle("GET /api/users/{userID}/started_lessons", http.HandlerFunc(cfg.GetUserStartedLessonsHandler))
+		mux.Handle("GET /api/users/{userID}/completed_lessons", http.HandlerFunc(cfg.GetUserCompletedLessonsHandler))
+		mux.Handle("GET /api/users/{userID}/interactions", http.HandlerFunc(cfg.GetUserInteractionsHandler))
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))

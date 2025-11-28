@@ -2489,6 +2489,236 @@ func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+func (cfg *ApiCfg) GetUserStartedLessonsHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userIDString := r.PathValue("userID")
+	if userIDString == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get user started lessons request for user ID: ", userID)
+
+	lessonUsers, err := cfg.db.GetLessonsUsersStartedLessonsByUserID(r.Context(), database.GetLessonsUsersStartedLessonsByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve started lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lessonUser := range lessonUsers {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonUserJson, err := PrintLessonUserToJson(lessonUser)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonUserJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetUserCompletedLessonsHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userIDString := r.PathValue("userID")
+	if userIDString == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get user completed lessons request for user ID: ", userID)
+
+	lessonUsers, err := cfg.db.GetLessonsUsersCompletedLessonsByUserID(r.Context(), database.GetLessonsUsersCompletedLessonsByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve completed lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lessonUser := range lessonUsers {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonUserJson, err := PrintLessonUserToJson(lessonUser)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonUserJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (cfg *ApiCfg) GetUserInteractionsHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userIDString := r.PathValue("userID")
+	if userIDString == "" {
+		cfg.logger.Printf("Missing user ID in request")
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+	cfg.logger.Print("Received get user interactions request for user ID: ", userID)
+
+	lessonUsers, err := cfg.db.GetLessonsUsersByUserID(r.Context(), database.GetLessonsUsersByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user interactions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+
+	//Marshal using PrintToJson for proper formatting
+	_, err = w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, lessonUser := range lessonUsers {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		lessonUserJson, err := PrintLessonUserToJson(lessonUser)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal lesson user: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(lessonUserJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
 /*
 ===========================================
 
