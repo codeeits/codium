@@ -113,8 +113,16 @@ document.addEventListener("DOMContentLoaded", async function() {
                 const finishedBtn = nextLessonBtn.cloneNode();
                 finishedBtn.id = "finished-lesson-btn";
                 finishedBtn.innerHTML = "<i class='fas fa-check'></i> Finish section";
+                if (isAuthenticated) {
                 finishedBtn.addEventListener("click", () => finishButtonHandler(finishedBtn));
                 finishedBtn.disabled = false;
+                } else {
+                    finishedBtn.disabled = true;
+                    finishedBtn.title = "Log in to finish the section";
+                    finishedBtn.innerHTML = "<i class='fas fa-lock'></i> Log in to mark section as finished";
+                    finishedBtn.style.cursor = "not-allowed";
+                    finishedBtn.style.opacity = "0.5";
+                }
                 nextLessonBtn.parentNode.replaceChild(finishedBtn, nextLessonBtn);
             }
         }
