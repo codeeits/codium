@@ -7,7 +7,6 @@
 We aint talkin about user.js
 */
 
-
 document.addEventListener('DOMContentLoaded', async function() {
 
     let userId = null;
@@ -263,7 +262,61 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             bookmarksContainer.appendChild(bookmarkClone);
             console.log('Lesson data for bookmark:', lessonData);
+        }
     }
+
+    // ------------------------------
+    // RECENT ACTIVITY
+    // ------------------------------
+
+    const recentContainer = document.getElementById('recentActivityContainer');
+    const recentTemplate = document.getElementById('activityTemplate');
+
+    let recentActivities = [];
+
+    recentActivities = await window.apiService.getInteractions(userId, 6);
+
+    if (recentActivities.length === 0) {
+        recentContainer.innerHTML = '<p>No recent activity.</p>';
+    } else {
+        recentContainer.innerHTML = '';
+
+        for(const activity of recentActivities) {
+
+            const lessonData = await window.apiService.getLessonById(activity.LessonID);
+            const activityClone = recentTemplate.cloneNode(true);
+            activityClone.style.display = 'flex';
+            activityClone.id = `activity-${activity.ID}`;
+
+            console.log(activity.CompletedAt.Valid);
+            if(activity.Favorited && activity.UpdatedAt.Time > activity.StartedAt.Time){
+                // here for lessons that have been favorited (and obviously started aswell)
+                activityClone.querySelector('h3').textContent = `Favorited ${lessonData.lesson.Title}`;
+                activityClone.querySelector('.activity-circle').classList.add('favorite');
+                activityClone.querySelector('.fa-solid').classList.add('fa-heart');
+            } else if (activity.CompletedAt.Valid) {
+                // here for lessons that have StartedAt and CompletedAt
+                activityClone.querySelector('h3').textContent = `Completed ${lessonData.lesson.Title}`;
+                activityClone.querySelector('.activity-circle').classList.add('positive');
+                activityClone.querySelector('.fa-solid').classList.add('fa-check');
+            } else {
+                activityClone.querySelector('h3').textContent = `Started ${lessonData.lesson.Title}`;
+                activityClone.querySelector('.activity-circle').classList.add('warning');
+                activityClone.querySelector('.fa-solid').classList.add('fa-hourglass-half');
+            }
+
+            const date = new Date(activity.UpdatedAt.Time);
+            console.log('Activity date:', date);
+            activityClone.querySelector('.completedAtTime').textContent = date.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            activityClone.onclick = function() {
+                window.location.href = `lesson.html?id=${lessonData.lesson.ID}`;
+            };
+            recentContainer.appendChild(activityClone);
+
+            console.log('Lesson data for recent activity:', lessonData);
+
+        }
+
     }
 
 });

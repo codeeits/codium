@@ -454,8 +454,25 @@ class ApiService {
         return dataFormatted;
     }
 
-    async getLessonsCompletedByUser(userId) {
-        return this.get(`/api/users/${userId}/completed_lessons`, true);
+    async getInteractions(userId = null, max_results = 3) {
+
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+
+        let response = await this.get(`/api/users/${userId}/interactions`);
+        // sort by UpdatedAt descending
+        response.sort((a, b) => {
+            const dateA = new Date(a.UpdatedAt.Time);
+            const dateB = new Date(b.UpdatedAt.Time);
+            return dateB - dateA;
+        });
+        response = response.slice(0, max_results);
+        console.log("User interactions:", response);
+        return response;
+
     }
 
     async updateLessonOrder(lessonId, prev = null, next = null) {

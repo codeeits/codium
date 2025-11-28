@@ -109,9 +109,13 @@ document.addEventListener("DOMContentLoaded", async function() {
             let nextLessonId = contentRaw.lesson.NextLessonID;
             nextLessonBtn.addEventListener("click", () => nextButtonHandler(nextLessonId));
             if (!nextLessonId) {
-                nextLessonBtn.disabled = true;
-                nextLessonBtn.style.opacity = "0.5";
-                nextLessonBtn.title = "No next lesson available";
+                // clone next button and disable
+                const finishedBtn = nextLessonBtn.cloneNode();
+                finishedBtn.id = "finished-lesson-btn";
+                finishedBtn.innerHTML = "<i class='fas fa-check'></i> Finish section";
+                finishedBtn.addEventListener("click", () => finishButtonHandler(finishedBtn));
+                finishedBtn.disabled = false;
+                nextLessonBtn.parentNode.replaceChild(finishedBtn, nextLessonBtn);
             }
         }
 
@@ -427,6 +431,22 @@ document.addEventListener("DOMContentLoaded", async function() {
         
         window.location.href = `lesson.html?id=${nextLessonId}`;
 
+    }
+
+    async function finishButtonHandler(finishedBtn) {
+        if (!finishedBtn) {
+            if (debugMode) console.warn("Finish lesson button not found");
+            return;
+        }
+
+        if(isAuthenticated) {
+            window.apiService.finishLesson(lessonId).catch(error => {
+                if (debugMode) console.error("Failed to mark lesson as finished:", error);
+            });
+            const d = await window.apiService.getCompletionTime(lessonId);
+            if (debugMode) console.log("Completion time:", d);
+            toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
+        }
     }
 
     async function prevButtonHandler(prevLessonId) {

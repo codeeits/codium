@@ -1106,6 +1106,7 @@ body {
 }
 
 .user-nav-body {
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -1183,7 +1184,6 @@ body {
 }
 
 #bookmarksContainer {
-    overflow-y: auto;
     max-height: 25vh;
 }
 
@@ -1208,23 +1208,23 @@ body {
 
 
 .activity-circle.positive {
-    background: var(--confirm);
-}
-.activity-circle.warning {
-    background: var(--warning);
-}
-.activity-circle.danger {
-    background: var(--danger);
+    background: var(--confirm-solid);
+    border: 2px solid var(--confirm-border);
 }
 
-.activity-circle.positive::before {
-    background: var(--confirm-border);
+.activity-circle.warning {
+    background: var(--warning-solid);
+    border: 2px solid var(--warning-border);
 }
-.activity-circle.warning::before {
-    background: var(--warning-border);
+
+.activity-circle.danger {
+    background: var(--danger-solid);
+    border: 2px solid var(--danger-border);
 }
-.activity-circle.danger::before {
-    background: var(--danger-border);
+
+.activity-circle.favorite {
+    background: var(--purple-accent);
+    border: 2px solid var(--purple-primary);
 }
 
 .user-nav.indivActivity .activity-circle {
@@ -1234,7 +1234,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid transparent;
     background-clip: padding-box;
     position: relative;
 }
