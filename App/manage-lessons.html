@@ -115,11 +115,12 @@
             <div class="manage-lessons-title">
                 <i class="fa-solid fa-id-badge"></i>
                 <h2>3. Previzualizează</h2>
-                <p> În momentul acesta, previzualizezi lecția <span id="current-lesson-name"></span> cu id-ul <span id="current-lesson-id"></span> </p>
+                <p> În momentul acesta, previzualizezi lecția <span id="current-lesson-name" style="color: brown;"></span> cu id-ul <span id="current-lesson-id" style="color: brown;"></span> </p>
                 <div class="buttons-switch-area">
-                    <button id="rawButton" class="btn primary">Raw</button>
-                    <button id="mdButton" class="btn secondary">Markdown Preview</button>
-                    <button id="saveButton" class="btn secondary">Save</button>
+                    <button id="rawButton" class="btn primary"><i class="fa-solid fa-file-code"></i> Raw</button>
+                    <button id="mdButton" class="btn secondary"><i class="fa-solid fa-file-lines"></i> Markdown Preview</button>
+                    <button id="metadataButton" class="btn secondary" style="opacity: .5;" disabled title="soon"><i class="fa-solid fa-pen-to-square"></i> Edit Metadata</button>
+                    <button id="saveButton" class="btn secondary"><i class="fa-solid fa-floppy-disk"></i> Save content</button>
                 </div>
             </div>
             <div class="preview-lesson-area" id="lesson-body">
