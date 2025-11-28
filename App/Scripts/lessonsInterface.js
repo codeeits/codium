@@ -336,10 +336,18 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     async function nextButtonHandler(nextLessonId) {
         if (!nextLessonBtn) return;
-        window.location.href = `lesson.html?id=${nextLessonId}`;
+        // wait 3 seconds before marking as finished
         window.apiService.finishLesson(lessonId).catch(error => {
             console.error("Failed to mark lesson as finished:", error);
         });
+        const d = await window.apiService.getCompletionTime(lessonId);
+        console.log("Completion time:", d);
+        toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
+        
+        // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        window.location.href = `lesson.html?id=${nextLessonId}`;
     }
 
     async function prevButtonHandler(prevLessonId) {

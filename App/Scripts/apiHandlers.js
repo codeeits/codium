@@ -411,6 +411,28 @@ class ApiService {
         return this.post(`/api/lessons/${lessonId}/start`, {}, true);
     }
 
+    async getCompletionTime(lessonId, userId = null) {
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+
+        const response = await this.get(`/api/lessons/${lessonId}/users/${userId}`, true);
+        const data = typeof response === 'string' ? JSON.parse(response) : response;
+        const startTime = new Date(data.StartedAt.Time);
+        const finishTime = new Date(data.CompletedAt.Time);
+        const durationMs = finishTime - startTime;
+        const minutes = Math.floor(durationMs / 60000);
+        const seconds = Math.floor((durationMs % 60000) / 1000);
+        const dataFormatted = `${minutes} minute(s) and ${seconds} second(s)`;
+        return dataFormatted;
+    }
+
+    async getLessonsCompletedByUser(userId) {
+        return this.get(`/api/users/${userId}/completed_lessons`, true);
+    }
+
     async updateLessonOrder(lessonId, prev = null, next = null) {
         // Validate lesson ID
         if (!lessonId || lessonId.trim() === '') {
