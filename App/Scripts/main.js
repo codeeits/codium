@@ -199,40 +199,50 @@ window.addEventListener('load', () => {
   }, 200);
 });
 
+let currentTranslations = {};
+
 async function loadLanguage(langCode = 'ro') {
   const response = await fetch(`/app/Lang/${langCode}.json`);
-  const translations = await response.json();
-  applyTranslations(translations);
+  currentTranslations = await response.json(); // store globally
+  applyTranslations(currentTranslations);
 }
 
 function getNestedTranslation(key, translations) {
   return key.split('.').reduce((obj, part) => obj?.[part], translations);
 }
 
-function applyTranslations(translations) {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
+function applyTranslations(translations, root = document) {
+  root.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const value = getNestedTranslation(key, translations);
     if (value) el.textContent = value;
   });
 
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+  root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     const value = getNestedTranslation(key, translations);
     if (value) el.setAttribute('placeholder', value);
   });
 
-  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+  root.querySelectorAll('[data-i18n-title]').forEach(el => {
     const key = el.getAttribute('data-i18n-title');
     const value = getNestedTranslation(key, translations);
     if (value) el.setAttribute('title', value);
   });
 
-    document.querySelectorAll('[data-i18n-value]').forEach(el => {
+  root.querySelectorAll('[data-i18n-value]').forEach(el => {
     const key = el.getAttribute('data-i18n-value');
     const value = getNestedTranslation(key, translations);
     if (value) el.setAttribute('value', value);
   });
+}
+
+function applyTranslationsToElement(element) {
+  if (!currentTranslations || Object.keys(currentTranslations).length === 0) {
+    console.warn('No translations loaded yet.');
+    return;
+  }
+  applyTranslations(currentTranslations, element);
 }
 
 function setLanguage(langCode) {

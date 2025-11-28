@@ -45,6 +45,18 @@
             "note": "Leave fields empty if you don't want to change them"
         }
     },
+    "flags": {
+        "module": "Module",
+        "section": "Section",
+        "class": "Class"
+    },
+    "activity": {
+        "completed": "Completed",
+        "solved": "Solved",
+        "started": "Started",
+        "favourite": "Favourited",
+        "earned": "Earned"
+    },
     "buttons": {
         "save": "save",
         "cancel": "cancel",

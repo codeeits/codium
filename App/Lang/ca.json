@@ -45,6 +45,18 @@
             "note": "Deixa els camps buits si no vols canviar-los"
         }
     },
+    "flags": {
+        "module": "Mòdul",
+        "section": "Secció",
+        "class": "Classe"
+    },
+    "activity": {
+        "completed": "Completat",
+        "solved": "Resolt",
+        "started": "Iniciat",
+        "favourite": "Favorit",
+        "earned": "Guanyat"
+    },
     "buttons": {
         "save": "desa",
         "cancel": "anula",

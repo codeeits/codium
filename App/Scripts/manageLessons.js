@@ -140,6 +140,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         try {
             for (const lesson of lessonsList){
                 console.log("Rendering lesson:", lesson);
+                const currentLessonNameSpan = document.getElementById("current-lesson-name");
                 // Create lesson item element
                 const lessonItem = document.createElement("div");
                 lessonItem.className = "arrange-lesson-item";
@@ -260,9 +261,16 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     lessonIdClicked = null;
+    let previouslyClickedElement = null;
 
     function handleClick() {
+        // Remove border from previously clicked element
+        if (previouslyClickedElement && previouslyClickedElement !== this) {
+            previouslyClickedElement.style.border = '';
+        }
         lessonIdClicked = this.dataset.lessonId;
+        previouslyClickedElement = this;
+        this.style.border = '2px solid var(--purple-accent)';
         rawButton.classList.add("primary");
         rawButton.classList.remove("secondary");
         mdButton.classList.add("secondary");
@@ -286,6 +294,14 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (firstCall) {
             toastsLoader.showToast('Loading lesson preview...', 'info');
             const result = await window.apiService.getLessonById(lessonId);
+            const currentLessonNameSpan = document.getElementById("current-lesson-name");
+            const currentLessonIdSpan = document.getElementById("current-lesson-id");
+            if (currentLessonIdSpan) {
+                currentLessonIdSpan.textContent = lessonId;
+            }
+            if (currentLessonNameSpan) {
+                currentLessonNameSpan.textContent = result.lesson.Title;
+            }
             console.log(window.apiService.getFile(result.lesson.ContentID));
             window.apiService.getFile(result.lesson.ContentID).then(lessonData => {
                 contentData = lessonData;

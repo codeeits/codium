@@ -45,6 +45,18 @@
             "note": "Lasă câmpurile goale dacă nu dorești să le schimbi"
         }
     },
+    "flags": {
+        "module": "Modulul",
+        "section": "Secțiunea",
+        "class": "Clasa"
+    },
+    "activity": {
+        "completed": "Finalizat",
+        "solved": "Rezolvat",
+        "started": "Început",
+        "favourite": "Favorit",
+        "earned": "Câștigat"
+    },
     "buttons": {
         "save": "salvează",
         "cancel": "anulează",
