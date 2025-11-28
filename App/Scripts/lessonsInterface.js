@@ -28,9 +28,10 @@ function toRoman(n) {
 }
 // 2 down 1 up
 document.addEventListener("DOMContentLoaded", async function() {
-    
+
     const baseurl = window.location.href;
     const isAuthenticated = window.apiService.isAuthenticated();
+    const debugMode = false; // SET THIS TO ENABLE LOGS!
 
     //------------------------------
 
@@ -52,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     let lessonId = baseurl.split("?id=")[1];
     let contentRaw = '';
 
-    console.log("Lesson ID from URL:", lessonId);
+    if (debugMode) console.log("[DEBUG] Lesson ID from URL:", lessonId);
 
     if (lessonId) {
         lessonId = lessonId.trim();
@@ -60,19 +61,19 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         if(isAuthenticated) {
             window.apiService.startLesson(lessonId).catch(error => {
-                console.error("Failed to mark lesson as started:", error);
+                if (debugMode) console.error("Failed to mark lesson as started:", error);
             });
         }
         
         contentTitle = contentRaw.lesson.Title || `Lesson ${lessonId}`;
         document.title = `${contentTitle} - Codium`;
-        console.log(contentRaw);
-        console.log(document.title);
+        if (debugMode) console.log("[DEBUG] Lesson content raw data:", contentRaw);
+        if (debugMode) console.log("[DEBUG] Document title set to:", document.title);
 
         contentAuthor = await window.apiService.getUserById(contentRaw.lesson.AuthorID).then(userData => {
             return userData.Username || "Unknown author";
         }).catch(error => {
-            console.error("Failed to fetch author data:", error);
+            if (debugMode) console.error("[DEBUG] Failed to fetch author data:", error);
             return "Unknown author";
         });
 
@@ -92,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.apiService.getFavoritesNumber(lessonId).then(count => {
             favoritesCountElement.textContent = count.num_favorites;
         }).catch(error => {
-            console.error("Failed to fetch favorites count:", error);
+            if (debugMode) console.error("[DEBUG] Failed to fetch favorites count:", error);
             favoritesCountElement.textContent = "N/A";
         });
 
@@ -146,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         contentRaw = contentRaw.lesson.ContentID;
         contentRaw = await window.apiService.getFile(contentRaw);
-        console.log("Fetched lesson content:", contentRaw);
+        if (debugMode) console.log("[DEBUG] Fetched lesson content successfully.");
     }
 
     renderLesson(contentRaw);
@@ -176,7 +177,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         const romanClass = toRoman(parseInt(contentClass));
 
         if (!lessonContainer) {
-            console.error("Lesson container not found!");
+            if (debugMode) console.error("[DEBUG] Lesson container not found!");
             return;
         }
         
@@ -214,9 +215,9 @@ document.addEventListener("DOMContentLoaded", async function() {
             // Wait a bit for DOM to settle
             setTimeout(() => {
                 MathJax.typesetPromise([lessonContainer]).then(() => {
-                    console.log('MathJax processing complete');
+                    if (debugMode) console.log('[MATH] MathJax processing complete');
                 }).catch((err) => {
-                    console.error('MathJax typeset failed:', err);
+                    if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
                 });
             }, 100);
         } else if (window.MathJax && window.MathJax.Hub) {
@@ -244,9 +245,9 @@ document.addEventListener("DOMContentLoaded", async function() {
                 mermaid.run({
                     querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
                 }).then(() => {
-                    console.log('Mermaid diagrams rendered');
+                    if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
                 }).catch((err) => {
-                    console.error('Mermaid rendering failed:', err);
+                    if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
                 });
             }, 200);
         }
@@ -264,33 +265,33 @@ document.addEventListener("DOMContentLoaded", async function() {
             const sidebarTitle = document.getElementById("lesson-sidebar_title");
 
             if (!sidebar || !sidebarTitle) {
-                console.warn("Sidebar elements not found, skipping sidebar rendering");
+                if (debugMode) console.warn("[DEBUG] Sidebar elements not found, skipping sidebar rendering");
                 return;
             }
 
             sidebarTitle.textContent = `Clasa a ${toRoman(contentClass)}-a`;
 
             const sectionArray = await window.apiService.getSectionsForClass(contentClass);
-            console.log("Sections array:", sectionArray);
+            if (debugMode) console.log("[DEBUG] Sections array:", sectionArray);
 
             for (const sectionNumber of sectionArray) {
                 try {
-                    console.log(`[DEBUG] Calling getLessonsSortedByPrevNext with:`, {
+                    if (debugMode) console.log(`[DEBUG] Calling getLessonsSortedByPrevNext with:`, {
                         class: contentClass,
                         section: sectionNumber, 
                         module: contentModule
                     });
                     
-                    const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule, true);
-                    console.log(`Lessons for section ${sectionNumber}:`, lessonsListResult);
+                    const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(contentClass, sectionNumber, contentModule, debugMode);
+                    if (debugMode) console.log(`[DEBUG] Lessons for section ${sectionNumber}:`, lessonsListResult);
                     
                     // Also debug the raw lessons data for this section
                     const rawLessons = await window.apiService.getLessonsByFlags(contentClass, sectionNumber, contentModule);
-                    console.log(`[DEBUG] Raw lessons for section ${sectionNumber}:`, rawLessons);
+                    if (debugMode) console.log(`[DEBUG] Raw lessons for section ${sectionNumber}:`, rawLessons);
                     
                     // Skip empty sections
                     if (!lessonsListResult || lessonsListResult.length === 0) {
-                        console.log(`Skipping empty section ${sectionNumber}`);
+                        if (debugMode) console.log(`[DEBUG] Skipping empty section ${sectionNumber}`);
                         continue;
                     } 
                     // set title
@@ -324,12 +325,12 @@ document.addEventListener("DOMContentLoaded", async function() {
                     sidebarSection.appendChild(lessonsList);
                     sidebar.appendChild(sidebarSection);
                 } catch (sectionError) {
-                    console.error(`Failed to render section ${sectionNumber}:`, sectionError);
+                    if (debugMode) console.error(`[DEBUG] Failed to render section ${sectionNumber}:`, sectionError);
                     // Continue with next section
                 }
             }
         } catch (error) {
-            console.error("Failed to render sidebar:", error);
+            if (debugMode) console.error("[DEBUG] Failed to render sidebar:", error);
         }
     }
 
@@ -349,7 +350,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 toastsLoader.showToast("Bookmark removed", "info");
             }
         }).catch(error => {
-            console.error("Bookmark toggle failed:", error);
+            if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
             toastsLoader.showToast("Failed to toggle bookmark", "danger");
         });
     }
@@ -367,7 +368,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 favoriteButton.innerHTML = "<i class='fas fa-heart'></i> Favorite";
             }
         }).catch(error => {
-            console.error("Failed to get favorite status:", error);
+            if (debugMode) console.error("[DEBUG] Failed to get favorite status:", error);
             favoriteButton.innerHTML = "<i class='fas fa-heart'></i> Favorite";
         });
     }
@@ -376,14 +377,14 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.apiService.modifyBookmark(lessonId).then(() => {
             bookmarkHandler();
         }).catch(error => {
-            console.error("Bookmark toggle failed:", error);
+            if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
             toastsLoader.showToast("Failed to toggle bookmark", "danger");
         });
     }
 
     function favoriteToggle() {
         window.apiService.modifyFavorite(lessonId).then(result => {
-            console.log("[DEBUG]", result);
+            if (debugMode) console.log("[DEBUG]", result);
             const isFavorited = result.Favorited;
             if (isFavorited) {
                 toastsLoader.showToast("Lesson added to favorites", "confirm");
@@ -397,10 +398,10 @@ document.addEventListener("DOMContentLoaded", async function() {
             window.apiService.getFavoritesNumber(lessonId).then(count => {
                 favoritesCountElement.textContent = count.num_favorites;
             }).catch(error => {
-                console.error("Failed to update favorites count:", error);
+                if (debugMode) console.error("[DEBUG] Failed to update favorites count:", error);
             });
         }).catch(error => {
-            console.error("Favorite toggle failed:", error);
+            if (debugMode) console.error("[DEBUG] Favorite toggle failed:", error);
             toastsLoader.showToast("Failed to toggle favorite", "danger");
         });
     }
@@ -408,16 +409,16 @@ document.addEventListener("DOMContentLoaded", async function() {
     async function nextButtonHandler(nextLessonId) {
 
         if (!nextLessonBtn) {
-            console.warn("Next lesson button not found");
+            if (debugMode) console.warn("Next lesson button not found");
             return;
         }
 
         if(isAuthenticated) {
             window.apiService.finishLesson(lessonId).catch(error => {
-                console.error("Failed to mark lesson as finished:", error);
+                if (debugMode) console.error("Failed to mark lesson as finished:", error);
             });
             const d = await window.apiService.getCompletionTime(lessonId);
-            console.log("Completion time:", d);
+            if (debugMode) console.log("Completion time:", d);
             toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
             
             // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
@@ -431,7 +432,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     async function prevButtonHandler(prevLessonId) {
 
         if (!prevLessonBtn) {
-            console.warn("Previous lesson button not found");
+            if (debugMode) console.warn("Previous lesson button not found");
             return;
         }
 
