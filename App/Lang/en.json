@@ -26,7 +26,8 @@
     "log-out": "log out",
     "top-menu": {
         "teory": "> theory",
-        "probleme": "> problems"
+        "probleme": "> problems",
+        "contact": "> contact"
     },
     "modal": {
         "edit_profile": {

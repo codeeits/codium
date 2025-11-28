@@ -37,6 +37,7 @@ function updateAuthButton() {
     const languageSelector = document.getElementById('language-selector');
     const hardLessonsExit = document.getElementById('hard-lessons-exit-btn');
     const backButton = document.getElementById('back-btn');
+    const contactButton = document.getElementById('contact-button');
     
     const authToken = localStorage.getItem('authToken');
     const username = localStorage.getItem('username');
@@ -77,7 +78,15 @@ function updateAuthButton() {
         };
         lessonsButton.title = 'Lessons';
     }
-    
+
+    if(contactButton) {
+        contactButton.onclick = function() {
+            window.location.href = 'contact.html';
+            console.log('Navigating to contact page');
+        };
+        contactButton.title = 'Contact';
+    }
+
     if (authToken && username) {
         // User is logged in - hide login button, show user and logout buttons
         if (loginButton) {

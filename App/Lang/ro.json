@@ -26,7 +26,8 @@
     "log-out": "deconectare",
     "top-menu": {
         "teory": "> teorie",
-        "probleme": "> probleme"
+        "probleme": "> probleme",
+        "contact": "> contact"
     },
     "modal": {
         "edit_profile": {

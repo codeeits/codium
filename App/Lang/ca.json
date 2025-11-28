@@ -26,7 +26,8 @@
     "log-out": "tanca la sessió",
     "top-menu": {
         "teory": "> teoria",
-        "probleme": "> problemes"
+        "probleme": "> problemes",
+        "contact": "> contacte"
     },
     "modal": {
         "edit_profile": {
