@@ -386,6 +386,10 @@ class ApiService {
         return this.post(`/api/lessons/${lessonId}/bookmark`, {}, true);
     }
 
+    async modifyFavorite(lessonId) {
+        return this.post(`/api/lessons/${lessonId}/favorite`, {}, true);
+    }
+
     async getBookmarks(userId) {
         return this.get(`/api/users/${userId}/bookmarks`);
     }
@@ -401,6 +405,27 @@ class ApiService {
         console.log('Bookmarks:', bookmarks);
         const isBookmarked = bookmarks.some(bookmark => bookmark.LessonID === lessonId);
         return isBookmarked;
+    }
+
+    async getFavoritesNumber(lessonId) {
+        return this.get(`/api/lessons/${lessonId}/faves`);
+    }
+
+    async getFavoriteStatus(lessonId, userId = null) {
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        
+        try {
+            const response = await this.get(`/api/lessons/${lessonId}/users/${userId}`, true);
+            const data = typeof response === 'string' ? JSON.parse(response) : response;
+            return data.Favorited;
+        } catch (error) {
+            console.error('Failed to get favorite status:', error);
+            return false;
+        }
     }
 
     async finishLesson(lessonId) {

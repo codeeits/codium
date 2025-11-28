@@ -28,16 +28,22 @@ function toRoman(n) {
 }
 // 2 down 1 up
 document.addEventListener("DOMContentLoaded", async function() {
+    
     const baseurl = window.location.href;
+    const isAuthenticated = window.apiService.isAuthenticated();
+
+    //------------------------------
 
     const titleElement = document.getElementById("lesson-title");
     const lessonContainer = document.getElementById("lesson-body");
     const authElement = document.getElementById("lesson-auth");
     const dateElement = document.getElementById("lesson-date");
+    const favoritesCountElement = document.getElementById("lesson-favorites-count");
     const classElement = document.getElementById("lesson-class");
     const sectionElement = document.getElementById("lesson-section");
     const moduleElement = document.getElementById("lesson-module");
     const bookmarkButton = document.getElementById("bookmarkButton");
+    const favoriteButton = document.getElementById("favoriteButton");
     const prevLessonBtn = document.getElementById("prev-lesson-btn");
     const nextLessonBtn = document.getElementById("next-lesson-btn");
 
@@ -52,9 +58,11 @@ document.addEventListener("DOMContentLoaded", async function() {
         lessonId = lessonId.trim();
         contentRaw = await window.apiService.getLessonById(lessonId); 
 
-        window.apiService.startLesson(lessonId).catch(error => {
-            console.error("Failed to mark lesson as started:", error);
-        });
+        if(isAuthenticated) {
+            window.apiService.startLesson(lessonId).catch(error => {
+                console.error("Failed to mark lesson as started:", error);
+            });
+        }
         
         contentTitle = contentRaw.lesson.Title || `Lesson ${lessonId}`;
         document.title = `${contentTitle} - Codium`;
@@ -68,6 +76,12 @@ document.addEventListener("DOMContentLoaded", async function() {
             return "Unknown author";
         });
 
+        if(!isAuthenticated) {
+            favoriteButton.parentElement.style.display = "none";
+        } else {
+            favoriteButton.parentElement.style.display = "inline-block";
+        }
+
         contentUserID = contentRaw.lesson.AuthorID || null;
         contentDate = new Date(contentRaw.lesson.CreatedAt.Time);
         contentDate = contentDate.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -75,8 +89,19 @@ document.addEventListener("DOMContentLoaded", async function() {
         contentSection = contentRaw.flag_translation.section || "Unknown section";
         contentModule = contentRaw.flag_translation.module || "Unknown module";
 
+        window.apiService.getFavoritesNumber(lessonId).then(count => {
+            favoritesCountElement.textContent = count.num_favorites;
+        }).catch(error => {
+            console.error("Failed to fetch favorites count:", error);
+            favoritesCountElement.textContent = "N/A";
+        });
+
         if (bookmarkButton) {
             bookmarkButton.addEventListener("click", bookmarkToggle);
+        }
+
+        if (favoriteButton) {
+            favoriteButton.addEventListener("click", favoriteToggle);
         }
 
         if (nextLessonBtn) {
@@ -229,6 +254,9 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     renderSidebar();
     bookmarkHandler();
+    if (window.apiService.isAuthenticated()) {
+        favoriteHandler();
+    }
 
     async function renderSidebar() {
         try {
@@ -306,8 +334,9 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     function bookmarkHandler() {
-        if (!bookmarkButton) {
-            console.warn("Bookmark button not found in DOM");
+
+        if (!bookmarkButton || bookmarkButton.parentElement.style.display === "none") {
+            console.warn("User not authenticated or bookmark button not found in DOM");
             return;
         }
         
@@ -325,6 +354,24 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
     }
 
+    function favoriteHandler() {
+        if (!favoriteButton || favoriteButton.parentElement.style.display === "none") {
+            console.warn("User not authenticated or favorite button not found in DOM");
+            return;
+        }
+        
+        window.apiService.getFavoriteStatus(lessonId).then(isFavorited => {
+            if (isFavorited) {
+                favoriteButton.innerHTML = "<i class='fas fa-heart'></i> Unfavorite";
+            } else {
+                favoriteButton.innerHTML = "<i class='fas fa-heart'></i> Favorite";
+            }
+        }).catch(error => {
+            console.error("Failed to get favorite status:", error);
+            favoriteButton.innerHTML = "<i class='fas fa-heart'></i> Favorite";
+        });
+    }
+
     function bookmarkToggle() {
         window.apiService.modifyBookmark(lessonId).then(() => {
             bookmarkHandler();
@@ -334,24 +381,61 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
     }
 
-    async function nextButtonHandler(nextLessonId) {
-        if (!nextLessonBtn) return;
-        // wait 3 seconds before marking as finished
-        window.apiService.finishLesson(lessonId).catch(error => {
-            console.error("Failed to mark lesson as finished:", error);
+    function favoriteToggle() {
+        window.apiService.modifyFavorite(lessonId).then(result => {
+            console.log("[DEBUG]", result);
+            const isFavorited = result.Favorited;
+            if (isFavorited) {
+                toastsLoader.showToast("Lesson added to favorites", "confirm");
+            } else {
+                toastsLoader.showToast("Removed from favorites", "info");
+            }
+            favoriteHandler();
+
+            // Update favorites count
+
+            window.apiService.getFavoritesNumber(lessonId).then(count => {
+                favoritesCountElement.textContent = count.num_favorites;
+            }).catch(error => {
+                console.error("Failed to update favorites count:", error);
+            });
+        }).catch(error => {
+            console.error("Favorite toggle failed:", error);
+            toastsLoader.showToast("Failed to toggle favorite", "danger");
         });
-        const d = await window.apiService.getCompletionTime(lessonId);
-        console.log("Completion time:", d);
-        toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
-        
-        // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
-        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+
+    async function nextButtonHandler(nextLessonId) {
+
+        if (!nextLessonBtn) {
+            console.warn("Next lesson button not found");
+            return;
+        }
+
+        if(isAuthenticated) {
+            window.apiService.finishLesson(lessonId).catch(error => {
+                console.error("Failed to mark lesson as finished:", error);
+            });
+            const d = await window.apiService.getCompletionTime(lessonId);
+            console.log("Completion time:", d);
+            toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
+            
+            // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
         
         window.location.href = `lesson.html?id=${nextLessonId}`;
+
     }
 
     async function prevButtonHandler(prevLessonId) {
-        if (!prevLessonBtn) return;
+
+        if (!prevLessonBtn) {
+            console.warn("Previous lesson button not found");
+            return;
+        }
+
         window.location.href = `lesson.html?id=${prevLessonId}`;
+
     }
 });
