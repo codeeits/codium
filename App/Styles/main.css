@@ -1195,17 +1195,27 @@ body {
     align-items: center;
     justify-content: start;
     cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.user-nav.indiv_bookmark:hover {
+    transform: scale(0.98);
 }
 
 /* Individual activity item */
 
 .user-nav.indivActivity {
     display: flex;
+    cursor: pointer;
     flex-direction: row;
     align-items: center;
     justify-content: start;
+    transition: transform 0.2s ease-in-out;
 }
 
+.user-nav.indivActivity:hover {
+    transform: scale(0.98);
+}
 
 .activity-circle.positive {
     background: var(--confirm-solid);
