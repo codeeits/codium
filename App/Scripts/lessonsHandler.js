@@ -7,26 +7,30 @@
 Handles lesson uploads made by admins.
 */
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
+
+    const debugMode = true; // SET THIS TO ENABLE LOGS!
 
     // ------------------------------
-    // THE PAGE WHERE YOU SEE THE LESSONS
-    // ------------------------------
+    
+    const currentUser = await window.apiService.getCurrentUser();
 
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        
-        console.log(`Is Admin: ${isAdmin}`);
-        if (!isAdmin) {
-            const uploadBtn = document.getElementById("openUploadModal");
-            const currentPage = window.location.pathname;
-            if (uploadBtn) {
-                uploadBtn.style.display = "none";
-            } else {
-                window.location.href = "user.html";
-            }
-        } else {
-            toastsLoader.showToast('auth!', 'confirm');
-        }
+    if (currentUser === null) {
+        // Not logged in
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (!currentUser.IsAdmin) {
+        // Logged in but not admin
+        window.location.href = 'user.html';
+        return;  
+    }
+
+    const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+    userId = userData.ID;
+
+    if(debugMode) console.info("[DEBUG] Current User:", userData);
     
     // ------------------------------
     // LESSON UPLOAD HANDLER MODAL
