@@ -79,6 +79,21 @@ func (q *Queries) CountLessons(ctx context.Context, arg CountLessonsParams) (int
 	return count, err
 }
 
+const countLessonsByUniqueSections = `-- name: CountLessonsByUniqueSections :one
+SELECT COUNT(*) FROM (
+    SELECT DISTINCT flags & 65280 AS section_flag
+    FROM lessons
+    WHERE section_starter = TRUE
+) AS unique_sections
+`
+
+func (q *Queries) CountLessonsByUniqueSections(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLessonsByUniqueSections)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteLessonByID = `-- name: DeleteLessonByID :exec
 DELETE FROM lessons
 WHERE id = $1

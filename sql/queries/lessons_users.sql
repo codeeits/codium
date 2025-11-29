@@ -74,3 +74,15 @@ LIMIT $2 OFFSET $3;
 -- name: CountLessonsUsersFavoritedLessonsByLessonID :one
 SELECT COUNT(*) FROM lessons_users
 WHERE lesson_id = $1 AND favorited = TRUE;
+
+-- name: CountLessonsUsersBookmarkedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND bookmarked = TRUE;
+
+-- name: CountLessonsUsersCompletedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND completed_at IS NOT NULL;
+
+-- name: CountLessonsUsersStartedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND started_at IS NOT NULL AND completed_at IS NULL;

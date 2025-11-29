@@ -12,6 +12,30 @@ import (
 	"github.com/google/uuid"
 )
 
+const countLessonsUsersBookmarkedLessonsByUserID = `-- name: CountLessonsUsersBookmarkedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND bookmarked = TRUE
+`
+
+func (q *Queries) CountLessonsUsersBookmarkedLessonsByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLessonsUsersBookmarkedLessonsByUserID, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countLessonsUsersCompletedLessonsByUserID = `-- name: CountLessonsUsersCompletedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND completed_at IS NOT NULL
+`
+
+func (q *Queries) CountLessonsUsersCompletedLessonsByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLessonsUsersCompletedLessonsByUserID, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countLessonsUsersFavoritedLessonsByLessonID = `-- name: CountLessonsUsersFavoritedLessonsByLessonID :one
 SELECT COUNT(*) FROM lessons_users
 WHERE lesson_id = $1 AND favorited = TRUE
@@ -19,6 +43,18 @@ WHERE lesson_id = $1 AND favorited = TRUE
 
 func (q *Queries) CountLessonsUsersFavoritedLessonsByLessonID(ctx context.Context, lessonID uuid.UUID) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countLessonsUsersFavoritedLessonsByLessonID, lessonID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countLessonsUsersStartedLessonsByUserID = `-- name: CountLessonsUsersStartedLessonsByUserID :one
+SELECT COUNT(*) FROM lessons_users
+WHERE user_id = $1 AND started_at IS NOT NULL AND completed_at IS NULL
+`
+
+func (q *Queries) CountLessonsUsersStartedLessonsByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLessonsUsersStartedLessonsByUserID, userID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err

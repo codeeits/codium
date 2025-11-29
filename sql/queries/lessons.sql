@@ -86,3 +86,10 @@ RETURNING *;
 UPDATE lessons
 SET section_starter = FALSE
 WHERE flags & 65280 = $1;
+
+-- name: CountLessonsByUniqueSections :one
+SELECT COUNT(*) FROM (
+    SELECT DISTINCT flags & 65280 AS section_flag
+    FROM lessons
+    WHERE section_starter = TRUE
+) AS unique_sections;
