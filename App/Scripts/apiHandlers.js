@@ -298,73 +298,85 @@ class ApiService {
 
         const response = await this.getLessonsByFlags(classNum, section, module);
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
-        
         console.log(`[DEBUG] lessonsData:`, lessonsData);
 
-        
+        if (!Array.isArray(lessonsData) || lessonsData.length === 0) {
+            console.warn("[WARN] No lessons found for given flags.");
+            return [];
+        }
+
         let lessons = [];
+        let startLesson = null;
         let nextId = null;
-        if (debug === false) {
+
+        // attempt to find a section starter (if not in debug mode)
+
+        if (!debug) {
             const sectionStarter = lessonsData.find(lesson => {
-            // Check if SectionStarter is a boolean (true) or an object with section number
-            let hasValidStarter = false;
-            
-            if (typeof lesson.lesson.SectionStarter === 'boolean') {
-                hasValidStarter = lesson.lesson.SectionStarter === true;
-            } else if (lesson.lesson.SectionStarter && typeof lesson.lesson.SectionStarter === 'object') {
-                hasValidStarter = lesson.lesson.SectionStarter.Valid && 
-                                 lesson.lesson.SectionStarter.Int32 === section;
-            }
-            
-            console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
-                sectionStarter: lesson.lesson.SectionStarter,
-                hasValidStarter,
-                targetSection: section
-            });
-            return hasValidStarter;
-            });
-            console.log(`[DEBUG] Found section starter:`, sectionStarter);
-            if (sectionStarter) {
-                lessons.push(sectionStarter);
-                nextId = sectionStarter.lesson.NextLessonID;
-            }
-        } else {
-            // Fallback: find lesson with no previous lesson (start of chain)
-            const firstLesson = lessonsData.find(lesson => 
-                lesson.lesson.PrevLessonID === null || lesson.lesson.PrevLessonID === ""
-            );
-            console.log(`[DEBUG] Fallback - found first lesson:`, firstLesson);
-            
-            if (firstLesson) {
-                lessons.push(firstLesson);
-                nextId = firstLesson.lesson.NextLessonID;
-            } else {
-                // If no proper chain exists, just return all lessons sorted by creation date
-                console.log(`[DEBUG] No chain found, returning lessons sorted by creation date`);
-                lessons = lessonsData.sort((a, b) => {
-                    const dateA = new Date(a.lesson.CreatedAt.Time);
-                    const dateB = new Date(b.lesson.CreatedAt.Time);
-                    return dateA - dateB;
+                const starter = lesson.lesson.SectionStarter;
+                let valid = false;
+
+                if (typeof starter === 'boolean') {
+                    valid = starter === true;
+                } else if (starter && typeof starter === 'object') {
+                    valid = starter.Valid && starter.Int32 === section;
+                }
+
+                console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
+                    sectionStarter: starter,
+                    valid,
+                    targetSection: section
                 });
-                return lessons;
+
+                return valid;
+            });
+
+            if (sectionStarter) {
+                console.log(`[DEBUG] Found section starter:`, sectionStarter);
+                startLesson = sectionStarter;
+            } else {
+                console.log(`[DEBUG] No section starter found for section ${section}, falling back to first lesson in chain.`);
             }
         }
 
-        while (nextId != null) {
-            if (lessons.some(lesson => lesson.lesson.ID === nextId)) {
-                console.log(`[DEBUG] Detected circular reference, breaking loop at lesson ${nextId}`);
+        // fallback (also used when debug === true)
+        if (!startLesson) {
+            startLesson = lessonsData.find(lesson =>
+                !lesson.lesson.PrevLessonID || lesson.lesson.PrevLessonID === ""
+            );
+            console.log(`[DEBUG] Fallback - found first lesson:`, startLesson);
+        }
+
+        // if still no valid starting point, just return lessons sorted by creation time
+        if (!startLesson) {
+            console.log(`[DEBUG] No valid chain start found, sorting by CreatedAt`);
+            return lessonsData.sort((a, b) => {
+                const dateA = new Date(a.lesson.CreatedAt.Time);
+                const dateB = new Date(b.lesson.CreatedAt.Time);
+                return dateA - dateB;
+            });
+        }
+
+        // build chain
+        lessons.push(startLesson);
+        nextId = startLesson.lesson.NextLessonID;
+
+        while (nextId) {
+            // avoid circular reference exists
+            if (lessons.some(l => l.lesson.ID === nextId)) {
+                console.warn(`[WARN] Circular reference detected at lesson ${nextId}.`);
                 break;
             }
-            
-            const nextLesson = lessonsData.find(lesson => lesson.lesson.ID === nextId);
+
+            const nextLesson = lessonsData.find(l => l.lesson.ID === nextId);
             if (nextLesson) {
                 lessons.push(nextLesson);
                 nextId = nextLesson.lesson.NextLessonID;
             } else {
-                nextId = null;
+                nextId = null; // chain ends
             }
         }
-        
+
         console.log(`[DEBUG] Final sorted lessons:`, lessons);
         return lessons;
     }
@@ -510,6 +522,13 @@ class ApiService {
         };
         
         return this.createLesson(lessonPayload);
+    }
+
+    // Update existing lesson
+
+    async updateLessonField(lessonId, targetField, data) {
+        // field can be: flags (class, section, module), details (title, description)
+        return this.put(`/api/lessons/${lessonId}?target_field=${targetField}`, data, true);
     }
 
     // ===========================================

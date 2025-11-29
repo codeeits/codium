@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // ------------------------------
 
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        
         console.log(`Is Admin: ${isAdmin}`);
         if (!isAdmin) {
             const uploadBtn = document.getElementById("openUploadModal");
@@ -67,8 +68,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     form.addEventListener("submit", async function(e) {
         e.preventDefault();
-
-        const authToken = localStorage.getItem('authToken');
 
         const formData = {
             title: document.getElementById("lessonTitle").value,

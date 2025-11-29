@@ -119,13 +119,83 @@
                 <div class="buttons-switch-area">
                     <button id="rawButton" class="btn primary"><i class="fa-solid fa-file-code"></i> Raw</button>
                     <button id="mdButton" class="btn secondary"><i class="fa-solid fa-file-lines"></i> Markdown Preview</button>
-                    <button id="metadataButton" class="btn secondary" style="opacity: .5;" disabled title="soon"><i class="fa-solid fa-pen-to-square"></i> Edit Metadata</button>
+                    <button id="metadataButton" class="btn secondary" title="soon"><i class="fa-solid fa-pen-to-square"></i> Edit Metadata</button>
                     <button id="saveButton" class="btn secondary"><i class="fa-solid fa-floppy-disk"></i> Save content</button>
                 </div>
             </div>
             <div class="preview-lesson-area" id="lesson-body">
                     <!-- Lesso loaded with markdown after selecting lesson -->
             </div>
+        </div>
+    </div>
+
+    <!-- edit metadata -->
+
+    <div class="modal-overlay" id="editMetadataModal" style="display: none;">
+        <div class="modal edit-m">
+            <div class="modal-header">
+                <i class="fa-solid fa-pen"></i>
+                <h2 data-i18n="modal.edit_metadata.title">edit metadata</h2>
+            </div>
+            <form action="" id="editMetadataForm">
+                <div class="modal-field">
+                    <label for="lessonTitle" data-i18n="">Edit title:</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-heading"></i>
+                        <input type="text" id="lessonTitle" name="title" placeholder="Enter lesson title">
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonDescription" data-i18n="">Edit description:</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-align-left"></i>
+                        <textarea id="lessonDescription" name="description" placeholder="Brief description of the lesson" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="modalLessonClass" data-i18n="">Edit class:</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-school"></i>
+                        <select id="modalLessonClass" name="class" placeholder="Alege clasa:">
+                            <option value="">Alege clasa:</option>
+                            <option value="9">Clasa a IX-a</option>
+                            <option value="10">Clasa a X-a</option>
+                            <option value="11">Clasa a XI-a</option>
+                            <option value="12">Clasa a XII-a</option>
+                            <option value="67">Neclasificat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="lessonSection" data-i18n="">Edit section:</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <input type="number" id="modalLessonSection" name="section" placeholder="1" min="1" max="255">
+                    </div>
+                </div>
+                <div class="modal-field">
+                    <label for="lessonModule" data-i18n="">Edit module:</label>
+                    <div class="text-container">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <input type="number" id="modalLessonModule" name="module" placeholder="1" min="1" max="1">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn secondary" id="clearForm">
+                        <i class="fa-solid fa-times"></i> Clear Form
+                    </button>
+                    <button type="submit" class="btn primary" id="updateLessonButton">
+                        <i class="fa-solid fa-upload"></i> Update Lesson
+                    </button>
+                </div>
+            </form>
+            <div class="modal-footer">
+                    <p class="modal-note" data-i18n="modal.edit_profile.note">Leave fields empty if you don't want to change them</p>
+            </div>
+        </div>
     </div>
     
 </body>
