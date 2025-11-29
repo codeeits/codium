@@ -186,14 +186,6 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 	}
 }
 
-func (cfg *ApiCfg) GetLessonByID(lessonID uuid.UUID) (database.Lesson, error) {
-	lesson, err := cfg.db.GetLessonByID(context.Background(), lessonID)
-	if err != nil {
-		return database.Lesson{}, fmt.Errorf("failed to retrieve lesson: %v", err)
-	}
-	return lesson, nil
-}
-
 func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -255,34 +247,27 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 
 	cfg.logger.Printf("Received update lesson request for field: %v", targetField)
 
-	lessonIDStr := r.PathValue("lessonID")
-	if lessonIDStr == "" {
-		cfg.logger.Printf("Missing lesson ID in request")
-		http.Error(w, "Missing lesson ID", http.StatusBadRequest)
-		return
-	}
-
 	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(lessonIDStr)
+	lesson, err := GetObjByPathUUID(r, "lessonID", cfg.db.GetLessonByID)
 	if err != nil {
-		cfg.logger.Printf("Invalid lesson ID: %v", lessonIDStr)
+		cfg.logger.Printf("Invalid lesson ID format: %v", err)
 		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
 		return
 	}
 
 	switch targetField {
 	case "next":
-		cfg.UpdateLessonNextHandler(w, r, lessonID)
+		cfg.UpdateLessonNextHandler(w, r, lesson)
 	case "prev":
-		cfg.UpdateLessonPrevHandler(w, r, lessonID)
+		cfg.UpdateLessonPrevHandler(w, r, lesson)
 	case "details":
-		cfg.UpdateLessonDetailsHandler(w, r, lessonID)
+		cfg.UpdateLessonDetailsHandler(w, r, lesson)
 	case "content":
-		cfg.UpdateLessonContentHandler(w, r, lessonID)
+		cfg.UpdateLessonContentHandler(w, r, lesson)
 	case "flags":
-		cfg.UpdateLessonFlagsHandler(w, r, lessonID)
+		cfg.UpdateLessonFlagsHandler(w, r, lesson)
 	case "section_starter":
-		cfg.UpdateLessonsSectionStarterHandler(w, r, lessonID)
+		cfg.UpdateLessonsSectionStarterHandler(w, r, lesson)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -315,17 +300,10 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 		return
 	}
 
-	testIDStr := r.PathValue("testID")
-	if testIDStr == "" {
-		cfg.logger.Printf("Missing test ID in request")
-		http.Error(w, "Missing test ID", http.StatusBadRequest)
-		return
-	}
-
 	// Parse test ID as UUID
-	testID, err := uuid.Parse(testIDStr)
+	test, err := GetObjByPathUUID(r, "testID", cfg.db.GetCodeTestByID)
 	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
+		cfg.logger.Printf("Invalid test ID format: %v", err)
 		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
 		return
 	}
@@ -333,13 +311,13 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 	cfg.logger.Printf("Received update problem test request for field: %v", targetField)
 	switch targetField {
 	case "input":
-		cfg.UpdateProblemTestInputHandler(w, r, testID)
+		cfg.UpdateProblemTestInputHandler(w, r, test)
 	case "expected_output":
-		cfg.UpdateProblemTestExpectedOutputHandler(w, r, testID)
+		cfg.UpdateProblemTestExpectedOutputHandler(w, r, test)
 	case "prev":
-		cfg.UpdateProblemTestPreviousHandler(w, r, testID)
+		cfg.UpdateProblemTestPreviousHandler(w, r, test)
 	case "next":
-		cfg.UpdateProblemTestNextHandler(w, r, testID)
+		cfg.UpdateProblemTestNextHandler(w, r, test)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -352,7 +330,7 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (database.Less
 		return database.Lesson{}, fmt.Errorf("database not connected")
 	}
 
-	lesson, err := cfg.GetLessonByID(lessonID)
+	lesson, err := cfg.db.GetLessonByID(context.Background(), lessonID)
 	if err != nil {
 		return database.Lesson{}, fmt.Errorf("failed to retrieve lesson: %v", err)
 	}
@@ -406,13 +384,35 @@ func GetUUIDFromPath(r *http.Request, key string) (uuid.UUID, error) {
 	return id, nil
 }
 
-func DecodeParamsFromBody(r *http.Request, p any) error {
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(p)
-	if err != nil {
-		return fmt.Errorf("invalid request body: %v", err)
+func GetObjByPathUUID[T any](r *http.Request, key string, databaseGetter func(context.Context, uuid.UUID) (T, error)) (T, error) {
+	idStr := r.PathValue(key)
+	if idStr == "" {
+		var zero T
+		return zero, fmt.Errorf("missing %v in request", key)
 	}
-	return nil
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		var zero T
+		return zero, fmt.Errorf("invalid UUID format for %v: %v", key, err)
+	}
+
+	result, err := databaseGetter(r.Context(), id)
+	if err != nil {
+		var zero T
+		return zero, fmt.Errorf("failed to retrieve %v from database: %v", key, err)
+	}
+	return result, nil
+}
+
+func DecodeParamsFromBody[T any](r *http.Request, _ T) (T, error) {
+	decoder := json.NewDecoder(r.Body)
+	var p T
+	err := decoder.Decode(&p)
+	if err != nil {
+		var zero T
+		return zero, fmt.Errorf("failed to decode request body: %v", err)
+	}
+	return p, nil
 }
 
 /*
@@ -429,8 +429,7 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -521,8 +520,7 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		RefreshToken string `json:"refresh_token"`
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -637,8 +635,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -917,8 +914,7 @@ func (cfg *ApiCfg) UpdateUserPfpHandler(w http.ResponseWriter, r *http.Request, 
 
 	cfg.logger.Print("Received update user pfp request for user ID: ", targetUser.ID.String())
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -956,7 +952,7 @@ func (cfg *ApiCfg) UpdateUserPasswordHandler(w http.ResponseWriter, r *http.Requ
 	cfg.logger.Print("Received update user password request for user ID: ", targetUser.ID.String())
 
 	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1006,8 +1002,7 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 
 	cfg.logger.Print("Received update user email request for user ID: ", targetUser.ID.String())
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1050,8 +1045,7 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 
 	cfg.logger.Print("Received update user username request for user ID: ", targetUser.ID.String())
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1226,8 +1220,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		return
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1471,18 +1464,10 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, s
 		return
 	}
 
-	// Parse lesson ID as UUID
-	lessonID, err := GetUUIDFromPath(r, "lessonID")
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
-		return
-	}
-
-	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	lesson, err := GetObjByPathUUID(r, "lessonID", cfg.db.GetLessonByID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("Lesson not found: %v", lessonID)
+			cfg.logger.Printf("Lesson not found: %v", err)
 			http.Error(w, "Lesson not found", http.StatusNotFound)
 			return
 		}
@@ -1525,7 +1510,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, s
 
 	// Delete the lesson
 
-	err = cfg.DeleteLesson(lessonID)
+	err = cfg.DeleteLesson(lesson.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to delete lesson: %v", err)
 		http.Error(w, "Failed to delete lesson", http.StatusInternalServerError)
@@ -1541,27 +1526,20 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, s
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
 	type params struct {
 		Next uuid.UUID `json:"next"`
 	}
 
 	//Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	targetLesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	if targetLesson.NextLessonID.Valid {
 		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
 			ID:           targetLesson.NextLessonID.UUID,
@@ -1576,7 +1554,7 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	res, err := cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
-		ID:           lessonID,
+		ID:           targetLesson.ID,
 		NextLessonID: uuid.NullUUID{UUID: p.Next, Valid: p.Next != uuid.Nil},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
@@ -1589,7 +1567,7 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 	if p.Next != uuid.Nil {
 		_, err = cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
 			ID:           p.Next,
-			PrevLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			PrevLessonID: uuid.NullUUID{UUID: targetLesson.ID, Valid: true},
 			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		})
 	}
@@ -1603,26 +1581,19 @@ func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Reques
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
-func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
 	type params struct {
 		Prev uuid.UUID `json:"prev"`
 	}
 	//Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	targetLesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
-	if err != nil {
-		cfg.logger.Printf("Failed to get lesson: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	if targetLesson.PrevLessonID.Valid {
 		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
 			ID:           targetLesson.PrevLessonID.UUID,
@@ -1637,7 +1608,7 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	res, err := cfg.db.UpdateLessonPrev(r.Context(), database.UpdateLessonPrevParams{
-		ID:           lessonID,
+		ID:           targetLesson.ID,
 		PrevLessonID: uuid.NullUUID{UUID: p.Prev, Valid: p.Prev != uuid.Nil},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
@@ -1651,7 +1622,7 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	if p.Prev != uuid.Nil {
 		_, err = cfg.db.UpdateLessonNext(r.Context(), database.UpdateLessonNextParams{
 			ID:           p.Prev,
-			NextLessonID: uuid.NullUUID{UUID: lessonID, Valid: true},
+			NextLessonID: uuid.NullUUID{UUID: targetLesson.ID, Valid: true},
 			UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		})
 	}
@@ -1664,14 +1635,13 @@ func (cfg *ApiCfg) UpdateLessonPrevHandler(w http.ResponseWriter, r *http.Reques
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
-func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
 	type params struct {
 		ContentID string `json:"content_id"`
 	}
 	//Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1686,7 +1656,7 @@ func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	res, err := cfg.db.UpdateLessonContent(r.Context(), database.UpdateLessonContentParams{
-		ID:        lessonID,
+		ID:        targetLesson.ID,
 		ContentID: contentUUID,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
@@ -1699,7 +1669,7 @@ func (cfg *ApiCfg) UpdateLessonContentHandler(w http.ResponseWriter, r *http.Req
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
-func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
 	type params struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -1707,8 +1677,7 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 
 	//Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -1716,7 +1685,7 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	res, err := cfg.db.UpdateLessonDetails(r.Context(), database.UpdateLessonDetailsParams{
-		ID:          lessonID,
+		ID:          targetLesson.ID,
 		Title:       p.Title,
 		Description: sql.NullString{String: p.Description, Valid: true},
 		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
@@ -1730,7 +1699,7 @@ func (cfg *ApiCfg) UpdateLessonDetailsHandler(w http.ResponseWriter, r *http.Req
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
-func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
 	type params struct {
 		Class   int `json:"class"`
 		Section int `json:"section"`
@@ -1740,26 +1709,19 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 
 	//Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	lesson, err := cfg.GetLessonByID(lessonID)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve lesson: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	flags, mask := BuildLessonFlags(p.Class, p.Section, p.Number, p.Module)
 
-	flag := (lesson.Flags & ^int32(mask)) | int32(flags)
+	flag := (targetLesson.Flags & ^int32(mask)) | int32(flags)
 
 	res, err := cfg.db.UpdateLessonFlags(r.Context(), database.UpdateLessonFlagsParams{
-		ID:        lessonID,
+		ID:        targetLesson.ID,
 		Flags:     flag,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
@@ -1772,12 +1734,12 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
-func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, _ *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, _ *http.Request, targetLesson database.Lesson) {
 	//Database check is done in the disambiguation function
 
-	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", lessonID)
+	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", targetLesson.ID)
 
-	res, err := cfg.UpdateSectionStartedLesson(lessonID)
+	res, err := cfg.UpdateSectionStartedLesson(targetLesson.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -2266,8 +2228,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 
 	cfg.logger.Print("Received create problem request with body: ", p)
 
@@ -2338,8 +2299,7 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
@@ -2424,14 +2384,7 @@ func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Requ
 	cfg.logger.Print("Received get problem test by ID request")
 
 	// Parse test ID as UUID
-	testID, err := GetUUIDFromPath(r, "testID")
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
-		return
-	}
-
-	res, err := cfg.db.GetCodeTestByID(r.Context(), testID)
+	res, err := GetObjByPathUUID(r, "testID", cfg.db.GetCodeTestByID)
 	if err != nil {
 		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -2458,17 +2411,10 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Parse test ID as UUID
-	testID, err := GetUUIDFromPath(r, "testID")
+	test, err := GetObjByPathUUID(r, "testID", cfg.db.GetCodeTestByID)
 	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid test ID format", http.StatusBadRequest)
-		return
-	}
-
-	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		cfg.logger.Printf("Invalid UUID format or test not found: %v", err)
+		http.Error(w, "Invalid test ID format or test not found", http.StatusBadRequest)
 		return
 	}
 
@@ -2500,7 +2446,7 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	err = cfg.db.DeleteCodeTestByID(r.Context(), testID)
+	err = cfg.db.DeleteCodeTestByID(r.Context(), test.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to delete problem test: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -2517,7 +2463,7 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
 		InputText string    `json:"input_text"`
 		InputFile uuid.UUID `json:"input_file"`
@@ -2525,8 +2471,7 @@ func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.
 
 	// Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -2541,7 +2486,7 @@ func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.
 	}
 
 	res, err := cfg.db.UpdateCodeTestInputs(r.Context(), database.UpdateCodeTestInputsParams{
-		ID:        testID,
+		ID:        test.ID,
 		TxtInput:  sql.NullString{String: p.InputText, Valid: !inputFile},
 		FileInput: uuid.NullUUID{UUID: p.InputFile, Valid: inputFile},
 	})
@@ -2555,15 +2500,14 @@ func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
 
-func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
 		ExpectedOutput string `json:"expected_output"`
 	}
 
 	// Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -2571,7 +2515,7 @@ func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter,
 	}
 
 	res, err := cfg.db.UpdateCodeTestExpectedOutput(r.Context(), database.UpdateCodeTestExpectedOutputParams{
-		ID:             testID,
+		ID:             test.ID,
 		ExpectedOutput: p.ExpectedOutput,
 	})
 
@@ -2584,25 +2528,17 @@ func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter,
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
 
-func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
 		NextTestID uuid.UUID `json:"next_test_id"`
 	}
 
 	// Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -2622,7 +2558,7 @@ func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.R
 	}
 
 	res, err := cfg.db.UpdateNextCodeTest(r.Context(), database.UpdateNextCodeTestParams{
-		ID:         testID,
+		ID:         test.ID,
 		NextTestID: uuid.NullUUID{UUID: p.NextTestID, Valid: p.NextTestID != uuid.Nil},
 		UpdatedAt:  time.Now(),
 	})
@@ -2635,25 +2571,17 @@ func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.R
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
 
-func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *http.Request, testID uuid.UUID) {
+func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
 		PreviousTestID uuid.UUID `json:"previous_test_id"`
 	}
 
 	// Database check is done in the disambiguation function
 
-	var p params
-	err := DecodeParamsFromBody(r, &p)
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	test, err := cfg.db.GetCodeTestByID(r.Context(), testID)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve problem test: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -2673,7 +2601,7 @@ func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *ht
 	}
 
 	res, err := cfg.db.UpdatePreviousCodeTest(r.Context(), database.UpdatePreviousCodeTestParams{
-		ID:             testID,
+		ID:             test.ID,
 		PreviousTestID: uuid.NullUUID{UUID: p.PreviousTestID, Valid: p.PreviousTestID != uuid.Nil},
 		UpdatedAt:      time.Now(),
 	})

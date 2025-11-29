@@ -5,6 +5,7 @@ package main
 import (
 	"Codium/internal/database"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"io"
@@ -849,7 +850,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[len(lessonIds)-1].String(), lesson.Lesson.PrevLessonID.UUID.String())
 				}
 
-				prevLesson, err := cfg.GetLessonByID(lesson.Lesson.PrevLessonID.UUID)
+				prevLesson, err := cfg.db.GetLessonByID(context.Background(), lesson.Lesson.PrevLessonID.UUID)
 				if err != nil {
 					t.Fatal("Error getting previous lesson: ", err)
 				}
