@@ -113,6 +113,11 @@ func main() {
 	{
 		mux := http.NewServeMux()
 		mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("./App/"))))
+
+		mux.Handle("PUT /api/users", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateUserDisambiguationHandler))
+		mux.Handle("PUT /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateLessonDisambiguationHandler))
+		mux.Handle("PUT /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemTestDisambiguationHandler))
+
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
 		mux.Handle("POST /admin/reset", http.HandlerFunc(cfg.ResetHandler))
 		mux.Handle("POST /api/login", http.HandlerFunc(cfg.LoginHandler))
@@ -121,7 +126,6 @@ func main() {
 		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
 		mux.Handle("POST /api/upload", http.HandlerFunc(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
-		mux.Handle("PUT /api/users", http.HandlerFunc(cfg.UpdateUserDisambiguationHandler))
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
 		mux.Handle("DELETE /api/users/{userID}", http.HandlerFunc(cfg.DeleteUserHandler))
 		mux.Handle("POST /api/lessons", http.HandlerFunc(cfg.CreateLessonHandler))
@@ -134,11 +138,9 @@ func main() {
 		mux.Handle("POST /api/lessons/{lessonID}/complete", http.HandlerFunc(cfg.CompleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/start", http.HandlerFunc(cfg.StartLessonHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/faves", http.HandlerFunc(cfg.GetFavoritesForLessonHandler))
-		mux.Handle("PUT /api/lessons/{lessonID}", http.HandlerFunc(cfg.UpdateLessonDisambiguationHandler))
 		mux.Handle("POST /api/problems", http.HandlerFunc(cfg.CreateProblemHandler))
 		mux.Handle("POST /api/tests", http.HandlerFunc(cfg.CreateProblemTestHandler))
 		mux.Handle("GET /api/tests", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
-		mux.Handle("PUT /api/tests/{testID}", http.HandlerFunc(cfg.UpdateProblemTestDisambiguationHandler))
 		mux.Handle("GET /api/users/{userID}/started_lessons", http.HandlerFunc(cfg.GetUserStartedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/completed_lessons", http.HandlerFunc(cfg.GetUserCompletedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/interactions", http.HandlerFunc(cfg.GetUserInteractionsHandler))

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -624,6 +625,40 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		return database.User{}, err
+	}
+
+	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	if err != nil {
+		cfg.logger.Printf("Invalid token: %v", err)
+		return database.User{}, err
+	}
+	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		return database.User{}, err
+	}
+
+	return targetUser, nil
+}
+
+func (cfg *ApiCfg) AuthenticatedEndpointMiddleware(next func(w http.ResponseWriter, r *http.Request, user database.User)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Authenticate the user
+		user, err := cfg.AuthenticateUser(r)
+		if err != nil {
+			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+		// Call the next handler with the authenticated user
+		next(w, r, user)
+	}
 }
 
 // BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags

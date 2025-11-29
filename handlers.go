@@ -77,7 +77,7 @@ func PrintProblemTestToJson(test database.CodeTest) (string, error) {
 	return string(jsonData), nil
 }
 
-func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check for query parameters
 	q := r.URL.Query()
 	if len(q) == 0 {
@@ -89,12 +89,6 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	targetUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -110,43 +104,22 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 	switch field {
 	case "username":
 		// Update username
-		cfg.UpdateUserUsernameHandler(w, r, targetUser)
+		cfg.UpdateUserUsernameHandler(w, r, sendingUser)
 	case "password":
 		// Update password
-		cfg.UpdateUserPasswordHandler(w, r, targetUser)
+		cfg.UpdateUserPasswordHandler(w, r, sendingUser)
 	case "email":
 		// Update email
-		cfg.UpdateUserEmailHandler(w, r, targetUser)
+		cfg.UpdateUserEmailHandler(w, r, sendingUser)
 	case "pfp":
 		// Update profile picture
-		cfg.UpdateUserPfpHandler(w, r, targetUser)
+		cfg.UpdateUserPfpHandler(w, r, sendingUser)
 
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", field)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
 		return
 	}
-}
-
-func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
-		return database.User{}, err
-	}
-
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
-	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
-		return database.User{}, err
-	}
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
-	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
-		return database.User{}, err
-	}
-
-	return targetUser, nil
 }
 
 func (cfg *ApiCfg) GetLessonByID(lessonID uuid.UUID) (database.Lesson, error) {
@@ -189,7 +162,7 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	q := r.URL.Query()
 	if len(q) == 0 {
 		cfg.logger.Printf("Missing query parameters")
@@ -203,9 +176,8 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	sendingUser, err := cfg.AuthenticateUser(r)
-	if err != nil || !sendingUser.IsAdmin {
-		cfg.logger.Printf("Failed to authenticate user: %v", err)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -254,16 +226,15 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 	}
 }
 
-func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
 
-	sendingUser, err := cfg.AuthenticateUser(r)
-	if err != nil || !sendingUser.IsAdmin {
-		cfg.logger.Printf("Failed to authenticate user: %v", err)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

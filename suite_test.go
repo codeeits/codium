@@ -817,7 +817,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		lessonIds = append(lessonIds, uploadedLessonID)
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
-				t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
+				//t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
 				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `"}`)
 				req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
 				if err != nil {
