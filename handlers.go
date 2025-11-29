@@ -2041,20 +2041,13 @@ func (cfg *ApiCfg) GetSectionStarterLessonsHandler(w http.ResponseWriter, r *htt
 ===========================================
 */
 
-func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
-
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	lessonIDStr := r.PathValue("lessonID")
 	if lessonIDStr == "" {
 		cfg.logger.Printf("Missing lesson ID in request")
@@ -2070,9 +2063,9 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	cfg.logger.Printf("Received favorite lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+	cfg.logger.Printf("Received favorite lesson request for lesson ID: %v by user ID: %v", lessonID, sendingUser.ID)
 
-	toggledUserLesson, err := cfg.ToggleLessonUserFavorite(lessonID, requestingUser.ID)
+	toggledUserLesson, err := cfg.ToggleLessonUserFavorite(lessonID, sendingUser.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to toggle lesson favorite: %v", err)
 		http.Error(w, "Failed to toggle lesson favorite", http.StatusInternalServerError)
@@ -2095,17 +2088,11 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -2124,9 +2111,9 @@ func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	cfg.logger.Printf("Received bookmark lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+	cfg.logger.Printf("Received bookmark lesson request for lesson ID: %v by user ID: %v", lessonID, sendingUser.ID)
 
-	toggledUserLesson, err := cfg.ToggleLessonUserBookmark(lessonID, requestingUser.ID)
+	toggledUserLesson, err := cfg.ToggleLessonUserBookmark(lessonID, sendingUser.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to toggle lesson bookmark: %v", err)
 		http.Error(w, "Failed to toggle lesson bookmark", http.StatusInternalServerError)
@@ -2291,17 +2278,11 @@ func (cfg *ApiCfg) GetUserBookmarksHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -2320,9 +2301,9 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg.logger.Printf("Received start lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+	cfg.logger.Printf("Received start lesson request for lesson ID: %v by user ID: %v", lessonID, sendingUser.ID)
 
-	lessonUser, err := cfg.MarkLessonUserStarted(lessonID, requestingUser.ID)
+	lessonUser, err := cfg.MarkLessonUserStarted(lessonID, sendingUser.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to mark lesson as started: %v", err)
 		http.Error(w, "Failed to mark lesson as started", http.StatusInternalServerError)
@@ -2345,17 +2326,11 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -2374,9 +2349,9 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	cfg.logger.Printf("Received complete lesson request for lesson ID: %v by user ID: %v", lessonID, requestingUser.ID)
+	cfg.logger.Printf("Received complete lesson request for lesson ID: %v by user ID: %v", lessonID, sendingUser.ID)
 
-	lessonUser, err := cfg.MarkLessonUserCompleted(lessonID, requestingUser.ID)
+	lessonUser, err := cfg.MarkLessonUserCompleted(lessonID, sendingUser.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to mark lesson as completed: %v", err)
 		http.Error(w, "Failed to mark lesson as completed", http.StatusInternalServerError)
