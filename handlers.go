@@ -801,7 +801,7 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -811,13 +811,6 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	cfg.logger.Print("Received delete user request")
 
-	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	// Extract user ID from URL path
 	userIDStr := r.PathValue("userID")
 	if userIDStr == "" {
@@ -826,8 +819,8 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if requestingUser.ID.String() != userIDStr && !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized delete attempt by user: %v", requestingUser.ID)
+	if sendingUser.ID.String() != userIDStr && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete attempt by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -1086,17 +1079,11 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 ===========================================
 */
 
-func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
-		return
-	}
-
-	targetUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -1111,7 +1098,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
+	err := r.ParseMultipartForm(10 << 20) // Limit upload size to 10 MB
 	if err != nil {
 		cfg.logger.Printf("Error parsing multipart form: %v", err)
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -1153,7 +1140,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadPath, uploadID, err := cfg.Upload(file, location, fileType, targetUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:], handler.Size)
+	uploadPath, uploadID, err := cfg.Upload(file, location, fileType, sendingUser, handler.Filename[strings.LastIndex(handler.Filename, ".")+1:], handler.Size)
 	if err != nil {
 		cfg.logger.Printf("Failed to upload file: %v", err)
 		http.Error(w, "Failed to upload file ", http.StatusInternalServerError)
@@ -1218,7 +1205,7 @@ func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 ===========================================
 */
 
-func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	type params struct {
 		Title       string    `json:"title"`
 		Description string    `json:"description"`
@@ -1234,6 +1221,13 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	//check sendingUser is admin
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin sendingUser: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1276,19 +1270,6 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 
 	lessonID := uuid.New()
 
-	//check user
-	user, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if !user.IsAdmin {
-		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin user: %v", user.ID)
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
 	//check for duplicate lesson
 	existingLesson, err := cfg.db.GetLessonByContentID(r.Context(), contentUUID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -1312,14 +1293,14 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request) {
 
 	flag, _ = BuildLessonFlags(p.Class, p.Section, int(number+1), p.Module)
 
-	//check if user is admin
+	//check if sendingUser is admin
 
 	res, err := cfg.db.AddLesson(r.Context(), database.AddLessonParams{
 		ID:           lessonID,
 		Title:        p.Title,
 		Description:  sql.NullString{String: p.Description, Valid: p.Description != ""},
 		ContentID:    contentUUID,
-		AuthorID:     uuid.NullUUID{UUID: user.ID, Valid: true},
+		AuthorID:     uuid.NullUUID{UUID: sendingUser.ID, Valid: true},
 		Flags:        int32(flag),
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
@@ -1578,7 +1559,7 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -1589,14 +1570,8 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.logger.Print("Received delete lesson request")
 
 	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized delete lesson attempt by non-admin user: %v", requestingUser.ID)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete lesson attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -1955,7 +1930,7 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 
 	res, err := cfg.db.UpdateLessonFlags(r.Context(), database.UpdateLessonFlagsParams{
 		ID:        lessonID,
-		Flags:     int32(flag),
+		Flags:     flag,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
@@ -1980,7 +1955,7 @@ func (cfg *ApiCfg) UpdateLessonFlagsHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, r *http.Request, lessonID uuid.UUID) {
+func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, _ *http.Request, lessonID uuid.UUID) {
 	//Database check is done in the disambiguation function
 
 	cfg.logger.Printf("Received update section starter lesson request for lesson ID: %v", lessonID)
