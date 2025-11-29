@@ -11,9 +11,12 @@ Bucovina - Zi Dupa Zi, Noapte De Noapte
 document.addEventListener("DOMContentLoaded", async function() {
 
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const debugMode = true; // SET THIS TO ENABLE LOGS!
+
+
     console.log(`Is Admin: ${isAdmin}`);
     if (!isAdmin) {
-        const uploadBtn = document.getElementById("openUploadModal");
+        const uploadBtn = document.getElementById("openupdateModal");
         const currentPage = window.location.pathname;
         if (uploadBtn) {
             uploadBtn.style.display = "none";
@@ -34,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     sectionValue = sectionFilter.value;
 
     let newOrder = [];
+    let loadLessonsRequestId = 0;
 
     // Event listeners for filters
 
@@ -72,6 +76,10 @@ document.addEventListener("DOMContentLoaded", async function() {
     // Functions load lessons
 
     async function loadLessons() {
+
+        newOrder = [];
+
+        const currentRequestId = ++loadLessonsRequestId;
         try {
             let response;
             if(classValue && moduleValue && sectionValue) {
@@ -84,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     filterData.class,
                     filterData.section,
                     filterData.module,
-                    true
+                    false
                 );
             } else {
                 // Don't load lessons if not all parameters are provided
@@ -103,6 +111,12 @@ document.addEventListener("DOMContentLoaded", async function() {
                 console.error("Failed to load lessons.");
                 return;
             }
+
+            if (currentRequestId !== loadLessonsRequestId) {
+                console.log('Ignoring stale loadLessons response');
+                return;
+            }
+
             const lessons = response;
             console.log("Loaded lessons:", lessons);
             
@@ -132,7 +146,8 @@ document.addEventListener("DOMContentLoaded", async function() {
                 await renderLessons(lessons);
             }
             } catch (error) {
-            console.error("Failed to load lessons:", error);
+                if (currentRequestId !== loadLessonsRequestId) return;
+                console.error("Failed to load lessons:", error);
         }
     }
 
@@ -167,12 +182,22 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
     }
 
+    let isSavingOrder = false;
+
     async function updateLessonsOrder(lessonIds) {
         if (!lessonIds || lessonIds.length === 0) {
             console.warn('No lessons to update');
             return;
         }
         
+        if (isSavingOrder) {
+            console.warn('Save operation already in progress');
+            return;
+        }
+        
+        isSavingOrder = true;
+        saveOrderBtn.disabled = true;
+
         try {
             console.log('Updating lessons order:', lessonIds);
             
@@ -196,6 +221,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         } catch (error) {
             console.error('Failed to update lessons order:', error);
             toastsLoader.showToast('Failed to update lesson order', 'danger');
+        } finally {
+            isSavingOrder = false;
+            saveOrderBtn.disabled = false;
         }
     };
 
@@ -283,17 +311,30 @@ document.addEventListener("DOMContentLoaded", async function() {
     const previewArea = document.getElementById("lesson-body");
     const rawButton = document.getElementById("rawButton");
     const mdButton = document.getElementById("mdButton");
+    const metadataButton = document.getElementById("metadataButton");
     const saveButton = document.getElementById("saveButton");
     let contentData = null;
+
+    let contentDataForLessonId = null;
+    let pendingLessonLoad = null;
 
     async function renderLesson(lessonId, isMarkdown = false, firstCall = false) {
         if (!lessonId) {
             console.warn('No lesson ID provided for rendering');
             return;
         }
+
         if (firstCall) {
+            pendingLessonLoad = lessonId; // mark as loading
             toastsLoader.showToast('Loading lesson preview...', 'info');
+
             const result = await window.apiService.getLessonById(lessonId);
+
+            if (pendingLessonLoad !== lessonId) {
+                console.log('Lesson load superseded by another request');
+                return;
+            }
+
             const currentLessonNameSpan = document.getElementById("current-lesson-name");
             const currentLessonIdSpan = document.getElementById("current-lesson-id");
             if (currentLessonIdSpan) {
@@ -303,14 +344,27 @@ document.addEventListener("DOMContentLoaded", async function() {
                 currentLessonNameSpan.textContent = result.lesson.Title;
             }
             console.log(window.apiService.getFile(result.lesson.ContentID));
+            
             window.apiService.getFile(result.lesson.ContentID).then(lessonData => {
+                if (lessonIdClicked !== lessonId) {
+                    console.warn('Lesson load superseded by another request');
+                    return;
+                }
                 contentData = lessonData;
+                contentDataForLessonId = lessonId; // track ownership
                 renderLesson(lessonId, isMarkdown);
+
             }).catch(error => {
-                console.error('Failed to load lesson for preview:', error);
+                if (lessonIdClicked !== lessonId) return;
                 toastsLoader.showToast('Failed to load lesson preview.', 'danger');
                 previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
             });
+            return;
+        }
+
+        if (contentDataForLessonId !== lessonId) {
+            console.warn('Content mismatch, skipping render');
+            return;
         }
 
         if (isMarkdown) {
@@ -360,10 +414,21 @@ document.addEventListener("DOMContentLoaded", async function() {
     });
 
     saveButton.addEventListener("click", async function(){
+
+        const lessonToSave = lessonIdClicked;
+
         if (!lessonIdClicked) {
             toastsLoader.showToast('No lesson selected to save.', 'warning');
             return;
         }
+
+        if (contentDataForLessonId !== lessonToSave) {
+            toastsLoader.showToast('Content mismatch - please reload the lesson.', 'danger');
+            return;
+        }
+        
+        saveButton.disabled = true;
+
         try {
             const file = new File([contentData], 'lesson.md', { type: 'text/markdown' });
             await window.apiService.updateLessonContent(lessonIdClicked, file);
@@ -371,6 +436,8 @@ document.addEventListener("DOMContentLoaded", async function() {
         } catch (error) {
             console.error('Failed to save lesson content:', error);
             toastsLoader.showToast('Failed to save lesson content.', 'danger');
+        } finally {
+            saveButton.disabled = false;
         }
     });
 
@@ -449,5 +516,251 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
     }
 
+    // MODAL HANDELING
+
+    const updateModal = document.getElementById("editMetadataModal");
+    const form = document.getElementById("editMetadataForm");
+    //const fileInput = document.getElementById("lessonFile");
+    const fileInfo = document.getElementById("fileInfo") || null; // for silencing errors
+    const clearForm = document.getElementById("clearForm");
+
+    let prevLess = null;
+    let nextLess = null;
+
+    //clear form funct
+
+    const uploadBtn = document.getElementById("metadataButton");
+            
+    if (uploadBtn && updateModal) {
+        uploadBtn.addEventListener("click", function() {
+            updateModal.style.display = "flex";
+        });
+
+        // Close modal when clicking outside
+        updateModal.addEventListener("click", function(e) {
+            if (e.target === updateModal) {
+                updateModal.style.display = "none";
+            }
+        });
+    }
+
+    clearForm.addEventListener("click", function(){
+
+        form.reset();
+        if (fileInfo) {
+            fileInfo.style.display = "none";
+        }
+
+    });
+
+    // Show file info when file is selected
+    
+    /*
+    fileInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        const nameLabel = document.getElementById("fileName");
+        const sizeLabel = document.getElementById("fileSize");
+
+        if (file && nameLabel && sizeLabel && fileInfo) {
+            nameLabel.textContent = file.name;
+            sizeLabel.textContent = `${(file.size / 1024).toFixed(2)} KB`;
+            fileInfo.style.display = "block";
+        } else if (fileInfo) {
+            fileInfo.style.display = "none";
+        }
+    });
+    */
+
+    let isSubmittingForm = false;
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        if (isSubmittingForm) {
+            toastsLoader.showToast('Submission in progress...', 'warning');
+            return;
+        }
+
+        const lessonToUpdate = lessonIdClicked;  // Capture immediately
+        if (!lessonToUpdate) {
+            toastsLoader.showToast('No lesson selected.', 'warning');
+            return;
+        }
+
+        isSubmittingForm = true;
+
+        try {
+            const formData = {
+            title: document.getElementById("lessonTitle").value || null,
+            description: document.getElementById("lessonDescription").value || null,
+            class: parseInt(document.getElementById("modalLessonClass").value) || null,
+            section: parseInt(document.getElementById("modalLessonSection").value) || null,
+            number: 1,
+            module: parseInt(document.getElementById("modalLessonModule").value) || null,
+        }
+
+        console.warn(formData.class);
+
+        // upload file and create lesson
+
+        /*
+        const fileInput = document.getElementById("lessonFile");
+        const fileS = fileInput.files[0];
+        const fileLength = fileS.size;
+        const fileName = fileS.name;
+
+        console.log(`Uploading file: ${fileName} (${fileLength} bytes)`);
+        toastsLoader.showToast(`Uploading file: ${fileName}`, 'info');
+        */
+        // let responseData;
+
+        try {
+
+            // GET LAST LESSON IN SECTION TO SET PREVIOUS LESSON ID
+            let lastLesson = await window.apiService.getLessonsByFlags(
+                formData.class, 
+                formData.section, 
+                formData.module
+            );
+
+            lastLesson = lastLesson.length > 0 ? lastLesson[lastLesson.length - 1] : null;
+            let lastLessonID = lastLesson ? lastLesson.lesson.ID : null;
+            if (debugMode) console.log(`Last lesson in section:`, lastLesson);
+
+            // UPDATE THE LESSON
+
+            const detailsToUpdate = {};
+            const flagsToUpdate = {};
+
+            for (const [key, value] of Object.entries(formData)) {
+                if (value !== null) {
+                    if (key === 'title' || key === 'description') {
+                        detailsToUpdate[key] = value;
+                    } else if (key === 'class' || key === 'section' || key === 'module') {
+                        flagsToUpdate[key] = value;
+                    }
+                }
+            }
+
+            if (debugMode) console.log("Updating lesson with data:", {
+                details: detailsToUpdate,
+                flags: flagsToUpdate
+            });
+
+            if (Object.keys(detailsToUpdate).length > 0) {
+                await window.apiService.updateLessonField(lessonToUpdate, 'details', detailsToUpdate);
+                if (debugMode) console.log("Lesson details updated successfully.");
+            }
+
+            if (Object.keys(flagsToUpdate).length > 0) {
+                await window.apiService.updateLessonField(lessonToUpdate, 'flags', flagsToUpdate);
+                if (debugMode) console.log("Lesson flags updated successfully.");
+            }
+
+            if (debugMode) console.log("Lesson updated successfully.");
+            toastsLoader.showToast(`Lesson updated successfully. ID: ${lessonToUpdate}`, "confirm");
+
+            /*
+            responseData = await window.apiService.uploadLesson(formData, fileS);
+            
+            if (debugMode) console.log("Lesson uploaded successfully.");
+            if (debugMode) console.log(responseData);
+            toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
+            */
+
+            // Check if this is the first lesson in the section and assign section_starter if needed
+            try {
+                const existingLessons = await window.apiService.getLessonsByFlags(
+                    formData.class, 
+                    formData.section, 
+                    formData.module
+                );
+                
+                const lessonsData = existingLessons;
+                
+                if (debugMode) console.log(`Existing lessons in section ${formData.section}:`, lessonsData);
+                if (lessonsData.length === 1) {
+                    if (debugMode) console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
+                    await window.apiService.updateLessonSectionStarter(lessonToUpdate, formData.section);
+                    toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
+                } else {
+                    // assign PreviousLessonID to current lesson
+                    prevLess = lastLessonID;
+                    toastsLoader.showToast(`Lesson PreviousLessonID set to ${lastLessonID}`, "info");
+                }
+
+            } catch (error) {
+
+                console.error("Failed to check/update section starter:", error);
+                toastsLoader.showToast("Warning: Could not check section starter status", "warning");
+
+            }
+
+            // Update UI elements if they exist
+            const nameLabel = document.getElementById("fileName");
+            if (nameLabel) {
+                nameLabel.textContent = fileName;
+            }
+            
+            const sizeLabel = document.getElementById("fileSize");
+            if (sizeLabel) {
+                sizeLabel.textContent = `${(fileLength / 1024).toFixed(2)} KB`;
+            }
+
+
+            if(fileInfo) {
+                fileInfo.style.display = "none";
+            }
+
+        } catch (error) {
+
+            console.error("Lesson upload failed:", error);
+            toastsLoader.showToast(`Lesson upload failed: ${error.message}`, "danger");
+            return;
+
+        }
+
+        try {
+            // Get debug form values if they exist
+            const debugPrevInput = document.getElementById("debugPrevLesson");
+            const debugNextInput = document.getElementById("debugNextLesson");
+            
+            if (debugPrevInput && debugNextInput) {
+                const debugPrev = debugPrevInput.value.trim();
+                const debugNext = debugNextInput.value.trim();
+                
+                // Only override if debug values are provided
+                if (debugPrev) prevLess = debugPrev;
+                if (debugNext) nextLess = debugNext;
+            }
+            
+            // Convert empty strings to null
+            prevLess = prevLess === "" ? null : prevLess;
+            nextLess = nextLess === "" ? null : nextLess;
+            
+            // Check if we need to update lesson order
+            if (!prevLess && !nextLess) {
+                console.log('No lesson order update needed.');
+                toastsLoader.showToast('No lesson order update needed.', 'info');
+            } else {
+                console.log('Updating lesson order:', {
+                    lessonId: lessonToUpdate,
+                    prevLess: prevLess,
+                    nextLess: nextLess
+                });
+                
+                await window.apiService.updateLessonOrder(lessonToUpdate, prevLess, nextLess);
+                toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
+            }
+        } catch (error) {
+            console.warn("Updating lesson order failed:", error);
+            toastsLoader.showToast(`Updating lesson order failed: ${error.message}`, "warning");
+            return;
+        }
+    } finally {
+        isSubmittingForm = false;
+        form.reset();
+    }
+    });
 
 });
