@@ -2648,7 +2648,7 @@ func (cfg *ApiCfg) GetUserInteractionsHandler(w http.ResponseWriter, r *http.Req
 ===========================================
 */
 
-func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	type params struct {
 		Title            string    `json:"title"`
 		Description      string    `json:"description"`
@@ -2669,22 +2669,15 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized create problem attempt by non-admin user: %v", requestingUser.ID)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized create problem attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 
 	cfg.logger.Print("Received create problem request with body: ", p)
 
@@ -2712,7 +2705,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 		Tags:            int32(tags),
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
-		AuthorID:        requestingUser.ID,
+		AuthorID:        sendingUser.ID,
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to create problem: %v", err)
@@ -2744,7 +2737,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request) 
 ===========================================
 */
 
-func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	type params struct {
 		InputText      string    `json:"input_text"`
 		InputFile      uuid.UUID `json:"input_file"`
@@ -2762,22 +2755,15 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 
 	cfg.logger.Print("Received create problem test request")
 
-	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized create problem test attempt by non-admin user: %v", requestingUser.ID)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized create problem test attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	var p params
-	err = decoder.Decode(&p)
+	err := decoder.Decode(&p)
 
 	if err != nil {
 		cfg.logger.Printf("Invalid request body: %v", err)
@@ -2912,7 +2898,7 @@ func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -2921,15 +2907,9 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	cfg.logger.Print("Received delete problem test request")
-	//Authenticate the user making the request
-	requestingUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
-	if !requestingUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized delete problem test attempt by non-admin user: %v", requestingUser.ID)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete problem test attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -3234,7 +3214,7 @@ func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *ht
 ===========================================
 */
 
-func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.dbLoaded {
 		cfg.logger.Println("Database not connected")
@@ -3245,21 +3225,16 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.logger.Print("Received request to reset the database")
 
 	// Check if the user is an admin
-	adminUser, err := cfg.AuthenticateUser(r)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	if !adminUser.IsAdmin {
-		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", adminUser.ID)
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	cfg.logger.Print("Admin reset initiated by user: ", adminUser.ID)
+	cfg.logger.Print("Admin reset initiated by user: ", sendingUser.ID)
 
 	// Delete all users
-	err = cfg.ResetAll()
+	err := cfg.ResetAll()
 	if err != nil {
 		cfg.logger.Printf("Failed to reset users: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
