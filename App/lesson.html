@@ -52,6 +52,9 @@
     <meta name="menu-variant" content="lesson">
 </head>
 <body>
+    <div id="reading-progress-container">
+        <div id="reading-progress-bar"></div>
+    </div>
     <div id="top-menu-container"></div>
     
     <div class="main-grid">
@@ -94,6 +97,23 @@
     </div>
 
     <style>
+        #reading-progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+        }
+
+        #reading-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.1s ease-out;
+        }
+
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 20rem;

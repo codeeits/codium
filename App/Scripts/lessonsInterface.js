@@ -34,6 +34,24 @@ document.addEventListener("DOMContentLoaded", async function() {
     const debugMode = false; // SET THIS TO ENABLE LOGS!
 
     //------------------------------
+    // Reading Progress Bar
+    //------------------------------
+    const progressBar = document.getElementById('reading-progress-bar');
+    
+    function updateProgressBar() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        if (progressBar) {
+            progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+        }
+    }
+
+    window.addEventListener('scroll', updateProgressBar);
+    window.addEventListener('resize', updateProgressBar);
+    updateProgressBar(); // Initial call
+
+    //------------------------------
 
     const titleElement = document.getElementById("lesson-title");
     const lessonContainer = document.getElementById("lesson-body");

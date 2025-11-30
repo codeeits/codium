@@ -402,16 +402,21 @@ class ApiService {
         const sectionsMap = new Map();
 
         lessonsData.forEach(lesson => {
-            // { section: X, class: Y, module: Z }
-            sectionsMap.set(lesson.flag_translation.section, {
+            const key = `${lesson.flag_translation.class}-${lesson.flag_translation.section}`;
+            sectionsMap.set(key, {
                 section: lesson.flag_translation.section,
                 class: lesson.flag_translation.class,
                 module: lesson.flag_translation.module
             });
 
         })
+        
         const result = Array.from(sectionsMap.values());
-        result.sort((a, b) => a - b);
+        // Sort by class first, then by section
+        result.sort((a, b) => {
+            if (a.class !== b.class) return a.class - b.class;
+            return a.section - b.section;
+        });
         return result;
     }
 

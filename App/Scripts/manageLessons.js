@@ -69,6 +69,16 @@ document.addEventListener("DOMContentLoaded", async function() {
     classFilter.addEventListener("change", async function() {
         if (classValue !== this.value) {
             classValue = this.value;
+            // reset section value since we're repopulating sections
+            sectionValue = "";
+            sectionFilter.value = "";
+            // reset lessons
+            const arrangeLessonsContainer = document.getElementById("arrangeLessonsContainer");
+            if (arrangeLessonsContainer) {
+                arrangeLessonsContainer.innerHTML = '<p>Please select all filters to manage lessons.</p>';
+            }
+            // clear preview
+            clearPreview();
             await populateSections();
         }
     });
@@ -76,6 +86,16 @@ document.addEventListener("DOMContentLoaded", async function() {
     moduleFilter.addEventListener("change", async function() {
         if (moduleValue !== this.value) {
             moduleValue = this.value;
+            // reset section value since we're repopulating sections
+            sectionValue = "";
+            sectionFilter.value = "";
+            // reset lessons
+            const arrangeLessonsContainer = document.getElementById("arrangeLessonsContainer");
+            if (arrangeLessonsContainer) {
+                arrangeLessonsContainer.innerHTML = '<p>Please select all filters to manage lessons.</p>';
+            }
+            // clear preview
+            clearPreview();
             await populateSections();
         }
     });
@@ -84,6 +104,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         if (sectionValue !== this.value) {
             sectionValue = this.value;
+            clearPreview();
             await loadLessons();
         }
 
@@ -91,14 +112,15 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     async function populateSections(){
         if(debugMode) console.log("[DEBUG] Populating sections for class", classValue, "and module", moduleValue);
+
         if ((!moduleValue || !classValue) || (moduleValue === "" || classValue === "")) {
             return;
         }
 
         sectionFilter.innerHTML = '<option value="" data-i18n="">toate secțiunile</option>';
         sections.forEach(sectionNum => {
-            if(sectionNum.class === parseInt(classValue) && sectionNum.module === parseInt(moduleValue)) {
-                const option = document.createElement("option");
+            if(sectionNum.class === parseInt(classValue) && (sectionNum.module || 0) === parseInt(moduleValue)) {
+                const option = document.createElement("option"); 
                 option.value = sectionNum.section;
                 option.textContent = "Sectiunea " + sectionNum.section;
                 sectionFilter.appendChild(option);
@@ -352,6 +374,45 @@ document.addEventListener("DOMContentLoaded", async function() {
     let contentDataForLessonId = null;
     let pendingLessonLoad = null;
 
+    clearPreview();
+    function clearPreview() {
+        if (previewArea) {
+            previewArea.innerHTML = '<p>Select a lesson to preview.</p>';
+        }
+
+
+
+        const currentLessonNameSpan = document.getElementById("current-lesson-name");
+        const currentLessonIdSpan = document.getElementById("current-lesson-id");
+        if (currentLessonNameSpan) currentLessonNameSpan.textContent = '';
+        if (currentLessonIdSpan) currentLessonIdSpan.textContent = '';
+        if (rawButton) {
+            rawButton.classList.add("secondary");
+            rawButton.classList.remove("primary");
+        }
+        if (mdButton) {
+            mdButton.classList.add("secondary");
+            mdButton.classList.remove("primary");
+        }
+        if (metadataButton) {
+            metadataButton.disabled = true;
+        }
+
+        if (saveButton) {
+            saveButton.disabled = true;
+        }
+
+        // Reset state
+
+        contentData = null;
+        contentDataForLessonId = null;
+        lessonIdClicked = null;
+        if (previouslyClickedElement) {
+            previouslyClickedElement.style.border = '';
+            previouslyClickedElement = null;
+        }
+    }
+
     async function renderLesson(lessonId, isMarkdown = false, firstCall = false) {
         if (!lessonId) {
             console.warn('No lesson ID provided for rendering');
@@ -400,6 +461,14 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (contentDataForLessonId !== lessonId) {
             console.warn('Content mismatch, skipping render');
             return;
+        }
+
+
+        if (saveButton) {
+            saveButton.disabled = false;
+        }
+        if (metadataButton) {
+            metadataButton.disabled = false;
         }
 
         if (isMarkdown) {
@@ -609,15 +678,23 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         try {
 
-            // GET LAST LESSON IN SECTION TO SET PREVIOUS LESSON ID
-            let lastLesson = await window.apiService.getLessonsByFlags(
+            // GET EXISTING LESSONS IN TARGET SECTION *BEFORE* updating (excluding the lesson being moved)
+            let existingLessonsInTarget = await window.apiService.getLessonsByFlags(
                 formData.class, 
                 formData.section, 
                 formData.module
             );
-
-            lastLesson = lastLesson.length > 0 ? lastLesson[lastLesson.length - 1] : null;
+            
+            // Filter out the lesson we're updating to get accurate count
+            existingLessonsInTarget = existingLessonsInTarget.filter(l => l.lesson.ID !== lessonToUpdate);
+            
+            // Get the last lesson that's NOT the one we're updating
+            let lastLesson = existingLessonsInTarget.length > 0 
+                ? existingLessonsInTarget[existingLessonsInTarget.length - 1] 
+                : null;
             let lastLessonID = lastLesson ? lastLesson.lesson.ID : null;
+            
+            if (debugMode) console.log(`Existing lessons in target section (excluding current):`, existingLessonsInTarget);
             if (debugMode) console.log(`Last lesson in section:`, lastLesson);
 
             // UPDATE THE LESSON
@@ -654,25 +731,26 @@ document.addEventListener("DOMContentLoaded", async function() {
             toastsLoader.showToast(`Lesson updated successfully. ID: ${lessonToUpdate}`, "confirm");
 
             // Check if this is the first lesson in the section and assign section_starter if needed
+            // Use the count we got BEFORE moving (existingLessonsInTarget already excludes current lesson)
 
             try {
-                const existingLessons = await window.apiService.getLessonsByFlags(
-                    formData.class, 
-                    formData.section, 
-                    formData.module
-                );
-                
-                const lessonsData = existingLessons;
-                
-                if (debugMode) console.log(`Existing lessons in section ${formData.section}:`, lessonsData);
-                if (lessonsData.length === 1) {
+                if (existingLessonsInTarget.length === 0) {
+                    // No other lessons in target section, this becomes the section starter
                     if (debugMode) console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
                     await window.apiService.updateLessonSectionStarter(lessonToUpdate, formData.section);
                     toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
+                    // No prev lesson since it's the first
+                    prevLess = null;
                 } else {
-                    // assign PreviousLessonID to current lesson
-                    prevLess = lastLessonID;
-                    toastsLoader.showToast(`Lesson PreviousLessonID set to ${lastLessonID}`, "info");
+                    // There are other lessons, link to the last one
+                    // Make sure we're not creating a circular reference
+                    if (lastLessonID && lastLessonID !== lessonToUpdate) {
+                        prevLess = lastLessonID;
+                        toastsLoader.showToast(`Lesson PreviousLessonID set to ${lastLessonID}`, "info");
+                    } else {
+                        if (debugMode) console.warn(`Skipping prevLess assignment to avoid circular reference`);
+                        prevLess = null;
+                    }
                 }
 
             } catch (error) {
@@ -711,6 +789,16 @@ document.addEventListener("DOMContentLoaded", async function() {
             // Convert empty strings to null
             prevLess = prevLess === "" ? null : prevLess;
             nextLess = nextLess === "" ? null : nextLess;
+            
+            // PREVENT CIRCULAR REFERENCES - never set prev or next to self
+            if (prevLess === lessonToUpdate) {
+                console.warn('Preventing circular reference: prevLess === lessonToUpdate');
+                prevLess = null;
+            }
+            if (nextLess === lessonToUpdate) {
+                console.warn('Preventing circular reference: nextLess === lessonToUpdate');
+                nextLess = null;
+            }
             
             // Check if we need to update lesson order
             if (!prevLess && !nextLess) {
