@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-    userId = userData.ID;
 
     if(debugMode) console.info("[DEBUG] Current User:", userData);
 
@@ -41,9 +40,15 @@ document.addEventListener("DOMContentLoaded", async function() {
     const classFilter = document.getElementById("lessonClass");
     const moduleFilter = document.getElementById("lessonModule");
     const sectionFilter = document.getElementById("lessonSection");
-    classValue = classFilter.value;
-    moduleValue = moduleFilter.value;
-    sectionValue = sectionFilter.value;
+    let classValue = classFilter.value;
+    let moduleValue = moduleFilter.value;
+    let sectionValue = sectionFilter.value;
+
+    const updateModal = document.getElementById("editMetadataModal");
+    const form = document.getElementById("editMetadataForm");
+    //const fileInput = document.getElementById("lessonFile");
+    const fileInfo = document.getElementById("fileInfo") || null; // for silencing errors
+    const clearForm = document.getElementById("clearForm");
 
     let newOrder = [];
     let loadLessonsRequestId = 0;
@@ -173,9 +178,9 @@ document.addEventListener("DOMContentLoaded", async function() {
                 arrangeLessonsContainer.innerHTML = '';
                 await renderLessons(lessons);
             }
-            } catch (error) {
-                if (currentRequestId !== loadLessonsRequestId) return;
-                console.error("Failed to load lessons:", error);
+        } catch (error) {
+            if (currentRequestId !== loadLessonsRequestId) return;
+            console.error("Failed to load lessons:", error);
         }
     }
 
@@ -207,6 +212,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 }
             }
         } catch (error) {
+            console.error('Failed to render lessons:', error);
         }
     }
 
@@ -316,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         draggedItem = null;
     }
 
-    lessonIdClicked = null;
+    let lessonIdClicked = null;
     let previouslyClickedElement = null;
 
     function handleClick() {
@@ -384,6 +390,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
             }).catch(error => {
                 if (lessonIdClicked !== lessonId) return;
+                if(debugMode) console.error('Failed to load lesson content:', error);
                 toastsLoader.showToast('Failed to load lesson preview.', 'danger');
                 previewArea.innerHTML = '<p class="error">Failed to load lesson content.</p>';
             });
@@ -396,9 +403,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
         if (isMarkdown) {
-            //const markdownContent = lessonData.Lesson.Content;
-            //const htmlContent = window.markdownService.convertMarkdownToHTML(markdownContent);
-            //previewArea.innerHTML = htmlContent;
             MarkdownToHtml(contentData);
         } else {
             const textarea = document.createElement('textarea');
@@ -546,21 +550,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // MODAL HANDELING
 
-    const updateModal = document.getElementById("editMetadataModal");
-    const form = document.getElementById("editMetadataForm");
-    //const fileInput = document.getElementById("lessonFile");
-    const fileInfo = document.getElementById("fileInfo") || null; // for silencing errors
-    const clearForm = document.getElementById("clearForm");
-
     let prevLess = null;
     let nextLess = null;
 
     //clear form funct
-
-    const uploadBtn = document.getElementById("metadataButton");
             
-    if (uploadBtn && updateModal) {
-        uploadBtn.addEventListener("click", function() {
+    if (metadataButton && updateModal) {
+        metadataButton.addEventListener("click", function() {
             updateModal.style.display = "flex";
         });
 
@@ -580,24 +576,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
     });
-
-    // Show file info when file is selected
-    
-    /*
-    fileInput.addEventListener("change", function(e) {
-        const file = e.target.files[0];
-        const nameLabel = document.getElementById("fileName");
-        const sizeLabel = document.getElementById("fileSize");
-
-        if (file && nameLabel && sizeLabel && fileInfo) {
-            nameLabel.textContent = file.name;
-            sizeLabel.textContent = `${(file.size / 1024).toFixed(2)} KB`;
-            fileInfo.style.display = "block";
-        } else if (fileInfo) {
-            fileInfo.style.display = "none";
-        }
-    });
-    */
 
     let isSubmittingForm = false;
 
@@ -628,19 +606,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
 
         console.warn(formData.class);
-
-        // upload file and create lesson
-
-        /*
-        const fileInput = document.getElementById("lessonFile");
-        const fileS = fileInput.files[0];
-        const fileLength = fileS.size;
-        const fileName = fileS.name;
-
-        console.log(`Uploading file: ${fileName} (${fileLength} bytes)`);
-        toastsLoader.showToast(`Uploading file: ${fileName}`, 'info');
-        */
-        // let responseData;
 
         try {
 
@@ -688,15 +653,8 @@ document.addEventListener("DOMContentLoaded", async function() {
             if (debugMode) console.log("Lesson updated successfully.");
             toastsLoader.showToast(`Lesson updated successfully. ID: ${lessonToUpdate}`, "confirm");
 
-            /*
-            responseData = await window.apiService.uploadLesson(formData, fileS);
-            
-            if (debugMode) console.log("Lesson uploaded successfully.");
-            if (debugMode) console.log(responseData);
-            toastsLoader.showToast(`Lesson uploaded successfully. ID: ${responseData.lesson.ID}`, "confirm");
-            */
-
             // Check if this is the first lesson in the section and assign section_starter if needed
+
             try {
                 const existingLessons = await window.apiService.getLessonsByFlags(
                     formData.class, 
@@ -723,18 +681,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                 toastsLoader.showToast("Warning: Could not check section starter status", "warning");
 
             }
-
-            // Update UI elements if they exist
-            const nameLabel = document.getElementById("fileName");
-            if (nameLabel) {
-                nameLabel.textContent = fileName;
-            }
-            
-            const sizeLabel = document.getElementById("fileSize");
-            if (sizeLabel) {
-                sizeLabel.textContent = `${(fileLength / 1024).toFixed(2)} KB`;
-            }
-
 
             if(fileInfo) {
                 fileInfo.style.display = "none";
