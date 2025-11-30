@@ -387,8 +387,13 @@ class ApiService {
         return lessons;
     }
 
-    async getSections(){
-
+    async getSectionsForClass(classNum){
+        console.warn("getSectionsForClass is DEPRECATED. Use getSections instead.");
+        const result = await this.getSections(classNum, null);
+        for (let i = 0; i < result.length; i++) {
+            result[i] = result[i].section;
+        }
+        return result;
     }
 
     async getSections(classNum = null, module = null) {
