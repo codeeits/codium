@@ -578,35 +578,35 @@ class ApiService {
                 .replace(/\n/g, '\\n');
 
             injectedCode += `
-#include <fstream>
-void __create_input_file() {
-  std::ofstream f("${inputFile.name}");
-  f << "${escaped}";
-  f.close();
-}
-struct __FileCreator { __FileCreator() { __create_input_file(); } } __fc;
-`;
+                #include <fstream>
+                void __create_input_file() {
+                std::ofstream f("${inputFile.name}");
+                f << "${escaped}";
+                f.close();
+                }
+                struct __FileCreator { __FileCreator() { __create_input_file(); } } __fc;
+            `;
         }
 
         injectedCode += `
-#include <fstream>
-#include <iostream>
-#include <string>
-struct __FileReader {
-  ~__FileReader() {
-    std::ifstream f("output.txt");
-    if (f.good()) {
-      std::cout << "${FILE_OUTPUT_MARKER}";
-      std::string line;
-      while (std::getline(f, line)) {
-        std::cout << line << "\\n";
-      }
-      std::cout << "${FILE_OUTPUT_END_MARKER}";
-      f.close();
-    }
-  }
-} __fr;
-`;
+            #include <fstream>
+            #include <iostream>
+            #include <string>
+            struct __FileReader {
+            ~__FileReader() {
+                std::ifstream f("output.txt");
+                if (f.good()) {
+                std::cout << "${FILE_OUTPUT_MARKER}";
+                std::string line;
+                while (std::getline(f, line)) {
+                    std::cout << line << "\\n";
+                }
+                std::cout << "${FILE_OUTPUT_END_MARKER}";
+                f.close();
+                }
+            }
+            } __fr;
+        `;
 
         const includeMatch = processedCode.match(/^((?:#include\s*<[^>]+>\s*\n|#include\s*"[^"]+"\s*\n|using\s+namespace\s+\w+;\s*\n)*)/);
         if (includeMatch) {
