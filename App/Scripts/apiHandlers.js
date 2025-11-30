@@ -225,9 +225,15 @@ class ApiService {
     async getCurrentUser() {
         const userId = localStorage.getItem('userID');
         if (!userId) {
-            throw new Error('No user ID found');
+            return null;
         }
         return this.get(`/api/users/${userId}`, true);
+    }
+
+    async isCurrentAdmin() {
+        const currentUser = await this.getCurrentUser();
+        const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+        return userData.IsAdmin || false;
     }
 
     async getUserById(userId) {
@@ -381,17 +387,27 @@ class ApiService {
         return lessons;
     }
 
-    async getSectionsForClass(classNum, module = null) {
+    async getSections(){
+
+    }
+
+    async getSections(classNum = null, module = null) {
         const response = await this.getLessonsByFlags(classNum, null, module);
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
-        const sectionsSet = new Set();
+        const sectionsMap = new Map();
 
         lessonsData.forEach(lesson => {
-            sectionsSet.add(lesson.flag_translation.section);
+            // { section: X, class: Y, module: Z }
+            sectionsMap.set(lesson.flag_translation.section, {
+                section: lesson.flag_translation.section,
+                class: lesson.flag_translation.class,
+                module: lesson.flag_translation.module
+            });
+
         })
-        const arrayFromSet = Array.from(sectionsSet);
-        arrayFromSet.sort((a, b) => a - b);
-        return arrayFromSet;
+        const result = Array.from(sectionsMap.values());
+        result.sort((a, b) => a - b);
+        return result;
     }
 
     async modifyBookmark(lessonId) {

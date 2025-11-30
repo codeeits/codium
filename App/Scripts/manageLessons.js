@@ -10,67 +10,95 @@ Bucovina - Zi Dupa Zi, Noapte De Noapte
 */
 document.addEventListener("DOMContentLoaded", async function() {
 
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
     const debugMode = true; // SET THIS TO ENABLE LOGS!
 
+    // ------------------------------
+    
+    const currentUser = await window.apiService.getCurrentUser();
 
-    console.log(`Is Admin: ${isAdmin}`);
-    if (!isAdmin) {
-        const uploadBtn = document.getElementById("openupdateModal");
-        const currentPage = window.location.pathname;
-        if (uploadBtn) {
-            uploadBtn.style.display = "none";
-        } else {
-            window.location.href = "user.html";
-        }
-    } else {
-        toastsLoader.showToast('auth!', 'confirm');
+    if (currentUser === null) {
+        // Not logged in
+        window.location.href = 'login.html';
+        return;
     }
 
-    // elements
+    if (!currentUser.IsAdmin) {
+        // Logged in but not admin
+        window.location.href = 'user.html';
+        return;  
+    }
+
+    const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+    userId = userData.ID;
+
+    if(debugMode) console.info("[DEBUG] Current User:", userData);
+
+    // ------------------------------
+    // DOM ELEMENTS
+    // ------------------------------
     
+    // Filters
     const classFilter = document.getElementById("lessonClass");
-    classValue = classFilter.value;
     const moduleFilter = document.getElementById("lessonModule");
-    moduleValue = moduleFilter.value;
     const sectionFilter = document.getElementById("lessonSection");
+    classValue = classFilter.value;
+    moduleValue = moduleFilter.value;
     sectionValue = sectionFilter.value;
 
     let newOrder = [];
     let loadLessonsRequestId = 0;
 
-    // Event listeners for filters
+    // ------------------------------
 
     loadLessons(); // initial load
-    classFilter.addEventListener("change", function() {
+
+    // ------------------------------
+    // EVENT LISTENERS
+    // ------------------------------
+
+    let sections = [];
+
+    sections = await window.apiService.getSections(null, null);
+    if(debugMode) console.info("[DEBUG] Available sections:", sections);
+
+    classFilter.addEventListener("change", async function() {
         if (classValue !== this.value) {
             classValue = this.value;
-            loadLessons();
+            await populateSections();
         }
     });
 
-    moduleFilter.addEventListener("change", function() {
+    moduleFilter.addEventListener("change", async function() {
         if (moduleValue !== this.value) {
             moduleValue = this.value;
-            loadLessons();
+            await populateSections();
         }
     });
 
-    sectionFilter.addEventListener("change", function() {
+    sectionFilter.addEventListener("change", async function() {
+
         if (sectionValue !== this.value) {
             sectionValue = this.value;
-            loadLessons();
+            await loadLessons();
         }
+
     });
 
-    const sectionArray = await window.apiService.getSectionsForClass(classValue || null);
-    const selectionFilter = document.getElementById("lessonSection");
+    async function populateSections(){
+        if(debugMode) console.log("[DEBUG] Populating sections for class", classValue, "and module", moduleValue);
+        if ((!moduleValue || !classValue) || (moduleValue === "" || classValue === "")) {
+            return;
+        }
 
-    for (const sectionNumber of sectionArray) {
-        const option = document.createElement("option");
-        option.value = sectionNumber;
-        option.textContent = `Sectiunea ${sectionNumber}`;
-        selectionFilter.appendChild(option);
+        sectionFilter.innerHTML = '<option value="" data-i18n="">toate secțiunile</option>';
+        sections.forEach(sectionNum => {
+            if(sectionNum.class === parseInt(classValue) && sectionNum.module === parseInt(moduleValue)) {
+                const option = document.createElement("option");
+                option.value = sectionNum.section;
+                option.textContent = "Sectiunea " + sectionNum.section;
+                sectionFilter.appendChild(option);
+            }
+        });
     }
 
     // Functions load lessons
