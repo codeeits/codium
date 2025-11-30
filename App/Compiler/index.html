@@ -32,7 +32,16 @@
     }
 
     #code { height: 250px; }
-    #stdin, #fileinput { height: 80px; margin-bottom: 10px; }
+    #stdin { height: 80px; margin-bottom: 10px; }
+
+    #fileinput {
+      margin-bottom: 5px;
+    }
+    #fileinput-info {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
 
     #run-btn {
       margin: 10px 0;
@@ -47,7 +56,7 @@
     #run-btn:hover { background: #45a049; }
     #run-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-    #output {
+    #output, #fileoutput {
       background: #1e1e1e;
       color: #0f0;
       padding: 15px;
@@ -55,6 +64,7 @@
       min-height: 100px;
       white-space: pre-wrap;
       font-family: monospace;
+      margin-bottom: 10px;
     }
     #output.error { color: #ff6b6b; }
   </style>
@@ -68,7 +78,10 @@
 using namespace std;
 
 int main() {
-    ifstream fin("input.txt");
+    // Use the same filename as your uploaded file
+    ifstream fin("data.txt");
+    ofstream fout("output.txt");
+    
     int n;
     fin >> n;
     
@@ -79,19 +92,26 @@ int main() {
         sum += x;
     }
     
-    cout &lt;&lt; "Sum: " &lt;&lt; sum &lt;&lt; endl;
+    cout &lt;&lt; "Sum calculated!" &lt;&lt; endl;
+    fout &lt;&lt; "The sum is: " &lt;&lt; sum &lt;&lt; endl;
+    
     return 0;
 }</textarea>
 
   <label for="stdin">Input (stdin)</label>
   <textarea id="stdin" placeholder="Enter program input here, one value per line..."></textarea>
 
-  <label for="fileinput">File Input (input.txt)</label>
-  <textarea id="fileinput" placeholder="Contents of input.txt for fstream...">5
-1 2 3 4 5</textarea>
+  <label for="fileinput">Input File (for ifstream)</label>
+  <input type="file" id="fileinput">
+  <div id="fileinput-info"></div>
 
   <button id="run-btn">Compile &amp; Run</button>
+  
+  <label for="output">Console Output (stdout/stderr)</label>
   <pre id="output">Click "Compile &amp; Run" to execute your code</pre>
+
+  <label for="fileoutput">File Output (output.txt)</label>
+  <pre id="fileoutput"></pre>
 
   <script src="compiler.js"></script>
 </body>
