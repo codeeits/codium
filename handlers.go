@@ -2530,7 +2530,7 @@ func (cfg *ApiCfg) UpdateProblemTestExpectedOutputHandler(w http.ResponseWriter,
 
 func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
-		NextTestID uuid.UUID `json:"next_test_id"`
+		NextTestID uuid.UUID `json:"next"`
 	}
 
 	// Database check is done in the disambiguation function
@@ -2573,7 +2573,7 @@ func (cfg *ApiCfg) UpdateProblemTestNextHandler(w http.ResponseWriter, r *http.R
 
 func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
 	type params struct {
-		PreviousTestID uuid.UUID `json:"previous_test_id"`
+		PreviousTestID uuid.UUID `json:"prev"`
 	}
 
 	// Database check is done in the disambiguation function

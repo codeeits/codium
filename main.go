@@ -142,7 +142,8 @@ func main() {
 		mux.Handle("GET /api/users/{userID}/interactions", http.HandlerFunc(cfg.GetUserInteractionsHandler))
 		mux.Handle("POST /api/problems", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemHandler))
 		mux.Handle("POST /api/tests", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemTestHandler))
-		mux.Handle("GET /api/tests", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
+		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
+		mux.Handle("GET /api/tests/{testID}", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
 		mux.Handle("POST /admin/reset", cfg.AuthenticatedEndpointMiddleware(cfg.ResetHandler))
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
