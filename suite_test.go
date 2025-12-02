@@ -1035,6 +1035,41 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestCreateProblemTest", func(t *testing.T) {
+			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusCreated {
+				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+			}
+
+			var test database.CodeTest
+			err = json.NewDecoder(resp.Body).Decode(&test)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !test.TxtInput.Valid {
+				t.Fatal("Expected input text to be valid")
+			}
+			if test.TxtInput.String != "2 3\n" {
+				t.Fatalf("Expected input text %v, got %v", "2 3\n", test.TxtInput)
+			}
+			if test.ExpectedOutput != "5\n" {
+				t.Fatalf("Expected output %s, got %s", "5\n", test.ExpectedOutput)
+			}
+		})
+
 		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+secondAverageUserID.String(), nil)
 			if err != nil {
