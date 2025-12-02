@@ -125,11 +125,14 @@ func main() {
 		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
 		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
+
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
+
 		mux.Handle("POST /api/lessons", cfg.AuthenticatedEndpointMiddleware(cfg.CreateLessonHandler))
 		mux.Handle("DELETE /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteLessonHandler))
 		mux.Handle("GET /api/lessons", http.HandlerFunc(cfg.GetLessonDisambiguationHandler))
+
 		mux.Handle("POST /api/lessons/{lessonID}/favorite", cfg.AuthenticatedEndpointMiddleware(cfg.FavoriteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/bookmark", cfg.AuthenticatedEndpointMiddleware(cfg.BookmarkLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/complete", cfg.AuthenticatedEndpointMiddleware(cfg.CompleteLessonHandler))
@@ -140,7 +143,11 @@ func main() {
 		mux.Handle("GET /api/users/{userID}/started_lessons", http.HandlerFunc(cfg.GetUserStartedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/completed_lessons", http.HandlerFunc(cfg.GetUserCompletedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/interactions", http.HandlerFunc(cfg.GetUserInteractionsHandler))
+
 		mux.Handle("POST /api/problems", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemHandler))
+		mux.Handle("GET /api/problems", http.HandlerFunc(cfg.GetProblemsDisambiguationHandler))
+		mux.Handle("DELETE /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemHandler))
+
 		mux.Handle("POST /api/tests", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemTestHandler))
 		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
 		mux.Handle("GET /api/tests/{testID}", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
