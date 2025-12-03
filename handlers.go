@@ -383,6 +383,55 @@ func (cfg *ApiCfg) GetProblemsDisambiguationHandler(w http.ResponseWriter, r *ht
 	}
 }
 
+func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+	if !sendingUser.IsAdmin {
+		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	targetField := q.Get("target_field")
+	if targetField == "" {
+		cfg.logger.Printf("Missing target_field query parameter")
+		http.Error(w, "Missing target_field query parameter", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received update problem request for field: %v", targetField)
+	// Parse problem ID as UUID
+	problem, err := GetObjByPathUUID(r, "problemID", cfg.db.GetProblemByID)
+	if err != nil {
+		cfg.logger.Printf("Invalid problem ID format: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	switch targetField {
+	case "details":
+		cfg.UpdateProblemDetailsHandler(w, r, problem)
+	case "tags":
+		cfg.UpdateProblemTagsHandler(w, r, problem)
+	case "test":
+		cfg.UpdateProblemFirstTestHandler(w, r, problem)
+	case "thumbnail":
+		cfg.UpdateProblemThumbnailHandler(w, r, problem)
+	default:
+		cfg.logger.Printf("Invalid target_field: %v", targetField)
+	}
+}
+
 func GetUUIDFromPath(r *http.Request, key string) (uuid.UUID, error) {
 	idStr := r.PathValue(key)
 	if idStr == "" {
@@ -2535,6 +2584,143 @@ func (cfg *ApiCfg) GetProblemsBySourceHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	cfg.WriteListJsonOutput(w, http.StatusOK, problemsToAny(problems), PrintProblemToJson)
+}
+
+func (cfg *ApiCfg) UpdateProblemFirstTestHandler(w http.ResponseWriter, r *http.Request, targetProblem database.Problem) {
+	// database check is done in the disambiguation function
+
+	type params struct {
+		FirstTestID uuid.UUID `json:"first_test_id"`
+	}
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received update problem first test request for problem ID: ", targetProblem.ID)
+
+	res, err := cfg.db.UpdateProblemFirstTest(r.Context(), database.UpdateProblemFirstTestParams{
+		ID:        targetProblem.ID,
+		FirstTest: uuid.NullUUID{UUID: p.FirstTestID, Valid: p.FirstTestID != uuid.Nil},
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem first test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
+}
+
+func (cfg *ApiCfg) UpdateProblemThumbnailHandler(w http.ResponseWriter, r *http.Request, targetProblem database.Problem) {
+	// database check is done in the disambiguation function
+
+	type params struct {
+		ThumbnailID uuid.UUID `json:"thumbnail_id"`
+	}
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received update problem thumbnail request for problem ID: ", targetProblem.ID)
+
+	res, err := cfg.db.UpdateProblemThumbnail(r.Context(), database.UpdateProblemThumbnailParams{
+		ID:              targetProblem.ID,
+		ThumbnailFileID: uuid.NullUUID{UUID: p.ThumbnailID, Valid: p.ThumbnailID != uuid.Nil},
+		UpdatedAt:       time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem thumbnail: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
+}
+
+func (cfg *ApiCfg) UpdateProblemTagsHandler(w http.ResponseWriter, r *http.Request, targetProblem database.Problem) {
+	// database check is done in the disambiguation function
+
+	type params struct {
+		Difficulty       int `json:"difficulty"`
+		Module           int `json:"module"`
+		SolveType        int `json:"solve_type"`
+		ResultType       int `json:"result_type"`
+		VerificationType int `json:"verification_type"`
+		SectionType      int `json:"section"`
+	}
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received update problem tags request for problem ID: ", targetProblem.ID)
+
+	tags, _ := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.SectionType)
+
+	res, err := cfg.db.UpdateProblemTags(r.Context(), database.UpdateProblemTagsParams{
+		ID:        targetProblem.ID,
+		Tags:      int32(tags),
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem tags: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
+}
+
+func (cfg *ApiCfg) UpdateProblemDetailsHandler(w http.ResponseWriter, r *http.Request, targetProblem database.Problem) {
+	// database check is done in the disambiguation function
+
+	type params struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Source      string `json:"source"`
+	}
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received update problem details request for problem ID: ", targetProblem.ID)
+
+	if p.Title == "" || p.Description == "" {
+		cfg.logger.Printf("Missing required fields in request body")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateProblemDetails(r.Context(), database.UpdateProblemDetailsParams{
+		ID:          targetProblem.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Source:      sql.NullString{String: p.Source, Valid: p.Source != ""},
+		UpdatedAt:   time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update problem details: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
 }
 
 /*

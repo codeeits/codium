@@ -41,9 +41,9 @@ SET tags = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
 
--- name: UpdateProblemTitleAndDescription :one
+-- name: UpdateProblemDetails :one
 UPDATE problems
-SET title = $2, description = $3, updated_at = $4
+SET title = $2, description = $3, source=$4, updated_at = $5
 WHERE id = $1
 RETURNING *;
 

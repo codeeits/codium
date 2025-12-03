@@ -117,6 +117,7 @@ func main() {
 		mux.Handle("PUT /api/users", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateUserDisambiguationHandler))
 		mux.Handle("PUT /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateLessonDisambiguationHandler))
 		mux.Handle("PUT /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemTestDisambiguationHandler))
+		mux.Handle("PUT /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemDisambiguationHandler))
 
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
 		mux.Handle("DELETE /api/users/{userID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteUserHandler))
