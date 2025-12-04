@@ -353,3 +353,146 @@
 .toast-confirm::before {
     background: var(--confirm-solid);
 }
+
+/* ========================================
+   PROBLEMS PAGE
+   ======================================== */
+
+.problems-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.problems-search-container {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: center;
+}
+
+.problems-search {
+    flex: 1;
+}
+
+.problems-icon-btn {
+    min-width: 3.324rem;
+    width: 3.324rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.problems-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    width: 100%;
+}
+
+.problems-tabs .btn {
+    flex: 1;
+}
+
+.problems-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.problem-card {
+    padding: 1.5rem;
+}
+
+.problem-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.problem-title-row {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.problem-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.problem-tag {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.problem-author {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.problem-author-name {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.problem-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--confirm-solid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.problem-difficulty {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+}
+
+.difficulty-dot {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--confirm-solid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.problem-description {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.problem-expand {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.problem-expand:hover {
+    color: var(--text-color);
+}
