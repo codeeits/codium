@@ -35,6 +35,7 @@
     <div class="tabs">
         <button class="tab active" onclick="showTab('problems')">Problems</button>
         <button class="tab" onclick="showTab('tests')">Tests</button>
+        <button class="tab" onclick="showTab('run-tab')">Run Code</button>
     </div>
 
     <!-- PROBLEMS TAB -->
@@ -268,6 +269,22 @@
             <input type="text" id="delete_test_id" placeholder="Test UUID">
             <button class="danger" onclick="deleteTest()">Delete Test</button>
             <div id="deleteTestResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- RUN TAB -->
+
+    <div id="run-tab" class="tab-content">
+        <div class="section">
+            <h2>Run Code Against a Problem's First Test</h2>
+            <label for="run_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="run_problem_id" placeholder="Problem UUID">
+
+            <label for="run_code">Code (C++):</label>
+            <textarea id="run_code" rows="10" placeholder="Enter your C++ code here..."></textarea>
+
+            <button onclick="runCodeAgainstProblem()">Run Code</button>
+            <div id="runCodeResult" class="result" style="display:none;"></div>
         </div>
     </div>
 

@@ -271,7 +271,7 @@ async function getTestById() {
             return;
         }
 
-        const result = await problemsApi.get(`/api/tests/${testId}`, false);
+        const result = await problemsApi.getTestById(testId);
         showResult('getTestResult', result);
     } catch (error) {
         showResult('getTestResult', error.message || error, true);
@@ -389,6 +389,32 @@ async function deleteTest() {
         showResult('deleteTestResult', error.message || error, true);
     }
 }
+
+// ===========================================
+// RUN CODE AGAINST PROBLEM TESTS CRUD
+// ===========================================
+
+async function runCodeAgainstProblem() {
+    try {
+        const problemId = getVal('run_problem_id');
+        const code = getVal('run_code');
+        if (!problemId) {
+            showResult('runCodeResult', 'Please enter a Problem ID', true);
+            return;
+        }
+        if (!code) {
+            showResult('runCodeResult', 'Please enter the code to run', true);
+            return;
+        }
+
+        console.log('Running code against problem tests:', problemId);
+        const result = await problemsApi.runCodeAgainstProblemTests(problemId, code, null, true);
+        showResult('runCodeResult', result);
+    } catch (error) {
+        showResult('runCodeResult', error.message || error, true);
+    }
+}
+
 
 // ===========================================
 // AUTH CHECK ON LOAD

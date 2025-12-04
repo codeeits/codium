@@ -575,6 +575,37 @@ class ApiService {
         return this.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
     }
 
+    async getTestById(testId) {
+        return this.get(`/api/tests/${testId}`, false);
+    }
+
+    async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
+        const problemResponse = await this.getProblemById(problemId);
+        const firstTestResponse = stdin ? await this.getTestById(problemResponse.problem.FirstTest) : null;
+        const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
+        console.log('Problem Data:', problemData);
+
+        if (!problemData || !problemData.problem.FirstTest) {
+            throw new Error('No tests found for the specified problem');
+        }
+
+        if (stdin === true) {
+            const firstTestId = problemData.problem.FirstTest;
+            console.log('First Test ID:', firstTestId);
+            const firstTestData = typeof firstTestResponse === 'string' ? JSON.parse(firstTestResponse) : firstTestResponse;
+            stdin = firstTestData.TxtInput.Valid ? firstTestData.TxtInput.String : '';
+        }
+
+        console.log('Problem Data:', problemData);
+        const apiResult = await this.runCode(code, null, stdin);
+        console.log('API Result:', apiResult);
+        if (apiResult.console === firstTestResponse.ExpectedOutput) {
+            return "Success: Output matches expected result." + apiResult.console;
+        }
+
+        return apiResult;
+    }
+
     // ===========================================
     // File Management Endpoints
     // ===========================================
