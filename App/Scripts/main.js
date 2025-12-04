@@ -73,7 +73,7 @@ function updateAuthButton() {
     
     if(lessonsButton) {
         lessonsButton.onclick = function() {
-            window.location.href = '/app/lectii/lessons.html';
+            window.location.href = '/app/Lectii/lessons.html';
             console.log('Navigating to lessons page');
         };
         lessonsButton.title = 'Lessons';
