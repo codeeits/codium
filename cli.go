@@ -2,7 +2,9 @@ package main
 
 import (
 	"Codium/internal/CLI"
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 )
@@ -15,12 +17,22 @@ func (cfg *ApiCfg) StartCLI() {
 		cfg.logger.Print("Registering Commands")
 
 		commandsCfg.RegisterCommand("reset", func(args []string) error {
+			fmt.Println("ARE YOU SURE YOU WANT TO RESET?!?!?!? | YES / NO")
+			reader := bufio.NewReader(os.Stdin)
+			res, err := reader.ReadString('\n')
+
+			if err != nil {
+				return err
+			}
+			if res != "YES\n" {
+				fmt.Println("DATABASE RESET CANCELLED")
+			}
 			cfg.logger.Print("Received reset command via console")
 			fmt.Println("Resetting database...")
 			if !cfg.dbLoaded {
 				return fmt.Errorf("database not connected")
 			}
-			err := cfg.ResetAll()
+			err = cfg.ResetAll()
 			if err != nil {
 				return err
 			}
