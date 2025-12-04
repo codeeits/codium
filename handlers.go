@@ -2667,11 +2667,13 @@ func (cfg *ApiCfg) UpdateProblemTagsHandler(w http.ResponseWriter, r *http.Reque
 
 	cfg.logger.Print("Received update problem tags request for problem ID: ", targetProblem.ID)
 
-	tags, _ := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.SectionType)
+	tags, mask := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.SectionType)
+
+	tag := (targetProblem.Tags & ^int32(mask)) | int32(tags)
 
 	res, err := cfg.db.UpdateProblemTags(r.Context(), database.UpdateProblemTagsParams{
 		ID:        targetProblem.ID,
-		Tags:      int32(tags),
+		Tags:      tag,
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
