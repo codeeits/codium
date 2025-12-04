@@ -365,6 +365,7 @@ func (cfg *ApiCfg) GetProblemsDisambiguationHandler(w http.ResponseWriter, r *ht
 	q := r.URL.Query()
 	if len(q) == 0 {
 		cfg.GetProblemsHandler(w, r)
+		return
 	}
 	searchType := q.Get("search_type")
 	if searchType == "" {
