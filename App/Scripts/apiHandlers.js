@@ -558,6 +558,24 @@ class ApiService {
     }
 
     // ===========================================
+    // Problems Management Endpoints
+    // ===========================================
+
+    async createProblem(problemData) {
+        // title, description, source, first_test_id, thumbnail_id, [TAGS] difficulty, module, solve_type, result_type, verification_type, section
+        return this.post('/api/problems', problemData, true);
+    }
+
+    async updateProblem(problemId, targetField, data) {
+        // targetField: tags, details, test, thumbnail
+        return this.put(`/api/problems/${problemId}?target_field=${targetField}`, data, true);
+    }
+
+    async getProblemById(problemId) {
+        return this.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
+    }
+
+    // ===========================================
     // File Management Endpoints
     // ===========================================
 
@@ -569,7 +587,6 @@ class ApiService {
         return `${this.baseURL}/api/files/${fileId}`;
     }
 
-    
     // ===========================================
     // Code Execution (Piston API)
     // ===========================================
