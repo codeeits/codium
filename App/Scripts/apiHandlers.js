@@ -568,9 +568,112 @@ class ApiService {
     getFileUrl(fileId) {
         return `${this.baseURL}/api/files/${fileId}`;
     }
+
+    
+    // ===========================================
+    // Code Execution (Piston API)
+    // ===========================================
+
+    async runCode(code, inputFile = null, stdin = '') {
+        const PISTON_API = 'https://emkc.org/api/v2/piston/execute';
+        const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
+        const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
+
+        let processedCode = code;
+        let injectedCode = '';
+
+        if (inputFile && inputFile.name && inputFile.content) {
+            const escaped = inputFile.content
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n');
+
+            injectedCode += `
+                #include <fstream>
+                void __create_input_file() {
+                std::ofstream f("${inputFile.name}");
+                f << "${escaped}";
+                f.close();
+                }
+                struct __FileCreator { __FileCreator() { __create_input_file(); } } __fc;
+            `;
+        }
+
+        injectedCode += `
+            #include <fstream>
+            #include <iostream>
+            #include <string>
+            struct __FileReader {
+            ~__FileReader() {
+                std::ifstream f("output.txt");
+                if (f.good()) {
+                std::cout << "${FILE_OUTPUT_MARKER}";
+                std::string line;
+                while (std::getline(f, line)) {
+                    std::cout << line << "\\n";
+                }
+                std::cout << "${FILE_OUTPUT_END_MARKER}";
+                f.close();
+                }
+            }
+            } __fr;
+        `;
+
+        const includeMatch = processedCode.match(/^((?:#include\s*<[^>]+>\s*\n|#include\s*"[^"]+"\s*\n|using\s+namespace\s+\w+;\s*\n)*)/);
+        if (includeMatch) {
+            const includes = includeMatch[1];
+            const rest = processedCode.slice(includes.length);
+            processedCode = includes + injectedCode + rest;
+        } else {
+            processedCode = injectedCode + processedCode;
+        }
+
+        const res = await fetch(PISTON_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language: 'c++',
+                version: '10.2.0',
+                files: [{ name: 'main.cpp', content: processedCode }],
+                stdin: stdin
+            })
+        });
+
+        const result = await res.json();
+
+        if (result.message) {
+            return { success: false, error: result.message, console: '', file: '' };
+        }
+
+        if (result.compile?.stderr && !result.run) {
+            return { success: false, error: result.compile.stderr, console: '', file: '' };
+        }
+
+        let stdout = result.run?.stdout || '';
+        let fileOutput = '';
+
+        const startIdx = stdout.indexOf(FILE_OUTPUT_MARKER);
+        const endIdx = stdout.indexOf(FILE_OUTPUT_END_MARKER);
+        if (startIdx !== -1 && endIdx !== -1) {
+            fileOutput = stdout.slice(startIdx + FILE_OUTPUT_MARKER.length, endIdx);
+            stdout = stdout.slice(0, startIdx) + stdout.slice(endIdx + FILE_OUTPUT_END_MARKER.length);
+        }
+
+        let consoleOutput = '';
+        if (result.compile?.stderr) {
+            consoleOutput += 'Warnings:\n' + result.compile.stderr + '\n';
+        }
+        if (stdout) consoleOutput += stdout;
+        if (result.run?.stderr) consoleOutput += '\nStderr:\n' + result.run.stderr;
+
+        return {
+            success: !result.run?.stderr,
+            console: consoleOutput || '',
+            file: fileOutput,
+            error: result.run?.stderr || null
+        };
+    }
 }
-
-
 // ===========================================
 // Toasts Loader
 // ===========================================
