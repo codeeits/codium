@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C++ Compiler</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    #code, #stdin {
+      width: 100%;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    #code { height: 250px; }
+    #stdin { height: 80px; margin-bottom: 10px; }
+
+    #fileinput {
+      margin-bottom: 5px;
+    }
+    #fileinput-info {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    #run-btn {
+      margin: 10px 0;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    #run-btn:hover { background: #45a049; }
+    #run-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    #output, #fileoutput {
+      background: #1e1e1e;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 4px;
+      min-height: 100px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      margin-bottom: 10px;
+    }
+    #output.error { color: #ff6b6b; }
+  </style>
+</head>
+<body>
+  <h1>C++ Online Compiler</h1>
+  
+  <label for="code">Code</label>
+  <textarea id="code">#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+using namespace std;
+
+int main() {
+    // Use the same filename as your uploaded file
+    ifstream fin("data.txt");
+    ofstream fout("output.txt");
+    
+    int n;
+    fin >> n;
+    
+    int sum = 0;
+    for (int i = 0; i &lt; n; i++) {
+        int x;
+        fin >> x;
+        sum += x;
+    }
+    
+    cout &lt;&lt; "Sum calculated!" &lt;&lt; endl;
+    cout &lt;&lt; "Writing result to output.txt" &lt;&lt; endl;
+    fout &lt;&lt; "The sum is: " &lt;&lt; sum &lt;&lt; endl;
+    
+    return 0;
+}</textarea>
+
+  <label for="stdin">Input (stdin)</label>
+  <textarea id="stdin" placeholder="Enter program input here, one value per line..."></textarea>
+
+  <label for="fileinput">Input File (for ifstream)</label>
+  <input type="file" id="fileinput">
+  <div id="fileinput-info"></div>
+
+  <button id="run-btn">Compile &amp; Run</button>
+  
+  <label for="output">Console Output (stdout/stderr)</label>
+  <pre id="output">Click "Compile &amp; Run" to execute your code</pre>
+
+  <label for="fileoutput">File Output (output.txt)</label>
+  <pre id="fileoutput"></pre>
+
+  <script src="compiler.js"></script>
+</body>
+</html>
