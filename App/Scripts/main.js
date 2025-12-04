@@ -73,7 +73,7 @@ function updateAuthButton() {
     
     if(lessonsButton) {
         lessonsButton.onclick = function() {
-            window.location.href = 'lessons.html';
+            window.location.href = '/app/lessons.html';
             console.log('Navigating to lessons page');
         };
         lessonsButton.title = 'Lessons';
@@ -96,7 +96,7 @@ function updateAuthButton() {
         if (userButton) {
             userButton.classList.remove('hidden');
             userButton.onclick = function() {
-                window.location.href = 'user.html';
+                window.location.href = '/app/user.html';
             };
             userButton.title = 'Go to profile';
         }

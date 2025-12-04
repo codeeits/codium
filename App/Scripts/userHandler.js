@@ -29,7 +29,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = 'login.html';
         return;
     } else {
-        const currentUser = await window.apiService.getCurrentUser();
+        const currentUser = await window.apiService.getCurrentUser() .catch(err => {
+            console.error('Failed to get current user:', err);
+            window.apiService.logout(false);
+        });
         const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
         userId = userData.ID;
         console.log('Current User ID:', userId);
