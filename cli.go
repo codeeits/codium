@@ -26,6 +26,7 @@ func (cfg *ApiCfg) StartCLI() {
 			}
 			if res != "YES\n" {
 				fmt.Println("DATABASE RESET CANCELLED")
+				return nil
 			}
 			cfg.logger.Print("Received reset command via console")
 			fmt.Println("Resetting database...")
