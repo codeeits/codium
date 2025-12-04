@@ -73,7 +73,7 @@ function updateAuthButton() {
     
     if(lessonsButton) {
         lessonsButton.onclick = function() {
-            window.location.href = '/app/lessons.html';
+            window.location.href = '/app/lectii/lessons.html';
             console.log('Navigating to lessons page');
         };
         lessonsButton.title = 'Lessons';
@@ -81,7 +81,7 @@ function updateAuthButton() {
 
     if(contactButton) {
         contactButton.onclick = function() {
-            window.location.href = 'contact.html';
+            window.location.href = '/app/contact.html';
             console.log('Navigating to contact page');
         };
         contactButton.title = 'Contact';
@@ -122,7 +122,7 @@ function updateAuthButton() {
             loginButton.classList.remove('hidden');
             loginButton.onclick = function() {
                 loadLanguage(localStorage.getItem('lang') || 'ro');
-                window.location.href = 'login.html';
+                window.location.href = '/app/login.html';
             };
             loginButton.title = 'Login';
         }

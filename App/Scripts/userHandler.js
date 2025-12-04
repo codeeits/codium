@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookmarkClone.querySelector('.Class').textContent = ` ${lessonData.flag_translation.class}`;
             bookmarkClone.querySelector('.Section').textContent = ` ${lessonData.flag_translation.section}`;
             bookmarkClone.onclick = function() {
-                window.location.href = `lesson.html?id=${lessonData.lesson.ID}`;
+                window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
             bookmarksContainer.appendChild(bookmarkClone);
             console.log('Lesson data for bookmark:', lessonData);
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             activityClone.querySelector('.clasaLectiei').innerHTML = ` ${lessonData.flag_translation.class}`;
             activityClone.querySelector('.completedAtTime').textContent = date.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             activityClone.onclick = function() {
-                window.location.href = `lesson.html?id=${lessonData.lesson.ID}`;
+                window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
             recentContainer.appendChild(activityClone);
             applyTranslationsToElement(activityClone);
