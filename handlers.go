@@ -3127,7 +3127,7 @@ func (cfg *ApiCfg) GetSolutionByIDHandler(w http.ResponseWriter, r *http.Request
 	// database check is done in the disambiguation function
 
 	cfg.logger.Print("Received get solution by ID request")
-	res, err := GetObjByQueryUUID(r, "solutionID", cfg.db.GetSolutionByID)
+	res, err := GetObjByQueryUUID(r, "solution_id", cfg.db.GetSolutionByID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			cfg.logger.Printf("Solution not found: %v", res.ID)
