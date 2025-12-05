@@ -54,7 +54,7 @@ func (q *Queries) CountSolutionsByUserId(ctx context.Context, userID uuid.UUID) 
 const countUserCorrectSolutions = `-- name: CountUserCorrectSolutions :one
 SELECT COUNT(*) AS count
 FROM solutions
-WHERE user_id = $1 AND tests AND tests_passed = total_tests
+WHERE user_id = $1 AND tests_passed = total_tests
 `
 
 func (q *Queries) CountUserCorrectSolutions(ctx context.Context, userID uuid.UUID) (int64, error) {
