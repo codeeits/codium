@@ -484,7 +484,7 @@ func GetUUIDFromQuery(r *http.Request, key string) (uuid.UUID, error) {
 	if len(q) == 0 {
 		return uuid.Nil, fmt.Errorf("missing %v in request", key)
 	}
-	idStr := q.Get("key")
+	idStr := q.Get(key)
 	if idStr == "" {
 		return uuid.Nil, fmt.Errorf("missing %v in request", key)
 	}
