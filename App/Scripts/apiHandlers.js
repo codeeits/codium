@@ -58,8 +58,12 @@ class ApiService {
         };
     }
 
-    isAuthenticated() {
-        return !!this.authToken;
+    isAuthenticated(redirect = false) {
+        const isAuth = !!this.authToken;
+        if (!isAuth && redirect) {
+            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        }
+        return isAuth;
     }
 
     // ===========================================
@@ -207,10 +211,12 @@ class ApiService {
         return this.post('/api/create_user', userData);
     }
 
-    async logout(confirmMessage = false) {
+    async logout(confirmMessage = false, redirect = true) {
         if (confirmMessage ? confirm('Are you sure you want to log out?') : true) {
             this.clearTokens();
-            window.location.href = 'login.html';
+            if (redirect) {
+                window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
+            }
             // Trigger auth button update if available
             if (window.refreshAuthButton) {
                 window.refreshAuthButton();
@@ -569,6 +575,10 @@ class ApiService {
     async updateProblem(problemId, targetField, data) {
         // targetField: tags, details, test, thumbnail
         return this.put(`/api/problems/${problemId}?target_field=${targetField}`, data, true);
+    }
+
+    async getProblems() {
+        return this.get('/api/problems', false);
     }
 
     async getProblemById(problemId) {

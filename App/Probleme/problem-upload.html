@@ -36,6 +36,7 @@
         <button class="tab active" onclick="showTab('problems')">Problems</button>
         <button class="tab" onclick="showTab('tests')">Tests</button>
         <button class="tab" onclick="showTab('run-tab')">Run Code</button>
+        <button class="tab" onclick="showTab('misc')">Misc</button>
     </div>
 
     <!-- PROBLEMS TAB -->
@@ -97,6 +98,15 @@
             <br>
             <button onclick="createProblem()">Create Problem</button>
             <div id="createProblemResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET PROBLEMS -->
+        <div class="section">
+            <h2>GET /api/problems - Get Problems</h2>
+            <button onclick="getProblems()">Get Problems</button>
+            <div id="getProblemsResult" class="result" style="display:none;"></div>
         </div>
 
         <hr>
@@ -301,6 +311,17 @@
         </div>
     </div>
 
+    <!-- MISC TAB -->
+    <div id="misc" class="tab-content">
+        <div class="section">
+            <h2>Upload Image</h2>
+            <label for="image_file">Select Image File:</label>
+            <input type="file" id="image_file" accept="image/*">
+
+            <button onclick="uploadImage()">Upload Image</button>
+            <div id="uploadImageResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
     <script src="../Scripts/apiHandlers.js"></script>
     <script src="../Scripts/problemsHandler.js"></script>
     <script>

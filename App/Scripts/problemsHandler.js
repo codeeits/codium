@@ -75,6 +75,15 @@ async function createProblem() {
     }
 }
 
+async function getProblems() {
+    try {
+        const result = await problemsApi.getProblems();
+        showResult('getProblemsResult', result);
+    } catch (error) {
+        showResult('getProblemsResult', error.message || error, true);
+    }
+}
+
 async function getProblemById() {
     try {
         const problemId = getVal('get_problem_id');
@@ -441,7 +450,26 @@ async function runCodeAgainstProblem() {
     }
 }
 
+// ===========================================
+// MISC OPERATIONS
+// ===========================================
 
+async function uploadImage() {
+    try {
+        const fileInput = document.getElementById('image_file');
+        if (fileInput.files.length === 0) {
+            showResult('uploadImageResult', 'Please select an image file to upload', true);
+            return;
+        }
+
+        const file = fileInput.files[0];
+        console.log('Uploading image file:', file.name);
+        const result = await problemsApi.uploadFile(file);
+        showResult('uploadImageResult', result);
+    } catch (error) {
+        showResult('uploadImageResult', error.message || error, true);
+    }
+}
 // ===========================================
 // AUTH CHECK ON LOAD
 // ===========================================
