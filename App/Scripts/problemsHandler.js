@@ -426,6 +426,176 @@ async function deleteTest() {
 }
 
 // ===========================================
+// SOLUTIONS CRUD
+// ===========================================
+
+async function createSolution() {
+    try {
+        const data = {};
+        const problemId = getVal('solution_problem_id');
+        const code = getVal('solution_code');
+        const language = getVal('solution_language');
+
+        if (!problemId) {
+            showResult('createSolutionResult', 'Please enter a Problem ID', true);
+            return;
+        }
+
+        if (!code) {
+            showResult('createSolutionResult', 'Please enter the solution code', true);
+            return;
+        }
+
+        if (!language) {
+            showResult('createSolutionResult', 'Please enter the programming language', true);
+            return;
+        }
+
+        data.code = code;
+        data.language = language;
+        
+        console.log('Creating solution with data:', data);
+        const result = await problemsApi.createSolution(problemId, data);
+        showResult('createSolutionResult', result);
+    } catch (error) {
+        showResult('createSolutionResult', error.message || error, true);
+    }
+}
+
+async function updateSolutionTests() {
+    try {
+        const data = {};
+        const solutionId = getVal('update_solution_id');
+        const testsPassed = getIntVal('upd_solution_tests_passed');
+        const testsTotal = getIntVal('upd_solution_total_tests');
+
+        if (!solutionId) {
+            showResult('updateSolutionResult', 'Please enter a Solution ID', true);
+            return;
+        }
+
+        console.log(testsPassed, testsTotal);
+
+        if (testsPassed === null || testsTotal === null) {
+            showResult('updateSolutionResult', 'Please enter both Tests Passed and Total Tests', true);
+            return;
+        }
+
+        data.tests_passed = testsPassed;
+        data.total_tests = testsTotal;
+
+        console.log('Updating solution with data:', data);
+        const result = await problemsApi.updateSolution(solutionId, 'tests', data);
+        showResult('updateSolutionResult', result);
+    } catch (error) {
+        showResult('updateSolutionResult', error.message || error, true);
+    }
+}
+
+async function getSolutions(targetField = '') {
+    try {
+        if (targetField === 'problem'){
+
+            const problemId = getVal('get_solutions_problem_id');
+
+            if (!problemId) {
+                showResult('getSolutionsResult', 'Please enter a Problem ID', true);
+                return;
+            }
+
+            console.log('Getting solutions for problem ID:', problemId);
+            const result = await problemsApi.getSolutionsByProblem(problemId);
+            showResult('getSolutionsResult', result);
+
+        } else if (targetField === 'user') {
+            const userId = getVal('get_solutions_user_id');
+
+            if (!userId) {
+                showResult('getSolutionsResultUser', 'Please enter a User ID', true);
+                return;
+            }
+
+            console.log('Getting solutions for user ID:', userId);
+            const result = await problemsApi.getSolutionsByUser(userId);
+            showResult('getSolutionsResultUser', result);
+
+        } else if (targetField === 'solution') {
+            const solutionId = getVal('get_solutions_solution_id');
+
+            if (!solutionId) {
+                showResult('getSolutionsResultSolution', 'Please enter a Solution ID', true);
+                return;
+            }
+
+            console.log('Getting solution by solution ID:', solutionId);
+            const result = await problemsApi.getSolutionById(solutionId);
+            showResult('getSolutionsResultSolution', result);
+
+        } else {
+            showResult('getSolutionsResult', 'Please specify a valid target field (problem, user, or solution)', true);
+        }
+    } catch (error) {
+        showResult('getSolutionsResult', error.message || error, true);
+    }
+}
+
+async function countSolutions(targetField = '') {
+    try {
+        if (targetField === 'problem'){
+
+            const problemId = getVal('count_solutions_problem_id');
+
+            if (!problemId) {
+                showResult('countSolutionsResult', 'Please enter a Problem ID', true);
+                return;
+            }
+
+            console.log('Counting solutions for problem ID:', problemId);
+            const result = await problemsApi.countSolutionsForProblem(problemId);
+            showResult('countSolutionsResult', result);
+
+        } else if (targetField === 'user') {
+            const userId = getVal('count_solutions_user_id');
+
+            if (!userId || userId) {
+                showResult('countSolutionsResultUser', 'Ba ai problema in db', true);
+                return;
+            }
+
+            console.log('Counting solutions for user ID:', userId);
+            const result = await problemsApi.countSolutionsForUser(userId);
+            showResult('countSolutionsResultUser', result);
+
+        } else {
+            showResult('countSolutionsResult', 'Please specify a valid target field (problem or user)', true);
+        }
+    } catch (error) {
+        showResult('countSolutionsResult', error.message || error, true);
+    }
+}
+
+async function deleteSolution() {
+    try {
+        const solutionId = getVal('delete_solution_id');
+        if (!solutionId) {
+            showResult('deleteSolutionResult', 'Please enter a Solution ID', true);
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this solution?')) {
+            return;
+        }
+
+        console.log('Deleting solution:', solutionId);
+        await problemsApi.delete(`/api/solutions/${solutionId}`, true);
+        showResult('deleteSolutionResult', 'Solution deleted successfully');
+    } catch (error) {
+        showResult('deleteSolutionResult', error.message || error, true);
+    }
+}
+
+
+// ===========================================
 // RUN CODE AGAINST PROBLEM TESTS CRUD
 // ===========================================
 

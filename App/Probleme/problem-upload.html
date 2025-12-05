@@ -35,6 +35,7 @@
     <div class="tabs">
         <button class="tab active" onclick="showTab('problems')">Problems</button>
         <button class="tab" onclick="showTab('tests')">Tests</button>
+        <button class="tab" onclick="showTab('solutions')">Solutions</button>
         <button class="tab" onclick="showTab('run-tab')">Run Code</button>
         <button class="tab" onclick="showTab('misc')">Misc</button>
     </div>
@@ -293,6 +294,129 @@
             <button class="danger" onclick="deleteTest()">Delete Test</button>
             <div id="deleteTestResult" class="result" style="display:none;"></div>
         </div>
+    </div>
+
+    <!-- SOLUTIONS TAB -->
+    <div id="solutions" class="tab-content">
+        
+        <!-- CREATE SOLUTION -->
+        <div class="section">
+            <h2>POST /api/solutions - Create Solution</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="solution_code">Code:</label>
+            <textarea id="solution_code" rows="5" placeholder="Solution code"></textarea>
+
+            <label for="solution_language">Language:</label>
+            <input type="text" id="solution_language" placeholder="Programming language">
+            <label for="solution_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="solution_problem_id" placeholder="e.g., f424291e-9680-4e05-886f-ee9da849ab85">
+
+            <br>
+
+            <button onclick="createSolution()">Create Solution</button>
+            <div id="createSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- UPDATE SOLUTION -->
+        <div class="section">
+            <h2>PUT /api/solutions/{solutionID}?target_field=... - Update Solution</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="update_solution_id">Solution ID to update (UUID):</label>
+            <input type="text" id="update_solution_id" placeholder="Solution UUID">
+
+            <h3>Update # of tests</h3>
+            <p style="color:#666;">Both number of tests passed and total tests</p>
+            <label for="upd_solution_tests_passed">Tests Passed:</label>
+            <input type="number" id="upd_solution_tests_passed" value="" min="0" placeholder="Number of tests passed">
+            <label for="upd_solution_total_tests">Total Tests:</label>
+            <input type="number" id="upd_solution_total_tests" value="" min="0" placeholder="Total number of tests">
+            <button onclick="updateSolutionTests()">Update # of tests</button>
+
+            <div id="updateSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET SOLUTIONS BY PROBLEM ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by Problem ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="get_solutions_problem_id" placeholder="Problem UUID">
+            <button onclick="getSolutions('problem')">Get Solutions</button>
+            <div id="getSolutionsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+        
+        <!-- GET SOLUTIONS BY USER ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by user ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_user_id">User ID (UUID):</label>
+            <input type="text" id="get_solutions_user_id" placeholder="User UUID">
+            <button onclick="getSolutions('user')">Get Solutions</button>
+            <div id="getSolutionsResultUser" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET SOLUTIONS BY SOLUTION ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by solution ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_solution_id">Solution ID (UUID):</label>
+            <input type="text" id="get_solutions_solution_id" placeholder="Solution UUID">
+            <button onclick="getSolutions('solution')">Get Solutions</button>
+            <div id="getSolutionsResultSolution" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- COUNT SOLUTIONS BY PROBLEM ID -->
+
+        <div class="section">
+            <h2>GET /api/solutions/count?search_type=... - Count Solutions by Problem ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+
+            <label for="count_solutions_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="count_solutions_problem_id" placeholder="Problem UUID">
+            <button onclick="countSolutions('problem')">Count Solutions</button>
+
+            <div id="countSolutionsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- COUNT SOLUTIONS BY USER ID -->
+
+        <div class="section">
+            <h2>GET /api/solutions/count?search_type=... - Count Solutions by User ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+
+            <label for="count_solutions_user_id">User ID (UUID):</label>
+            <input type="text" id="count_solutions_user_id" placeholder="User UUID">
+            <button onclick="countSolutions('user')">Count Solutions</button>
+
+            <div id="countSolutionsResultUser" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- DELETE SOLUTION -->
+        <div class="section">
+            <h2>DELETE /api/solutions/{solutionID} - Delete Solution</h2>
+            <p style="color:#888;">Requires: header authorization (admin)</p>
+            <label for="delete_solution_id">Solution ID to delete (UUID):</label>
+            <input type="text" id="delete_solution_id" placeholder="Solution UUID">
+            <button class="danger" onclick="deleteSolution()">Delete Solution</button>
+            <div id="deleteSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
     </div>
 
     <!-- RUN TAB -->

@@ -620,6 +620,7 @@ class ApiService {
     }
 
     async runCodeAgainstTest(testId, code, inputFile = null, stdin = true) {
+        console.warn('DEPRECATED: use runCodeAgainstProblemTests instead.');
         const testResponse = await this.getTestById(testId);
         const testData = typeof testResponse === 'string' ? JSON.parse(testResponse) : testResponse;
 
@@ -633,6 +634,10 @@ class ApiService {
     }
 
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
+
+        if (this.isAuthenticated() === false) {
+            throw new Error('Authentication required to run code against problem tests');
+        }
         const problemResponse = await this.getProblemById(problemId);
         const firstTestId = stdin ? problemResponse.problem.FirstTest : null;
         const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
@@ -691,7 +696,44 @@ class ApiService {
             return "Success: Output matches expected result." + apiResult.console;
         }
         */
-        return apiResult;
+    }
+
+    async createSolution(problemId, solutionData) {
+        // problemId, code, language, problem_id
+        return this.post(`/api/solutions`, { problem_id: problemId, ...solutionData }, true);
+    }
+
+    async updateSolution(solutionId, targetField, data) {
+        // targetField: tests
+        if (targetField === 'tests') {
+            // tests_passed, total_tests
+            return this.put(`/api/solutions/${solutionId}?target_field=tests`, data, true);
+        }
+
+        throw new Error('Unsupported target field for solution update');
+
+    }
+
+    async getSolutionById(solutionId) {
+        // if admin or owner
+        return this.get(`/api/solutions?search_type=id&solution_id=${solutionId}`, true);
+    }
+
+    async getSolutionsByUser(userId) {
+        return this.get(`/api/solutions?search_type=user&user_id=${userId}`, true);
+    }
+
+    async getSolutionsByProblem(problemId) {
+        // owned or admin
+        return this.get(`/api/solutions?search_type=problem&problem_id=${problemId}`, true);
+    }
+
+    async countSolutionsForProblem(problemId) {
+        return this.get(`/api/solutions/count?search_type=problem&problem_id=${problemId}`, true);
+    }
+
+    async countSolutionsForUser(userId) {
+        return this.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
     }
 
     // ===========================================
