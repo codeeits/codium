@@ -28,13 +28,13 @@ LIMIT $2 OFFSET $3;
 
 -- name: UpdateSolutionFirstSolutionTest :one
 UPDATE solutions
-SET first_solution_test_id = $2, updated_at = CURRENT_TIMESTAMP
+SET first_solution_test_id = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
 
 -- name: UpdateSolutionPercentageCorrect :one
 UPDATE solutions
-SET percentage_correct = $2, updated_at = CURRENT_TIMESTAMP
+SET percentage_correct = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
 

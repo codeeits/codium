@@ -38,7 +38,7 @@ func (q *Queries) CountSolutionsByUserID(ctx context.Context, userID uuid.UUID) 
 	return count, err
 }
 
-const createSolution = `-- name: CreateSolution :one
+const createSolution = `-- name: CreateSolutionHandler :one
 INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
@@ -257,7 +257,7 @@ func (q *Queries) GetSolutionsByUserID(ctx context.Context, arg GetSolutionsByUs
 
 const updateSolutionFirstSolutionTest = `-- name: UpdateSolutionFirstSolutionTest :one
 UPDATE solutions
-SET first_solution_test_id = $2, updated_at = CURRENT_TIMESTAMP
+SET first_solution_test_id = $2, updated_at = $3
 WHERE id = $1
 RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
 `
@@ -265,10 +265,11 @@ RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, 
 type UpdateSolutionFirstSolutionTestParams struct {
 	ID                  uuid.UUID
 	FirstSolutionTestID uuid.NullUUID
+	UpdatedAt           sql.NullTime
 }
 
 func (q *Queries) UpdateSolutionFirstSolutionTest(ctx context.Context, arg UpdateSolutionFirstSolutionTestParams) (Solution, error) {
-	row := q.db.QueryRowContext(ctx, updateSolutionFirstSolutionTest, arg.ID, arg.FirstSolutionTestID)
+	row := q.db.QueryRowContext(ctx, updateSolutionFirstSolutionTest, arg.ID, arg.FirstSolutionTestID, arg.UpdatedAt)
 	var i Solution
 	err := row.Scan(
 		&i.ID,
@@ -286,7 +287,7 @@ func (q *Queries) UpdateSolutionFirstSolutionTest(ctx context.Context, arg Updat
 
 const updateSolutionPercentageCorrect = `-- name: UpdateSolutionPercentageCorrect :one
 UPDATE solutions
-SET percentage_correct = $2, updated_at = CURRENT_TIMESTAMP
+SET percentage_correct = $2, updated_at = $3
 WHERE id = $1
 RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
 `
@@ -294,10 +295,11 @@ RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, 
 type UpdateSolutionPercentageCorrectParams struct {
 	ID                uuid.UUID
 	PercentageCorrect float64
+	UpdatedAt         sql.NullTime
 }
 
 func (q *Queries) UpdateSolutionPercentageCorrect(ctx context.Context, arg UpdateSolutionPercentageCorrectParams) (Solution, error) {
-	row := q.db.QueryRowContext(ctx, updateSolutionPercentageCorrect, arg.ID, arg.PercentageCorrect)
+	row := q.db.QueryRowContext(ctx, updateSolutionPercentageCorrect, arg.ID, arg.PercentageCorrect, arg.UpdatedAt)
 	var i Solution
 	err := row.Scan(
 		&i.ID,

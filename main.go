@@ -118,6 +118,7 @@ func main() {
 		mux.Handle("PUT /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateLessonDisambiguationHandler))
 		mux.Handle("PUT /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemTestDisambiguationHandler))
 		mux.Handle("PUT /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemDisambiguationHandler))
+		mux.Handle("PUT /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateSolutionDisambiguationHandler))
 
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
 		mux.Handle("DELETE /api/users/{userID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteUserHandler))
@@ -153,6 +154,10 @@ func main() {
 		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
 		mux.Handle("GET /api/tests/{testID}", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
 		mux.Handle("POST /admin/reset", cfg.AuthenticatedEndpointMiddleware(cfg.ResetHandler))
+
+		mux.Handle("POST /api/solutions", cfg.AuthenticatedEndpointMiddleware(cfg.CreateSolutionHandler))
+		mux.Handle("DELETE /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteSolutionHandler))
+		mux.Handle("GET /api/solutions", cfg.AuthenticatedEndpointMiddleware(cfg.GetSolutionsDisambiguationHandler))
 
 		mux.Handle("GET /api/users/{userID}/started_lessons/count", http.HandlerFunc(cfg.CountUserStartedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/completed_lessons/count", http.HandlerFunc(cfg.CountUserCompletedLessonsHandler))
