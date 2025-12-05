@@ -619,16 +619,64 @@ class ApiService {
         return tests;
     }
 
+    async runCodeAgainstTest(testId, code, inputFile = null, stdin = true) {
+        const testResponse = await this.getTestById(testId);
+        const testData = typeof testResponse === 'string' ? JSON.parse(testResponse) : testResponse;
+
+        if (stdin === true) {
+            stdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
+        }
+
+        return this.runCode(code, inputFile, stdin);
+
+        //298662bc-7e90-4568-8ec7-325a76f0eded
+    }
+
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
         const problemResponse = await this.getProblemById(problemId);
-        const firstTestResponse = stdin ? await this.getTestById(problemResponse.problem.FirstTest) : null;
+        const firstTestId = stdin ? problemResponse.problem.FirstTest : null;
         const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
         console.log('Problem Data:', problemData);
+
+        let currentTestId = firstTestId;
+        let currentTestResponse = null;
 
         if (!problemData || !problemData.problem.FirstTest) {
             throw new Error('No tests found for the specified problem');
         }
 
+        let score = 0;
+        let tests = await this.getTestChainForFirstTest(currentTestId);
+
+        console.warn('Test Chain:', tests);
+
+        while (currentTestId) {
+            currentTestResponse = await this.getTestById(currentTestId);
+            const testData = typeof currentTestResponse === 'string' ? JSON.parse(currentTestResponse) : currentTestResponse;
+
+            let testStdin = '';
+            if (stdin === true) {
+                testStdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
+            }
+
+            console.log(`Running code against Test ID: ${currentTestId}`);
+            let apiResult = await this.runCode(code, inputFile, testStdin);
+            console.log('API Result:', apiResult);
+
+            if (apiResult.console.trim() === testData.ExpectedOutput.trim()) {
+                score += 1;
+            }
+
+            if (apiResult.console.trim() !== testData.ExpectedOutput.trim()) {
+                score += 0;
+            }
+            currentTestId = testData.NextTestID;
+        }
+
+        console.log(`Final Score: ${score} out of ${tests.length}`);
+        return { score, total: tests.length };
+
+        /*
         if (stdin === true) {
             const firstTestId = problemData.problem.FirstTest;
             console.log('First Test ID:', firstTestId);
@@ -642,7 +690,7 @@ class ApiService {
         if (apiResult.console === firstTestResponse.ExpectedOutput) {
             return "Success: Output matches expected result." + apiResult.console;
         }
-
+        */
         return apiResult;
     }
 
