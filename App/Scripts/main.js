@@ -167,9 +167,9 @@ function getMenuVariant() {
     return 'default';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const variant = getMenuVariant();
-    loadTopMenu(variant);
+    await loadTopMenu(variant);
     
     window.addEventListener('storage', function(e) {
         if (e.key === 'authToken' || e.key === 'username') {
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAuthButton();
     });
 
-    loadLanguage(localStorage.getItem('lang') || 'ro');
+    await loadLanguage(localStorage.getItem('lang') || 'ro');
 });
 
 window.addEventListener('beforeunload', () => {
