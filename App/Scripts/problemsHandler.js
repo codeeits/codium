@@ -278,6 +278,32 @@ async function getTestById() {
     }
 }
 
+async function getTestChainByFirstId() {
+    try {
+        let testId = getVal('get_test_chain_first_id');
+        let problemId = getVal('get_test_chain_problem_id');
+        
+        if (!testId && !problemId) {
+            showResult('getTestChainResult', 'Please enter a First Test ID or a Problem ID', true);
+            return;
+        }
+
+        if (problemId === '') {
+            problemId = null;
+        }
+        if (testId === '') {
+            testId = null;
+        }
+
+        console.log('Getting test chain for first test ID:', testId, 'or problem ID:', problemId);
+
+        const result = await problemsApi.getTestChainForFirstTest(testId, problemId);
+        showResult('getTestChainResult', result);
+    } catch (error) {
+        showResult('getTestChainResult', error.message || error, true);
+    }
+}
+
 async function updateTestInput() {
     try {
         const testId = getVal('update_test_id');

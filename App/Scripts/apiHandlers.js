@@ -579,6 +579,36 @@ class ApiService {
         return this.get(`/api/tests/${testId}`, false);
     }
 
+    async getTestChainForFirstTest(firstTestId = null, problemId = null) {
+        if (!firstTestId && !problemId) {
+            throw new Error('No first test ID provided');
+        }
+
+        if (firstTestId == null && problemId) {
+            console.log('jere');
+            const problemResponse = await this.getProblemById(problemId);
+            const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
+            firstTestId = problemData.problem.FirstTest;
+            console.log('Derived First Test ID:', firstTestId);
+        }
+
+        let tests = [];
+        let currentTestId = firstTestId;
+        let response = await this.getTestById(currentTestId);
+        //console.log('Initial Test Response:', response);
+
+        while (currentTestId) {
+            tests.push(currentTestId);
+            currentTestId = response.NextTestID;
+            if (currentTestId) {
+                const nextTestResponse = await this.getTestById(currentTestId);
+                //console.log('Next Test Response:', nextTestResponse);
+                response = nextTestResponse;
+            }
+        }
+        return tests;
+    }
+
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
         const problemResponse = await this.getProblemById(problemId);
         const firstTestResponse = stdin ? await this.getTestById(problemResponse.problem.FirstTest) : null;

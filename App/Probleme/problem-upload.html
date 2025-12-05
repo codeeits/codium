@@ -227,6 +227,19 @@
 
         <hr>
 
+        <!-- GET TEST CHAIN BY FIRST ID -->
+        <div class="section">
+            <h2>GET Tests chain for First chain</h2>
+            <label for="get_test_chain_first_id">First Test ID (UUID):</label>
+            <input type="text" id="get_test_chain_first_id" placeholder="First Test UUID">
+            <p>or</p>
+            <label for="get_test_chain_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="get_test_chain_problem_id" placeholder="Problem UUID">
+            <button onclick="getTestChainByFirstId()">Get Test Chain</button>
+            <div id="getTestChainResult" class="result" style="display:none;"></div>
+        </div>
+        <hr>
+
         <!-- UPDATE TEST -->
         <div class="section">
             <h2>PUT /api/tests/{testID}?target_field=... - Update Test</h2>
