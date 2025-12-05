@@ -79,6 +79,31 @@ type RefreshToken struct {
 	RevokedAt sql.NullTime
 }
 
+type Solution struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	ProblemID           uuid.UUID
+	FirstSolutionTestID uuid.NullUUID
+	SentCode            string
+	Language            string
+	PercentageCorrect   float64
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type SolutionsTest struct {
+	ID                  uuid.UUID
+	CodeTestID          uuid.NullUUID
+	RunTimeMs           int32
+	MemoryUsageKb       int32
+	Success             bool
+	ErrorMessage        sql.NullString
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+	NextSolutionsTestID uuid.NullUUID
+	PrevSolutionsTestID uuid.NullUUID
+}
+
 type User struct {
 	ID             uuid.UUID
 	Username       string

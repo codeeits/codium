@@ -327,7 +327,7 @@ func (q *Queries) GetProblemsByTag(ctx context.Context, arg GetProblemsByTagPara
 	return items, nil
 }
 
-const updateProblemDetails = `-- name: UpdateProblemDetailsHandler :one
+const updateProblemDetails = `-- name: UpdateProblemDetails :one
 UPDATE problems
 SET title = $2, description = $3, source=$4, updated_at = $5
 WHERE id = $1
