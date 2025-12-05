@@ -557,8 +557,8 @@ async function countSolutions(targetField = '') {
         } else if (targetField === 'user') {
             const userId = getVal('count_solutions_user_id');
 
-            if (!userId || userId) {
-                showResult('countSolutionsResultUser', 'Ba ai problema in db', true);
+            if (!userId) {
+                showResult('countSolutionsResultUser', 'Ba introdu si tu un User ID', true);
                 return;
             }
 
@@ -599,8 +599,11 @@ async function deleteSolution() {
 // RUN CODE AGAINST PROBLEM TESTS CRUD
 // ===========================================
 
-async function runCodeAgainstProblem() {
+async function runCodeAgainstProblem(button) {
     try {
+        button.disabled = true;
+        button.textContent = 'Running...';
+        button.style.opacity = '0.5';
         const problemId = getVal('run_problem_id');
         const code = getVal('run_code');
         if (!problemId) {
@@ -614,9 +617,28 @@ async function runCodeAgainstProblem() {
 
         console.log('Running code against problem tests:', problemId);
         const result = await problemsApi.runCodeAgainstProblemTests(problemId, code, null, true);
+        
+        let data = {};
+        data.code = code;
+        data.language = 'cpp';
+
+        console.log('Creating solution record with data:', data);
+        const solutionResult = await problemsApi.createSolution(problemId, data);
+        solutionId = solutionResult.ID;
+
+        data = {};
+        data.total_tests = result.total;
+        data.tests_passed = result.score;
+
+        const updateResult = await problemsApi.updateSolution(solutionId, 'tests', data);
+        console.log('Updated solution with test results:', updateResult);
         showResult('runCodeResult', result);
     } catch (error) {
         showResult('runCodeResult', error.message || error, true);
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Run Code';
+        button.style.opacity = '1';
     }
 }
 
