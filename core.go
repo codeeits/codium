@@ -5,6 +5,7 @@ import (
 	"Codium/internal/database"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -659,6 +660,126 @@ func (cfg *ApiCfg) AuthenticatedEndpointMiddleware(next func(w http.ResponseWrit
 		// Call the next handler with the authenticated user
 		next(w, r, user)
 	}
+}
+
+// WriteSingleJsonOutput Write a single JSON object to the response
+func (cfg *ApiCfg) WriteSingleJsonOutput(w http.ResponseWriter, statusCode int, data interface{}, printer func(any) (string, error)) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(statusCode)
+	jsonData, err := printer(data)
+	if err != nil {
+		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	_, err = w.Write([]byte(jsonData))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// WriteListJsonOutput Write a list of JSON objects to the response
+func (cfg *ApiCfg) WriteListJsonOutput(w http.ResponseWriter, statusCode int, data []any, printer func(any) (string, error)) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(statusCode)
+
+	_, err := w.Write([]byte("["))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+	for i, obj := range data {
+		if i > 0 {
+			_, err = w.Write([]byte(","))
+			if err != nil {
+				cfg.logger.Printf("Failed to write response: %v", err)
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
+		}
+		dataJson, err := printer(obj)
+		if err != nil {
+			cfg.logger.Printf("Failed to marshal obj: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = w.Write([]byte(dataJson))
+		if err != nil {
+			cfg.logger.Printf("Failed to write response: %v", err)
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+	_, err = w.Write([]byte("]"))
+	if err != nil {
+		cfg.logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GenericPrinter Generic JSON printer for any data type
+func GenericPrinter(data any) (string, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal data: %v", err)
+	}
+	return string(jsonData), nil
+}
+
+// PrintUserToJson Print user to JSON without password hash
+func PrintUserToJson(p any) (string, error) {
+	user, ok := p.(database.User)
+	if !ok {
+		return "", fmt.Errorf("invalid type assertion for user")
+	}
+
+	user.PasswordHash = "" // Remove password hash for security
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal user: %v", err)
+	}
+	return string(jsonData), nil
+}
+
+// PrintLessonToJson Print lesson to JSON with parsed flags
+func PrintLessonToJson(p any) (string, error) {
+	lesson, ok := p.(database.Lesson)
+	if !ok {
+		return "", fmt.Errorf("invalid type assertion for lesson")
+	}
+	lessonJsonData := LessonWithFlags{
+		Lesson:          lesson,
+		FlagTranslation: ParseLessonFlags(lesson.Flags),
+	}
+
+	jsonData, err := json.Marshal(lessonJsonData)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal lesson: %v", err)
+	}
+	return string(jsonData), nil
+
+}
+
+// PrintProblemToJson Print problem to JSON with parsed tags
+func PrintProblemToJson(p any) (string, error) {
+	problem, ok := p.(database.Problem)
+	if !ok {
+		return "", fmt.Errorf("invalid type assertion for problem")
+	}
+
+	problemJsonData := ProblemWithTags{
+		Problem:        problem,
+		TagTranslation: ParseProblemTags(problem.Tags),
+	}
+	jsonData, err := json.Marshal(problemJsonData)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal problem: %v", err)
+	}
+	return string(jsonData), nil
 }
 
 // BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags
