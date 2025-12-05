@@ -391,6 +391,40 @@ func (cfg *ApiCfg) UpdateSolutionDisambiguationHandler(w http.ResponseWriter, r 
 	}
 }
 
+func (cfg *ApiCfg) CountSolutionsDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	searchType := q.Get("search_type")
+	if searchType == "" {
+		cfg.logger.Printf("Missing search_type query parameter")
+		http.Error(w, "Missing search_type query parameter", http.StatusBadRequest)
+		return
+	}
+
+	switch searchType {
+	case "user":
+		cfg.CountSolutionsHandler(w, r, sendingUser)
+	case "problem":
+		cfg.CountSolutionsByProblemIDHandler(w, r, sendingUser)
+	default:
+		cfg.logger.Printf("Invalid search_type: %v", searchType)
+		http.Error(w, "Invalid search_type", http.StatusBadRequest)
+		return
+	}
+}
+
 func GetUUIDFromPath(r *http.Request, key string) (uuid.UUID, error) {
 	idStr := r.PathValue(key)
 	if idStr == "" {
@@ -3152,7 +3186,7 @@ func (cfg *ApiCfg) GetSolutionsHandler(w http.ResponseWriter, r *http.Request, s
 	// database check is done in the disambiguation function
 
 	cfg.logger.Print("Received get solutions request")
-	solutions, err := cfg.db.GetAllSolutions(r.Context(), database.GetAllSolutionsParams{
+	solutions, err := cfg.db.GetSolutions(r.Context(), database.GetSolutionsParams{
 		Limit:  1000,
 		Offset: 0,
 	})
@@ -3244,7 +3278,8 @@ func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.R
 
 func (cfg *ApiCfg) UpdateSolutionPercentageHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
 	type params struct {
-		Percentage float64 `json:"percentage"`
+		TestsPassed int `json:"tests_passed"`
+		TotalTests  int `json:"total_tests"`
 	}
 
 	// Database check is done in the disambiguation function
@@ -3262,10 +3297,11 @@ func (cfg *ApiCfg) UpdateSolutionPercentageHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	res, err := cfg.db.UpdateSolutionPercentageCorrect(r.Context(), database.UpdateSolutionPercentageCorrectParams{
-		ID:                solution.ID,
-		PercentageCorrect: p.Percentage,
-		UpdatedAt:         sql.NullTime{Valid: true, Time: time.Now()},
+	res, err := cfg.db.UpdateSolutionTests(r.Context(), database.UpdateSolutionTestsParams{
+		ID:          solution.ID,
+		TestsPassed: sql.NullInt32{Valid: true, Int32: int32(p.TestsPassed)},
+		TotalTests:  sql.NullInt32{Valid: true, Int32: int32(p.TotalTests)},
+		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
 	})
 
 	if err != nil {
@@ -3309,6 +3345,70 @@ func (cfg *ApiCfg) UpdateSolutionFirstSolutionTestHandler(w http.ResponseWriter,
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) CountSolutionsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received count solutions request")
+
+	countTotal, err := cfg.db.CountSolutionsByUserId(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to count solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	countCorrect, err := cfg.db.CountUserCorrectSolutions(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to count correct solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	type response struct {
+		CountCorrect int64 `json:"count_correct"`
+		CountTotal   int64 `json:"count_total"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, response{CountCorrect: countCorrect, CountTotal: countTotal}, GenericPrinter)
+}
+
+func (cfg *ApiCfg) CountSolutionsByProblemIDHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received count solutions by problem ID request")
+	// Parse problem ID as UUID
+	problemID, err := GetUUIDFromQuery(r, "problem_id")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	countTotal, err := cfg.db.CountUserSolutionsByProblemID(r.Context(), database.CountUserSolutionsByProblemIDParams{
+		ProblemID: problemID,
+		UserID:    sendingUser.ID,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to count solutions by problem ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	countCorrect, err := cfg.db.CountUserCorrectSolutionsByProblemID(r.Context(), database.CountUserCorrectSolutionsByProblemIDParams{
+		ProblemID: problemID,
+		UserID:    sendingUser.ID,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to count correct solutions by problem ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	type response struct {
+		CountCorrect int64 `json:"count_correct"`
+		CountTotal   int64 `json:"count_total"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, response{CountCorrect: countCorrect, CountTotal: countTotal}, GenericPrinter)
 }
 
 /*

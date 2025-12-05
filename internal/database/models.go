@@ -86,7 +86,8 @@ type Solution struct {
 	FirstSolutionTestID uuid.NullUUID
 	SentCode            string
 	Language            string
-	PercentageCorrect   float64
+	TestsPassed         sql.NullInt32
+	TotalTests          sql.NullInt32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
 }

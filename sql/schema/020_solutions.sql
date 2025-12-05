@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS solutions (
     first_solution_test_id uuid REFERENCES solutions_tests(id) ON DELETE SET NULL,
     sent_code TEXT NOT NULL,
     language TEXT NOT NULL,
-    percentage_correct FLOAT NOT NULL DEFAULT 0,
+    tests_passed INTEGER DEFAULT 0,
+    total_tests INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

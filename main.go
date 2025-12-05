@@ -162,6 +162,7 @@ func main() {
 		mux.Handle("GET /api/users/{userID}/started_lessons/count", http.HandlerFunc(cfg.CountUserStartedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/completed_lessons/count", http.HandlerFunc(cfg.CountUserCompletedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/bookmarks/count", http.HandlerFunc(cfg.CountUserBookmarkedLessonsHandler))
+		mux.Handle("GET /api/solutions/count", cfg.AuthenticatedEndpointMiddleware(cfg.CountSolutionsDisambiguationHandler))
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))

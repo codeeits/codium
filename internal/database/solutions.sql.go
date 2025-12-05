@@ -38,10 +38,72 @@ func (q *Queries) CountSolutionsByUserID(ctx context.Context, userID uuid.UUID) 
 	return count, err
 }
 
-const createSolution = `-- name: CreateSolutionHandler :one
-INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+const countSolutionsByUserId = `-- name: CountSolutionsByUserId :one
+SELECT COUNT(*) AS count
+FROM solutions
+WHERE user_id = $1
+`
+
+func (q *Queries) CountSolutionsByUserId(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSolutionsByUserId, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserCorrectSolutions = `-- name: CountUserCorrectSolutions :one
+SELECT COUNT(*) AS count
+FROM solutions
+WHERE user_id = $1 AND tests AND tests_passed = total_tests
+`
+
+func (q *Queries) CountUserCorrectSolutions(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserCorrectSolutions, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserCorrectSolutionsByProblemID = `-- name: CountUserCorrectSolutionsByProblemID :one
+SELECT COUNT(*) AS count
+FROM solutions
+WHERE user_id = $1 AND problem_id = $2 AND tests_passed = total_tests
+`
+
+type CountUserCorrectSolutionsByProblemIDParams struct {
+	UserID    uuid.UUID
+	ProblemID uuid.UUID
+}
+
+func (q *Queries) CountUserCorrectSolutionsByProblemID(ctx context.Context, arg CountUserCorrectSolutionsByProblemIDParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserCorrectSolutionsByProblemID, arg.UserID, arg.ProblemID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserSolutionsByProblemID = `-- name: CountUserSolutionsByProblemID :one
+SELECT COUNT(*) AS count
+FROM solutions
+WHERE user_id = $1 AND problem_id = $2
+`
+
+type CountUserSolutionsByProblemIDParams struct {
+	UserID    uuid.UUID
+	ProblemID uuid.UUID
+}
+
+func (q *Queries) CountUserSolutionsByProblemID(ctx context.Context, arg CountUserSolutionsByProblemIDParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserSolutionsByProblemID, arg.UserID, arg.ProblemID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createSolution = `-- name: CreateSolution :one
+INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 `
 
 type CreateSolutionParams struct {
@@ -51,7 +113,8 @@ type CreateSolutionParams struct {
 	FirstSolutionTestID uuid.NullUUID
 	SentCode            string
 	Language            string
-	PercentageCorrect   float64
+	TestsPassed         sql.NullInt32
+	TotalTests          sql.NullInt32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
 }
@@ -64,7 +127,8 @@ func (q *Queries) CreateSolution(ctx context.Context, arg CreateSolutionParams) 
 		arg.FirstSolutionTestID,
 		arg.SentCode,
 		arg.Language,
-		arg.PercentageCorrect,
+		arg.TestsPassed,
+		arg.TotalTests,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -76,7 +140,8 @@ func (q *Queries) CreateSolution(ctx context.Context, arg CreateSolutionParams) 
 		&i.FirstSolutionTestID,
 		&i.SentCode,
 		&i.Language,
-		&i.PercentageCorrect,
+		&i.TestsPassed,
+		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -93,20 +158,44 @@ func (q *Queries) DeleteSolution(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const getAllSolutions = `-- name: GetAllSolutions :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+const getSolutionByID = `-- name: GetSolutionByID :one
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+FROM solutions
+WHERE id = $1
+`
+
+func (q *Queries) GetSolutionByID(ctx context.Context, id uuid.UUID) (Solution, error) {
+	row := q.db.QueryRowContext(ctx, getSolutionByID, id)
+	var i Solution
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ProblemID,
+		&i.FirstSolutionTestID,
+		&i.SentCode,
+		&i.Language,
+		&i.TestsPassed,
+		&i.TotalTests,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getSolutions = `-- name: GetSolutions :many
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 FROM solutions
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
 
-type GetAllSolutionsParams struct {
+type GetSolutionsParams struct {
 	Limit  int32
 	Offset int32
 }
 
-func (q *Queries) GetAllSolutions(ctx context.Context, arg GetAllSolutionsParams) ([]Solution, error) {
-	rows, err := q.db.QueryContext(ctx, getAllSolutions, arg.Limit, arg.Offset)
+func (q *Queries) GetSolutions(ctx context.Context, arg GetSolutionsParams) ([]Solution, error) {
+	rows, err := q.db.QueryContext(ctx, getSolutions, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +210,8 @@ func (q *Queries) GetAllSolutions(ctx context.Context, arg GetAllSolutionsParams
 			&i.FirstSolutionTestID,
 			&i.SentCode,
 			&i.Language,
-			&i.PercentageCorrect,
+			&i.TestsPassed,
+			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -138,31 +228,8 @@ func (q *Queries) GetAllSolutions(ctx context.Context, arg GetAllSolutionsParams
 	return items, nil
 }
 
-const getSolutionByID = `-- name: GetSolutionByID :one
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
-FROM solutions
-WHERE id = $1
-`
-
-func (q *Queries) GetSolutionByID(ctx context.Context, id uuid.UUID) (Solution, error) {
-	row := q.db.QueryRowContext(ctx, getSolutionByID, id)
-	var i Solution
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.ProblemID,
-		&i.FirstSolutionTestID,
-		&i.SentCode,
-		&i.Language,
-		&i.PercentageCorrect,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
 const getSolutionsByProblemID = `-- name: GetSolutionsByProblemID :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 FROM solutions
 WHERE problem_id = $1
 ORDER BY created_at DESC
@@ -191,7 +258,8 @@ func (q *Queries) GetSolutionsByProblemID(ctx context.Context, arg GetSolutionsB
 			&i.FirstSolutionTestID,
 			&i.SentCode,
 			&i.Language,
-			&i.PercentageCorrect,
+			&i.TestsPassed,
+			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -209,7 +277,7 @@ func (q *Queries) GetSolutionsByProblemID(ctx context.Context, arg GetSolutionsB
 }
 
 const getSolutionsByUserID = `-- name: GetSolutionsByUserID :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 FROM solutions
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -238,7 +306,8 @@ func (q *Queries) GetSolutionsByUserID(ctx context.Context, arg GetSolutionsByUs
 			&i.FirstSolutionTestID,
 			&i.SentCode,
 			&i.Language,
-			&i.PercentageCorrect,
+			&i.TestsPassed,
+			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -259,7 +328,7 @@ const updateSolutionFirstSolutionTest = `-- name: UpdateSolutionFirstSolutionTes
 UPDATE solutions
 SET first_solution_test_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 `
 
 type UpdateSolutionFirstSolutionTestParams struct {
@@ -278,28 +347,35 @@ func (q *Queries) UpdateSolutionFirstSolutionTest(ctx context.Context, arg Updat
 		&i.FirstSolutionTestID,
 		&i.SentCode,
 		&i.Language,
-		&i.PercentageCorrect,
+		&i.TestsPassed,
+		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
 }
 
-const updateSolutionPercentageCorrect = `-- name: UpdateSolutionPercentageCorrect :one
+const updateSolutionTests = `-- name: UpdateSolutionTests :one
 UPDATE solutions
-SET percentage_correct = $2, updated_at = $3
+SET tests_passed = $2, total_tests = $3, updated_at = $4
 WHERE id = $1
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, percentage_correct, created_at, updated_at
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 `
 
-type UpdateSolutionPercentageCorrectParams struct {
-	ID                uuid.UUID
-	PercentageCorrect float64
-	UpdatedAt         sql.NullTime
+type UpdateSolutionTestsParams struct {
+	ID          uuid.UUID
+	TestsPassed sql.NullInt32
+	TotalTests  sql.NullInt32
+	UpdatedAt   sql.NullTime
 }
 
-func (q *Queries) UpdateSolutionPercentageCorrect(ctx context.Context, arg UpdateSolutionPercentageCorrectParams) (Solution, error) {
-	row := q.db.QueryRowContext(ctx, updateSolutionPercentageCorrect, arg.ID, arg.PercentageCorrect, arg.UpdatedAt)
+func (q *Queries) UpdateSolutionTests(ctx context.Context, arg UpdateSolutionTestsParams) (Solution, error) {
+	row := q.db.QueryRowContext(ctx, updateSolutionTests,
+		arg.ID,
+		arg.TestsPassed,
+		arg.TotalTests,
+		arg.UpdatedAt,
+	)
 	var i Solution
 	err := row.Scan(
 		&i.ID,
@@ -308,7 +384,8 @@ func (q *Queries) UpdateSolutionPercentageCorrect(ctx context.Context, arg Updat
 		&i.FirstSolutionTestID,
 		&i.SentCode,
 		&i.Language,
-		&i.PercentageCorrect,
+		&i.TestsPassed,
+		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
