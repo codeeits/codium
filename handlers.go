@@ -382,8 +382,8 @@ func (cfg *ApiCfg) UpdateSolutionDisambiguationHandler(w http.ResponseWriter, r 
 	switch targetField {
 	case "first_solution_test_id":
 		cfg.UpdateSolutionFirstSolutionTestHandler(w, r, solution, sendingUser)
-	case "percentage_correct":
-		cfg.UpdateSolutionPercentageHandler(w, r, solution, sendingUser)
+	case "tests":
+		cfg.UpdateSolutionTestsHandler(w, r, solution, sendingUser)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -3276,7 +3276,7 @@ func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.R
 	cfg.WriteListJsonOutput(w, http.StatusOK, solutionsToAny(filteredSolutions), GenericPrinter)
 }
 
-func (cfg *ApiCfg) UpdateSolutionPercentageHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
+func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
 	type params struct {
 		TestsPassed int `json:"tests_passed"`
 		TotalTests  int `json:"total_tests"`
