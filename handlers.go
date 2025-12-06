@@ -1473,26 +1473,10 @@ func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		LessonID string `json:"lesson_id"`
-	}
-
-	var p params
-
-	queries := r.URL.Query()
-	// One of the queries will be for search_type, so we check if there are more than 1 query parameters
-	if len(queries) > 1 {
-		p.LessonID = queries.Get("lesson_id")
-	}
-	if p.LessonID == "" {
-		http.Error(w, "lesson_id is required", http.StatusBadRequest)
-	}
-
-	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", p.LessonID)
 	//Database check is done in the disambiguation function
 
 	// Parse lesson ID as UUID
-	lesson, err := GetObjByPathUUID(r, "lessonID", cfg.db.GetLessonByID)
+	lesson, err := GetObjByQueryUUID(r, "lesson_id", cfg.db.GetLessonByID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			cfg.logger.Printf("Lesson not found: %v", err)
@@ -1503,6 +1487,7 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", lesson.ID)
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, lesson, PrintLessonToJson)
 }
