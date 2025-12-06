@@ -862,6 +862,40 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestGetRequestsForLinkedLessons", func(t *testing.T) {
+			for i := 0; i < 23; i++ {
+				req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[i+1].String(), nil)
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				}
+
+				var lesson LessonWithFlags
+				err = json.NewDecoder(resp.Body).Decode(&lesson)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+
+				if lesson.Lesson.PrevLessonID.Valid != true || lesson.Lesson.PrevLessonID.UUID != lessonIds[i] {
+					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[i].String(), lesson.Lesson.PrevLessonID.UUID.String())
+				}
+				if lesson.Lesson.NextLessonID.Valid != true || lesson.Lesson.NextLessonID.UUID != lessonIds[i+2] {
+					t.Fatalf("Expected lesson next lesson ID %s, got %s", lessonIds[i+2].String(), lesson.Lesson.NextLessonID.UUID.String())
+				}
+			}
+		})
+
 		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
 			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[1].String()+"?target_field=section_starter", bytes.NewReader(jsonData))
@@ -1035,6 +1069,46 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestCreateProblemTestWithoutAdmin", func(t *testing.T) {
+			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusForbidden {
+				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestCreateProblemTestWithoutAuth", func(t *testing.T) {
+			jsonData := []byte(`{"input_text":"","expected_output":"5\n"}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("Expected status code %d, got %d", http.StatusUnauthorized, resp.StatusCode)
+			}
+		})
+
+		var testID uuid.UUID
 		t.Run("TestCreateProblemTest", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
 			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
@@ -1067,6 +1141,138 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			if test.ExpectedOutput != "5\n" {
 				t.Fatalf("Expected output %s, got %s", "5\n", test.ExpectedOutput)
+			}
+			testID = test.ID
+		})
+
+		t.Run("TestGetProblemTestByID", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/tests/"+testID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			t.Log(resp.Body)
+			var test database.CodeTest
+			err = json.NewDecoder(resp.Body).Decode(&test)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if test.ID != testID {
+				t.Fatalf("Expected test ID %s, got %s", testID.String(), test.ID.String())
+			}
+		})
+
+		t.Run("TestUpdateProblemTestInput", func(t *testing.T) {
+			jsonData := []byte(`{"input_text":"10 20\n"}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/tests/"+testID.String()+"?target_field=input", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var test database.CodeTest
+			err = json.NewDecoder(resp.Body).Decode(&test)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !test.TxtInput.Valid {
+				t.Fatal("Expected input text to be valid")
+			}
+			if test.TxtInput.String != "10 20\n" {
+				t.Fatalf("Expected input text %v, got %v", "10 20\n", test.TxtInput)
+			}
+		})
+		t.Run("TestUpdateProblemTestExpectedOutput", func(t *testing.T) {
+			jsonData := []byte(`{"expected_output":"10 20\n"}`)
+			req, err := http.NewRequest("PUT", "http://localhost:6767/api/tests/"+testID.String()+"?target_field=expected_output", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var test database.CodeTest
+			err = json.NewDecoder(resp.Body).Decode(&test)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if test.ExpectedOutput != "10 20\n" {
+				t.Fatalf("Expected output %s, got %s", "10 20\n", test.ExpectedOutput)
+			}
+		})
+
+		var testIds []uuid.UUID
+		testIds = append(testIds, testID)
+		t.Run("TestCreateMultipleProblemTestsForLinking", func(t *testing.T) {
+			for i := 0; i < 25; i++ {
+				jsonData := []byte(`{"input_text":"Input ` + strconv.Itoa(i) + `\n","expected_output":"Output ` + strconv.Itoa(i) + `\n","previous_test_id":"` + testIds[i].String() + `"}`)
+				req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusCreated {
+					t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+				}
+
+				var test database.CodeTest
+				err = json.NewDecoder(resp.Body).Decode(&test)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+				if !test.TxtInput.Valid {
+					t.Fatal("Expected input text to be valid")
+				}
+				if test.TxtInput.String != "Input "+strconv.Itoa(i)+"\n" {
+					t.Fatalf("Expected input text %v, got %v", "Input "+strconv.Itoa(i)+"\n", test.TxtInput)
+				}
+				if test.ExpectedOutput != "Output "+strconv.Itoa(i)+"\n" {
+					t.Fatalf("Expected output %s, got %s", "Output "+strconv.Itoa(i)+"\n", test.ExpectedOutput)
+				}
+				if test.PreviousTestID.Valid != true || test.PreviousTestID.UUID != testIds[i] {
+					t.Fatalf("Expected previous test ID %s, got %s", testIds[i].String(), test.PreviousTestID.UUID.String())
+				}
+
+				testIds = append(testIds, test.ID)
 			}
 		})
 
