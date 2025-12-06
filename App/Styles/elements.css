@@ -380,13 +380,12 @@
     flex: 1;
 }
 
-.problems-icon-btn {
-    min-width: 3.324rem;
-    width: 3.324rem;
-    padding: 1rem;
+.btn.secondary.problems-icon-btn {
+    max-width: 3.324rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
 }
 
 .problems-tabs {
@@ -442,6 +441,14 @@
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
+    text-align: right;
+}
+
+.author-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mask-image: radial-gradient(circle, black 100%, transparent 100%);
 }
 
 .problem-author-name {
@@ -458,6 +465,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
+    overflow: hidden;
 }
 
 .problem-difficulty {
@@ -482,7 +490,17 @@
 .problem-description {
     font-size: 0.95rem;
     color: var(--text-secondary);
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
     line-height: 1.5;
+}
+
+.problem-description img {
+    width: 40%;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    border: 1px solid var(--text-color);
 }
 
 .problem-expand {
