@@ -1407,6 +1407,157 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		var problemID uuid.UUID
+		t.Run("TestCreateProblem", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Sample Problem","description":"This is a test problem", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
+			req, err := http.NewRequest("POST", "http://localhost:6767/api/problems", bytes.NewReader(jsonData))
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusCreated {
+				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
+			}
+
+			var problem ProblemWithTags
+			err = json.NewDecoder(resp.Body).Decode(&problem)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if problem.Problem.Title != "Sample Problem" {
+				t.Fatalf("Expected problem title %s, got %s", "Sample Problem", problem.Problem.Title)
+			}
+			if problem.Problem.FirstTest.Valid != true || problem.Problem.FirstTest.UUID != testID {
+				t.Fatalf("Expected problem first test ID %s, got %s", testID.String(), problem.Problem.FirstTest.UUID.String())
+			}
+
+			problemID = problem.Problem.ID
+		})
+
+		t.Run("TestDeleteProblemAsAverageUser", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/problems/"+testID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusForbidden {
+				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetProblemByID", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems?search_type=id&problem_id="+problemID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var problem ProblemWithTags
+			err = json.NewDecoder(resp.Body).Decode(&problem)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if problem.Problem.ID != problemID {
+				t.Fatalf("Expected problem ID %s, got %s", problemID.String(), problem.Problem.ID.String())
+			}
+		})
+
+		t.Run("GetProblemsByAverageUser", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var problems []ProblemWithTags
+			err = json.NewDecoder(resp.Body).Decode(&problems)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			found := false
+			for _, problem := range problems {
+				if problem.Problem.ID == problemID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("Expected to find problem with ID %s", problemID.String())
+			}
+		})
+
+		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/problems/"+problemID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetDeletedProblem", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems?search_type=id&problem_id="+problemID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusInternalServerError {
+				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
+			}
+		})
+
 		t.Run("TestDeleteProblemTest", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/tests/"+testID.String(), nil)
 			if err != nil {
