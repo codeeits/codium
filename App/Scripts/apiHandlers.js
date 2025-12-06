@@ -58,8 +58,12 @@ class ApiService {
         };
     }
 
-    isAuthenticated() {
-        return !!this.authToken;
+    isAuthenticated(redirect = false) {
+        const isAuth = !!this.authToken;
+        if (!isAuth && redirect) {
+            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        }
+        return isAuth;
     }
 
     // ===========================================
@@ -207,10 +211,12 @@ class ApiService {
         return this.post('/api/create_user', userData);
     }
 
-    async logout(confirmMessage = false) {
+    async logout(confirmMessage = false, redirect = true) {
         if (confirmMessage ? confirm('Are you sure you want to log out?') : true) {
             this.clearTokens();
-            window.location.href = 'login.html';
+            if (redirect) {
+                window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
+            }
             // Trigger auth button update if available
             if (window.refreshAuthButton) {
                 window.refreshAuthButton();
@@ -558,6 +564,179 @@ class ApiService {
     }
 
     // ===========================================
+    // Problems Management Endpoints
+    // ===========================================
+
+    async createProblem(problemData) {
+        // title, description, source, first_test_id, thumbnail_id, [TAGS] difficulty, module, solve_type, result_type, verification_type, section
+        return this.post('/api/problems', problemData, true);
+    }
+
+    async updateProblem(problemId, targetField, data) {
+        // targetField: tags, details, test, thumbnail
+        return this.put(`/api/problems/${problemId}?target_field=${targetField}`, data, true);
+    }
+
+    async getProblems() {
+        return this.get('/api/problems', false);
+    }
+
+    async getProblemById(problemId) {
+        return this.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
+    }
+
+    async getTestById(testId) {
+        return this.get(`/api/tests/${testId}`, false);
+    }
+
+    async getTestChainForFirstTest(firstTestId = null, problemId = null) {
+        if (!firstTestId && !problemId) {
+            throw new Error('No first test ID provided');
+        }
+
+        if (firstTestId == null && problemId) {
+            console.log('jere');
+            const problemResponse = await this.getProblemById(problemId);
+            const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
+            firstTestId = problemData.problem.FirstTest;
+            console.log('Derived First Test ID:', firstTestId);
+        }
+
+        let tests = [];
+        let currentTestId = firstTestId;
+        let response = await this.getTestById(currentTestId);
+        //console.log('Initial Test Response:', response);
+
+        while (currentTestId) {
+            tests.push(currentTestId);
+            currentTestId = response.NextTestID;
+            if (currentTestId) {
+                const nextTestResponse = await this.getTestById(currentTestId);
+                //console.log('Next Test Response:', nextTestResponse);
+                response = nextTestResponse;
+            }
+        }
+        return tests;
+    }
+
+    async runCodeAgainstTest(testId, code, inputFile = null, stdin = true) {
+        console.warn('DEPRECATED: use runCodeAgainstProblemTests instead.');
+        const testResponse = await this.getTestById(testId);
+        const testData = typeof testResponse === 'string' ? JSON.parse(testResponse) : testResponse;
+
+        if (stdin === true) {
+            stdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
+        }
+
+        return this.runCode(code, inputFile, stdin);
+
+        //298662bc-7e90-4568-8ec7-325a76f0eded
+    }
+
+    async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
+
+        if (this.isAuthenticated() === false) {
+            throw new Error('Authentication required to run code against problem tests');
+        }
+        const problemResponse = await this.getProblemById(problemId);
+        const firstTestId = stdin ? problemResponse.problem.FirstTest : null;
+        const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
+        console.log('Problem Data:', problemData);
+
+        let currentTestId = firstTestId;
+        let currentTestResponse = null;
+
+        if (!problemData || !problemData.problem.FirstTest) {
+            throw new Error('No tests found for the specified problem');
+        }
+
+        let score = 0;
+        let tests = await this.getTestChainForFirstTest(currentTestId);
+
+        console.warn('Test Chain:', tests);
+
+        while (currentTestId) {
+            currentTestResponse = await this.getTestById(currentTestId);
+            const testData = typeof currentTestResponse === 'string' ? JSON.parse(currentTestResponse) : currentTestResponse;
+
+            let testStdin = '';
+            if (stdin === true) {
+                testStdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
+            }
+
+            console.log(`Running code against Test ID: ${currentTestId}`);
+            let apiResult = await this.runCode(code, inputFile, testStdin);
+            console.log('API Result:', apiResult);
+
+            if (apiResult.console.trim() === testData.ExpectedOutput.trim()) {
+                score += 1;
+            }
+
+            if (apiResult.console.trim() !== testData.ExpectedOutput.trim()) {
+                score += 0;
+            }
+            currentTestId = testData.NextTestID;
+        }
+
+        console.log(`Final Score: ${score} out of ${tests.length}`);
+        return { score, total: tests.length };
+
+        /*
+        if (stdin === true) {
+            const firstTestId = problemData.problem.FirstTest;
+            console.log('First Test ID:', firstTestId);
+            const firstTestData = typeof firstTestResponse === 'string' ? JSON.parse(firstTestResponse) : firstTestResponse;
+            stdin = firstTestData.TxtInput.Valid ? firstTestData.TxtInput.String : '';
+        }
+
+        console.log('Problem Data:', problemData);
+        const apiResult = await this.runCode(code, null, stdin);
+        console.log('API Result:', apiResult);
+        if (apiResult.console === firstTestResponse.ExpectedOutput) {
+            return "Success: Output matches expected result." + apiResult.console;
+        }
+        */
+    }
+
+    async createSolution(problemId, solutionData) {
+        // problemId, code, language, problem_id
+        return this.post(`/api/solutions`, { problem_id: problemId, ...solutionData }, true);
+    }
+
+    async updateSolution(solutionId, targetField, data) {
+        // targetField: tests
+        if (targetField === 'tests') {
+            // tests_passed, total_tests
+            return this.put(`/api/solutions/${solutionId}?target_field=tests`, data, true);
+        }
+
+        throw new Error('Unsupported target field for solution update');
+
+    }
+
+    async getSolutionById(solutionId) {
+        // if admin or owner
+        return this.get(`/api/solutions?search_type=id&solution_id=${solutionId}`, true);
+    }
+
+    async getSolutionsByUser(userId) {
+        return this.get(`/api/solutions?search_type=user&user_id=${userId}`, true);
+    }
+
+    async getSolutionsByProblem(problemId) {
+        // owned or admin
+        return this.get(`/api/solutions?search_type=problem&problem_id=${problemId}`, true);
+    }
+
+    async countSolutionsForProblem(problemId) {
+        return this.get(`/api/solutions/count?search_type=problem&problem_id=${problemId}`, true);
+    }
+
+    async countSolutionsForUser(userId) {
+        return this.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
+    }
+
+    // ===========================================
     // File Management Endpoints
     // ===========================================
 
@@ -569,7 +748,6 @@ class ApiService {
         return `${this.baseURL}/api/files/${fileId}`;
     }
 
-    
     // ===========================================
     // Code Execution (Piston API)
     // ===========================================

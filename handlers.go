@@ -27,120 +27,6 @@ import (
 ===========================================
 */
 
-func (cfg *ApiCfg) WriteSingleJsonOutput(w http.ResponseWriter, statusCode int, data interface{}, printer func(any) (string, error)) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(statusCode)
-	jsonData, err := printer(data)
-	if err != nil {
-		cfg.logger.Printf("Failed to marshal problem test: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	_, err = w.Write([]byte(jsonData))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (cfg *ApiCfg) WriteListJsonOutput(w http.ResponseWriter, statusCode int, data []any, printer func(any) (string, error)) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(statusCode)
-
-	_, err := w.Write([]byte("["))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-	for i, obj := range data {
-		if i > 0 {
-			_, err = w.Write([]byte(","))
-			if err != nil {
-				cfg.logger.Printf("Failed to write response: %v", err)
-				http.Error(w, "Failed to write response", http.StatusInternalServerError)
-				return
-			}
-		}
-		dataJson, err := printer(obj)
-		if err != nil {
-			cfg.logger.Printf("Failed to marshal obj: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		_, err = w.Write([]byte(dataJson))
-		if err != nil {
-			cfg.logger.Printf("Failed to write response: %v", err)
-			http.Error(w, "Failed to write response", http.StatusInternalServerError)
-			return
-		}
-	}
-	_, err = w.Write([]byte("]"))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func GenericPrinter(data any) (string, error) {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal data: %v", err)
-	}
-	return string(jsonData), nil
-}
-
-func PrintUserToJson(p any) (string, error) {
-	user, ok := p.(database.User)
-	if !ok {
-		return "", fmt.Errorf("invalid type assertion for user")
-	}
-
-	user.PasswordHash = "" // Remove password hash for security
-	jsonData, err := json.Marshal(user)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal user: %v", err)
-	}
-	return string(jsonData), nil
-}
-
-func PrintLessonToJson(p any) (string, error) {
-	lesson, ok := p.(database.Lesson)
-	if !ok {
-		return "", fmt.Errorf("invalid type assertion for lesson")
-	}
-	lessonJsonData := LessonWithFlags{
-		Lesson:          lesson,
-		FlagTranslation: ParseLessonFlags(lesson.Flags),
-	}
-
-	jsonData, err := json.Marshal(lessonJsonData)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal lesson: %v", err)
-	}
-	return string(jsonData), nil
-
-}
-
-func PrintProblemToJson(p any) (string, error) {
-	problem, ok := p.(database.Problem)
-	if !ok {
-		return "", fmt.Errorf("invalid type assertion for problem")
-	}
-
-	problemJsonData := ProblemWithTags{
-		Problem:        problem,
-		TagTranslation: ParseProblemTags(problem.Tags),
-	}
-	jsonData, err := json.Marshal(problemJsonData)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal problem: %v", err)
-	}
-	return string(jsonData), nil
-}
-
 func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check for query parameters
 	q := r.URL.Query()
@@ -433,6 +319,112 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 	}
 }
 
+func (cfg *ApiCfg) GetSolutionsDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.GetSolutionsHandler(w, r, sendingUser)
+		return
+	}
+
+	searchType := q.Get("search_type")
+	if searchType == "" {
+		cfg.logger.Printf("Missing search_type query parameter")
+		http.Error(w, "Missing search_type query parameter", http.StatusBadRequest)
+		return
+	}
+
+	switch searchType {
+	case "id":
+		cfg.GetSolutionByIDHandler(w, r, sendingUser)
+	case "user":
+		cfg.GetSolutionsByUserHandler(w, r, sendingUser)
+	case "problem":
+		cfg.GetSolutionsByProblemHandler(w, r, sendingUser)
+	default:
+		cfg.logger.Printf("Invalid search_type: %v", searchType)
+	}
+}
+
+func (cfg *ApiCfg) UpdateSolutionDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	//this is the first update function that doesn't necessarily need the user to be an admin
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+	targetField := q.Get("target_field")
+	if targetField == "" {
+		cfg.logger.Printf("Missing target_field query parameter")
+		http.Error(w, "Missing target_field query parameter", http.StatusBadRequest)
+		return
+	}
+	// Parse solution ID as UUID
+	solution, err := GetObjByPathUUID(r, "solutionID", cfg.db.GetSolutionByID)
+	if err != nil {
+		cfg.logger.Printf("Invalid solution ID format: %v", err)
+	}
+
+	cfg.logger.Printf("Received update solution request for field: %v", targetField)
+	switch targetField {
+	case "first_solution_test_id":
+		cfg.UpdateSolutionFirstSolutionTestHandler(w, r, solution, sendingUser)
+	case "tests":
+		cfg.UpdateSolutionTestsHandler(w, r, solution, sendingUser)
+	default:
+		cfg.logger.Printf("Invalid target_field: %v", targetField)
+		http.Error(w, "Invalid target_field", http.StatusBadRequest)
+		return
+	}
+}
+
+func (cfg *ApiCfg) CountSolutionsDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	// Check for query parameters
+	q := r.URL.Query()
+	if len(q) == 0 {
+		cfg.logger.Printf("Missing query parameters")
+		http.Error(w, "Missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	searchType := q.Get("search_type")
+	if searchType == "" {
+		cfg.logger.Printf("Missing search_type query parameter")
+		http.Error(w, "Missing search_type query parameter", http.StatusBadRequest)
+		return
+	}
+
+	switch searchType {
+	case "user":
+		cfg.CountSolutionsHandler(w, r, sendingUser)
+	case "problem":
+		cfg.CountSolutionsByProblemIDHandler(w, r, sendingUser)
+	default:
+		cfg.logger.Printf("Invalid search_type: %v", searchType)
+		http.Error(w, "Invalid search_type", http.StatusBadRequest)
+		return
+	}
+}
+
 func GetUUIDFromPath(r *http.Request, key string) (uuid.UUID, error) {
 	idStr := r.PathValue(key)
 	if idStr == "" {
@@ -492,7 +484,7 @@ func GetUUIDFromQuery(r *http.Request, key string) (uuid.UUID, error) {
 	if len(q) == 0 {
 		return uuid.Nil, fmt.Errorf("missing %v in request", key)
 	}
-	idStr := q.Get("key")
+	idStr := q.Get(key)
 	if idStr == "" {
 		return uuid.Nil, fmt.Errorf("missing %v in request", key)
 	}
@@ -536,6 +528,14 @@ func problemsToAny(problems []database.Problem) []any {
 	res := make([]any, len(problems))
 	for i, p := range problems {
 		res[i] = p
+	}
+	return res
+}
+
+func solutionsToAny(solutions []database.Solution) []any {
+	res := make([]any, len(solutions))
+	for i, v := range solutions {
+		res[i] = v
 	}
 	return res
 }
@@ -1473,35 +1473,13 @@ func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		LessonID string `json:"lesson_id"`
-	}
-
-	var p params
-
-	queries := r.URL.Query()
-	// One of the queries will be for search_type, so we check if there are more than 1 query parameters
-	if len(queries) > 1 {
-		p.LessonID = queries.Get("lesson_id")
-	}
-	if p.LessonID == "" {
-		http.Error(w, "lesson_id is required", http.StatusBadRequest)
-	}
-
-	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", p.LessonID)
 	//Database check is done in the disambiguation function
 
 	// Parse lesson ID as UUID
-	lessonID, err := uuid.Parse(p.LessonID)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format: %v", err)
-		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
-		return
-	}
-	lesson, err := cfg.db.GetLessonByID(r.Context(), lessonID)
+	lesson, err := GetObjByQueryUUID(r, "lesson_id", cfg.db.GetLessonByID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("Lesson not found: %v", lessonID)
+			cfg.logger.Printf("Lesson not found: %v", err)
 			http.Error(w, "Lesson not found", http.StatusNotFound)
 			return
 		}
@@ -1509,6 +1487,7 @@ func (cfg *ApiCfg) GetLessonByIDHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	cfg.logger.Print("Received get lesson by ID request for lesson ID: ", lesson.ID)
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, lesson, PrintLessonToJson)
 }
@@ -3071,6 +3050,350 @@ func (cfg *ApiCfg) UpdateProblemTestPreviousHandler(w http.ResponseWriter, r *ht
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+/*
+===========================================
+
+	Solutions CRUD Handlers
+
+===========================================
+*/
+
+func (cfg *ApiCfg) CreateSolutionHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	type params struct {
+		ProblemID uuid.UUID `json:"problem_id"`
+		Code      string    `json:"code"`
+		Language  string    `json:"language"`
+	}
+
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received create solution request")
+
+	p, err := DecodeParamsFromBody(r, params{})
+
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if p.ProblemID == uuid.Nil || p.Code == "" || p.Language == "" {
+		cfg.logger.Printf("Missing required fields in request body")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.CreateSolution(r.Context(), database.CreateSolutionParams{
+		ID:        uuid.New(),
+		ProblemID: p.ProblemID,
+		UserID:    sendingUser.ID,
+		SentCode:  p.Code,
+		Language:  p.Language,
+		CreatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+		UpdatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to create solution: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusCreated, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetSolutionByIDHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received get solution by ID request")
+	res, err := GetObjByQueryUUID(r, "solution_id", cfg.db.GetSolutionByID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("Solution not found: %v", res.ID)
+			http.Error(w, "Solution not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve solution: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if res.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized access attempt to solution by user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) DeleteSolutionHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received delete solution request")
+
+	// Parse solution ID as UUID
+	solution, err := GetObjByPathUUID(r, "solutionID", cfg.db.GetSolutionByID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format or solution not found: %v", err)
+		http.Error(w, "Invalid solution ID format or solution not found", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the sending user is the owner of the solution or an admin
+	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized delete attempt by user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	err = cfg.db.DeleteSolution(r.Context(), solution.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to delete solution: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (cfg *ApiCfg) GetSolutionsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received get solutions request")
+	solutions, err := cfg.db.GetSolutions(r.Context(), database.GetSolutionsParams{
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Filter solutions to only include those owned by the sending user or if the user is an admin
+	var filteredSolutions []database.Solution
+	for _, sol := range solutions {
+		if sol.UserID == sendingUser.ID || sendingUser.IsAdmin {
+			filteredSolutions = append(filteredSolutions, sol)
+		}
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, solutionsToAny(filteredSolutions), GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetSolutionsByUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received get solutions by user request")
+
+	// Parse user ID as UUID
+	userID, err := GetUUIDFromQuery(r, "user_id")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the sending user is the owner of the solutions or an admin
+	if userID != sendingUser.ID && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized access attempt to solutions by user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	solutions, err := cfg.db.GetSolutionsByUserID(r.Context(), database.GetSolutionsByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve solutions by user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, solutionsToAny(solutions), GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received get solutions by problem request")
+
+	// Parse problem ID as UUID
+	problemID, err := GetUUIDFromQuery(r, "problem_id")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	solutions, err := cfg.db.GetSolutionsByProblemID(r.Context(), database.GetSolutionsByProblemIDParams{
+		ProblemID: problemID,
+		Limit:     1000,
+		Offset:    0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve solutions by problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Filter solutions to only include those owned by the sending user or if the user is an admin
+	var filteredSolutions []database.Solution
+	for _, sol := range solutions {
+		if sol.UserID == sendingUser.ID || sendingUser.IsAdmin {
+			filteredSolutions = append(filteredSolutions, sol)
+		}
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, solutionsToAny(filteredSolutions), GenericPrinter)
+}
+
+func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
+	type params struct {
+		TestsPassed int `json:"tests_passed"`
+		TotalTests  int `json:"total_tests"`
+	}
+
+	// Database check is done in the disambiguation function
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized update attempt by user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	res, err := cfg.db.UpdateSolutionTests(r.Context(), database.UpdateSolutionTestsParams{
+		ID:          solution.ID,
+		TestsPassed: sql.NullInt32{Valid: true, Int32: int32(p.TestsPassed)},
+		TotalTests:  sql.NullInt32{Valid: true, Int32: int32(p.TotalTests)},
+		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to update solution percentage correct: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) UpdateSolutionFirstSolutionTestHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
+	type params struct {
+		FirstSolutionTestID uuid.UUID `json:"first_solution_test_id"`
+	}
+	// Database check is done in the disambiguation function
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+		cfg.logger.Printf("Unauthorized update attempt by user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	res, err := cfg.db.UpdateSolutionFirstSolutionTest(r.Context(), database.UpdateSolutionFirstSolutionTestParams{
+		ID:                  solution.ID,
+		FirstSolutionTestID: uuid.NullUUID{UUID: p.FirstSolutionTestID, Valid: p.FirstSolutionTestID != uuid.Nil},
+		UpdatedAt:           sql.NullTime{Valid: true, Time: time.Now()},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to update solution first solution test: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) CountSolutionsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received count solutions request")
+
+	countTotal, err := cfg.db.CountSolutionsByUserId(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to count solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	countCorrect, err := cfg.db.CountUserCorrectSolutions(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to count correct solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	type response struct {
+		CountCorrect int64 `json:"count_correct"`
+		CountTotal   int64 `json:"count_total"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, response{CountCorrect: countCorrect, CountTotal: countTotal}, GenericPrinter)
+}
+
+func (cfg *ApiCfg) CountSolutionsByProblemIDHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// database check is done in the disambiguation function
+
+	cfg.logger.Print("Received count solutions by problem ID request")
+	// Parse problem ID as UUID
+	problemID, err := GetUUIDFromQuery(r, "problem_id")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	countTotal, err := cfg.db.CountUserSolutionsByProblemID(r.Context(), database.CountUserSolutionsByProblemIDParams{
+		ProblemID: problemID,
+		UserID:    sendingUser.ID,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to count solutions by problem ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	countCorrect, err := cfg.db.CountUserCorrectSolutionsByProblemID(r.Context(), database.CountUserCorrectSolutionsByProblemIDParams{
+		ProblemID: problemID,
+		UserID:    sendingUser.ID,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to count correct solutions by problem ID: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	type response struct {
+		CountCorrect int64 `json:"count_correct"`
+		CountTotal   int64 `json:"count_total"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, response{CountCorrect: countCorrect, CountTotal: countTotal}, GenericPrinter)
 }
 
 /*

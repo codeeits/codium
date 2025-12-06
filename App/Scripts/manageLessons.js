@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     if (currentUser === null) {
         // Not logged in
-        window.location.href = 'login.html';
+        window.location.href = `/app/login.html?redirect=${window.location.pathname}`;
         return;
     }
 

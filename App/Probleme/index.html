@@ -12,11 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="../Styles/main.css">
-    <link rel="stylesheet" href="../Styles/elements.css">
+    <link rel="stylesheet" href="/app/Styles/main.css">
+    <link rel="stylesheet" href="/app/Styles/elements.css">
     
     <!-- Scripts -->
-    <script src="../Scripts/main.js" defer></script>
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/problemsInterface.js"></script>
 
     <meta name="menu-variant" content="problem">
 </head>
@@ -46,42 +48,12 @@
 
         <!-- Problems List -->
         <div id="problems-list" class="problems-list">
-            <!-- Example Problem Card -->
-            <div class="card problem-card">
-                <div class="problem-header">
-                    <div class="problem-title-row">
-                        <h2 class="problem-title">Titlu problemă</h2>
-                        <span class="problem-tag">#ONI</span>
-                    </div>
-                    <div class="problem-author">
-                        <span class="problem-author-name">codeeitsbutlonger</span>
-                        <div class="problem-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="problem-difficulty">
-                    <span class="difficulty-dot">1</span>
-                    <span class="difficulty-dot">1</span>
-                    <span class="difficulty-dot">1</span>
-                </div>
-                
-                <p class="problem-description">
-                    La o centrală solară se monitorizează stocul zilnic de energie produsă și stocul total calculat pentru fiecare perioadă. Zilele de monitorizare sunt numerotate cu valori naturale consecutive, în ordine cronologică, începând cu ziua 1. O perioadă este formată din cel puțin două zile de monitorizare, consecutive, iar stocul total calculat pentru ea este suma stocurilor zilnice corespunzătoare...
-                </p>
-                
-                <div class="problem-expand">
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-
             <!-- Second Example Problem Card -->
-            <div class="card problem-card">
+            <div class="card problem-card" id="problemsTemplate" style="display: none;">
                 <div class="problem-header">
                     <div class="problem-title-row">
-                        <h2 class="problem-title">Titlu problemă</h2>
-                        <span class="problem-tag">#ONI</span>
+                        <h2 class="problem-title" id="problem-title">Titlu problemă</h2>
+                        <span class="problem-tag" id="problem-tags">#ONI</span>
                     </div>
                     <div class="problem-author">
                         <span class="problem-author-name">codeeitsbutlonger</span>
@@ -97,9 +69,10 @@
                     <span class="difficulty-dot">1</span>
                 </div>
                 
-                <p class="problem-description">
-                    La o centrală solară se monitorizează stocul zilnic de energie produsă și stocul total calculat pentru fiecare perioadă. Zilele de monitorizare sunt numerotate cu valori naturale consecutive, în ordine cronologică, începând cu ziua 1. O perioadă este formată din cel puțin două zile de monitorizare, consecutive, iar stocul total calculat pentru ea este suma stocurilor zilnice corespunzătoare...
-                </p>
+                <div class="problem-description">
+                    <img src="http://localhost:6767/api/files/e2d10036-54e9-45b2-abbb-d99f723eb1fe" class="problem-image" alt="Sample Image">
+                    <p>La o centrală solară se monitorizează stocul zilnic de energie produsă și stocul total calculat pentru fiecare perioadă. Zilele de monitorizare sunt numerotate cu valori naturale consecutive, în ordine cronologică, începând cu ziua 1. O perioadă este formată din cel puțin două zile de monitorizare, consecutive, iar stocul total calculat pentru ea este suma stocurilor zilnice corespunzătoare...</p>
+                </div>
                 
                 <div class="problem-expand">
                     <i class="fas fa-chevron-down"></i>

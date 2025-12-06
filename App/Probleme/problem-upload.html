@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem & Test Management (Debug)</title>
+    <style>
+        body { font-family: monospace; padding: 20px; max-width: 1200px; margin: 0 auto; background: #1a1a1a; color: #eee; }
+        h1, h2, h3 { color: #f90; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .section { background: #2a2a2a; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #444; }
+        label { display: block; margin-top: 10px; color: #aaa; }
+        input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; box-sizing: border-box; resize: vertical;}
+        input:focus, textarea:focus, select:focus { border-color: #f90; outline: none; }
+        button { background: #f90; color: #000; border: none; padding: 10px 20px; cursor: pointer; margin: 5px 5px 5px 0; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #fa0; }
+        button.danger { background: #c33; color: #fff; }
+        button.danger:hover { background: #d44; }
+        button.secondary { background: #555; color: #fff; }
+        button.secondary:hover { background: #666; }
+        .result { background: #222; padding: 10px; margin-top: 10px; border-radius: 4px; white-space: pre-wrap; font-size: 12px; max-height: 300px; overflow: auto; border: 1px solid #444; }
+        .result.success { border-color: #4a4; }
+        .result.error { border-color: #a44; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab { padding: 10px 20px; background: #333; border: none; color: #aaa; cursor: pointer; border-radius: 4px 4px 0 0; }
+        .tab.active { background: #2a2a2a; color: #f90; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        hr { border: none; border-top: 1px solid #444; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Problem & Test Management (Debug Page)</h1>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('problems')">Problems</button>
+        <button class="tab" onclick="showTab('tests')">Tests</button>
+        <button class="tab" onclick="showTab('solutions')">Solutions</button>
+        <button class="tab" onclick="showTab('run-tab')">Run Code</button>
+        <button class="tab" onclick="showTab('misc')">Misc</button>
+    </div>
+
+    <!-- PROBLEMS TAB -->
+    <div id="problems" class="tab-content active">
+        
+        <!-- CREATE PROBLEM -->
+        <div class="section">
+            <h2>POST /api/problems - Create Problem</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="title">Title:</label>
+            <input type="text" id="title" placeholder="Problem title">
+
+            <label for="description">Description:</label>
+            <textarea id="description" rows="3" placeholder="Problem description"></textarea>
+
+            <label for="source">Source (optional):</label>
+            <input type="text" id="source" placeholder="e.g., OJI 2023">
+
+            <label for="first_test_id">First Test ID (UUID, optional):</label>
+            <input type="text" id="first_test_id" placeholder="e.g., f424291e-9680-4e05-886f-ee9da849ab85">
+
+            <label for="thumbnail_id">Thumbnail ID (UUID, optional):</label>
+            <input type="text" id="thumbnail_id" placeholder="e.g., a1b2c3d4-...">
+
+            <h3>Tags (all INTEGERS)</h3>
+            <div class="grid">
+                <div>
+                    <label for="difficulty">Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="0">0 - Not set</option>
+                        <option value="1">1 - Easy</option>
+                        <option value="2">2 - Medium</option>
+                        <option value="3">3 - Hard</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="module">Module:</label>
+                    <input type="number" id="module" value="0" min="0">
+                </div>
+                <div>
+                    <label for="solve_type">Solve Type:</label>
+                    <input type="number" id="solve_type" value="0" min="0">
+                </div>
+                <div>
+                    <label for="result_type">Result Type:</label>
+                    <input type="number" id="result_type" value="0" min="0">
+                </div>
+                <div>
+                    <label for="verification_type">Verification Type:</label>
+                    <input type="number" id="verification_type" value="0" min="0">
+                </div>
+                <div>
+                    <label for="section">Section:</label>
+                    <input type="number" id="section" value="0" min="0">
+                </div>
+            </div>
+
+            <br>
+            <button onclick="createProblem()">Create Problem</button>
+            <div id="createProblemResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET PROBLEMS -->
+        <div class="section">
+            <h2>GET /api/problems - Get Problems</h2>
+            <button onclick="getProblems()">Get Problems</button>
+            <div id="getProblemsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET PROBLEM BY ID -->
+        <div class="section">
+            <h2>GET /api/problems?search_type=id - Get Problem by ID</h2>
+            <label for="get_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="get_problem_id" placeholder="Problem UUID">
+            <button onclick="getProblemById()">Get Problem</button>
+            <div id="getProblemResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- UPDATE PROBLEM -->
+        <div class="section">
+            <h2>PUT /api/problems/{problemID}?target_field=... - Update Problem</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="update_problem_id">Problem ID to update (UUID):</label>
+            <input type="text" id="update_problem_id" placeholder="Problem UUID">
+
+            <h3>Update Tags</h3>
+            <p style="color:#666;">Any combination of: difficulty, module, solve_type, result_type, verification_type, section</p>
+            <div class="grid">
+                <div>
+                    <label for="upd_difficulty">Difficulty:</label>
+                    <input type="number" id="upd_difficulty" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+                <div>
+                    <label for="upd_module">Module:</label>
+                    <input type="number" id="upd_module" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+                <div>
+                    <label for="upd_solve_type">Solve Type:</label>
+                    <input type="number" id="upd_solve_type" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+                <div>
+                    <label for="upd_result_type">Result Type:</label>
+                    <input type="number" id="upd_result_type" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+                <div>
+                    <label for="upd_verification_type">Verification Type:</label>
+                    <input type="number" id="upd_verification_type" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+                <div>
+                    <label for="upd_section">Section:</label>
+                    <input type="number" id="upd_section" value="" min="0" placeholder="Leave empty to skip">
+                </div>
+            </div>
+            <button onclick="updateProblemTags()">Update Tags</button>
+
+            <h3>Update Details</h3>
+            <label for="upd_title">Title:</label>
+            <input type="text" id="upd_title" placeholder="New title">
+            <label for="upd_description">Description:</label>
+            <textarea id="upd_description" rows="2" placeholder="New description"></textarea>
+            <label for="upd_source">Source:</label>
+            <input type="text" id="upd_source" placeholder="New source">
+            <button onclick="updateProblemDetails()">Update Details</button>
+
+            <h3>Update First Test ID</h3>
+            <label for="upd_first_test">First Test ID (UUID):</label>
+            <input type="text" id="upd_first_test" placeholder="Test UUID">
+            <button onclick="updateProblemFirstTest()">Update First Test</button>
+
+            <h3>Update Thumbnail</h3>
+            <label for="upd_thumbnail">Thumbnail ID (UUID):</label>
+            <input type="text" id="upd_thumbnail" placeholder="Thumbnail file UUID">
+            <button onclick="updateProblemThumbnail()">Update Thumbnail</button>
+
+            <div id="updateProblemResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- DELETE PROBLEM -->
+        <div class="section">
+            <h2>DELETE /api/problems/{problemID} - Delete Problem</h2>
+            <p style="color:#888;">Requires: header authorization (admin)</p>
+            <label for="delete_problem_id">Problem ID to delete (UUID):</label>
+            <input type="text" id="delete_problem_id" placeholder="Problem UUID">
+            <button class="danger" onclick="deleteProblem()">Delete Problem</button>
+            <div id="deleteProblemResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- TESTS TAB -->
+    <div id="tests" class="tab-content">
+
+        <!-- CREATE TEST -->
+        <div class="section">
+            <h2>POST /api/tests - Create Problem Test</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <p style="color:#666;">Input: (one of) "input_text" OR "input_file" (uploaded file UUID)</p>
+            
+            <label for="test_input_text">Input Text:</label>
+            <textarea id="test_input_text" rows="3" placeholder="Text input for the test"></textarea>
+
+            <label for="test_input_file">OR Input File ID (UUID):</label>
+            <input type="text" id="test_input_file" placeholder="File UUID (if both provided, file takes priority)">
+
+            <label for="test_expected_output">Expected Output:</label>
+            <textarea id="test_expected_output" rows="3" placeholder="Expected output"></textarea>
+
+            <label for="test_prev_id">Previous Test ID (UUID, optional):</label>
+            <input type="text" id="test_prev_id" placeholder="Previous test in chain">
+
+            <label for="test_next_id">Next Test ID (UUID, optional):</label>
+            <input type="text" id="test_next_id" placeholder="Next test in chain">
+
+            <br><br>
+            <button onclick="createTest()">Create Test</button>
+            <div id="createTestResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET TEST BY ID -->
+        <div class="section">
+            <h2>GET /api/tests/{testID} - Get Test by ID</h2>
+            <label for="get_test_id">Test ID (UUID):</label>
+            <input type="text" id="get_test_id" placeholder="Test UUID">
+            <button onclick="getTestById()">Get Test</button>
+            <div id="getTestResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET TEST CHAIN BY FIRST ID -->
+        <div class="section">
+            <h2>GET Tests chain for First chain</h2>
+            <label for="get_test_chain_first_id">First Test ID (UUID):</label>
+            <input type="text" id="get_test_chain_first_id" placeholder="First Test UUID">
+            <p>or</p>
+            <label for="get_test_chain_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="get_test_chain_problem_id" placeholder="Problem UUID">
+            <button onclick="getTestChainByFirstId()">Get Test Chain</button>
+            <div id="getTestChainResult" class="result" style="display:none;"></div>
+        </div>
+        <hr>
+
+        <!-- UPDATE TEST -->
+        <div class="section">
+            <h2>PUT /api/tests/{testID}?target_field=... - Update Test</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="update_test_id">Test ID to update (UUID):</label>
+            <input type="text" id="update_test_id" placeholder="Test UUID">
+
+            <h3>Update Input</h3>
+            <label for="upd_test_input_text">Input Text:</label>
+            <textarea id="upd_test_input_text" rows="2" placeholder="New input text"></textarea>
+            <label for="upd_test_input_file">OR Input File ID:</label>
+            <input type="text" id="upd_test_input_file" placeholder="File UUID">
+            <button onclick="updateTestInput()">Update Input</button>
+
+            <h3>Update Expected Output</h3>
+            <label for="upd_test_expected_output">Expected Output:</label>
+            <textarea id="upd_test_expected_output" rows="2" placeholder="New expected output"></textarea>
+            <button onclick="updateTestExpectedOutput()">Update Expected Output</button>
+
+            <h3>Update Prev/Next Links</h3>
+            <label for="upd_test_prev">Previous Test ID:</label>
+            <input type="text" id="upd_test_prev" placeholder="Previous test UUID">
+            <button onclick="updateTestPrev()">Update Prev</button>
+            
+            <label for="upd_test_next">Next Test ID:</label>
+            <input type="text" id="upd_test_next" placeholder="Next test UUID">
+            <button onclick="updateTestNext()">Update Next</button>
+
+            <div id="updateTestResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- DELETE TEST -->
+        <div class="section">
+            <h2>DELETE /api/tests/{testID} - Delete Test</h2>
+            <p style="color:#888;">Requires: header authorization (admin)</p>
+            <label for="delete_test_id">Test ID to delete (UUID):</label>
+            <input type="text" id="delete_test_id" placeholder="Test UUID">
+            <button class="danger" onclick="deleteTest()">Delete Test</button>
+            <div id="deleteTestResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- SOLUTIONS TAB -->
+    <div id="solutions" class="tab-content">
+        
+        <!-- CREATE SOLUTION -->
+        <div class="section">
+            <h2>POST /api/solutions - Create Solution</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="solution_code">Code:</label>
+            <textarea id="solution_code" rows="5" placeholder="Solution code"></textarea>
+
+            <label for="solution_language">Language:</label>
+            <input type="text" id="solution_language" placeholder="Programming language">
+            <label for="solution_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="solution_problem_id" placeholder="e.g., f424291e-9680-4e05-886f-ee9da849ab85">
+
+            <br>
+
+            <button onclick="createSolution()">Create Solution</button>
+            <div id="createSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- UPDATE SOLUTION -->
+        <div class="section">
+            <h2>PUT /api/solutions/{solutionID}?target_field=... - Update Solution</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            
+            <label for="update_solution_id">Solution ID to update (UUID):</label>
+            <input type="text" id="update_solution_id" placeholder="Solution UUID">
+
+            <h3>Update # of tests</h3>
+            <p style="color:#666;">Both number of tests passed and total tests</p>
+            <label for="upd_solution_tests_passed">Tests Passed:</label>
+            <input type="number" id="upd_solution_tests_passed" value="" min="0" placeholder="Number of tests passed">
+            <label for="upd_solution_total_tests">Total Tests:</label>
+            <input type="number" id="upd_solution_total_tests" value="" min="0" placeholder="Total number of tests">
+            <button onclick="updateSolutionTests()">Update # of tests</button>
+
+            <div id="updateSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET SOLUTIONS BY PROBLEM ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by Problem ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="get_solutions_problem_id" placeholder="Problem UUID">
+            <button onclick="getSolutions('problem')">Get Solutions</button>
+            <div id="getSolutionsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+        
+        <!-- GET SOLUTIONS BY USER ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by user ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_user_id">User ID (UUID):</label>
+            <input type="text" id="get_solutions_user_id" placeholder="User UUID">
+            <button onclick="getSolutions('user')">Get Solutions</button>
+            <div id="getSolutionsResultUser" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- GET SOLUTIONS BY SOLUTION ID -->
+        <div class="section">
+            <h2>GET /api/solutions - Get Solutions by solution ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+            <label for="get_solutions_solution_id">Solution ID (UUID):</label>
+            <input type="text" id="get_solutions_solution_id" placeholder="Solution UUID">
+            <button onclick="getSolutions('solution')">Get Solutions</button>
+            <div id="getSolutionsResultSolution" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- COUNT SOLUTIONS BY PROBLEM ID -->
+
+        <div class="section">
+            <h2>GET /api/solutions/count?search_type=... - Count Solutions by Problem ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+
+            <label for="count_solutions_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="count_solutions_problem_id" placeholder="Problem UUID">
+            <button onclick="countSolutions('problem')">Count Solutions</button>
+
+            <div id="countSolutionsResult" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- COUNT SOLUTIONS BY USER ID -->
+
+        <div class="section">
+            <h2>GET /api/solutions/count?search_type=... - Count Solutions by User ID</h2>
+            <p style="color:#888;">Requires: header authorization</p>
+
+            <label for="count_solutions_user_id">User ID (UUID):</label>
+            <input type="text" id="count_solutions_user_id" placeholder="User UUID">
+            <button onclick="countSolutions('user')">Count Solutions</button>
+
+            <div id="countSolutionsResultUser" class="result" style="display:none;"></div>
+        </div>
+
+        <hr>
+
+        <!-- DELETE SOLUTION -->
+        <div class="section">
+            <h2>DELETE /api/solutions/{solutionID} - Delete Solution</h2>
+            <p style="color:#888;">Requires: header authorization (admin)</p>
+            <label for="delete_solution_id">Solution ID to delete (UUID):</label>
+            <input type="text" id="delete_solution_id" placeholder="Solution UUID">
+            <button class="danger" onclick="deleteSolution()">Delete Solution</button>
+            <div id="deleteSolutionResult" class="result" style="display:none;"></div>
+        </div>
+
+    </div>
+
+    <!-- RUN TAB -->
+
+    <div id="run-tab" class="tab-content">
+        <div class="section">
+            <h2>Run Code Against a Problem's First Test</h2>
+            <label for="run_problem_id">Problem ID (UUID):</label>
+            <input type="text" id="run_problem_id" placeholder="Problem UUID">
+
+            <label for="run_code">Code (C++):</label>
+            <textarea id="run_code" rows="10" placeholder="Enter your C++ code here..."></textarea>
+
+            <button onclick="runCodeAgainstProblem(this)">Run Code</button>
+            <div id="runCodeResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- MISC TAB -->
+    <div id="misc" class="tab-content">
+        <div class="section">
+            <h2>Upload Image</h2>
+            <label for="image_file">Select Image File:</label>
+            <input type="file" id="image_file" accept="image/*">
+
+            <button onclick="uploadImage()">Upload Image</button>
+            <div id="uploadImageResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+    <script src="../Scripts/apiHandlers.js"></script>
+    <script src="../Scripts/problemsHandler.js"></script>
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

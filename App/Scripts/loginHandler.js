@@ -8,6 +8,7 @@ Pentru optimizare si mentabilitate. si pentru a reduce codul duplicat.
 */
 
 document.addEventListener('DOMContentLoaded', function() {
+    const baseurl = window.location.href;
     const form = document.getElementById('loginForm');
     const submitButton = form.querySelector('input[type="submit"]');
 
@@ -45,6 +46,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleLoginSuccess() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
+        redirectTo = baseurl.split("?redirect=")[1];
+
+        if (redirectTo) {
+            window.location.href = decodeURIComponent(redirectTo);
+            return;
+        }
         
         toastsLoader.showToast('Login successful, redirecting...', 'confirm');
         
