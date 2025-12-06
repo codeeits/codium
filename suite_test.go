@@ -502,8 +502,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
@@ -896,6 +896,35 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestGetLessonsInSection69", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=flags&section=69", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
+
+			var lessons []LessonWithFlags
+			err = json.NewDecoder(resp.Body).Decode(&lessons)
+			if err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if len(lessons) != 25 {
+				t.Fatalf("Expected %d lessons in section 69, got %d", 25, len(lessons))
+			}
+		})
+
 		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
 			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[1].String()+"?target_field=section_starter", bytes.NewReader(jsonData))
@@ -997,8 +1026,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 
 			//Verify that the next lesson no longer has a prev lesson ID
@@ -1033,6 +1062,74 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestDeleteNonExistentLesson", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/00000000-0000-0000-0000-000000000000", nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusInternalServerError {
+				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetDeletedLesson", func(t *testing.T) {
+			req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[1].String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusInternalServerError {
+				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
+			}
+		})
+
+		t.Run("TestGetLessonsByAverageUser", func(t *testing.T) {
+			for i := 0; i < 3; i++ {
+				req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[i+2].String(), nil)
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+
+				req.Header.Set("Authorization", "Bearer "+secondAverageToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				}
+
+				var lesson LessonWithFlags
+				err = json.NewDecoder(resp.Body).Decode(&lesson)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+
+				if lesson.Lesson.ID != lessonIds[i+2] {
+					t.Fatalf("Expected lesson ID %s, got %s", lessonIds[i+2].String(), lesson.Lesson.ID.String())
+				}
+			}
+		})
+
 		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
 			if err != nil {
@@ -1064,8 +1161,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
@@ -1276,6 +1373,58 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestGetTestsInSequence", func(t *testing.T) {
+			for i := 0; i < 23; i++ {
+				req, err := http.NewRequest("GET", "http://localhost:6767/api/tests/"+testIds[i+1].String(), nil)
+				if err != nil {
+					t.Fatal("Error creating request: ", err)
+				}
+
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+
+				resp, err := client.Do(req)
+				if err != nil {
+					t.Fatal("Error making request: ", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				}
+
+				var test database.CodeTest
+				err = json.NewDecoder(resp.Body).Decode(&test)
+				if err != nil {
+					t.Fatal("Error decoding response: ", err)
+				}
+
+				if test.PreviousTestID.Valid != true || test.PreviousTestID.UUID != testIds[i] {
+					t.Fatalf("Expected previous test ID %s, got %s", testIds[i].String(), test.PreviousTestID.UUID.String())
+				}
+				if test.NextTestID.Valid != true || test.NextTestID.UUID != testIds[i+2] {
+					t.Fatalf("Expected next test ID %s, got %s", testIds[i+2].String(), test.NextTestID.UUID.String())
+				}
+			}
+		})
+
+		t.Run("TestDeleteProblemTest", func(t *testing.T) {
+			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/tests/"+testID.String(), nil)
+			if err != nil {
+				t.Fatal("Error creating request: ", err)
+			}
+			req.Header.Set("Authorization", "Bearer "+adminToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
+			}
+		})
+
 		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
 			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+secondAverageUserID.String(), nil)
 			if err != nil {
@@ -1289,8 +1438,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			if resp.StatusCode != http.StatusNoContent {
+				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 

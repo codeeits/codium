@@ -1013,15 +1013,13 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request, sen
 	}
 
 	err = cfg.DeleteUser(userID)
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte("User deleted successfully."))
 	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		cfg.logger.Printf("Failed to delete user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 /*
@@ -1620,14 +1618,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, s
 		http.Error(w, "Failed to delete lesson", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte("Lesson deleted successfully."))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (cfg *ApiCfg) UpdateLessonNextHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
@@ -2891,14 +2882,7 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte("Problem test deleted successfully."))
-	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (cfg *ApiCfg) UpdateProblemTestInputHandler(w http.ResponseWriter, r *http.Request, test database.CodeTest) {
