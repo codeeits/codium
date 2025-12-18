@@ -496,17 +496,6 @@ func GetUUIDFromQuery(r *http.Request, key string) (uuid.UUID, error) {
 	return id, nil
 }
 
-func DecodeParamsFromBody[T any](r *http.Request, _ T) (T, error) {
-	decoder := json.NewDecoder(r.Body)
-	var p T
-	err := decoder.Decode(&p)
-	if err != nil {
-		var zero T
-		return zero, fmt.Errorf("failed to decode request body: %v", err)
-	}
-	return p, nil
-}
-
 // convert []database.Lesson -> []any and wrapper printer to call PrintLessonToJson
 func lessonsToAny(lessons []database.Lesson) []any {
 	res := make([]any, len(lessons))

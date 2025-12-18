@@ -896,6 +896,18 @@ func PrintProblemToJson(p any) (string, error) {
 	return string(jsonData), nil
 }
 
+// DecodeParamsFromBody Decode JSON parameters from request body into the specified struct type T
+func DecodeParamsFromBody[T any](r *http.Request, _ T) (T, error) {
+	decoder := json.NewDecoder(r.Body)
+	var p T
+	err := decoder.Decode(&p)
+	if err != nil {
+		var zero T
+		return zero, fmt.Errorf("failed to decode request body: %v", err)
+	}
+	return p, nil
+}
+
 // BuildLessonFlags Build the lesson flags from class, section, module and number represented as int32 and return a mask representing the built flags
 // e.g. class=4, section=3, number=2, module=1 -> flags = 0x01020304
 func BuildLessonFlags(class int, section int, number int, module int) (flags uint32, mask uint32) {
