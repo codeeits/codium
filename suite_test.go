@@ -39,6 +39,7 @@ type RequestBuilder struct {
 	token            string
 }
 
+// Build builds and executes the HTTP request, returning the response decoded into the target struct type.
 func (u *RequestBuilder) Build() (interface{}, error) {
 	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl, bytes.NewReader(u.bytesBody))
@@ -53,7 +54,12 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 	if err != nil {
 		return u.targetStructType, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println("Error closing response body:", err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != u.wantedStatus {
 		return u.targetStructType, fmt.Errorf("wrong status code: %d", res.StatusCode)
@@ -72,6 +78,7 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 	return u.targetStructType, nil
 }
 
+// BuildRaw builds and executes the HTTP request, returning the raw http.Response.
 func (u *RequestBuilder) BuildRaw() (*http.Response, error) {
 	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl, bytes.NewReader(u.bytesBody))
@@ -339,26 +346,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdatingProfileBeforeTokenRefresh", func(t *testing.T) {
 			jsonBody := []byte(`{"username":"UpdatedAdminUser"}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/users?target_field=username", bytes.NewReader(jsonBody))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
 			var user database.User
-			err = json.NewDecoder(resp.Body).Decode(&user)
-			if err != nil {
+			if user = resp.(database.User); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -369,57 +362,31 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestRefreshToken", func(t *testing.T) {
 			jsonBody := []byte(`{"refresh_token":"` + adminRefreshToken + `"}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/refresh", bytes.NewReader(jsonBody))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
+			type params struct {
+				Token string `json:"auth_token"`
 			}
 
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, params{}).WithPath("/api/refresh").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
+			var translated = resp.(params)
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
-			var params struct {
-				Token string `json:"auth_token"`
-			}
-			err = json.NewDecoder(resp.Body).Decode(&params)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-
-			if params.Token == "" {
+			if translated.Token == "" {
 				t.Fatal("Expected non-empty token")
 			}
-			adminToken = params.Token
+			adminToken = translated.Token
 		})
 
 		t.Run("TestUpdatingProfileAfterTokenRefresh", func(t *testing.T) {
 			jsonBody := []byte(`{"username":"RefreshedAdminUser"}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/users?target_field=username", bytes.NewReader(jsonBody))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
 
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
 			var user database.User
-			err = json.NewDecoder(resp.Body).Decode(&user)
-			if err != nil {
+			if user = resp.(database.User); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -429,25 +396,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetUsers", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/users", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
 			var users []database.User
-			err = json.NewDecoder(resp.Body).Decode(&users)
-			if err != nil {
+			if users = resp.([]database.User); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -463,20 +417,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+adminID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+averageUserToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
@@ -487,25 +430,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			var secondAverageUsername = "SecondAverageUser"
 			var secondAveragePassword = "AnotherPassword123!"
 			jsonBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `","username":"` + secondAverageUsername + `"}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/create_user", bytes.NewReader(jsonBody))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusCreated, database.User{}).WithPath("/api/users").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusCreated {
-				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-			}
-
 			var user database.User
-			err = json.NewDecoder(resp.Body).Decode(&user)
-			if err != nil {
+			if user = resp.(database.User); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -516,68 +446,32 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			// Now log in the second average user to get their token
 			loginBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `"}`)
-			loginReq, err := http.NewRequest("POST", "http://localhost:6767/api/login", bytes.NewReader(loginBody))
-			if err != nil {
-				t.Fatal("Error creating login request: ", err)
-			}
-			loginReq.Header.Set("Content-Type", "application/json")
-
-			loginResp, err := client.Do(loginReq)
-			if err != nil {
-				t.Fatal("Error making login request: ", err)
-			}
-			defer loginResp.Body.Close()
-
-			if loginResp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected login status code %d, got %d", http.StatusOK, loginResp.StatusCode)
-			}
-
-			var loginParams struct {
+			type loginParams struct {
 				User         database.User `json:"user"`
 				Token        string        `json:"auth_token"`
 				RefreshToken string        `json:"refresh_token"`
 			}
-			err = json.NewDecoder(loginResp.Body).Decode(&loginParams)
-			if err != nil {
-				t.Fatal("Error decoding login response: ", err)
-			}
 
-			secondAverageToken = loginParams.Token
+			loginResp, err := NewRequestBuilder("POST", loginBody, http.StatusOK, loginParams{}).WithPath("/api/login").Build()
+			if err != nil {
+				t.Fatal("Error logging in second average user: ", err)
+			}
+			var translated = loginResp.(loginParams)
+
+			secondAverageToken = translated.Token
 		})
 
 		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+averageUserID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+averageUserID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
