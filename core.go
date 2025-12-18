@@ -364,6 +364,120 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 	return res, nil
 }
 
+func (cfg *ApiCfg) ToggleProblemUserLiked(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
+	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+		ProblemID: problemID,
+		UserID:    userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, add like
+			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+				ProblemID: problemID,
+				UserID:    userID,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				Liked:     sql.NullBool{Bool: false, Valid: true},
+				ID:        uuid.New(),
+			})
+			if err != nil {
+				return database.UsersProblem{}, fmt.Errorf("failed to add like: %v", err)
+			}
+		} else {
+			return database.UsersProblem{}, fmt.Errorf("failed to retrieve user-problem interaction: %v", err)
+		}
+	}
+
+	// Interaction exists, toggle like
+	newLikeStatus := !res.Liked.Bool
+	res, err = cfg.db.UpdateUserProblemLike(context.Background(), database.UpdateUserProblemLikeParams{
+		Liked:     sql.NullBool{Bool: newLikeStatus, Valid: true},
+		UpdatedAt: time.Now(),
+		ProblemID: problemID,
+		UserID:    userID,
+	})
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to toggle like: %v", err)
+	}
+	return res, nil
+}
+
+func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
+	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+		ProblemID: problemID,
+		UserID:    userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, add bookmark
+			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+				ProblemID:  problemID,
+				UserID:     userID,
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
+				Bookmarked: sql.NullBool{Bool: false, Valid: true},
+			})
+			if err != nil {
+				return database.UsersProblem{}, fmt.Errorf("failed to add bookmark: %v", err)
+			}
+		} else {
+			return database.UsersProblem{}, fmt.Errorf("failed to retrieve user-problem interaction: %v", err)
+		}
+	}
+	// Interaction exists, toggle bookmark
+	newBookmarkStatus := !res.Bookmarked.Bool
+	res, err = cfg.db.UpdateUserProblemBookmark(context.Background(), database.UpdateUserProblemBookmarkParams{
+		Bookmarked: sql.NullBool{Bool: newBookmarkStatus, Valid: true},
+		UpdatedAt:  time.Now(),
+		ProblemID:  problemID,
+		UserID:     userID,
+	})
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to toggle bookmark: %v", err)
+	}
+	return res, nil
+}
+
+func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
+	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+		ProblemID: problemID,
+		UserID:    userID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Interaction not initialised yet, create it
+			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+				ProblemID: problemID,
+				UserID:    userID,
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				SolvedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				ID:        uuid.New(),
+			})
+			if err != nil {
+				return database.UsersProblem{}, fmt.Errorf("failed to mark problem as solved: %v", err)
+			}
+		} else {
+			return database.UsersProblem{}, fmt.Errorf("failed to retrieve user-problem interaction: %v", err)
+		}
+	}
+	// Interaction exists, check if already solved
+	if res.SolvedAt.Valid {
+		return res, nil // Already marked as solved
+	}
+
+	res, err = cfg.db.UpdateUserProblemSolvedAt(context.Background(), database.UpdateUserProblemSolvedAtParams{
+		SolvedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt: time.Now(),
+		ProblemID: problemID,
+		UserID:    userID,
+	})
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to update problem solvedAt: %v", err)
+	}
+	return res, nil
+}
+
 // Upload local upload
 func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType string, user database.User, fileExtensions string, fileSize int64) (string, string, error) {
 	cwd, err := os.Getwd()

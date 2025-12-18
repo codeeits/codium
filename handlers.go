@@ -540,6 +540,14 @@ func solutionsToAny(solutions []database.Solution) []any {
 	return res
 }
 
+func userProblemsToAny(ups []database.UsersProblem) []any {
+	res := make([]any, len(ups))
+	for i, up := range ups {
+		res[i] = up
+	}
+	return res
+}
+
 /*
 ===========================================
 
@@ -3279,6 +3287,15 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if p.TotalTests == p.TestsPassed {
+		_, err = cfg.MarkProblemUserSolved(solution.ProblemID, solution.UserID)
+		if err != nil {
+			cfg.logger.Printf("Failed to mark problem as solved for user: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
 
@@ -3378,6 +3395,196 @@ func (cfg *ApiCfg) CountSolutionsByProblemIDHandler(w http.ResponseWriter, r *ht
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, response{CountCorrect: countCorrect, CountTotal: countTotal}, GenericPrinter)
+}
+
+/*
+===========================================
+
+	Users Problems CRUD
+
+===========================================
+*/
+
+func (cfg *ApiCfg) GetUserProblemByUserAndProblemHandler(w http.ResponseWriter, r *http.Request) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get user problems request")
+
+	problemID, err := GetUUIDFromPath(r, "problemID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := GetUUIDFromPath(r, "userID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	userProblem, err := cfg.db.GetUserProblemByUserIDAndProblemID(r.Context(), database.GetUserProblemByUserIDAndProblemIDParams{
+		UserID:    userID,
+		ProblemID: problemID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("User problem not found for user ID: %v and problem ID: %v", userID, problemID)
+			http.Error(w, "User problem not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve user problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, userProblem, GenericPrinter)
+}
+
+func (cfg *ApiCfg) LikeProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	problemID, err := GetUUIDFromPath(r, "problemID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received like problem request for problem ID: %v by user ID: %v", problemID, sendingUser.ID)
+
+	res, err := cfg.ToggleProblemUserLiked(problemID, sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to toggle problem like status: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) BookmarkProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// Check if database is connected
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	problemID, err := GetUUIDFromPath(r, "problemID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received bookmark problem request for problem ID: %v by user ID: %v", problemID, sendingUser.ID)
+
+	res, err := cfg.ToggleProblemUserBookmarked(problemID, sendingUser.ID)
+	if err != nil {
+		cfg.logger.Printf("Failed to toggle problem bookmark status: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetBookmarkedProblemsHandler(w http.ResponseWriter, r *http.Request) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := GetUUIDFromPath(r, "userID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get bookmarked problems request")
+	userProblems, err := cfg.db.GetBookmarkedProblemsByUserID(r.Context(), database.GetBookmarkedProblemsByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve bookmarked problems: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, userProblemsToAny(userProblems), GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetLikedProblemsHandler(w http.ResponseWriter, r *http.Request) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	problemID, err := GetUUIDFromPath(r, "problemID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get liked problems request")
+	userProblems, err := cfg.db.GetProblemLikesByProblemID(r.Context(), database.GetProblemLikesByProblemIDParams{
+		ProblemID: problemID,
+		Limit:     1000,
+		Offset:    0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve liked problems: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, userProblemsToAny(userProblems), GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetSolvedProblemsHandler(w http.ResponseWriter, r *http.Request) {
+	if !cfg.dbLoaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := GetUUIDFromPath(r, "userID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Print("Received get solved problems request")
+	userProblems, err := cfg.db.GetSolvedProblemsByUserID(r.Context(), database.GetSolvedProblemsByUserIDParams{
+		UserID: userID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve solved problems: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, userProblemsToAny(userProblems), GenericPrinter)
 }
 
 /*

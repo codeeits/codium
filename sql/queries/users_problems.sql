@@ -11,17 +11,23 @@ WHERE user_id = $1 AND problem_id = $2;
 -- name: GetUserProblemsByUserID :many
 SELECT *
 FROM users_problems
-WHERE user_id = $1;
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
 
 -- name: GetBookmarkedProblemsByUserID :many
 SELECT *
 FROM users_problems
-WHERE user_id = $1 AND bookmarked = TRUE;
+WHERE user_id = $1 AND bookmarked = TRUE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
 
--- name: GetLikedProblemsByUserID :many
+-- name: GetProblemLikesByProblemID :many
 SELECT *
 FROM users_problems
-WHERE user_id = $1 AND liked = TRUE;
+WHERE problem_id = $1 AND liked = TRUE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
 
 -- name: CountLikesByProblemID :one
 SELECT COUNT(*) AS like_count
@@ -31,7 +37,9 @@ WHERE problem_id = $1 AND liked = TRUE;
 -- name: GetSolvedProblemsByUserID :many
 SELECT *
 FROM users_problems
-WHERE user_id = $1 AND solved_at IS NOT NULL;
+WHERE user_id = $1 AND solved_at IS NOT NULL
+ORDER BY solved_at DESC
+LIMIT $2 OFFSET $3;
 
 -- name: CountNumberOfSolvedProblemsByUserID :one
 SELECT COUNT(*) AS solved_count

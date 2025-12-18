@@ -113,10 +113,18 @@ const getBookmarkedProblemsByUserID = `-- name: GetBookmarkedProblemsByUserID :m
 SELECT id, user_id, problem_id, created_at, updated_at, liked, bookmarked, solved_at
 FROM users_problems
 WHERE user_id = $1 AND bookmarked = TRUE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetBookmarkedProblemsByUserID(ctx context.Context, userID uuid.UUID) ([]UsersProblem, error) {
-	rows, err := q.db.QueryContext(ctx, getBookmarkedProblemsByUserID, userID)
+type GetBookmarkedProblemsByUserIDParams struct {
+	UserID uuid.UUID
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetBookmarkedProblemsByUserID(ctx context.Context, arg GetBookmarkedProblemsByUserIDParams) ([]UsersProblem, error) {
+	rows, err := q.db.QueryContext(ctx, getBookmarkedProblemsByUserID, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -147,14 +155,22 @@ func (q *Queries) GetBookmarkedProblemsByUserID(ctx context.Context, userID uuid
 	return items, nil
 }
 
-const getLikedProblemsByUserID = `-- name: GetLikedProblemsByUserID :many
+const getProblemLikesByProblemID = `-- name: GetProblemLikesByProblemID :many
 SELECT id, user_id, problem_id, created_at, updated_at, liked, bookmarked, solved_at
 FROM users_problems
-WHERE user_id = $1 AND liked = TRUE
+WHERE problem_id = $1 AND liked = TRUE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetLikedProblemsByUserID(ctx context.Context, userID uuid.UUID) ([]UsersProblem, error) {
-	rows, err := q.db.QueryContext(ctx, getLikedProblemsByUserID, userID)
+type GetProblemLikesByProblemIDParams struct {
+	ProblemID uuid.UUID
+	Limit     int32
+	Offset    int32
+}
+
+func (q *Queries) GetProblemLikesByProblemID(ctx context.Context, arg GetProblemLikesByProblemIDParams) ([]UsersProblem, error) {
+	rows, err := q.db.QueryContext(ctx, getProblemLikesByProblemID, arg.ProblemID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -189,10 +205,18 @@ const getSolvedProblemsByUserID = `-- name: GetSolvedProblemsByUserID :many
 SELECT id, user_id, problem_id, created_at, updated_at, liked, bookmarked, solved_at
 FROM users_problems
 WHERE user_id = $1 AND solved_at IS NOT NULL
+ORDER BY solved_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetSolvedProblemsByUserID(ctx context.Context, userID uuid.UUID) ([]UsersProblem, error) {
-	rows, err := q.db.QueryContext(ctx, getSolvedProblemsByUserID, userID)
+type GetSolvedProblemsByUserIDParams struct {
+	UserID uuid.UUID
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetSolvedProblemsByUserID(ctx context.Context, arg GetSolvedProblemsByUserIDParams) ([]UsersProblem, error) {
+	rows, err := q.db.QueryContext(ctx, getSolvedProblemsByUserID, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -254,10 +278,18 @@ const getUserProblemsByUserID = `-- name: GetUserProblemsByUserID :many
 SELECT id, user_id, problem_id, created_at, updated_at, liked, bookmarked, solved_at
 FROM users_problems
 WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetUserProblemsByUserID(ctx context.Context, userID uuid.UUID) ([]UsersProblem, error) {
-	rows, err := q.db.QueryContext(ctx, getUserProblemsByUserID, userID)
+type GetUserProblemsByUserIDParams struct {
+	UserID uuid.UUID
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetUserProblemsByUserID(ctx context.Context, arg GetUserProblemsByUserIDParams) ([]UsersProblem, error) {
+	rows, err := q.db.QueryContext(ctx, getUserProblemsByUserID, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -120,7 +120,10 @@ func main() {
 		mux.Handle("PUT /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateProblemDisambiguationHandler))
 		mux.Handle("PUT /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateSolutionDisambiguationHandler))
 
+		// Deprecated endpoint for user creation
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
+
+		mux.Handle("POST /api/users", http.HandlerFunc(cfg.CreateUserHandler))
 		mux.Handle("DELETE /api/users/{userID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteUserHandler))
 		mux.Handle("POST /api/login", http.HandlerFunc(cfg.LoginHandler))
 		mux.Handle("POST /api/refresh", http.HandlerFunc(cfg.RefreshHandler))
@@ -140,7 +143,10 @@ func main() {
 		mux.Handle("POST /api/lessons/{lessonID}/complete", cfg.AuthenticatedEndpointMiddleware(cfg.CompleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/start", cfg.AuthenticatedEndpointMiddleware(cfg.StartLessonHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/users/{userID}", http.HandlerFunc(cfg.GetLessonUserByLessonAndUserHandler))
+		// Deprecated endpoint for bookmarks
 		mux.Handle("GET /api/users/{userID}/bookmarks", http.HandlerFunc(cfg.GetUserBookmarksHandler))
+
+		mux.Handle("GET /api/users/{userID}/bookmarked_lessons", http.HandlerFunc(cfg.GetUserBookmarksHandler))
 		mux.Handle("GET /api/lessons/{lessonID}/faves", http.HandlerFunc(cfg.GetFavoritesForLessonHandler))
 		mux.Handle("GET /api/users/{userID}/started_lessons", http.HandlerFunc(cfg.GetUserStartedLessonsHandler))
 		mux.Handle("GET /api/users/{userID}/completed_lessons", http.HandlerFunc(cfg.GetUserCompletedLessonsHandler))
@@ -149,6 +155,13 @@ func main() {
 		mux.Handle("POST /api/problems", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemHandler))
 		mux.Handle("GET /api/problems", http.HandlerFunc(cfg.GetProblemsDisambiguationHandler))
 		mux.Handle("DELETE /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemHandler))
+
+		mux.Handle("POST /api/problems/{problemID}/like", cfg.AuthenticatedEndpointMiddleware(cfg.LikeProblemHandler))
+		mux.Handle("POST /api/problems/{problemID}/bookmark", cfg.AuthenticatedEndpointMiddleware(cfg.BookmarkProblemHandler))
+		mux.Handle("GET /api/problems/{problemID}/users/{userID}", http.HandlerFunc(cfg.GetUserProblemByUserAndProblemHandler))
+		mux.Handle("GET /api/users/{userID}/bookmarked_problems", http.HandlerFunc(cfg.GetBookmarkedProblemsHandler))
+		mux.Handle("GET /api/users/{userID}/solved_problems", http.HandlerFunc(cfg.GetSolvedProblemsHandler))
+		mux.Handle("GET /api/problems/{problemID}/likes", http.HandlerFunc(cfg.GetLikedProblemsHandler))
 
 		mux.Handle("POST /api/tests", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemTestHandler))
 		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
