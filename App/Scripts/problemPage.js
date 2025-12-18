@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     const codeEditor = document.getElementById("code-editor");
     const submitCodeBtn = document.getElementById("submit-code-btn");
     const resultsContainer = document.getElementById("results-container");
-    const resultsPlaceholder = document.getElementById("results-placeholder");
     const backToProblemsBtn = document.getElementById("back-to-problems-btn");
     const solutionsCountElement = document.getElementById("solutions-count");
     const correctSolutionsCountElement = document.getElementById("correct-solutions-count");
