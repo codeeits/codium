@@ -47,6 +47,11 @@ document.addEventListener("DOMContentLoaded", async function() {
             problemClone.querySelector('.problem-author-name').textContent = "Unknown Author";
         }
 
+        problemClone.style.cursor = 'pointer';
+        problemClone.addEventListener('click', function() {
+            window.location.href = `/app/Probleme/problem.html?id=${element.problem.ID}`;
+        });
+
         // Append
         problemClone.style.removeProperty('display');
         problemContainer.appendChild(problemClone);
