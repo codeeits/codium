@@ -1,3 +1,8 @@
+/*
+Pentru cei care citesc codul acesta in viitor, main e un soi de throw-whatever-you-dont-have-a-better-place-for-it.
+O melodie caracteristica pentru acest este Lou Bega - Mambo No. 5 (A Little Bit Of...)
+*/
+
 async function loadTopMenu(variant = 'default') {
     try {
         const response = await fetch('/app/elements.html');
@@ -34,6 +39,7 @@ function updateAuthButton() {
     const logoutButton = document.getElementById('logout-button');
     const userNameSpan = document.getElementById('user-name');
     const lessonsButton = document.getElementById('teorie-button');
+    const problemsButton = document.getElementById('exercises-button');
     const languageSelector = document.getElementById('language-selector');
     const hardLessonsExit = document.getElementById('hard-lessons-exit-btn');
     const backButton = document.getElementById('back-btn');
@@ -77,6 +83,14 @@ function updateAuthButton() {
             console.log('Navigating to lessons page');
         };
         lessonsButton.title = 'Lessons';
+    }
+
+    if(problemsButton) {
+        problemsButton.onclick = function() {
+            window.location.href = '/app/Probleme/index.html';
+            console.log('Navigating to problems page');
+        };
+        problemsButton.title = 'Problems';
     }
 
     if(contactButton) {
