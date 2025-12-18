@@ -117,3 +117,14 @@ type User struct {
 	EmailValidated bool
 	CuredEmail     sql.NullString
 }
+
+type UsersProblem struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	ProblemID  uuid.UUID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Liked      sql.NullBool
+	Bookmarked sql.NullBool
+	SolvedAt   sql.NullTime
+}
