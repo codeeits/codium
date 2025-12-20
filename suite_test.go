@@ -100,6 +100,8 @@ func (u *RequestBuilder) WithPath(path string) *RequestBuilder {
 func (u *RequestBuilder) WithQueryParam(key, value string) *RequestBuilder {
 	if u.queryParams == "" {
 		u.queryParams += "?"
+	} else {
+		u.queryParams += "&"
 	}
 	u.queryParams += key + "=" + value
 	return u
@@ -566,48 +568,20 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		*/
 		t.Run("TestUploadLessonWithoutAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/lessons").BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
 		uploadedLessonID := uuid.Nil
 		t.Run("TestUploadLessonWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusCreated {
-				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.Lesson.Title != "Test Lesson" {
@@ -621,28 +595,11 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateLessonDetailsWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Test Lesson","description":"This is an updated test lesson."}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=details", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.Lesson.Title != "Updated Test Lesson" {
@@ -655,27 +612,11 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateLessonFlagsWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"class":10,"module":2,"section":3}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=flags", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "flags").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.FlagTranslation.Class != 10 || lesson.FlagTranslation.Module != 2 || lesson.FlagTranslation.Section != 3 {
@@ -685,28 +626,11 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateLessonSectionStarterWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+uploadedLessonID.String()+"?target_field=section_starter", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.Lesson.SectionStarter != true {
@@ -799,26 +723,11 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				//t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
 				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `"}`)
-				req, err := http.NewRequest("POST", "http://localhost:6767/api/lessons", bytes.NewReader(jsonData))
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("Authorization", "Bearer "+adminToken)
+				resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
-				resp, err := client.Do(req)
-				if err != nil {
-					t.Fatal("Error making request: ", err)
-				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusCreated {
-					t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-				}
 				var lesson LessonWithFlags
-				err = json.NewDecoder(resp.Body).Decode(&lesson)
-				if err != nil {
-					t.Fatal("Error decoding response: ", err)
+				if lesson = resp.(LessonWithFlags); err != nil {
+					t.Fatal("Error making request: ", err)
 				}
 
 				if lesson.Lesson.Title != "Linked Lesson "+strconv.Itoa(i) {
@@ -843,26 +752,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestGetRequestsForLinkedLessons", func(t *testing.T) {
 			for i := 0; i < 23; i++ {
-				req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[i+1].String(), nil)
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
+				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+1].String()).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-				}
 
 				var lesson LessonWithFlags
-				err = json.NewDecoder(resp.Body).Decode(&lesson)
-				if err != nil {
+				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
 
@@ -876,26 +772,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetLessonsInSection69", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=flags&section=69", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "flags").WithQueryParam("section", "69").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var lessons []LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lessons)
-			if err != nil {
+			if lessons = resp.([]LessonWithFlags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -906,28 +789,11 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[1].String()+"?target_field=section_starter", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[2].String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.Lesson.SectionStarter != true {
@@ -941,50 +807,26 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				//t.Log(lessonIds[i], lessonIds[i+1])
 				jsonData := []byte(`{"next":"` + lessonIds[i+1].String() + `"}`)
-				req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[i].String()+"?target_field=next", bytes.NewReader(jsonData))
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
+				resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[i].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
 
-				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
-				if err != nil {
+				var lesson LessonWithFlags
+				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error making request: ", err)
 				}
-				defer resp.Body.Close()
 
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+				if lesson.Lesson.NextLessonID.Valid != true || lesson.Lesson.NextLessonID.UUID != lessonIds[i+1] {
+					t.Fatalf("Expected lesson next lesson ID %s, got %s", lessonIds[i+1].String(), lesson.Lesson.NextLessonID.UUID.String())
 				}
 			}
 		})
 
 		t.Run("UnlinkFirstLesson", func(t *testing.T) {
 			jsonData := []byte(`{"next":"00000000-0000-0000-0000-000000000000"}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/lessons/"+lessonIds[0].String()+"?target_field=next", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[0].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp.Body).Decode(&lesson)
-			if err != nil {
-				t.Fatal("Error decoding response: ", err)
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
 			}
 
 			if lesson.Lesson.NextLessonID.Valid != false {
@@ -993,43 +835,19 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteSectionStarterLesson", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+lessonIds[1].String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + lessonIds[1].String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 
 			//Verify that the next lesson no longer has a prev lesson ID
-			req, err = http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[2].String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp2, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[2].String()).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp2.Body.Close()
-
-			if resp2.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp2.StatusCode)
-			}
 
 			var lesson LessonWithFlags
-			err = json.NewDecoder(resp2.Body).Decode(&lesson)
-			if err != nil {
+			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -1042,64 +860,28 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteNonExistentLesson", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/00000000-0000-0000-0000-000000000000", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusInternalServerError).WithPath("/api/lessons/00000000-0000-0000-0000-000000000000").WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusInternalServerError {
-				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestGetDeletedLesson", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[1].String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[1].String()).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusInternalServerError {
-				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestGetLessonsByAverageUser", func(t *testing.T) {
 			for i := 0; i < 3; i++ {
-				req, err := http.NewRequest("GET", "http://localhost:6767/api/lessons?search_type=id&lesson_id="+lessonIds[i+2].String(), nil)
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-
-				req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-				resp, err := client.Do(req)
+				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+2].String()).WithAuthToken(secondAverageToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-				}
 
 				var lesson LessonWithFlags
-				err = json.NewDecoder(resp.Body).Decode(&lesson)
-				if err != nil {
+				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
 
@@ -1110,38 +892,16 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestDeleteLessonAsAdmin", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/lessons/"+uploadedLessonID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
@@ -1154,68 +914,33 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		*/
 		t.Run("TestCreateProblemTestWithoutAdmin", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/tests").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestCreateProblemTestWithoutAuth", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"","expected_output":"5\n"}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/tests").BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusUnauthorized {
-				t.Fatalf("Expected status code %d, got %d", http.StatusUnauthorized, resp.StatusCode)
 			}
 		})
 
 		var testID uuid.UUID
 		t.Run("TestCreateProblemTest", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusCreated {
-				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-			}
 
 			var test database.CodeTest
-			err = json.NewDecoder(resp.Body).Decode(&test)
-			if err != nil {
+			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
 			}
@@ -1229,28 +954,16 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetProblemTestByID", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/tests/"+testID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
 
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
-			t.Log(resp.Body)
 			var test database.CodeTest
-			err = json.NewDecoder(resp.Body).Decode(&test)
-			if err != nil {
+			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if test.ID != testID {
 				t.Fatalf("Expected test ID %s, got %s", testID.String(), test.ID.String())
 			}
@@ -1258,27 +971,16 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateProblemTestInput", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"10 20\n"}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/tests/"+testID.String()+"?target_field=input", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "input").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var test database.CodeTest
-			err = json.NewDecoder(resp.Body).Decode(&test)
-			if err != nil {
+			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
 			}
@@ -1286,30 +988,19 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected input text %v, got %v", "10 20\n", test.TxtInput)
 			}
 		})
+
 		t.Run("TestUpdateProblemTestExpectedOutput", func(t *testing.T) {
 			jsonData := []byte(`{"expected_output":"10 20\n"}`)
-			req, err := http.NewRequest("PUT", "http://localhost:6767/api/tests/"+testID.String()+"?target_field=expected_output", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "expected_output").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var test database.CodeTest
-			err = json.NewDecoder(resp.Body).Decode(&test)
-			if err != nil {
+			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if test.ExpectedOutput != "10 20\n" {
 				t.Fatalf("Expected output %s, got %s", "10 20\n", test.ExpectedOutput)
 			}
@@ -1320,28 +1011,16 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestCreateMultipleProblemTestsForLinking", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				jsonData := []byte(`{"input_text":"Input ` + strconv.Itoa(i) + `\n","expected_output":"Output ` + strconv.Itoa(i) + `\n","previous_test_id":"` + testIds[i].String() + `"}`)
-				req, err := http.NewRequest("POST", "http://localhost:6767/api/tests", bytes.NewReader(jsonData))
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
+				resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusCreated {
-					t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-				}
 
 				var test database.CodeTest
-				err = json.NewDecoder(resp.Body).Decode(&test)
-				if err != nil {
+				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+
 				if !test.TxtInput.Valid {
 					t.Fatal("Expected input text to be valid")
 				}
@@ -1361,26 +1040,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestGetTestsInSequence", func(t *testing.T) {
 			for i := 0; i < 23; i++ {
-				req, err := http.NewRequest("GET", "http://localhost:6767/api/tests/"+testIds[i+1].String(), nil)
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
+				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testIds[i+1].String()).WithAuthToken(adminToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-				}
 
 				var test database.CodeTest
-				err = json.NewDecoder(resp.Body).Decode(&test)
-				if err != nil {
+				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
 
@@ -1403,28 +1069,16 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var problemID uuid.UUID
 		t.Run("TestCreateProblem", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Sample Problem","description":"This is a test problem", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/problems", bytes.NewReader(jsonData))
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusCreated {
-				t.Fatalf("Expected status code %d, got %d", http.StatusCreated, resp.StatusCode)
-			}
 
 			var problem ProblemWithTags
-			err = json.NewDecoder(resp.Body).Decode(&problem)
-			if err != nil {
+			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if problem.Problem.Title != "Sample Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Sample Problem", problem.Problem.Title)
 			}
@@ -1436,70 +1090,36 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteProblemAsAverageUser", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/problems/"+testID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/problems/" + problemID.String()).WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusForbidden {
-				t.Fatalf("Expected status code %d, got %d", http.StatusForbidden, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestGetProblemByID", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems?search_type=id&problem_id="+problemID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var problem ProblemWithTags
-			err = json.NewDecoder(resp.Body).Decode(&problem)
-			if err != nil {
+			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+
 			if problem.Problem.ID != problemID {
 				t.Fatalf("Expected problem ID %s, got %s", problemID.String(), problem.Problem.ID.String())
 			}
 		})
 
 		t.Run("GetProblemsByAverageUser", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(averageUserToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var problems []ProblemWithTags
-			err = json.NewDecoder(resp.Body).Decode(&problems)
-			if err != nil {
+			if problems = resp.([]ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -1516,98 +1136,41 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/problems/"+problemID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestGetDeletedProblem", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/problems?search_type=id&problem_id="+problemID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusInternalServerError {
-				t.Fatalf("Expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestDeleteProblemTest", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/tests/"+testID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
-			req, err := http.NewRequest("DELETE", "http://localhost:6767/api/users/"+secondAverageUserID.String(), nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Authorization", "Bearer "+secondAverageToken)
-
-			resp, err := client.Do(req)
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + secondAverageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusNoContent {
-				t.Fatalf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 			}
 		})
 
 		t.Run("TestGetUsersAfterDeletions", func(t *testing.T) {
-			req, err := http.NewRequest("GET", "http://localhost:6767/api/users", nil)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
 
 			var users []database.User
-			err = json.NewDecoder(resp.Body).Decode(&users)
-			if err != nil {
+			if users = resp.([]database.User); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
