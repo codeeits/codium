@@ -30,7 +30,7 @@ import (
 */
 
 type RequestBuilder struct {
-	numQueryParams   int
+	queryParams      string
 	baseUrl          string
 	method           string
 	bytesBody        []byte
@@ -42,7 +42,7 @@ type RequestBuilder struct {
 // Build builds and executes the HTTP request, returning the response decoded into the target struct type.
 func (u *RequestBuilder) Build() (interface{}, error) {
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl, bytes.NewReader(u.bytesBody))
+	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl+u.queryParams, bytes.NewReader(u.bytesBody))
 	if err != nil {
 		return u.targetStructType, err
 	}
@@ -81,7 +81,7 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 // BuildRaw builds and executes the HTTP request, returning the raw http.Response.
 func (u *RequestBuilder) BuildRaw() (*http.Response, error) {
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl, bytes.NewReader(u.bytesBody))
+	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl+u.queryParams, bytes.NewReader(u.bytesBody))
 	if err != nil {
 		return nil, err
 	}
@@ -98,11 +98,10 @@ func (u *RequestBuilder) WithPath(path string) *RequestBuilder {
 }
 
 func (u *RequestBuilder) WithQueryParam(key, value string) *RequestBuilder {
-	if u.numQueryParams == 0 {
-		u.baseUrl += "?"
+	if u.queryParams == "" {
+		u.queryParams += "?"
 	}
-	u.baseUrl += key + "=" + value
-	u.numQueryParams++
+	u.queryParams += key + "=" + value
 	return u
 }
 
@@ -115,7 +114,7 @@ func (u *RequestBuilder) WithAuthToken(token string) *RequestBuilder {
 func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, _ T) *RequestBuilder {
 	return &RequestBuilder{
 		baseUrl:          "http://localhost:6767",
-		numQueryParams:   0,
+		queryParams:      "",
 		method:           method,
 		bytesBody:        jsonBody,
 		wantedStatus:     wantedStatus,
@@ -125,11 +124,11 @@ func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, 
 
 func NewRequestBuilderNoTarget(method string, jsonBody []byte, wantedStatus int) *RequestBuilder {
 	return &RequestBuilder{
-		baseUrl:        "http://localhost:6767",
-		numQueryParams: 0,
-		method:         method,
-		bytesBody:      jsonBody,
-		wantedStatus:   wantedStatus,
+		baseUrl:      "http://localhost:6767",
+		queryParams:  "",
+		method:       method,
+		bytesBody:    jsonBody,
+		wantedStatus: wantedStatus,
 	}
 }
 
@@ -242,7 +241,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			defer resp.Body.Close()
+			defer func(Body io.ReadCloser) {
+				err := Body.Close()
+				if err != nil {
+					fmt.Println("Error closing response body:", err)
+				}
+			}(resp.Body)
 
 			if resp.StatusCode != http.StatusOK {
 				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
