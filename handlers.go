@@ -2635,7 +2635,7 @@ func (cfg *ApiCfg) UpdateProblemTagsHandler(w http.ResponseWriter, r *http.Reque
 
 	cfg.logger.Print("Received update problem tags request for problem ID: ", targetProblem.ID)
 
-	tags, mask := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.SectionType)
+	tags, mask := BuildProblemTags(p.Module, p.Difficulty, p.SolveType, p.ResultType, p.VerificationType, p.SectionType)
 
 	tag := (targetProblem.Tags & ^int32(mask)) | int32(tags)
 

@@ -1135,6 +1135,57 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestUpdateProblemDetails", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Sample Problem","description":"This is an updated test problem"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = resp.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.Title != "Updated Sample Problem" {
+				t.Fatalf("Expected problem title %s, got %s", "Updated Sample Problem", problem.Problem.Title)
+			}
+		})
+
+		t.Run("TestUpdateProblemTags", func(t *testing.T) {
+			jsonData := []byte(`{"difficulty":5,"module":3,"section":4}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "tags").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = resp.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.SectionType != 4 {
+				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.SectionType)
+			}
+		})
+
+		t.Run("TestUpdateProblemFirstTest", func(t *testing.T) {
+			jsonData := []byte(`{"first_test_id":"` + testIds[5].String() + `"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "test").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = resp.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.FirstTest.Valid != true || problem.Problem.FirstTest.UUID != testIds[5] {
+				t.Fatalf("Expected problem first test ID %s, got %s", testIds[5].String(), problem.Problem.FirstTest.UUID.String())
+			}
+		})
+
 		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
 			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
