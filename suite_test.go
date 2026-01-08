@@ -1247,22 +1247,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			return
 		}
 
-		req, err := http.NewRequest("POST", "http://localhost:6767/admin/reset", bytes.NewReader([]byte("")))
-		if err != nil {
-			t.Fatal("Error creating request: ", err)
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+adminToken)
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/api/admin/reset").WithAuthToken(adminToken).BuildRaw()
 		if err != nil {
 			t.Fatal("Error making request: ", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 		}
 	})
 }
