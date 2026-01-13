@@ -3503,7 +3503,7 @@ func (cfg *ApiCfg) GetBookmarkedProblemsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	cfg.logger.Print("Received get bookmarked problems request")
+	cfg.logger.Print("Received get bookmarked problems request for user ID: ", userID)
 	userProblems, err := cfg.db.GetBookmarkedProblemsByUserID(r.Context(), database.GetBookmarkedProblemsByUserIDParams{
 		UserID: userID,
 		Limit:  1000,

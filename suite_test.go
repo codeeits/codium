@@ -422,13 +422,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
-		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-		})
-
 		var secondAverageUserID uuid.UUID
 		var secondAverageUserEmail = "second@hello.world"
 		var secondAverageToken string
@@ -465,20 +458,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			var translated = loginResp.(loginParams)
 
 			secondAverageToken = translated.Token
-		})
-
-		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-		})
-
-		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
 		})
 
 		//Test files
@@ -1186,6 +1165,197 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		/*
+			===========================================
+
+				Solution Management Tests
+
+			===========================================
+		*/
+
+		var solutionID uuid.UUID
+		t.Run("TestCreateSolutionAsUser", func(t *testing.T) {
+			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(input())","language":"python"}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.ProblemID != problemID {
+				t.Fatalf("Expected solution problem ID %s, got %s", problemID.String(), sol.ProblemID.String())
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+			solutionID = sol.ID
+		})
+
+		t.Run("TestUpdateSolutionTestsAsUser", func(t *testing.T) {
+			jsonData := []byte(`{"tests_passed":3, "total_tests":5}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+solutionID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !sol.TestsPassed.Valid || sol.TestsPassed.Int32 != 3 {
+				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 3, sol.TestsPassed.Int32)
+			}
+			if !sol.TotalTests.Valid || sol.TotalTests.Int32 != 5 {
+				t.Fatalf("Received wrong number of total tests, expected %d got %d", 5, sol.TotalTests.Int32)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsAdmin", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(adminToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsUser", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsOtherUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusForbidden).WithPath("/api/solutions").WithAuthToken(averageUserToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestBookmarkProblemAsUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/bookmark").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestLikeProblemAsUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/like").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestGetBookmarkedProblemsAsUser", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.UsersProblem{}).WithPath("/api/users/" + secondAverageUserID.String() + "/bookmarked_problems").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problems []database.UsersProblem
+			if problems = resp.([]database.UsersProblem); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			found := false
+			for _, problem := range problems {
+				if problem.ProblemID == problemID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("Expected to find bookmarked problem with ID %s", problemID.String())
+			}
+		})
+
+		t.Run("TestCreateCorrectSolutionAndCheckAcceptance", func(t *testing.T) {
+			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(int(input()) + int(input()))","language":"python"}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			jsonData = []byte(`{"tests_passed":26, "total_tests":26}`)
+			resp, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var updatedSol database.Solution
+			if updatedSol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !updatedSol.TestsPassed.Valid || updatedSol.TestsPassed.Int32 != 26 {
+				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 26, updatedSol.TestsPassed.Int32)
+			}
+			if !updatedSol.TotalTests.Valid || updatedSol.TotalTests.Int32 != 26 {
+				t.Fatalf("Received wrong number of total tests, expected %d got %d", 26, updatedSol.TotalTests.Int32)
+			}
+
+			// We can now count number of correct solutions for secondAverageUserID
+			type params struct {
+				CountCorrect int `json:"count_correct"`
+				CountTotal   int `json:"count_total"`
+			}
+			resp, err = NewRequestBuilder("GET", nil, http.StatusOK, params{}).WithPath("/api/solutions/count").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "user").Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var counts params
+			if counts = resp.(params); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if counts.CountCorrect < 1 {
+				t.Fatalf("Expected at least %d correct solutions, got %d", 1, counts.CountCorrect)
+			}
+			if counts.CountTotal < 2 {
+				t.Fatalf("Expected at least %d total solutions, got %d", 1, counts.CountTotal)
+			}
+		})
+
+		/*
+			===========================================
+
+				Cleanup Tests
+
+			===========================================
+		*/
+
 		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
 			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
@@ -1202,6 +1372,27 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestDeleteProblemTest", func(t *testing.T) {
 			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
