@@ -13,19 +13,27 @@ import (
 )
 
 type ApiCfg struct {
-	logger               log.Logger
-	dbUrl                string
-	db                   *database.Queries
-	dbLoaded             bool
-	secret               string
-	adminDefaultPassword string
-	running              bool
-	smtpUrl              string
-	smtpPort             int
-	smtpUser             string
-	smtpPassword         string
-	websiteUrl           string
-	websiteState         string
+	logger       log.Logger
+	db           *database.Queries
+	secret       string
+	running      bool
+	websiteUrl   string
+	websiteState string
+	adminCfg     struct {
+		Username string
+		Password string
+		Token    string
+	}
+	smtpCfg struct {
+		Url      string
+		Port     int
+		User     string
+		Password string
+	}
+	databaseCfg struct {
+		Url    string
+		Loaded bool
+	}
 }
 
 /*
@@ -56,9 +64,12 @@ func main() {
 		}
 
 		cfg = &ApiCfg{
-			logger:   *log.New(logFile, "[API] ", log.LstdFlags),
-			dbLoaded: false,
-			running:  true,
+			logger: *log.New(logFile, "[API] ", log.LstdFlags),
+			databaseCfg: struct {
+				Url    string
+				Loaded bool
+			}{Loaded: false},
+			running: true,
 		}
 
 		// Clear the file on startup
@@ -74,25 +85,26 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		cfg.logger.Fatal("Error loading .env file: ", err)
-	} else {
-		cfg.dbUrl = os.Getenv("DB_URL")
-		cfg.secret = os.Getenv("SECRET")
-		cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
-		cfg.smtpUrl = os.Getenv("SMTP_URL")
-		cfg.smtpPort = 587 // Default SMTP port
-		cfg.smtpUser = os.Getenv("SMTP_USER")
-		cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
-		cfg.websiteUrl = os.Getenv("WEBSITE_URL")
-		cfg.websiteState = os.Getenv("WEBSITE_STATE")
 	}
+
+	cfg.databaseCfg.Url = os.Getenv("DB_URL")
+	cfg.secret = os.Getenv("SECRET")
+	cfg.adminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+	cfg.adminCfg.Username = "CodiumAdmin"
+	cfg.smtpCfg.Url = os.Getenv("SMTP_URL")
+	cfg.smtpCfg.Port = 587 // Default SMTP port
+	cfg.smtpCfg.User = os.Getenv("SMTP_USER")
+	cfg.smtpCfg.Password = os.Getenv("SMTP_PASSWORD")
+	cfg.websiteUrl = os.Getenv("WEBSITE_URL")
+	cfg.websiteState = os.Getenv("WEBSITE_STATE")
 
 	if cfg.secret == "" {
 		cfg.logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
 	}
 
-	if cfg.dbUrl != "" {
-		cfg.logger.Print("Using Database URL: " + cfg.dbUrl)
-		db, err := sql.Open("postgres", cfg.dbUrl)
+	if cfg.databaseCfg.Url != "" {
+		cfg.logger.Print("Using Database URL: " + cfg.databaseCfg.Url)
+		db, err := sql.Open("postgres", cfg.databaseCfg.Url)
 		if err != nil {
 			cfg.logger.Fatal("Error connecting to the database: ", err)
 		}
@@ -103,7 +115,7 @@ func main() {
 		}
 
 		cfg.db = database.New(db)
-		cfg.dbLoaded = true
+		cfg.databaseCfg.Loaded = true
 		cfg.logger.Print("Successfully connected to the database!")
 	} else {
 		cfg.logger.Print("No Database URL provided- skipping database connection.")

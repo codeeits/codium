@@ -161,7 +161,7 @@ func (cfg *ApiCfg) ResetAll() error {
 	cfg.logger.Println("Uploads directory recreated.")
 
 	// Add default admin user
-	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
+	hashedPassword, err := auth.HashPassword(cfg.adminCfg.Password)
 	if err != nil {
 		cfg.logger.Printf("Failed to hash default admin password: %v", err)
 		return err
@@ -171,7 +171,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		ID:           uuid.New(),
 		Email:        "codiumOfficial@lekas.tech",
 		PasswordHash: hashedPassword,
-		Username:     "codiumOfficial",
+		Username:     cfg.adminCfg.Username,
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		IsAdmin:      true,
@@ -180,6 +180,11 @@ func (cfg *ApiCfg) ResetAll() error {
 	if err != nil {
 		cfg.logger.Printf("Failed to create default admin user: %v", err)
 		return err
+	}
+
+	cfg.adminCfg.Token, err = auth.MakeJWT(defaultAdmin.ID, cfg.secret, time.Hour*24*30)
+	if err != nil {
+		cfg.logger.Printf("Failed to create default admin JWT token: %v", err)
 	}
 
 	cfg.logger.Print("[!!!] Default admin user created successfully.")

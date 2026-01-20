@@ -153,54 +153,54 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		err := godotenv.Load()
 		if err != nil {
 			t.Fatal("Error loading .env file")
-		} else {
-			cfg.dbUrl = os.Getenv("DB_URL")
-			cfg.secret = os.Getenv("SECRET")
-			cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
-			cfg.smtpUrl = os.Getenv("SMTP_URL")
-			cfg.smtpPort = 587 // Default SMTP port
-			cfg.smtpUser = os.Getenv("SMTP_USER")
-			cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
-			cfg.websiteUrl = os.Getenv("WEBSITE_URL")
-			cfg.websiteState = os.Getenv("WEBSITE_STATE")
+		}
 
-			if cfg.websiteState == "" {
-				//website state is MANDATORY; it determines whether the website resets at the end of testing suite
-				t.Fatal("No website state provided")
-			}
-			if cfg.secret == "" {
-				t.Log("No secret provided")
-				t.Fail()
-			}
-			if cfg.dbUrl == "" {
-				t.Log("No db url provided")
-				t.Fail()
-			}
-			if cfg.adminDefaultPassword == "" {
-				t.Log("No admin default password provided")
-				t.Fail()
-			}
-			if cfg.smtpUrl == "" {
-				t.Log("No SMTP url provided")
-				t.Fail()
-			}
-			if cfg.smtpUser == "" {
-				t.Log("No SMTP user provided")
-				t.Fail()
-			}
-			if cfg.smtpPassword == "" {
-				t.Log("No SMTP password provided")
-				t.Fail()
-			}
-			if cfg.websiteUrl == "" {
-				t.Log("No website url provided")
-				t.Fail()
-			}
+		cfg.databaseCfg.Url = os.Getenv("DB_URL")
+		cfg.secret = os.Getenv("SECRET")
+		cfg.adminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+		cfg.smtpCfg.Url = os.Getenv("SMTP_URL")
+		cfg.smtpCfg.Port = 587 // Default SMTP port
+		cfg.smtpCfg.User = os.Getenv("SMTP_USER")
+		cfg.smtpCfg.Password = os.Getenv("SMTP_PASSWORD")
+		cfg.websiteUrl = os.Getenv("WEBSITE_URL")
+		cfg.websiteState = os.Getenv("WEBSITE_STATE")
+
+		if cfg.websiteState == "" {
+			//website state is MANDATORY; it determines whether the website resets at the end of testing suite
+			t.Fatal("No website state provided")
+		}
+		if cfg.secret == "" {
+			t.Log("No secret provided")
+			t.Fail()
+		}
+		if cfg.databaseCfg.Url == "" {
+			t.Log("No db url provided")
+			t.Fail()
+		}
+		if cfg.adminCfg.Password == "" {
+			t.Log("No admin default password provided")
+			t.Fail()
+		}
+		if cfg.smtpCfg.Url == "" {
+			t.Log("No SMTP url provided")
+			t.Fail()
+		}
+		if cfg.smtpCfg.User == "" {
+			t.Log("No SMTP user provided")
+			t.Fail()
+		}
+		if cfg.smtpCfg.Password == "" {
+			t.Log("No SMTP password provided")
+			t.Fail()
+		}
+		if cfg.websiteUrl == "" {
+			t.Log("No website url provided")
+			t.Fail()
 		}
 	})
 
 	t.Run("DatabaseTests", func(t *testing.T) {
-		db, err := sql.Open("postgres", cfg.dbUrl)
+		db, err := sql.Open("postgres", cfg.databaseCfg.Url)
 		if err != nil {
 			t.Fatal("Error connecting to the database: ", err)
 		}
@@ -211,7 +211,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		}
 
 		cfg.db = database.New(db)
-		cfg.dbLoaded = true
+		cfg.databaseCfg.Loaded = true
 		t.Log("Successfully connected to the database!")
 	})
 
@@ -220,7 +220,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	var adminID uuid.UUID
 	t.Run("ApiTests", func(t *testing.T) {
 		// Call API-related test functions here
-		if !cfg.dbLoaded {
+		if !cfg.databaseCfg.Loaded {
 			return
 		}
 
@@ -263,7 +263,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			===========================================
 		*/
 		t.Run("TestGetDefaultAdminUser", func(t *testing.T) {
-			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.adminDefaultPassword + `"}`)
+			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.adminCfg.Password + `"}`)
 
 			type params struct {
 				User         database.User `json:"user"`

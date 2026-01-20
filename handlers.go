@@ -36,7 +36,7 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -73,7 +73,7 @@ func (cfg *ApiCfg) UpdateUserDisambiguationHandler(w http.ResponseWriter, r *htt
 }
 
 func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -112,7 +112,7 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -162,7 +162,7 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 }
 
 func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -212,7 +212,7 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 }
 
 func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (database.Lesson, error) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		return database.Lesson{}, fmt.Errorf("database not connected")
 	}
 
@@ -241,7 +241,7 @@ func (cfg *ApiCfg) UpdateSectionStartedLesson(lessonID uuid.UUID) (database.Less
 }
 
 func (cfg *ApiCfg) GetProblemsDisambiguationHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -271,7 +271,7 @@ func (cfg *ApiCfg) GetProblemsDisambiguationHandler(w http.ResponseWriter, r *ht
 }
 
 func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -320,7 +320,7 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 }
 
 func (cfg *ApiCfg) GetSolutionsDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -353,7 +353,7 @@ func (cfg *ApiCfg) GetSolutionsDisambiguationHandler(w http.ResponseWriter, r *h
 }
 
 func (cfg *ApiCfg) UpdateSolutionDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -392,7 +392,7 @@ func (cfg *ApiCfg) UpdateSolutionDisambiguationHandler(w http.ResponseWriter, r 
 }
 
 func (cfg *ApiCfg) CountSolutionsDisambiguationHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -560,7 +560,7 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.logger.Print("Received login request for email: ", p.Email)
 
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -652,7 +652,7 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.logger.Print("Received token refresh request")
 
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -715,7 +715,7 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 
 	cfg.logger.Print("Received validate email request for user ID: ", uid)
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -768,7 +768,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if database is connected
 
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -855,7 +855,7 @@ func (cfg *ApiCfg) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, _ *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -887,7 +887,7 @@ func (cfg *ApiCfg) GetUsersHandler(w http.ResponseWriter, _ *http.Request) {
 
 func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -987,7 +987,7 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1196,7 +1196,7 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 
 func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1274,7 +1274,7 @@ func (cfg *ApiCfg) UploadHandler(w http.ResponseWriter, r *http.Request, sending
 
 func (cfg *ApiCfg) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1327,7 +1327,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 	}
 
 	//check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1451,7 +1451,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 
 func (cfg *ApiCfg) GetLessonsHandler(w http.ResponseWriter, _ *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1548,7 +1548,7 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 
 func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1865,7 +1865,7 @@ func (cfg *ApiCfg) GetSectionStarterLessonsHandler(w http.ResponseWriter, r *htt
 
 func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1893,7 +1893,7 @@ func (cfg *ApiCfg) FavoriteLessonHandler(w http.ResponseWriter, r *http.Request,
 
 func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1921,7 +1921,7 @@ func (cfg *ApiCfg) BookmarkLessonHandler(w http.ResponseWriter, r *http.Request,
 
 func (cfg *ApiCfg) GetLessonUserByLessonAndUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1965,7 +1965,7 @@ func (cfg *ApiCfg) GetLessonUserByLessonAndUserHandler(w http.ResponseWriter, r 
 
 func (cfg *ApiCfg) GetUserBookmarksHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -1998,7 +1998,7 @@ func (cfg *ApiCfg) GetUserBookmarksHandler(w http.ResponseWriter, r *http.Reques
 
 func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2026,7 +2026,7 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request, se
 
 func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2054,7 +2054,7 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request,
 
 func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.Request) {
 	//Check database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 	}
@@ -2084,7 +2084,7 @@ func (cfg *ApiCfg) GetFavoritesForLessonHandler(w http.ResponseWriter, r *http.R
 
 func (cfg *ApiCfg) GetUserStartedLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2117,7 +2117,7 @@ func (cfg *ApiCfg) GetUserStartedLessonsHandler(w http.ResponseWriter, r *http.R
 
 func (cfg *ApiCfg) GetUserCompletedLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2150,7 +2150,7 @@ func (cfg *ApiCfg) GetUserCompletedLessonsHandler(w http.ResponseWriter, r *http
 
 func (cfg *ApiCfg) GetUserInteractionsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2182,7 +2182,7 @@ func (cfg *ApiCfg) GetUserInteractionsHandler(w http.ResponseWriter, r *http.Req
 
 func (cfg *ApiCfg) CountUserCompletedLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2217,7 +2217,7 @@ func (cfg *ApiCfg) CountUserCompletedLessonsHandler(w http.ResponseWriter, r *ht
 
 func (cfg *ApiCfg) CountUserStartedLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2252,7 +2252,7 @@ func (cfg *ApiCfg) CountUserStartedLessonsHandler(w http.ResponseWriter, r *http
 
 func (cfg *ApiCfg) CountUserBookmarkedLessonsHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2308,7 +2308,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		Section          int       `json:"section"`
 	}
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2361,7 +2361,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 
 func (cfg *ApiCfg) DeleteProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2395,7 +2395,7 @@ func (cfg *ApiCfg) DeleteProblemHandler(w http.ResponseWriter, r *http.Request, 
 
 func (cfg *ApiCfg) GetProblemByIDHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2711,7 +2711,7 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2801,7 +2801,7 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 
 func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -2822,7 +2822,7 @@ func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Requ
 
 func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3049,7 +3049,7 @@ func (cfg *ApiCfg) CreateSolutionHandler(w http.ResponseWriter, r *http.Request,
 	}
 
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3116,7 +3116,7 @@ func (cfg *ApiCfg) GetSolutionByIDHandler(w http.ResponseWriter, r *http.Request
 
 func (cfg *ApiCfg) DeleteSolutionHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3395,7 +3395,7 @@ func (cfg *ApiCfg) CountSolutionsByProblemIDHandler(w http.ResponseWriter, r *ht
 */
 
 func (cfg *ApiCfg) GetUserProblemByUserAndProblemHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3437,7 +3437,7 @@ func (cfg *ApiCfg) GetUserProblemByUserAndProblemHandler(w http.ResponseWriter, 
 
 func (cfg *ApiCfg) LikeProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3464,7 +3464,7 @@ func (cfg *ApiCfg) LikeProblemHandler(w http.ResponseWriter, r *http.Request, se
 
 func (cfg *ApiCfg) BookmarkProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3490,7 +3490,7 @@ func (cfg *ApiCfg) BookmarkProblemHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (cfg *ApiCfg) GetBookmarkedProblemsHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3519,7 +3519,7 @@ func (cfg *ApiCfg) GetBookmarkedProblemsHandler(w http.ResponseWriter, r *http.R
 }
 
 func (cfg *ApiCfg) GetLikedProblemsHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3548,7 +3548,7 @@ func (cfg *ApiCfg) GetLikedProblemsHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (cfg *ApiCfg) GetSolvedProblemsHandler(w http.ResponseWriter, r *http.Request) {
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
@@ -3586,7 +3586,7 @@ func (cfg *ApiCfg) GetSolvedProblemsHandler(w http.ResponseWriter, r *http.Reque
 
 func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingUser database.User) {
 	// Check if database is connected
-	if !cfg.dbLoaded {
+	if !cfg.databaseCfg.Loaded {
 		cfg.logger.Println("Database not connected")
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return

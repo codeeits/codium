@@ -16,7 +16,7 @@ func (cfg *ApiCfg) SendValidationEmail(email string, userId string) {
 
 			message.SetBody("text/html", fmt.Sprintf(`<h1>Email Validation</h1><br><p>Please verify that your email address is valid by clicking the following link</p><br><a href="%v/api/email/%v">Verify Email</a>`, cfg.websiteUrl, userId))
 
-			dialer := gomail.NewDialer(cfg.smtpUrl, cfg.smtpPort, cfg.smtpUser, cfg.smtpPassword)
+			dialer := gomail.NewDialer(cfg.smtpCfg.Url, cfg.smtpCfg.Port, cfg.smtpCfg.User, cfg.smtpCfg.Password)
 			err := dialer.DialAndSend(message)
 			if err != nil {
 

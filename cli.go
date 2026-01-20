@@ -30,7 +30,7 @@ func (cfg *ApiCfg) StartCLI() {
 			}
 			cfg.logger.Print("Received reset command via console")
 			fmt.Println("Resetting database...")
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			err = cfg.ResetAll()
@@ -46,7 +46,7 @@ func (cfg *ApiCfg) StartCLI() {
 			userIdStr := args[0]
 			cfg.logger.Printf("Received delete_user command via console for user ID %s", userIdStr)
 			fmt.Printf("Deleting user with ID %s...\n", userIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
@@ -64,7 +64,7 @@ func (cfg *ApiCfg) StartCLI() {
 		})
 		commandsCfg.RegisterCommand("list_users", func(args []string) error {
 			cfg.logger.Print("Received list_users command via console")
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			users, err := cfg.ListUsers()
@@ -94,7 +94,7 @@ func (cfg *ApiCfg) StartCLI() {
 		})
 		commandsCfg.RegisterCommand("list_lessons", func(args []string) error {
 			cfg.logger.Print("Received list_lessons command via console")
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			lessons, err := cfg.ListLessons()
@@ -110,7 +110,7 @@ func (cfg *ApiCfg) StartCLI() {
 		})
 		commandsCfg.RegisterCommand("list_files", func(args []string) error {
 			cfg.logger.Print("Received list_files command via console")
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			files, err := cfg.ListFiles()
@@ -131,7 +131,7 @@ func (cfg *ApiCfg) StartCLI() {
 			fileIdStr := args[0]
 			cfg.logger.Printf("Received delete_file command via console for file ID %s", fileIdStr)
 			fmt.Printf("Deleting file with ID %s...\n", fileIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
@@ -155,7 +155,7 @@ func (cfg *ApiCfg) StartCLI() {
 			lessonIdStr := args[0]
 			cfg.logger.Printf("Received delete_lesson command via console for lesson ID %s", lessonIdStr)
 			fmt.Printf("Deleting lesson with ID %s...\n", lessonIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.databaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
