@@ -1016,3 +1016,7 @@ func BuildUserPermissions(canManageUsers bool, canManageProblems bool, canManage
 
 	return permissions
 }
+
+func UserHasPermission(user database.User, permission UserPermissions) bool {
+	return (UserPermissions(user.Permissions) & permission) == permission
+}

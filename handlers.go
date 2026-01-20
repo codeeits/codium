@@ -118,7 +118,7 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
 		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -168,7 +168,7 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 		return
 	}
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -276,7 +276,7 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -1003,7 +1003,7 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request, sen
 		return
 	}
 
-	if sendingUser.ID != userID && !sendingUser.IsAdmin {
+	if sendingUser.ID != userID && !UserHasPermission(sendingUser, PermissionCanManageUsers) {
 		cfg.logger.Printf("Unauthorized delete attempt by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -1334,7 +1334,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 	}
 
 	//check sendingUser is admin
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
 		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin sendingUser: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -1557,7 +1557,7 @@ func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, s
 	cfg.logger.Print("Received delete lesson request")
 
 	//Authenticate the user making the request
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
 		cfg.logger.Printf("Unauthorized delete lesson attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -2314,7 +2314,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Unauthorized create problem attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -2369,7 +2369,7 @@ func (cfg *ApiCfg) DeleteProblemHandler(w http.ResponseWriter, r *http.Request, 
 
 	cfg.logger.Print("Received delete problem request")
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Unauthorized delete problem attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -2719,7 +2719,7 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 
 	cfg.logger.Print("Received create problem test request")
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Unauthorized create problem test attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -2830,7 +2830,7 @@ func (cfg *ApiCfg) DeleteProblemTestHandler(w http.ResponseWriter, r *http.Reque
 
 	cfg.logger.Print("Received delete problem test request")
 
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
 		cfg.logger.Printf("Unauthorized delete problem test attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3105,7 +3105,7 @@ func (cfg *ApiCfg) GetSolutionByIDHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if res.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+	if res.UserID != sendingUser.ID && !UserHasPermission(sendingUser, PermissionCanViewOtherSolutions) {
 		cfg.logger.Printf("Unauthorized access attempt to solution by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3133,7 +3133,7 @@ func (cfg *ApiCfg) DeleteSolutionHandler(w http.ResponseWriter, r *http.Request,
 	}
 
 	// Check if the sending user is the owner of the solution or an admin
-	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+	if solution.UserID != sendingUser.ID && !UserHasPermission(sendingUser, PermissionCanViewOtherSolutions) {
 		cfg.logger.Printf("Unauthorized delete attempt by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3165,7 +3165,7 @@ func (cfg *ApiCfg) GetSolutionsHandler(w http.ResponseWriter, r *http.Request, s
 	// Filter solutions to only include those owned by the sending user or if the user is an admin
 	var filteredSolutions []database.Solution
 	for _, sol := range solutions {
-		if sol.UserID == sendingUser.ID || sendingUser.IsAdmin {
+		if sol.UserID == sendingUser.ID || UserHasPermission(sendingUser, PermissionCanViewOtherSolutions) {
 			filteredSolutions = append(filteredSolutions, sol)
 		}
 	}
@@ -3187,7 +3187,7 @@ func (cfg *ApiCfg) GetSolutionsByUserHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Check if the sending user is the owner of the solutions or an admin
-	if userID != sendingUser.ID && !sendingUser.IsAdmin {
+	if userID != sendingUser.ID && !UserHasPermission(sendingUser, PermissionCanViewOtherSolutions) {
 		cfg.logger.Printf("Unauthorized access attempt to solutions by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3234,7 +3234,7 @@ func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.R
 	// Filter solutions to only include those owned by the sending user or if the user is an admin
 	var filteredSolutions []database.Solution
 	for _, sol := range solutions {
-		if sol.UserID == sendingUser.ID || sendingUser.IsAdmin {
+		if sol.UserID == sendingUser.ID || UserHasPermission(sendingUser, PermissionCanViewOtherSolutions) {
 			filteredSolutions = append(filteredSolutions, sol)
 		}
 	}
@@ -3257,7 +3257,7 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+	if solution.UserID != sendingUser.ID && !UserHasPermission(sendingUser, PermissionAdmin) {
 		cfg.logger.Printf("Unauthorized update attempt by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3301,7 +3301,7 @@ func (cfg *ApiCfg) UpdateSolutionFirstSolutionTestHandler(w http.ResponseWriter,
 		return
 	}
 
-	if solution.UserID != sendingUser.ID && !sendingUser.IsAdmin {
+	if solution.UserID != sendingUser.ID && !UserHasPermission(sendingUser, PermissionAdmin) {
 		cfg.logger.Printf("Unauthorized update attempt by user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -3595,7 +3595,7 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingU
 	cfg.logger.Print("Received request to reset the database")
 
 	// Check if the user is an admin
-	if !sendingUser.IsAdmin {
+	if !UserHasPermission(sendingUser, PermissionAdmin) {
 		cfg.logger.Printf("Unauthorized access attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
