@@ -116,6 +116,7 @@ type User struct {
 	ProfilePicID   uuid.NullUUID
 	EmailValidated bool
 	CuredEmail     sql.NullString
+	Permissions    int16
 }
 
 type UsersProblem struct {

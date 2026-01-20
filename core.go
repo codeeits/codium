@@ -55,6 +55,8 @@ type ProblemWithTags struct {
 type FlagMasks uint32
 type LessonTagsMask uint32
 
+type UserPermissions int16
+
 const (
 	// ModuleMask Lesson flags are stored as 0xMMNNSSCC where:
 	//MM = Module
@@ -80,9 +82,30 @@ const (
 
 	// ProblemSectionMask is used to categorize problems by their specific section within a module (e.g. arrays, linked lists, sorting algorithms, etc.)
 	ProblemSectionMask LessonTagsMask = 0x000000FF
+
+	// PermissionAdmin represents administrative privileges
+	PermissionAdmin UserPermissions = 1 << 0
+
+	// PermissionCanSuggestLessons represents the ability to suggest new lessons
+	PermissionCanSuggestLessons UserPermissions = 1 << 1
+
+	// PermissionCanManageUsers represents the ability to manage user accounts
+	PermissionCanManageUsers UserPermissions = 1 << 2
+
+	// PermissionCanManageProblems represents the ability to manage problems
+	PermissionCanManageProblems UserPermissions = 1 << 3
+
+	// PermissionCanManageLessons represents the ability to manage lessons
+	PermissionCanManageLessons UserPermissions = 1 << 4
+
+	// PermissionCanViewOtherSolutions represents the ability to view other users' solutions
+	PermissionCanViewOtherSolutions UserPermissions = 1 << 5
+
+	// PermissionCanSuggestProblems represents the ability to suggest new problems
+	PermissionCanSuggestProblems UserPermissions = 1 << 6
 )
 
-/*
+/*uint32
 ===========================================
 
 	Core functions
@@ -152,6 +175,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		IsAdmin:      true,
+		Permissions:  int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to create default admin user: %v", err)
@@ -165,7 +189,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		cfg.logger.Printf("Failed to get current working directory: %v", err)
 		return err
 	}
-	//add markdown test lesson
+	//add Markdown test lesson
 	testLessonContentPath := cwd + "/markdown_test_all_elements.md"
 	fileContent, err := os.ReadFile(testLessonContentPath)
 	if err != nil {
@@ -225,7 +249,7 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add favorite
+			// Interaction not initialized yet, add favorite
 			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:  lessonID,
 				UserID:    userID,
@@ -262,7 +286,7 @@ func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add bookmark
+			// Interaction not initialized yet, add bookmark
 			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:   lessonID,
 				UserID:     userID,
@@ -299,7 +323,7 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
+			// Interaction not initialized yet, create it
 			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:  lessonID,
 				UserID:    userID,
@@ -335,7 +359,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
+			// Interaction not initialized yet, create it
 			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:    lessonID,
 				UserID:      userID,
@@ -371,7 +395,7 @@ func (cfg *ApiCfg) ToggleProblemUserLiked(problemID uuid.UUID, userID uuid.UUID)
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add like
+			// Interaction not initialized yet, add like
 			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID: problemID,
 				UserID:    userID,
@@ -409,7 +433,7 @@ func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add bookmark
+			// Interaction not initialized yet, add bookmark
 			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID:  problemID,
 				UserID:     userID,
@@ -445,7 +469,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
+			// Interaction not initialized yet, create it
 			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID: problemID,
 				UserID:    userID,
@@ -526,7 +550,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		cfg.logger.Printf("Image accessible at path: %s", filePath)
 
 	case "lessons":
-		// Check if file is markdown
+		// Check if file is Markdown
 		if strings.HasPrefix(fileType, "text/") == false {
 			return "", "", fmt.Errorf("invalid file type for lessons: %v", fileType)
 		}
@@ -964,4 +988,31 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 	}
 
 	return tags, mask
+}
+
+func BuildUserPermissions(canManageUsers bool, canManageProblems bool, canManageLessons bool, canViewOtherSolutions bool, canSuggestProblems bool, isAdmin bool, canSuggestLessons bool) UserPermissions {
+	var permissions UserPermissions = 0
+	if canManageUsers {
+		permissions |= PermissionCanManageUsers
+	}
+	if canManageProblems {
+		permissions |= PermissionCanManageProblems
+	}
+	if canManageLessons {
+		permissions |= PermissionCanManageLessons
+	}
+	if canViewOtherSolutions {
+		permissions |= PermissionCanViewOtherSolutions
+	}
+	if canSuggestProblems {
+		permissions |= PermissionCanSuggestProblems
+	}
+	if isAdmin {
+		permissions |= PermissionAdmin
+	}
+	if canSuggestLessons {
+		permissions |= PermissionCanSuggestLessons
+	}
+
+	return permissions
 }
