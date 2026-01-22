@@ -175,6 +175,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		IsAdmin:      true,
+		CuredEmail:   sql.NullString{String: "codiumOfficial@lekastech", Valid: true},
 		Permissions:  int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
 	})
 	if err != nil {

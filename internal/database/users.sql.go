@@ -191,6 +191,38 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const setUserPermissions = `-- name: SetUserPermissions :one
+UPDATE users
+SET permissions = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+`
+
+type SetUserPermissionsParams struct {
+	ID          uuid.UUID
+	Permissions int16
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) SetUserPermissions(ctx context.Context, arg SetUserPermissionsParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, setUserPermissions, arg.ID, arg.Permissions, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+		&i.EmailValidated,
+		&i.CuredEmail,
+		&i.Permissions,
+	)
+	return i, err
+}
+
 const unvalidateEmailForId = `-- name: UnvalidateEmailForId :one
 UPDATE users
 SET email_validated = FALSE, updated_at = $2
@@ -333,6 +365,38 @@ type UpdateUserUsernameParams struct {
 
 func (q *Queries) UpdateUserUsername(ctx context.Context, arg UpdateUserUsernameParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUserUsername, arg.ID, arg.Username, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+		&i.EmailValidated,
+		&i.CuredEmail,
+		&i.Permissions,
+	)
+	return i, err
+}
+
+const upgradeUserPermissions = `-- name: UpgradeUserPermissions :one
+UPDATE users
+SET permissions = permissions | $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+`
+
+type UpgradeUserPermissionsParams struct {
+	ID          uuid.UUID
+	Permissions int16
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) UpgradeUserPermissions(ctx context.Context, arg UpgradeUserPermissionsParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, upgradeUserPermissions, arg.ID, arg.Permissions, arg.UpdatedAt)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -57,3 +57,15 @@ UPDATE users
 SET email_validated = FALSE, updated_at = $2
 WHERE id = $1
 RETURNING *;
+
+-- name: UpgradeUserPermissions :one
+UPDATE users
+SET permissions = permissions | $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: SetUserPermissions :one
+UPDATE users
+SET permissions = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

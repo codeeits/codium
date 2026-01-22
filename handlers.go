@@ -496,6 +496,14 @@ func GetUUIDFromQuery(r *http.Request, key string) (uuid.UUID, error) {
 	return id, nil
 }
 
+func GetStringFromQuery(r *http.Request, s string) (string, error) {
+	query := r.URL.Query()
+	if val, ok := query[s]; ok && len(val) > 0 {
+		return val[0], nil
+	}
+	return "", errors.New("missing or invalid string parameter")
+}
+
 // convert []database.Lesson -> []any and wrapper printer to call PrintLessonToJson
 func lessonsToAny(lessons []database.Lesson) []any {
 	res := make([]any, len(lessons))
@@ -1134,7 +1142,7 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to unvalidate user email: %v", err)
+		cfg.logger.Printf("Failed to invalidate user email: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -3618,4 +3626,50 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingU
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (cfg *ApiCfg) UpgradeUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	targetUser, err := GetObjByQueryUUID(r, "user_id", cfg.db.GetUserByID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format or user not found: %v", err)
+		http.Error(w, "Invalid user ID format or user not found", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the user is an admin
+	if !UserHasPermission(sendingUser, PermissionAdmin) {
+		cfg.logger.Printf("Unauthorized upgrade attempt by non-admin user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	title, err := GetStringFromQuery(r, "title")
+	var upgradedPerms UserPermissions
+
+	switch title {
+	case "admin":
+		upgradedPerms |= PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions
+	case "teacher":
+		upgradedPerms |= PermissionCanViewOtherSolutions
+	case "moderator":
+		upgradedPerms |= PermissionCanManageLessons | PermissionCanManageProblems
+	default:
+		cfg.logger.Printf("Invalid title provided for upgrade: %v", title)
+		http.Error(w, "Invalid title provided", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpgradeUserPermissions(r.Context(), database.UpgradeUserPermissionsParams{
+		ID:          targetUser.ID,
+		Permissions: int16(upgradedPerms),
+		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+	})
+
+	if err != nil {
+		cfg.logger.Printf("Failed to upgrade user permissions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintUserToJson)
 }
