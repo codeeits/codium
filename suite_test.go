@@ -460,6 +460,44 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			secondAverageToken = translated.Token
 		})
 
+		t.Run("TestUpdateSecondUserToAdminAsAverageUser", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
+			_, err := NewRequestBuilderNoTarget("POST", jsonBody, http.StatusForbidden).WithPath("/admin/users/account_status").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestUpdateSecondUserToAdminAsAdmin", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if UserPermissions(user.Permissions)&PermissionAdmin == 0 {
+				t.Fatalf("Expected user to have admin permissions, got %v", user.Permissions)
+			}
+		})
+
+		t.Run("TestUpdateSecondUserToBasic", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "basic"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if UserPermissions(user.Permissions)&PermissionAdmin != 0 {
+				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
+			}
+		})
+
 		//Test files
 		uploadedFileID := uuid.Nil
 		t.Run("TestUploadFile", func(t *testing.T) {

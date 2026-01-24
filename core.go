@@ -142,6 +142,23 @@ func (cfg *ApiCfg) ResetAll() error {
 	}
 
 	cfg.logger.Println("All users deleted.")
+	// Reset all problemTests
+	tests, err := cfg.db.ListAllCodeTests(context.Background(), database.ListAllCodeTestsParams{
+		Limit:  10000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve problem tests: %v", err)
+		return err
+	}
+	for _, test := range tests {
+		err = cfg.db.DeleteCodeTestByID(context.Background(), test.ID)
+		if err != nil {
+			cfg.logger.Printf("Failed to delete problem test %v: %v", test.ID, err)
+			return err
+		}
+	}
+
 	// Reset the uploaded images
 	_, err = os.Stat("App/Images/uploads")
 	if !os.IsNotExist(err) {

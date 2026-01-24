@@ -3628,12 +3628,10 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingU
 	}
 }
 
-func (cfg *ApiCfg) UpgradeUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
-	targetUser, err := GetObjByQueryUUID(r, "user_id", cfg.db.GetUserByID)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format or user not found: %v", err)
-		http.Error(w, "Invalid user ID format or user not found", http.StatusBadRequest)
-		return
+func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	type params struct {
+		UserID string `json:"userId"`
+		Title  string `json:"title"`
 	}
 
 	// Check if the user is an admin
@@ -3643,25 +3641,65 @@ func (cfg *ApiCfg) UpgradeUserHandler(w http.ResponseWriter, r *http.Request, se
 		return
 	}
 
-	title, err := GetStringFromQuery(r, "title")
-	var upgradedPerms UserPermissions
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := uuid.Parse(p.UserID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+	cfg.logger.Printf("Received set user account status request for user ID: %v to title: %v", userID, p.Title)
+
+	title := p.Title
+
+	targetUser, err := cfg.db.GetUserByID(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.logger.Printf("User not found for ID: %v", userID)
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		cfg.logger.Printf("Failed to retrieve target user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var newPerms UserPermissions
 
 	switch title {
+	case "basic":
+		newPerms = 0
 	case "admin":
-		upgradedPerms |= PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions
+		newPerms |= PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions
 	case "teacher":
-		upgradedPerms |= PermissionCanViewOtherSolutions
+		newPerms |= PermissionCanViewOtherSolutions | PermissionCanSuggestLessons | PermissionCanSuggestProblems
 	case "moderator":
-		upgradedPerms |= PermissionCanManageLessons | PermissionCanManageProblems
+		newPerms |= PermissionCanManageLessons | PermissionCanManageProblems
 	default:
 		cfg.logger.Printf("Invalid title provided for upgrade: %v", title)
 		http.Error(w, "Invalid title provided", http.StatusBadRequest)
 		return
 	}
+	_, err = cfg.db.SetUserTitle(r.Context(), database.SetUserTitleParams{
+		ID:        targetUser.ID,
+		Title:     sql.NullString{String: title, Valid: true},
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to set user title: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-	res, err := cfg.db.UpgradeUserPermissions(r.Context(), database.UpgradeUserPermissionsParams{
+	res, err := cfg.db.SetUserPermissions(r.Context(), database.SetUserPermissionsParams{
 		ID:          targetUser.ID,
-		Permissions: int16(upgradedPerms),
+		Permissions: int16(newPerms),
 		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 	})
 

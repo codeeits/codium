@@ -117,6 +117,7 @@ type User struct {
 	EmailValidated bool
 	CuredEmail     sql.NullString
 	Permissions    int16
+	Title          sql.NullString
 }
 
 type UsersProblem struct {

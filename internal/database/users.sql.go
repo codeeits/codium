@@ -15,7 +15,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, email, password_hash, username, created_at, updated_at, is_admin, cured_email, permissions)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type CreateUserParams struct {
@@ -55,6 +55,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -79,7 +80,7 @@ func (q *Queries) DeleteUsers(ctx context.Context) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions FROM users WHERE email = $1
+SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -97,12 +98,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions FROM users WHERE id = $1
+SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -120,12 +122,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions FROM users WHERE username = $1
+SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title FROM users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -143,12 +146,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2
+SELECT id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2
 `
 
 type GetUsersParams struct {
@@ -177,6 +181,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 			&i.EmailValidated,
 			&i.CuredEmail,
 			&i.Permissions,
+			&i.Title,
 		); err != nil {
 			return nil, err
 		}
@@ -195,7 +200,7 @@ const setUserPermissions = `-- name: SetUserPermissions :one
 UPDATE users
 SET permissions = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type SetUserPermissionsParams struct {
@@ -219,6 +224,40 @@ func (q *Queries) SetUserPermissions(ctx context.Context, arg SetUserPermissions
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
+	)
+	return i, err
+}
+
+const setUserTitle = `-- name: SetUserTitle :one
+UPDATE users
+SET title = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
+`
+
+type SetUserTitleParams struct {
+	ID        uuid.UUID
+	Title     sql.NullString
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) SetUserTitle(ctx context.Context, arg SetUserTitleParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, setUserTitle, arg.ID, arg.Title, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IsAdmin,
+		&i.ProfilePicID,
+		&i.EmailValidated,
+		&i.CuredEmail,
+		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -227,7 +266,7 @@ const unvalidateEmailForId = `-- name: UnvalidateEmailForId :one
 UPDATE users
 SET email_validated = FALSE, updated_at = $2
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UnvalidateEmailForIdParams struct {
@@ -250,6 +289,7 @@ func (q *Queries) UnvalidateEmailForId(ctx context.Context, arg UnvalidateEmailF
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -258,7 +298,7 @@ const updateUserEmail = `-- name: UpdateUserEmail :one
 UPDATE users
 SET email = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UpdateUserEmailParams struct {
@@ -282,6 +322,7 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -290,7 +331,7 @@ const updateUserPassword = `-- name: UpdateUserPassword :one
 UPDATE users
 SET password_hash = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UpdateUserPasswordParams struct {
@@ -314,6 +355,7 @@ func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPassword
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -322,7 +364,7 @@ const updateUserPfp = `-- name: UpdateUserPfp :one
 UPDATE users
 SET profile_pic_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UpdateUserPfpParams struct {
@@ -346,6 +388,7 @@ func (q *Queries) UpdateUserPfp(ctx context.Context, arg UpdateUserPfpParams) (U
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -354,7 +397,7 @@ const updateUserUsername = `-- name: UpdateUserUsername :one
 UPDATE users
 SET username = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UpdateUserUsernameParams struct {
@@ -378,6 +421,7 @@ func (q *Queries) UpdateUserUsername(ctx context.Context, arg UpdateUserUsername
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -386,7 +430,7 @@ const upgradeUserPermissions = `-- name: UpgradeUserPermissions :one
 UPDATE users
 SET permissions = permissions | $2, updated_at = $3
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type UpgradeUserPermissionsParams struct {
@@ -410,6 +454,7 @@ func (q *Queries) UpgradeUserPermissions(ctx context.Context, arg UpgradeUserPer
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }
@@ -418,7 +463,7 @@ const validateEmailForId = `-- name: ValidateEmailForId :one
 UPDATE users
 SET email_validated = TRUE, updated_at = $2
 WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions
+RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, profile_pic_id, email_validated, cured_email, permissions, title
 `
 
 type ValidateEmailForIdParams struct {
@@ -441,6 +486,7 @@ func (q *Queries) ValidateEmailForId(ctx context.Context, arg ValidateEmailForId
 		&i.EmailValidated,
 		&i.CuredEmail,
 		&i.Permissions,
+		&i.Title,
 	)
 	return i, err
 }

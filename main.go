@@ -133,7 +133,7 @@ func main() {
 		mux.Handle("PUT /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateSolutionDisambiguationHandler))
 
 		mux.Handle("POST /admin/reset", cfg.AuthenticatedEndpointMiddleware(cfg.ResetHandler))
-		mux.Handle("POST /admin/upgrade", cfg.AuthenticatedEndpointMiddleware(cfg.UpgradeUserHandler))
+		mux.Handle("POST /admin/users/account_status", cfg.AuthenticatedEndpointMiddleware(cfg.SetUserAccountStatusHandler))
 
 		// Deprecated endpoint for user creation
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
