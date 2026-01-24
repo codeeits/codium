@@ -3,3 +3,8 @@ app/[Ii]mages/
 app/Lessons/
 .env
 /certs/
+.DS_Store
+App/.DS_Store
+internal/.DS_Store
+sql/.DS_Store
+.DS_Store
