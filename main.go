@@ -134,6 +134,7 @@ func main() {
 
 		mux.Handle("POST /admin/reset", cfg.AuthenticatedEndpointMiddleware(cfg.ResetHandler))
 		mux.Handle("POST /admin/users/account_status", cfg.AuthenticatedEndpointMiddleware(cfg.SetUserAccountStatusHandler))
+		mux.Handle("GET /admin/lessons/suggested", cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedLessonsHandler))
 
 		// Deprecated endpoint for user creation
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))

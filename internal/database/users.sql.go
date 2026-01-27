@@ -238,7 +238,7 @@ RETURNING id, username, email, password_hash, created_at, updated_at, is_admin, 
 
 type SetUserTitleParams struct {
 	ID        uuid.UUID
-	Title     sql.NullString
+	Title     string
 	UpdatedAt sql.NullTime
 }
 

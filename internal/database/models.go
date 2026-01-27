@@ -43,6 +43,7 @@ type Lesson struct {
 	NextLessonID   uuid.NullUUID
 	PrevLessonID   uuid.NullUUID
 	SectionStarter bool
+	Suggested      bool
 }
 
 type LessonsUser struct {
@@ -117,7 +118,7 @@ type User struct {
 	EmailValidated bool
 	CuredEmail     sql.NullString
 	Permissions    int16
-	Title          sql.NullString
+	Title          string
 }
 
 type UsersProblem struct {

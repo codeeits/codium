@@ -118,12 +118,6 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
-		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	targetField := q.Get("target_field")
 	if targetField == "" {
 		cfg.logger.Printf("Missing target_field query parameter")
@@ -138,6 +132,12 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 	if err != nil {
 		cfg.logger.Printf("Invalid lesson ID format: %v", err)
 		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	if !UserHasPermission(sendingUser, PermissionCanManageLessons) && !(lesson.AuthorID.UUID == sendingUser.ID) {
+		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -1342,7 +1342,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 	}
 
 	//check sendingUser is admin
-	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
+	if !(UserHasPermission(sendingUser, PermissionCanManageLessons) || UserHasPermission(sendingUser, PermissionCanSuggestLessons)) {
 		cfg.logger.Printf("Unauthorized add lesson attempt by non-admin sendingUser: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -1421,6 +1421,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		PrevLessonID: prevLesson,
 		NextLessonID: nextLesson,
+		Suggested:    UserHasPermission(sendingUser, PermissionCanSuggestLessons),
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to add lesson: %v", err)
@@ -1552,6 +1553,33 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(lessons), PrintLessonToJson)
+}
+
+func (cfg *ApiCfg) GetSuggestedLessonsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// This function will be placed in a separate endpoint in the admins section
+	if !cfg.databaseCfg.Loaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.logger.Print("Received get suggested lessons request")
+	lessons, err := cfg.db.GetSuggestedLessons(r.Context(), database.GetSuggestedLessonsParams{
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve suggested lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	var filteredLessons []database.Lesson
+	for _, lesson := range lessons {
+		if UserHasPermission(sendingUser, PermissionAdmin) || lesson.AuthorID.Valid && lesson.AuthorID.UUID == sendingUser.ID {
+			filteredLessons = append(filteredLessons, lesson)
+		}
+	}
+	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(filteredLessons), PrintLessonToJson)
 }
 
 func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
@@ -3688,7 +3716,7 @@ func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Re
 	}
 	_, err = cfg.db.SetUserTitle(r.Context(), database.SetUserTitleParams{
 		ID:        targetUser.ID,
-		Title:     sql.NullString{String: title, Valid: true},
+		Title:     title,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {

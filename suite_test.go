@@ -665,7 +665,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			defer os.RemoveAll(cwd + "/out/test_resources/")
 
-			for i := 0; i < 25; i++ {
+			for i := 0; i < 26; i++ {
 				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
 				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
 				err = os.WriteFile(filePath, fileContent, 0644)
@@ -731,6 +731,116 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				}
 
 				fileIds = append(fileIds, responseParams.FileID)
+			}
+		})
+
+		t.Run("TestMakeSecondUserTeacher", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "teacher"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
+				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
+			}
+		})
+
+		t.Run("TestSuggestLessonAsAverageUserForbidden", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Forbidden Suggested Lesson","description":"This is a forbidden suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
+			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/lessons").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		var suggestedLessonID uuid.UUID
+		t.Run("TestSuggestLessonAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Suggested Lesson","description":"This is a suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(secondAverageToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Suggested Lesson", lesson.Lesson.Title)
+			}
+			if lesson.Lesson.Suggested != true {
+				t.Fatalf("Expected lesson suggested %t, got %t", true, lesson.Lesson.Suggested)
+			}
+			suggestedLessonID = lesson.Lesson.ID
+		})
+
+		t.Run("TestUpdateLessonSuggestedForbidden", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
+			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestUpdateLessonSuggestedAsAdmin", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Updated Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Updated Suggested Lesson", lesson.Lesson.Title)
+			}
+		})
+
+		t.Run("TestUpdateLessonSuggestedAsAuthor", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Author Updated Suggested Lesson"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Author Updated Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Author Updated Suggested Lesson", lesson.Lesson.Title)
+			}
+		})
+
+		t.Run("TestGetSuggestedLessons", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lessons []LessonWithFlags
+			if lessons = resp.([]LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if len(lessons) < 1 {
+				t.Fatal("No suggested lessons found")
+			}
+		})
+
+		t.Run("TestGetSuggestedLessonsByTeacher", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithQueryParam("author_id", secondAverageUserID.String()).WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lessons []LessonWithFlags
+			if lessons = resp.([]LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if len(lessons) < 1 {
+				t.Fatal("No suggested lessons found for the teacher")
 			}
 		})
 
