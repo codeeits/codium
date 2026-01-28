@@ -37,6 +37,7 @@ type RequestBuilder struct {
 	wantedStatus     int
 	targetStructType interface{}
 	token            string
+	contentType      string
 }
 
 // Build builds and executes the HTTP request, returning the response decoded into the target struct type.
@@ -46,6 +47,7 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 	if err != nil {
 		return u.targetStructType, err
 	}
+	req.Header.Set("Content-Type", u.contentType)
 	if u.token != "" {
 		req.Header.Set("Authorization", "Bearer "+u.token)
 	}
@@ -112,6 +114,32 @@ func (u *RequestBuilder) WithAuthToken(token string) *RequestBuilder {
 	return u
 }
 
+func (u *RequestBuilder) WithContentType(contentType string) *RequestBuilder {
+	u.contentType = contentType
+	return u
+}
+
+// WithGeneratedFile adds a generated file to the request body as multipart/form-data.
+func (u *RequestBuilder) WithGeneratedFile(fileData []byte, fieldName, fileName string) *RequestBuilder {
+	var requestFileData bytes.Buffer
+	writer := multipart.NewWriter(&requestFileData)
+	part, err := writer.CreateFormFile(fieldName, fileName)
+	if err != nil {
+		return u
+	}
+	_, err = part.Write(fileData)
+	if err != nil {
+		return u
+	}
+	err = writer.Close()
+	if err != nil {
+		return u
+	}
+	u.bytesBody = requestFileData.Bytes()
+	u.contentType = writer.FormDataContentType()
+	return u
+}
+
 // For the sake of testing we'll assume we're using localhost:6767 as base URL
 func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, _ T) *RequestBuilder {
 	return &RequestBuilder{
@@ -120,6 +148,7 @@ func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, 
 		method:           method,
 		bytesBody:        jsonBody,
 		wantedStatus:     wantedStatus,
+		contentType:      "application/json",
 		targetStructType: new(T),
 	}
 }
@@ -501,68 +530,14 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		//Test files
 		uploadedFileID := uuid.Nil
 		t.Run("TestUploadFile", func(t *testing.T) {
-			cwd, _ := os.Getwd()
-			folderPath := cwd + "/out/test_resources/"
-			filePath := cwd + "/out/test_resources/file_upload.txt"
-			err := os.MkdirAll(folderPath, 0755)
-			if err != nil {
-				t.Fatal("Error creating test resources directory: ", err)
-			}
-			defer os.RemoveAll(cwd + "/out/test_resources/")
-
-			fileContent := []byte("This is a test file for upload.")
-			err = os.WriteFile(filePath, fileContent, 0644)
-			if err != nil {
-				t.Fatal("Error creating test file: ", err)
-			}
-			fileData, err := os.Open(filePath)
-			if err != nil {
-				t.Fatal("Error opening test file: ", err)
-			}
-			defer fileData.Close()
-
-			var requestFileData bytes.Buffer
-
-			writer := multipart.NewWriter(&requestFileData)
-			part, err := writer.CreateFormFile("file", "file_upload.txt")
-			if err != nil {
-				t.Fatal("Error creating form file: ", err)
-			}
-
-			_, err = io.Copy(part, fileData)
-			if err != nil {
-				t.Fatal("Error copying file data: ", err)
-			}
-			err = writer.Close()
-			if err != nil {
-				t.Fatal("Error closing writer: ", err)
-			}
-
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", writer.FormDataContentType())
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
 			type params struct {
 				FileID   uuid.UUID `json:"file_id"`
 				FilePath string    `json:"file_path"`
 			}
 
+			resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile([]byte("This is a test file."), "file", "testfile.txt").Build()
 			var responseParams params
-			err = json.NewDecoder(resp.Body).Decode(&responseParams)
-			if err != nil {
+			if responseParams = resp.(params); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -657,69 +632,18 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		var fileIds []uuid.UUID
 		t.Run("CreateFilesForLinkingTest", func(t *testing.T) {
-			cwd, _ := os.Getwd()
-			folderPath := cwd + "/out/test_resources/"
-			err := os.MkdirAll(folderPath, 0755)
-			if err != nil {
-				t.Fatal("Error creating test resources directory: ", err)
-			}
-			defer os.RemoveAll(cwd + "/out/test_resources/")
-
 			for i := 0; i < 26; i++ {
-				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
-				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
-				err = os.WriteFile(filePath, fileContent, 0644)
-				if err != nil {
-					t.Fatal("Error creating test file: ", err)
-				}
-				fileData, err := os.Open(filePath)
-				if err != nil {
-					t.Fatal("Error opening test file: ", err)
-				}
-				defer fileData.Close()
-
-				var requestFileData bytes.Buffer
-
-				writer := multipart.NewWriter(&requestFileData)
-				part, err := writer.CreateFormFile("file", "file_linking_"+strconv.Itoa(i)+".txt")
-				if err != nil {
-					t.Fatal("Error creating form file: ", err)
-				}
-
-				_, err = io.Copy(part, fileData)
-				if err != nil {
-					t.Fatal("Error copying file data: ", err)
-				}
-				err = writer.Close()
-				if err != nil {
-					t.Fatal("Error closing writer: ", err)
-				}
-
-				req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-				req.Header.Set("Content-Type", writer.FormDataContentType())
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
-				if err != nil {
-					t.Fatal("Error making request: ", err)
-				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-				}
-
 				type params struct {
 					FileID   uuid.UUID `json:"file_id"`
 					FilePath string    `json:"file_path"`
 				}
 
+				fileContent := []byte("This is test file number " + strconv.Itoa(i) + " for upload.")
+				fileName := "file_upload_" + strconv.Itoa(i) + ".txt"
+				resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile(fileContent, "file", fileName).Build()
+
 				var responseParams params
-				err = json.NewDecoder(resp.Body).Decode(&responseParams)
-				if err != nil {
+				if responseParams = resp.(params); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
 

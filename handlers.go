@@ -3658,13 +3658,13 @@ func (cfg *ApiCfg) ResetHandler(w http.ResponseWriter, _ *http.Request, sendingU
 
 func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	type params struct {
-		UserID string `json:"userId"`
-		Title  string `json:"title"`
+		UserID uuid.UUID `json:"userId"`
+		Title  string    `json:"title"`
 	}
 
 	// Check if the user is an admin
 	if !UserHasPermission(sendingUser, PermissionAdmin) {
-		cfg.logger.Printf("Unauthorized upgrade attempt by non-admin user: %v", sendingUser.ID)
+		cfg.logger.Printf("Unauthorized set account status attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -3676,20 +3676,14 @@ func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	userID, err := uuid.Parse(p.UserID)
-	if err != nil {
-		cfg.logger.Printf("Invalid UUID format for user ID: %v", err)
-		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
-		return
-	}
-	cfg.logger.Printf("Received set user account status request for user ID: %v to title: %v", userID, p.Title)
+	cfg.logger.Printf("Received set user account status request for user ID: %v to title: %v", p.UserID, p.Title)
 
 	title := p.Title
 
-	targetUser, err := cfg.db.GetUserByID(r.Context(), userID)
+	targetUser, err := cfg.db.GetUserByID(r.Context(), p.UserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("User not found for ID: %v", userID)
+			cfg.logger.Printf("User not found for ID: %v", p.UserID)
 			http.Error(w, "User not found", http.StatusNotFound)
 			return
 		}
