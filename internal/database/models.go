@@ -69,6 +69,7 @@ type Problem struct {
 	FirstTest       uuid.NullUUID
 	ThumbnailFileID uuid.NullUUID
 	AuthorID        uuid.UUID
+	Suggested       bool
 }
 
 type RefreshToken struct {
