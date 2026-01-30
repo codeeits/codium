@@ -15,6 +15,7 @@ import (
 
 const countProblems = `-- name: CountProblems :one
 SELECT COUNT(*) FROM problems
+WHERE suggested = FALSE
 `
 
 func (q *Queries) CountProblems(ctx context.Context) (int64, error) {
@@ -26,7 +27,7 @@ func (q *Queries) CountProblems(ctx context.Context) (int64, error) {
 
 const countProblemsByAuthorID = `-- name: CountProblemsByAuthorID :one
 SELECT COUNT(*) FROM problems
-WHERE author_id = $1
+WHERE author_id = $1 and suggested = FALSE
 `
 
 func (q *Queries) CountProblemsByAuthorID(ctx context.Context, authorID uuid.UUID) (int64, error) {
@@ -38,7 +39,7 @@ func (q *Queries) CountProblemsByAuthorID(ctx context.Context, authorID uuid.UUI
 
 const countProblemsByTag = `-- name: CountProblemsByTag :one
 SELECT COUNT(*) FROM problems
-WHERE $1 & tags = $2
+WHERE $1 & tags = $2 and suggested = FALSE
 `
 
 type CountProblemsByTagParams struct {
@@ -140,6 +141,7 @@ func (q *Queries) GetProblemByID(ctx context.Context, id uuid.UUID) (Problem, er
 
 const getProblems = `-- name: GetProblems :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+         WHERE suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -186,7 +188,7 @@ func (q *Queries) GetProblems(ctx context.Context, arg GetProblemsParams) ([]Pro
 
 const getProblemsByAuthorID = `-- name: GetProblemsByAuthorID :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
-WHERE author_id = $1
+WHERE author_id = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -234,7 +236,7 @@ func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAu
 
 const getProblemsBySource = `-- name: GetProblemsBySource :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
-WHERE source = $1
+WHERE source = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -282,7 +284,7 @@ func (q *Queries) GetProblemsBySource(ctx context.Context, arg GetProblemsBySour
 
 const getProblemsByTag = `-- name: GetProblemsByTag :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
-WHERE $1 & tags = $2
+WHERE $1 & tags = $2 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4
 `

@@ -2342,7 +2342,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
+	if !(UserHasPermission(sendingUser, PermissionCanManageProblems) || UserHasPermission(sendingUser, PermissionCanSuggestProblems)) {
 		cfg.logger.Printf("Unauthorized create problem attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -2377,6 +2377,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 		AuthorID:        sendingUser.ID,
+		Suggested:       UserHasPermission(sendingUser, PermissionCanSuggestProblems),
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to create problem: %v", err)
@@ -3754,5 +3755,36 @@ func (cfg *ApiCfg) ApproveLessonHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
+}
+
+func (cfg *ApiCfg) ApproveProblemHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// Check if the user is an admin
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
+		cfg.logger.Printf("Unauthorized problem approval attempt by non-admin user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	problemID, err := GetUUIDFromPath(r, "problemID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for problem ID: %v", err)
+		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received approve problem request for problem ID: %v by user ID: %v", problemID, sendingUser.ID)
+
+	res, err := cfg.db.UpdateProblemSuggested(r.Context(), database.UpdateProblemSuggestedParams{
+		ID:        problemID,
+		Suggested: false,
+		UpdatedAt: time.Now(),
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to approve problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
 }

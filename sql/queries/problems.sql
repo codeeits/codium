@@ -9,13 +9,14 @@ WHERE id = $1;
 
 -- name: GetProblems :many
 SELECT * FROM problems
+         WHERE suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
 
 -- tags is similar to flags, so it's stored as an INT
 -- name: GetProblemsByTag :many
 SELECT * FROM problems
-WHERE $1 & tags = $2
+WHERE $1 & tags = $2 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4;
 
@@ -48,25 +49,26 @@ WHERE id = $1
 RETURNING *;
 
 -- name: CountProblems :one
-SELECT COUNT(*) FROM problems;
+SELECT COUNT(*) FROM problems
+WHERE suggested = FALSE;
 
 -- name: CountProblemsByTag :one
 SELECT COUNT(*) FROM problems
-WHERE $1 & tags = $2;
+WHERE $1 & tags = $2 and suggested = FALSE;
 
 -- name: GetProblemsByAuthorID :many
 SELECT * FROM problems
-WHERE author_id = $1
+WHERE author_id = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountProblemsByAuthorID :one
 SELECT COUNT(*) FROM problems
-WHERE author_id = $1;
+WHERE author_id = $1 and suggested = FALSE;
 
 -- name: GetProblemsBySource :many
 SELECT * FROM problems
-WHERE source = $1
+WHERE source = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
