@@ -768,6 +768,36 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		t.Run("TestApproveSuggestedLessonWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
+			res, err := NewRequestBuilder("POST", nil, http.StatusOK, LessonWithFlags{}).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lesson LessonWithFlags
+			if lesson = res.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Suggested != false {
+				t.Fatalf("Lesson is suggested, expected to not be suggested")
+			}
+		})
+
 		var lessonIds []uuid.UUID
 		lessonIds = append(lessonIds, uploadedLessonID)
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {

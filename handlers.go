@@ -496,14 +496,6 @@ func GetUUIDFromQuery(r *http.Request, key string) (uuid.UUID, error) {
 	return id, nil
 }
 
-func GetStringFromQuery(r *http.Request, s string) (string, error) {
-	query := r.URL.Query()
-	if val, ok := query[s]; ok && len(val) > 0 {
-		return val[0], nil
-	}
-	return "", errors.New("missing or invalid string parameter")
-}
-
 // convert []database.Lesson -> []any and wrapper printer to call PrintLessonToJson
 func lessonsToAny(lessons []database.Lesson) []any {
 	res := make([]any, len(lessons))
@@ -3732,4 +3724,35 @@ func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintUserToJson)
+}
+
+func (cfg *ApiCfg) ApproveLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	// Check if the user is an admin
+	if !(UserHasPermission(sendingUser, PermissionAdmin) || UserHasPermission(sendingUser, PermissionCanManageLessons)) {
+		cfg.logger.Printf("Unauthorized lesson approval attempt by non-admin user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	lessonID, err := GetUUIDFromPath(r, "lessonID")
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for lesson ID: %v", err)
+		http.Error(w, "Invalid lesson ID format", http.StatusBadRequest)
+		return
+	}
+
+	cfg.logger.Printf("Received approve lesson request for lesson ID: %v by user ID: %v", lessonID, sendingUser.ID)
+
+	res, err := cfg.db.UpdateLessonSuggested(r.Context(), database.UpdateLessonSuggestedParams{
+		ID:        lessonID,
+		Suggested: false,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to approve lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
