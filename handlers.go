@@ -3728,7 +3728,7 @@ func (cfg *ApiCfg) SetUserAccountStatusHandler(w http.ResponseWriter, r *http.Re
 
 func (cfg *ApiCfg) ApproveLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if the user is an admin
-	if !(UserHasPermission(sendingUser, PermissionAdmin) || UserHasPermission(sendingUser, PermissionCanManageLessons)) {
+	if !UserHasPermission(sendingUser, PermissionCanManageLessons) {
 		cfg.logger.Printf("Unauthorized lesson approval attempt by non-admin user: %v", sendingUser.ID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return

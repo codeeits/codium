@@ -1,16 +1,16 @@
 package main
 
 import (
-	"Codium/internal/CLI"
 	"bufio"
 	"fmt"
 	"os"
 
+	"github.com/Andrew-The-Cat/SimpleCLI"
 	"github.com/google/uuid"
 )
 
 func (cfg *ApiCfg) StartCLI() {
-	commandsCfg := CLI.NewConsoleCfg(&cfg.logger)
+	commandsCfg := SimpleCLI.NewConsoleCfg(&cfg.logger, false)
 
 	// Registering Commands
 	{
@@ -172,6 +172,10 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 	}
-
-	commandsCfg.StartConsole()
+	go func() {
+		done := make(chan struct{})
+		commandsCfg.StartConsole(done)
+		<-done
+		os.Exit(0)
+	}()
 }
