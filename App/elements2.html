@@ -3,8 +3,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elements 2</title>
+
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="Styles/elements2.css">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap" rel="stylesheet">
+
 </head>
 <body>
     <h1>Elements Preview</h1>
@@ -50,11 +58,7 @@
                 </div>
                 <div class="problem-footer">
                     <div class="difficulty">
-                        <svg class="difficulty-icon" width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="0" y="6" width="4" height="8" rx="1" fill="#659D48"/>
-                            <rect x="6" y="3" width="4" height="11" rx="1" fill="#659D48"/>
-                            <rect x="12" y="0" width="4" height="14" rx="1" fill="#659D48"/>
-                        </svg>
+                        <i class="difficulty-icon fa-solid fa-chart-simple"></i>
                         <span class="difficulty-text">Easy</span>
                     </div>
                     <button type="button" class="btn primary full-width">Continue</button>
@@ -172,23 +176,15 @@
         <h2>Sidebar Menu Items</h2>
         <div class="sidebar-preview">
             <div class="sidebar-item active">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 10L10 3L17 10V17C17 17.5304 16.7893 18.0391 16.4142 18.4142C16.0391 18.7893 15.5304 19 15 19H5C4.46957 19 3.96086 18.7893 3.58579 18.4142C3.21071 18.0391 3 17.5304 3 17V10Z" fill="white"/>
-                </svg>
+                <i class="sidebar-icon fa-solid fa-house"></i>
                 <span class="sidebar-text">Home</span>
             </div>
             <div class="sidebar-item">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 2H14L18 6V18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20H4C3.46957 20 2.96086 19.7893 2.58579 19.4142C2.21071 19.0391 2 18.5304 2 18V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2Z" fill="#808080"/>
-                </svg>
+                <i class="sidebar-icon fa-solid fa-bookmark"></i>
                 <span class="sidebar-text">Bookmarks</span>
             </div>
             <div class="sidebar-item">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="10" width="4" height="8" rx="1" fill="#808080"/>
-                    <rect x="8" y="6" width="4" height="12" rx="1" fill="#808080"/>
-                    <rect x="14" y="2" width="4" height="16" rx="1" fill="#808080"/>
-                </svg>
+                <i class="sidebar-icon fa-solid fa-chart-line"></i>
                 <span class="sidebar-text">Progress</span>
             </div>
             <div class="sidebar-divider">
@@ -196,23 +192,15 @@
                 <div class="divider-line"></div>
             </div>
             <div class="sidebar-item">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 2H14L18 6V18C18 18.5304 17.7893 19.0391 17.4142 19.4142C17.0391 19.7893 16.5304 20 16 20H4C3.46957 20 2.96086 19.7893 2.58579 19.4142C2.21071 19.0391 2 18.5304 2 18V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2Z" fill="#808080"/>
-                </svg>
+                <i class="sidebar-icon fa-solid fa-lines-leaning"></i>
                 <span class="sidebar-text">Lessons</span>
             </div>
             <div class="sidebar-item">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="2" width="16" height="4" rx="1" fill="#808080"/>
-                    <rect x="2" y="8" width="16" height="4" rx="1" fill="#808080"/>
-                    <rect x="2" y="14" width="16" height="4" rx="1" fill="#808080"/>
-                </svg>
+                <i class="sidebar-icon fa-solid fa-dumbbell"></i>
                 <span class="sidebar-text">Problems</span>
             </div>
             <div class="sidebar-item">
-                <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 2L4 6H1L3 10L1 14H4L6 18L10 16L14 18L16 14H19L17 10L19 6H16L14 2L10 4L6 2Z" fill="#808080"/>
-                </svg>
+                <i class="fa-solid fa-list-check"></i>
                 <span class="sidebar-text">Tests</span>
             </div>
         </div>
@@ -222,29 +210,21 @@
     <section class="section">
         <h2>Toast Notifications</h2>
         <div class="toasts-preview">
+            <div class="toast toast-info">
+                <span class="toast-message">Info: New update available</span>
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
             <div class="toast toast-error">
                 <span class="toast-message">Error: Not found (something)</span>
-                <button class="toast-close" aria-label="Close">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L9 9M9 1L1 9" stroke="#FFFCEB" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
+                <i class="fa-solid fa-exclamation-triangle"></i>
             </div>
             <div class="toast toast-success">
                 <span class="toast-message">Success: Operation completed</span>
-                <button class="toast-close" aria-label="Close">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L9 9M9 1L1 9" stroke="#FFFCEB" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
+                <i class="fa-solid fa-check-circle"></i>
             </div>
             <div class="toast toast-warning">
                 <span class="toast-message">Warning: Check your input</span>
-                <button class="toast-close" aria-label="Close">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L9 9M9 1L1 9" stroke="#FFFCEB" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
+                <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
         </div>
     </section>
@@ -266,17 +246,7 @@
     <div class="modal-overlay" id="system-modal" onclick="if(event.target === this) this.classList.remove('active')">
         <div class="modal modal-sm">
             <div class="modal-header">
-                <svg class="modal-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="4" cy="4" r="2" fill="#FFFCEB"/>
-                    <circle cx="10" cy="4" r="2" fill="#FFFCEB"/>
-                    <circle cx="16" cy="4" r="2" fill="#FFFCEB"/>
-                    <circle cx="4" cy="10" r="2" fill="#FFFCEB"/>
-                    <circle cx="10" cy="10" r="2" fill="#FFFCEB"/>
-                    <circle cx="16" cy="10" r="2" fill="#FFFCEB"/>
-                    <circle cx="4" cy="16" r="2" fill="#FFFCEB"/>
-                    <circle cx="10" cy="16" r="2" fill="#FFFCEB"/>
-                    <circle cx="16" cy="16" r="2" fill="#FFFCEB"/>
-                </svg>
+                <i class="modal-icon fa-solid fa-gears"></i>
                 <h2 class="modal-title">System message</h2>
             </div>
             <p class="modal-message">Something happened that involves the user to take an action. Here are some options he can choose from:</p>
@@ -291,9 +261,7 @@
     <div class="modal-overlay" id="edit-modal" onclick="if(event.target === this) this.classList.remove('active')">
         <div class="modal">
             <div class="modal-header">
-                <svg class="modal-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14.7 2.3C15.1 1.9 15.7 1.9 16.1 2.3L17.7 3.9C18.1 4.3 18.1 4.9 17.7 5.3L6.5 16.5L2 18L3.5 13.5L14.7 2.3Z" fill="#FFFCEB"/>
-                </svg>
+                <i class="modal-icon fa-solid fa-pencil"></i>
                 <h2 class="modal-title">Edit profile</h2>
             </div>
             

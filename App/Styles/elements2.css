@@ -284,17 +284,21 @@ span {
     display: flex;
     align-items: center;
     gap: var(--gap-sm);
+    color: var(--confirm);
 }
 
 .difficulty-icon {
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
+    align-content: center;
+    color: inherit;
 }
 
 .difficulty-text {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--confirm);
+    color: inherit;
 }
 
 /* section header with navigation */
@@ -463,6 +467,7 @@ span {
 }
 
 .sidebar-item {
+    color: var(--disabled-text);
     display: flex;
     align-items: center;
     gap: var(--gap-md);
@@ -478,23 +483,26 @@ span {
 
 .sidebar-item.active {
     background-color: var(--fundal);
+    color: var(--text-colour);
 }
 
 .sidebar-item.active .sidebar-text {
     font-weight: var(--h3-font-weight);
-    color: var(--text-colour);
+    color: inherit;
 }
 
 .sidebar-item .sidebar-text {
     font-size: var(--h3-font-size);
     font-weight: var(--h3-alt-font-weight);
-    color: var(--disabled-text);
+    color: inherit;
 }
 
 .sidebar-icon {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    align-content: center;
+    color: inherit;
 }
 
 /* Sidebar Divider */
@@ -530,15 +538,6 @@ span {
     align-items: flex-end;
 }
 
-.toast {
-    display: flex;
-    align-items: center;
-    gap: var(--gap-md);
-    padding: var(--gap-md);
-    border-radius: var(--border-radius-sm);
-    animation: slideIn 0.3s ease-out;
-}
-
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -550,21 +549,38 @@ span {
     }
 }
 
+.toast {
+    display: flex;
+    align-items: start;
+    max-width: 300px;
+    gap: var(--gap-md);
+    padding: var(--gap-md);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0px 0px 7.5px 0px transparent;
+}
+
+.toast-info {
+    background-color: var(--contrast);
+    border-color: var(--border2-solid);
+    box-shadow: 0px 0px 7.5px 0px rgba(100, 100, 100, 0.3);
+}
 .toast-error {
     background-color: var(--danger);
-    border: 1px solid var(--danger-border);
+    border-color: var(--danger-border);
     box-shadow: 0px 0px 7.5px 0px rgba(89, 41, 65, 0.3);
 }
 
 .toast-success {
     background-color: var(--confirm);
-    border: 1px solid var(--confirm-border);
+    border-color: var(--confirm-border);
     box-shadow: 0px 0px 7.5px 0px rgba(101, 157, 72, 0.3);
 }
 
 .toast-warning {
     background-color: var(--warning);
-    border: 1px solid var(--warning-border);
+    border-color: var(--warning-border);
     box-shadow: 0px 0px 7.5px 0px rgba(157, 149, 72, 0.3);
 }
 
@@ -572,7 +588,6 @@ span {
     font-size: var(--h3-font-size);
     font-weight: var(--h3-font-weight);
     color: var(--text-cream);
-    white-space: nowrap;
 }
 
 .toast-close {
@@ -644,6 +659,7 @@ span {
     width: 30px;
     height: 30px;
     flex-shrink: 0;
+    align-content: center;
 }
 
 .modal-title {
