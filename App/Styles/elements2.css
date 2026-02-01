@@ -51,14 +51,23 @@
     --gap-sm: 5px;
     --gap-md: 10px;
     --gap-lg: 20px;
+    --gap-xxl: 80px;
+
     --padding-card: 20px;
+    --padding-right-small: 10px;
+    --padding-lg-aside: 30px;
+    --padding-left-right: 100px; /* more like a margin actually */
+
     --border-radius-sm: 10px;
     --border-radius-lg: 20px;
+
+    --top-bar-height: 3.75rem;
 }
 
+/* ====================== */
+/* =====RESET=STYLES===== */
+/* ====================== */
 
-
-/* reset */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -69,10 +78,9 @@ body {
     background-color: var(--fundal);
     color: var(--text-colour);
     font-family: 'Raleway', sans-serif;
-    padding: 40px;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    padding: 0 var(--padding-left-right);
 }
 
 /* typography */
@@ -109,6 +117,122 @@ span {
     font-weight: var(--small-font-weight);
     color: var(--text-colour);
 }
+
+/* ====================== */
+/* ======END==RESET====== */
+/* ====================== */
+
+/* top menu */
+
+.top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% + 2 * var(--padding-left-right));
+    margin-left: calc(-1 * var(--padding-left-right));
+    margin-right: calc(-1 * var(--padding-left-right));
+    padding: 0 var(--padding-left-right);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    background: var(--fundal);
+    color: var(--text-colour);
+    font-size: var(--body-font-size);
+    min-height: var(--top-bar-height);
+}
+
+.top-bar div {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-lg);
+}
+
+.top-bar a {
+    text-decoration: none;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+    color: inherit;
+}
+
+.top-bar > div, .top-bar > div > nav {
+    display: flex;
+    gap: var(--gap-lg);
+}
+
+.top-bar .logo {
+    color: inherit;
+    font-size: 1.6rem;
+    font-weight: var(--h1-font-weight);
+}
+
+.top-bar img {
+    border-radius: 100%;
+}
+
+.top-bar span {
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+}
+
+.top-bar .user-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: end;
+}
+
+.top-bar .user-info-text .user-stats {
+    font-size: var(--small-font-size);
+    font-weight: var(--small-font-weight);
+    color: var(--disabled-text);
+}
+
+/* I. MAIN LAYOUT */
+
+.main-layout {
+    display: flex;
+    gap: var(--gap-xxl);
+}
+
+aside {
+    position: sticky;
+    top: var(--top-bar-height); /* below the top-bar */
+    align-self: flex-start;
+    height: calc(100vh - var(--top-bar-height));
+    flex-shrink: 0;
+    margin-left: calc(-1 * var(--padding-left-right));
+    padding-left: var(--padding-left-right);
+    padding-top: var(--padding-lg-aside);
+    padding-right: var(--padding-right-small);
+    background-color: var(--contrast);
+    border-right: 1px solid var(--border2-solid);
+    color: var(--disabled-text);
+    overflow-y: auto;
+}
+
+aside > nav {
+    display: flex;
+    flex-direction: column;
+}
+
+/*aside .sidebar-section {
+    display: flex;
+    flex-direction: row;
+}*/
+
+aside > nav > a {
+    text-decoration: none;
+    color: inherit;
+}
+
+main, .content-area {
+    display: flex;
+    margin-top: var(--gap-xxl);
+    width: 100%;
+    gap: var(--gap-xxl);
+}
+
 
 /* sections */
 .section {
@@ -455,7 +579,7 @@ span {
 }
 
 /* Sidebar Preview */
-.sidebar-preview {
+.sidebar-preview, .sidebar-section {
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -463,7 +587,6 @@ span {
     border: 1px solid var(--border2-solid);
     border-radius: var(--border-radius-sm);
     padding: var(--gap-lg);
-    width: 260px;
 }
 
 .sidebar-item {
@@ -517,6 +640,7 @@ span {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
     color: var(--border2-solid);
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
