@@ -21,7 +21,23 @@
         "progress": "progrés",
         "achievements": "aconseguiments",
         "recent-activity": "activitat recent",
-        "bookmarks": "marcadors"
+        "bookmarks": "marcadors",
+        "continue-learning": "Continua aprenent",
+        "day-streak": "Ratxa de dies",
+        "day-streak-description": "Completa un problema avui per començar una nova ratxa.",
+        "profile": {
+            "logout": "Tanca sessió",
+            "edit": "Edita el perfil"
+        },
+        "problem": {
+            "continue": "Continua",
+            "difficulty": {
+                "easy": "Fàcil",
+                "medium": "Mitjà",
+                "hard": "Difícil"
+            }
+        },
+        "achievement-status": "problemes"
     },
     "log-out": "tanca la sessió",
     "top-menu": {

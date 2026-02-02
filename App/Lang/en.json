@@ -21,7 +21,23 @@
         "progress": "progress",
         "achievements": "achievements",
         "recent-activity": "recent activity",
-        "bookmarks": "bookmarks"
+        "bookmarks": "bookmarks",
+        "continue-learning": "Continue learning",
+        "day-streak": "Day streak",
+        "day-streak-description": "Complete a problem today to start a new streak.",
+        "profile": {
+            "logout": "Log out",
+            "edit": "Edit profile"
+        },
+        "problem": {
+            "continue": "Continue",
+            "difficulty": {
+                "easy": "Easy",
+                "medium": "Medium",
+                "hard": "Hard"
+            }
+        },
+        "achievement-status": "problems"
     },
     "log-out": "log out",
     "top-menu": {

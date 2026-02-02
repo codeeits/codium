@@ -21,7 +21,23 @@
         "progress": "progres",
         "achievements": "acomplimente",
         "recent-activity": "activitate recentă",
-        "bookmarks": "lecții salvate"
+        "bookmarks": "lecții salvate",
+        "continue-learning": "Continuă învățarea",
+        "day-streak": "Serie de zile",
+        "day-streak-description": "Completează o problemă astăzi pentru a începe o nouă serie.",
+        "profile": {
+            "logout": "Deconectare",
+            "edit": "Editează profilul"
+        },
+        "problem": {
+            "continue": "Continuă",
+            "difficulty": {
+                "easy": "Ușor",
+                "medium": "Mediu",
+                "hard": "Greu"
+            }
+        },
+        "achievement-status": "probleme"
     },
     "log-out": "deconectare",
     "top-menu": {
