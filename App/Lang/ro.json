@@ -25,9 +25,24 @@
     },
     "log-out": "deconectare",
     "top-menu": {
-        "teory": "> teorie",
-        "probleme": "> probleme",
-        "contact": "> contact"
+        "teory": "Teorie",
+        "probleme": "Probleme",
+        "contact": "Contact",
+        "coin": "biscuiției"
+    },
+    "sidebar": {
+        "home": "Acasă",
+        "bookmarks": "Salvate",
+        "progress": "Progres",
+        "learn": "Învață",
+        "lessons": "Lecții",
+        "problems": "Probleme",
+        "tests": "Teste",
+        "other": "Altele",
+        "manage-lessons": "Gestionează lecții",
+        "manage-problems": "Gestionează probleme",
+        "settings": "Setări",
+        "about": "Despre noi"
     },
     "modal": {
         "edit_profile": {

@@ -35,7 +35,54 @@ async function loadTopMenu(variant = 'default') {
     }
 }
 
-function updateAuthButton() {
+async function loadSidebar(activePage = null) {
+    const container = document.getElementById('sidebar-container');
+    if (!container) {
+        return; // No sidebar container on this page
+    }
+
+    try {
+        const response = await fetch('/app/elements.html');
+        const html = await response.text();
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        const sidebar = tempDiv.querySelector('#sidebar-default');
+        
+        if (sidebar) {
+            const sidebarClone = sidebar.cloneNode(true);
+            sidebarClone.id = 'sidebar';
+            sidebarClone.classList.remove('sidebar-variant');
+            
+            container.innerHTML = sidebarClone.outerHTML;
+            console.log('Loaded sidebar');
+            
+            // Set active page
+            if (activePage) {
+                const activeItem = container.querySelector(`[data-sidebar="${activePage}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active');
+                }
+            }
+            
+            // Hide admin-only items if not admin
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (!isAdmin) {
+                container.querySelectorAll('.admin-only').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+            
+        } else {
+            console.warn('Sidebar template not found');
+        }
+    } catch (error) {
+        console.error('Error loading sidebar:', error);
+    }
+}
+
+async function updateAuthButton() {
     const loginButton = document.getElementById('login-button');
     const userButton = document.getElementById('user-button');
     const logoutButton = document.getElementById('logout-button');
@@ -46,7 +93,12 @@ function updateAuthButton() {
     const hardLessonsExit = document.getElementById('hard-lessons-exit-btn');
     const backButton = document.getElementById('back-btn');
     const contactButton = document.getElementById('contact-button');
-    
+
+
+    const userInfoContainer = document.getElementById('user-info');
+    const userAvatarSmall = document.getElementById('user-avatar-small');
+
+
     const authToken = localStorage.getItem('authToken');
     const username = localStorage.getItem('username');
     
@@ -108,6 +160,10 @@ function updateAuthButton() {
         if (loginButton) {
             loginButton.classList.add('hidden');
         }
+
+        if (userInfoContainer) {
+            userInfoContainer.classList.remove('hidden');
+        }
         
         if (userButton) {
             userButton.classList.remove('hidden');
@@ -132,6 +188,11 @@ function updateAuthButton() {
         if (userNameSpan) {
             userNameSpan.textContent = username;
         }
+
+        if(userAvatarSmall) {
+            const imgUrl = await window.apiService.getProfilePicture();
+            userAvatarSmall.src = imgUrl;
+        }
     } else {
         // User is not logged in - show login button, hide user and logout buttons
         if (loginButton) {
@@ -145,6 +206,10 @@ function updateAuthButton() {
         
         if (userButton) {
             userButton.classList.add('hidden');
+        }
+
+        if (userInfoContainer) {
+            userInfoContainer.classList.add('hidden');
         }
         
         if (logoutButton) {
@@ -183,9 +248,20 @@ function getMenuVariant() {
     return 'default';
 }
 
+function getActiveSidebarPage() {
+    const metaTag = document.querySelector('meta[name="sidebar-active"]');
+    if (metaTag) {
+        return metaTag.getAttribute('content');
+    }
+    return null;
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const variant = getMenuVariant();
     await loadTopMenu(variant);
+    
+    const activeSidebarPage = getActiveSidebarPage();
+    await loadSidebar(activeSidebarPage);
     
     window.addEventListener('storage', function(e) {
         if (e.key === 'authToken' || e.key === 'username') {

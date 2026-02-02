@@ -25,9 +25,24 @@
     },
     "log-out": "log out",
     "top-menu": {
-        "teory": "> theory",
-        "probleme": "> problems",
-        "contact": "> contact"
+        "teory": "Theory",
+        "probleme": "Problems",
+        "contact": "Contact",
+        "coin": "cookies"
+    },
+    "sidebar": {
+        "home": "Home",
+        "bookmarks": "Bookmarks",
+        "progress": "Progress",
+        "learn": "Learn",
+        "lessons": "Lessons",
+        "problems": "Problems",
+        "tests": "Tests",
+        "other": "Other",
+        "manage-lessons": "Manage lessons",
+        "manage-problems": "Manage problems",
+        "settings": "Settings",
+        "about": "About us"
     },
     "modal": {
         "edit_profile": {

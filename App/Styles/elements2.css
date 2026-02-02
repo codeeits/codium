@@ -112,9 +112,24 @@ p {
     line-height: 1.4;
 }
 
+a {
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+    color: var(--text-colour);
+    text-decoration: none;
+    cursor: pointer;
+}
+
 span {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
+    color: var(--text-colour);
+}
+
+option, select {
+    font-family: 'Raleway', sans-serif;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
     color: var(--text-colour);
 }
 
@@ -122,12 +137,23 @@ span {
 /* ======END==RESET====== */
 /* ====================== */
 
+.hidden {
+    display: none !important;
+}
+
+.menu-variant, .sidebar-variant {
+    display: none !important;
+}
+
 /* top menu */
 
-.top-bar {
+#top-menu-container {
     position: sticky;
     top: 0;
     z-index: 999999;
+}
+
+.top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -153,6 +179,12 @@ span {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: inherit;
+    transition: color 0.2s ease-in-out;
+
+}
+
+.top-bar a:hover {
+    color: var(--primary) !important;
 }
 
 .top-bar > div, .top-bar > div > nav {
@@ -168,6 +200,9 @@ span {
 
 .top-bar img {
     border-radius: 100%;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
 }
 
 .top-bar span {
@@ -186,6 +221,28 @@ span {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
     color: var(--disabled-text);
+}
+
+.language-dropdown {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23FFFFFF' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+}
+
+.language-dropdown option {
+    background-color: var(--fundal);
+    color: var(--text-colour);
+    font: inherit;
+
 }
 
 /* I. MAIN LAYOUT */
@@ -230,9 +287,7 @@ main, .content-area {
     display: flex;
     margin-top: var(--gap-xxl);
     width: 100%;
-    gap: var(--gap-xxl);
 }
-
 
 /* sections */
 .section {
@@ -291,7 +346,7 @@ main, .content-area {
     border: 1px solid var(--border2-solid);
     border-radius: var(--border-radius-lg);
     padding: var(--padding-card);
-    box-shadow: var(--card-shadow);
+    /* box-shadow: var(--card-shadow); */
     backdrop-filter: blur(3.75px);
 }
 
@@ -301,6 +356,7 @@ main, .content-area {
     justify-content: space-between;
     align-items: center;
     gap: var(--gap-md);
+    max-width: 600px;
 }
 
 .profile-info {
@@ -356,7 +412,7 @@ main, .content-area {
     height: 224px;
     background-color: var(--fundal);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--border-radius-sm);
     flex-shrink: 0;
 }
 

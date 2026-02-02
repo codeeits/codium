@@ -25,9 +25,24 @@
     },
     "log-out": "tanca la sessió",
     "top-menu": {
-        "teory": "> teoria",
-        "probleme": "> problemes",
-        "contact": "> contacte"
+        "teory": "Teoria",
+        "probleme": "Problemes",
+        "contact": "Contacte",
+        "coin": "galetes"
+    },
+    "sidebar": {
+        "home": "Inici",
+        "bookmarks": "Marcadors",
+        "progress": "Progrés",
+        "learn": "Aprèn",
+        "lessons": "Lliçons",
+        "problems": "Problemes",
+        "tests": "Tests",
+        "other": "Altres",
+        "manage-lessons": "Gestiona lliçons",
+        "manage-problems": "Gestiona problemes",
+        "settings": "Configuració",
+        "about": "Sobre nosaltres"
     },
     "modal": {
         "edit_profile": {

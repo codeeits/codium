@@ -748,6 +748,23 @@ class ApiService {
         return `${this.baseURL}/api/files/${fileId}`;
     }
 
+    async getProfilePicture(userId = null) {
+        if (!userId) {
+            const profilePicId = localStorage.getItem('profilePicID');
+            if (profilePicId) {
+                return this.getFileUrl(profilePicId);
+            }
+            return null;
+        }
+        
+        const user = await this.getUserById(userId);
+        const userData = typeof user === 'string' ? JSON.parse(user) : user;
+        if (userData.ProfilePicID) {
+            return this.getFileUrl(userData.ProfilePicID);
+        }
+        return null;
+    }
+
     // ===========================================
     // Code Execution (Piston API)
     // ===========================================

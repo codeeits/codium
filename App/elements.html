@@ -108,3 +108,90 @@
         </button>
     </div>
 </div>
+
+<!-- New header menu -->
+<div id="top-menu-new" class="top-bar menu-variant">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#" data-i18n="top-menu.teory">Teorie</a>
+                <a href="#" data-i18n="top-menu.probleme">Probleme</a>
+            </nav>
+        </div>
+        <div class="top-bar-right">
+            <div class="language-toggle-container">
+                <select class="language-dropdown" id="language-selector">
+                    <option value="ro" class="lang-toggle">RO</option>
+                    <option value="en" class="lang-toggle">EN</option>
+                    <option value="ca" class="lang-toggle">CA</option>
+                </select>
+            </div>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info hidden" id="user-info">
+                <div class="user-info-text">
+                    <span class="user-name" id="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 <span class="user-stats" data-i18n="top-menu.coin"></span></span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small" id="user-avatar-small">
+            </div>
+            <a href="login.html" id="login-button" class="auth-logged-out" data-i18n="buttons.login">Loghează-te</a>
+        </div>
+</div>
+
+<!-- Sidebar template -->
+<aside id="sidebar-default" class="sidebar sidebar-variant">
+    <nav class="sidebar-nav">
+        <a href="/app/user2.html" class="sidebar-item" data-sidebar="home">
+            <i class="sidebar-icon fa-solid fa-house"></i>
+            <span class="sidebar-text" data-i18n="sidebar.home">Home</span>
+        </a>
+        <a href="#" class="sidebar-item" data-sidebar="bookmarks">
+            <i class="sidebar-icon fa-solid fa-bookmark"></i>
+            <span class="sidebar-text" data-i18n="sidebar.bookmarks">Bookmarks</span>
+        </a>
+        <a href="#" class="sidebar-item" data-sidebar="progress">
+            <i class="sidebar-icon fa-solid fa-chart-simple"></i>
+            <span class="sidebar-text" data-i18n="sidebar.progress">Progress</span>
+        </a>
+
+        <div class="sidebar-divider">
+            <span class="divider-text" data-i18n="sidebar.learn">Learn</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <a href="/app/Lectii/lessons.html" class="sidebar-item" data-sidebar="lessons">
+            <i class="sidebar-icon fa-solid fa-book"></i>
+            <span class="sidebar-text" data-i18n="sidebar.lessons">Lessons</span>
+        </a>
+        <a href="/app/Probleme/index.html" class="sidebar-item" data-sidebar="problems">
+            <i class="sidebar-icon fa-solid fa-code"></i>
+            <span class="sidebar-text" data-i18n="sidebar.problems">Problems</span>
+        </a>
+        <a href="#" class="sidebar-item" data-sidebar="tests">
+            <i class="sidebar-icon fa-solid fa-list-check"></i>
+            <span class="sidebar-text" data-i18n="sidebar.tests">Tests</span>
+        </a>
+
+        <div class="sidebar-divider">
+            <span class="divider-text" data-i18n="sidebar.other">Other</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <a href="/app/Lectii/manage-lessons.html" class="sidebar-item admin-only" data-sidebar="manage-lessons">
+            <i class="sidebar-icon fa-solid fa-gears"></i>
+            <span class="sidebar-text" data-i18n="sidebar.manage-lessons">Manage lessons</span>
+        </a>
+        <a href="/app/Probleme/problem-upload.html" class="sidebar-item admin-only" data-sidebar="manage-problems">
+            <i class="sidebar-icon fa-solid fa-gears"></i>
+            <span class="sidebar-text" data-i18n="sidebar.manage-problems">Manage problems</span>
+        </a>
+        <a href="#" class="sidebar-item" data-sidebar="settings">
+            <i class="sidebar-icon fa-solid fa-gear"></i>
+            <span class="sidebar-text" data-i18n="sidebar.settings">Settings</span>
+        </a>
+        <a href="/app/contact.html" class="sidebar-item" data-sidebar="about">
+            <i class="sidebar-icon fa-solid fa-circle-info"></i>
+            <span class="sidebar-text" data-i18n="sidebar.about">About us</span>
+        </a>
+    </nav>
+</aside>
