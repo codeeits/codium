@@ -168,7 +168,7 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 		return
 	}
 
-	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
+	if !(UserHasPermission(sendingUser, PermissionCanManageProblems) || UserHasPermission(sendingUser, PermissionCanSuggestProblems)) {
 		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -186,6 +186,8 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 		return
 	}
 
+	cfg.logger.Printf("Received update problem test request for field: %v by user: %v", targetField, sendingUser.ID)
+
 	// Parse test ID as UUID
 	test, err := GetObjByPathUUID(r, "testID", cfg.db.GetCodeTestByID)
 	if err != nil {
@@ -194,7 +196,6 @@ func (cfg *ApiCfg) UpdateProblemTestDisambiguationHandler(w http.ResponseWriter,
 		return
 	}
 
-	cfg.logger.Printf("Received update problem test request for field: %v", targetField)
 	switch targetField {
 	case "input":
 		cfg.UpdateProblemTestInputHandler(w, r, test)
@@ -276,11 +277,6 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 		http.Error(w, "Database not connected", http.StatusInternalServerError)
 		return
 	}
-	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
-		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 
 	q := r.URL.Query()
 	if len(q) == 0 {
@@ -296,7 +292,6 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	cfg.logger.Printf("Received update problem request for field: %v", targetField)
 	// Parse problem ID as UUID
 	problem, err := GetObjByPathUUID(r, "problemID", cfg.db.GetProblemByID)
 	if err != nil {
@@ -304,6 +299,14 @@ func (cfg *ApiCfg) UpdateProblemDisambiguationHandler(w http.ResponseWriter, r *
 		http.Error(w, "Invalid problem ID format", http.StatusBadRequest)
 		return
 	}
+
+	if !(UserHasPermission(sendingUser, PermissionCanManageProblems) || problem.AuthorID == sendingUser.ID) {
+		cfg.logger.Printf("Failed to authenticate user: %v", sendingUser.ID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	cfg.logger.Printf("Received update problem request for field: %v by user: %v", targetField, sendingUser.ID)
 
 	switch targetField {
 	case "details":
@@ -2720,6 +2723,33 @@ func (cfg *ApiCfg) UpdateProblemDetailsHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
+}
+
+func (cfg *ApiCfg) GetSuggestedProblemsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.databaseCfg.Loaded {
+		cfg.logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
+		cfg.logger.Printf("Unauthorized get suggested problems attempt by non-admin user: %v", sendingUser.ID)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	cfg.logger.Print("Received get suggested problems request")
+
+	problems, err := cfg.db.GetSuggestedProblems(r.Context(), database.GetSuggestedProblemsParams{
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to retrieve suggested problems: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	cfg.WriteListJsonOutput(w, http.StatusOK, problemsToAny(problems), PrintProblemToJson)
 }
 
 /*

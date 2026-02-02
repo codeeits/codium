@@ -1177,6 +1177,72 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		var suggestedProblemID uuid.UUID
+		t.Run("TestCreateProblemAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Teacher Problem","description":"This is a test problem created by a teacher", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
+			res, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var problem ProblemWithTags
+			if problem = res.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.Suggested != true {
+				t.Fatalf("Expected problem suggested %t, got %t", true, problem.Problem.Suggested)
+			}
+			suggestedProblemID = problem.Problem.ID
+		})
+
+		t.Run("TestUpdateSuggestedProblemAsAverageUser", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Teacher Problem"}`)
+			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestUpdateSuggestedProblemAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Teacher Problem", "description":"This is an updated teacher test problem", "source":"ONI2026"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = resp.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.Title != "Updated Teacher Problem" {
+				t.Fatalf("Expected problem title %s, got %s", "Updated Teacher Problem", problem.Problem.Title)
+			}
+		})
+
+		t.Run("TestApproveSuggestedProblemWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveSuggestedProblemAsAdmin", func(t *testing.T) {
+			res, err := NewRequestBuilder("POST", nil, http.StatusOK, ProblemWithTags{}).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = res.(ProblemWithTags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if problem.Problem.Suggested != false {
+				t.Fatalf("Problem is suggested, expected to not be suggested")
+			}
+		})
+
 		t.Run("TestGetProblemByID", func(t *testing.T) {
 			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {

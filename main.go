@@ -136,6 +136,8 @@ func main() {
 		mux.Handle("POST /admin/users/account_status", cfg.AuthenticatedEndpointMiddleware(cfg.SetUserAccountStatusHandler))
 		mux.Handle("GET /admin/lessons/suggested", cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedLessonsHandler))
 		mux.Handle("POST /admin/lessons/suggested/{lessonID}/approve", cfg.AuthenticatedEndpointMiddleware(cfg.ApproveLessonHandler))
+		mux.Handle("GET /admin/problems/suggested", cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedProblemsHandler))
+		mux.Handle("POST /admin/problems/suggested/{problemID}/approve", cfg.AuthenticatedEndpointMiddleware(cfg.ApproveProblemHandler))
 
 		// Deprecated endpoint for user creation
 		mux.Handle("POST /api/create_user", http.HandlerFunc(cfg.CreateUserHandler))
