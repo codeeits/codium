@@ -27,6 +27,37 @@
         </div>
     </section>
 
+    <!-- Dropdown -->
+    <section class="section">
+        <h2>Dropdown</h2>
+        <div class="buttons-row">
+            <div class="dropdown" id="sort-dropdown">
+                <button type="button" class="btn primary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                    Alfabetic <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item active">Alfabetic</div>
+                    <div class="dropdown-item">Dificultate</div>
+                    <div class="dropdown-item">Cele mai noi</div>
+                    <div class="dropdown-item">Cele mai vechi</div>
+                </div>
+            </div>
+            <div class="dropdown" id="filter-dropdown">
+                <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                    Filtrează <i class="fa-solid fa-filter"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a IX-a</div>
+                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a X-a</div>
+                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a XI-a</div>
+                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a XII-a</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item"><i class="fa-solid fa-rotate-left"></i> Resetează</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Profile Card -->
     <section class="section">
         <h2>Profile Card</h2>
@@ -47,16 +78,38 @@
 
     <!-- Problem Card Horizontal -->
     <section class="section">
-        <h2>Problem Card (Horizontal)</h2>
-        <div class="card problem-card">
-            <div class="problem-image-placeholder"></div>
-            <div class="problem-content">
-                <div class="problem-text">
-                    <span class="problem-category">CLASA A IX-A</span>
-                    <h3 class="problem-title">Problema 1</h3>
-                    <p class="problem-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+        <h2>Content Card (Horizontal)</h2>
+        <div class="card content-card">
+            <div class="content-card-image"></div>
+            <div class="content-card-body">
+                <div class="content-card-text">
+                    <span class="content-card-category">CLASA A IX-A</span>
+                    <h3 class="content-card-title">Problema 1</h3>
+                    <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
                 </div>
-                <div class="problem-footer">
+                <div class="content-card-footer">
+                    <div class="difficulty">
+                        <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                        <span class="difficulty-text">Easy</span>
+                    </div>
+                    <button type="button" class="btn primary full-width">Continue</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lesson Card (horizontal or vertical)-->
+    <section class="section">
+        <h2>Lesson Card (Horizontal)</h2>
+        <div class="card content-card">
+            <div class="content-card-image"></div>
+            <div class="content-card-body">
+                <div class="content-card-text">
+                    <span class="content-card-category">CLASA A IX-A</span>
+                    <h3 class="content-card-title">Introducere în programare</h3>
+                    <p class="content-card-description">Learn the basics of programming including variables, control structures, and functions.</p>
+                </div>
+                <div class="content-card-footer">
                     <div class="difficulty">
                         <i class="difficulty-icon fa-solid fa-chart-simple"></i>
                         <span class="difficulty-text">Easy</span>
@@ -320,6 +373,37 @@
             <p class="modal-hint">Leave fields empty if you don't want to change them.</p>
         </div>
     </div>
+
+    <script>
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+        // Handle dropdown item selection
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = this.closest('.dropdown');
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                // Update active state
+                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update button text (keep icon)
+                const icon = toggle.querySelector('i');
+                toggle.textContent = this.textContent.trim() + ' ';
+                toggle.appendChild(icon);
+                
+                // Close dropdown
+                dropdown.classList.remove('open');
+            });
+        });
+    </script>
 
 </body>
 </html>

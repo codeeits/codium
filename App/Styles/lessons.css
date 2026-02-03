@@ -1,0 +1,67 @@
+.content-area .main-content {
+    min-width: 600px;
+}
+
+.content-card-body {
+
+    justify-content: flex-start;
+    gap: var(--gap-15px);
+    padding: 0 var(--gap-md) var(--gap-md) var(--gap-md);
+
+}
+
+.content-area > div {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-lg);
+}
+
+main, .content-area {
+    gap: var(--gap-lg);
+    flex-direction: column;
+}
+
+.content-area h2 {
+    font-weight: var(--h2-alt-font-weight);
+}
+
+.filters-list {
+    justify-content: space-between;
+    align-items: start;
+}
+
+.filters-list-left {
+    display: flex;
+    gap: var(--gap-md);
+}
+
+.content-area .separator {
+    height: 1px;
+    background: var(--disabled-text);
+}
+
+.lessons-grid-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
+    gap: var(--gap-lg);
+}
+
+.lessons-grid-container .content-card {
+    flex-direction: column;
+}
+
+.lessons-grid-container .content-card > div {
+    min-height: 0;
+    gap: var(--gap-md);
+}
+
+.lessons-grid-container .content-card img {
+    width: 100%;
+    height: auto;
+}
+
+.lessons-grid-container .content-card .lesson-class-badge {
+    text-transform: uppercase;
+    font-size: var(--small-font-size);
+    color: var(--disabled-text);
+}
