@@ -37,7 +37,7 @@ main, .content-area {
 
 .content-area .separator {
     height: 1px;
-    background: var(--disabled-text);
+    background: var(--border-subtle);
 }
 
 .lessons-grid-container {
