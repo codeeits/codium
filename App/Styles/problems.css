@@ -10,10 +10,26 @@
 
 }
 
+.problems-grid-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
+    gap: var(--gap-lg);
+}
+
+.problems-grid-container[hidden] {
+    display: none !important;
+}
+
+.problems-feed-container[hidden] {
+    display: none !important;
+}
+
 .content-area > div {
     display: flex;
     flex-direction: row;
     gap: var(--gap-lg);
+    align-items: center;
+    justify-content: space-between;
 }
 
 main, .content-area {
@@ -35,32 +51,32 @@ main, .content-area {
     gap: var(--gap-md);
 }
 
+.buttons-list-right {
+    display: flex;
+    gap: var(--gap-md);
+}
+
 .content-area .separator {
     height: 1px;
     background: var(--border-subtle);
 }
 
-.lessons-grid-container {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
-    gap: var(--gap-lg);
-}
-
-.lessons-grid-container .content-card {
+.problems-grid-container .content-card {
     flex-direction: column;
+    /* max-width: min-content; */
 }
 
-.lessons-grid-container .content-card > div {
+.problems-grid-container .content-card > div {
     min-height: 0;
     gap: var(--gap-md);
 }
 
-.lessons-grid-container .content-card img {
+.problems-grid-container .content-card img {
     width: 100%;
     height: auto;
 }
 
-.lessons-grid-container .content-card .lesson-class-badge {
+.problems-grid-container .content-card .problem-class-badge {
     text-transform: uppercase;
     font-size: var(--small-font-size);
     color: var(--disabled-text);

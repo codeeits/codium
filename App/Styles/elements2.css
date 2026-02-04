@@ -28,6 +28,13 @@
     --body-font-size: 14px;
     --body-font-weight: 400;
 
+    /* subtitle (H4): 14px, SemiBold */
+    --h4-font-size: 14px;
+    --h4-font-weight: 600;
+
+    /* subtitle (H4) altern: 14px, Medium */
+    --h4-alt-font-weight: 500;
+
     /* subtitle (H3): 16px, SemiBold */
     --h3-font-size: 16px;
     --h3-font-weight: 600;
@@ -270,6 +277,7 @@ aside {
     border-right: 1px solid var(--border2-solid);
     color: var(--disabled-text);
     overflow-y: auto;
+    width: max-content;
 }
 
 aside > nav {
@@ -310,7 +318,7 @@ main, .content-area {
 
 .btn {
     padding: var(--gap-md);
-    border: 1px solid var(--border2-solid);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--border-radius-sm);
     font-family: 'Raleway', sans-serif;
     font-size: var(--button-font-size);
@@ -333,10 +341,29 @@ main, .content-area {
 
 .btn.secondary {
     background-color: var(--contrast);
+    transition: background-color 0.2s ease;
 }
 
 .btn.secondary:hover {
     background-color: var(--border2-solid);
+}
+
+.btn.confirm {
+    background-color: var(--confirm);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.btn.confirm:hover {
+    background-color: var(--confirm-border);
+}
+
+.btn.danger {
+    background-color: var(--danger);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.btn.danger:hover {
+    background-color: var(--danger-border);
 }
 
 .btn.full-width {
@@ -346,7 +373,7 @@ main, .content-area {
 /* card base */
 .card {
     background-color: var(--fundal);
-    border: 1px solid var(--border2-solid);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--border-radius-lg);
     padding: var(--padding-card);
     /* box-shadow: var(--card-shadow); */
@@ -491,6 +518,146 @@ main, .content-area {
     color: inherit;
 }
 
+/* card for infinite scroll feed */
+.feed-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    padding: var(--gap-lg);
+    transition: all 0.3s ease-in-out;
+}
+
+.header-feed-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-feed-card-left {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    gap: var(--gap-sm);
+}
+
+.header-feed-card .feed-card-hashtags > a {
+    font-size: var(--h4-font-size);
+    font-weight: var(--h4-font-weight);
+    color: var(--disabled-text);
+    text-decoration: none;
+}
+
+.header-feed-card .feed-card-hashtags > a:hover {
+    color: var(--primary);
+}
+
+.header-feed-card-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-md);
+}
+
+.feed-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.feed-card-body .example-block {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-lg);
+    width: 100%;
+}
+
+.feed-card-body ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.feed-card-body li {
+    font-size: var(--body-font-size);
+}
+
+.problems-feed-container .right-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.problems-feed-container .right-buttons .center-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.example-block .example-input,
+.example-block .example-output {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+
+.example-block p {
+    font-size: var(--small-font-size);
+    font-weight: var(--h4-font-weight);
+    color: var(--disabled-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.example-block pre {
+    background: var(--contrast);
+    border: 1px solid var(--border2-solid);
+    padding: var(--gap-lg);
+    border-radius: var(--border-radius-sm);
+    overflow-x: auto;
+    margin: 0;
+    height: 100%;
+}
+
+.example-block code {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: var(--body-font-size);
+    color: var(--text-cream);
+    background: transparent;
+    padding: 0;
+    white-space: pre;
+    line-height: 1.6;
+}
+
+/* Inline code (outside example blocks) */
+code:not(.example-block code) {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+    background: var(--contrast);
+    border: 1px solid var(--border2-solid);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: var(--primary);
+}
+
+/* Standalone pre blocks */
+pre:not(.example-block pre) {
+    background: var(--contrast);
+    border: 1px solid var(--border2-solid);
+    padding: var(--gap-lg);
+    border-radius: var(--border-radius-sm);
+    overflow-x: auto;
+    margin: var(--gap-md) 0;
+}
+
+pre:not(.example-block pre) code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--text-cream);
+}
+
 /* section header with navigation */
 .section-header {
     display: flex;
@@ -621,7 +788,7 @@ main, .content-area {
 .achievement-name {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .achievement-progress {
@@ -641,7 +808,7 @@ main, .content-area {
 .achievement-status {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 /* Sidebar Preview */
@@ -718,6 +885,27 @@ main, .content-area {
 }
 
 /* ===================== */
+/* Pills                 */
+/* ===================== */
+
+.pill {
+    display: inline-block;
+    padding: var(--gap-sm) var(--gap-md);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--button-font-size);
+    font-weight: var(--button-font-weight);
+    color: var(--text-colour);
+    background-color: transparent;
+    white-space: nowrap;
+}
+
+.pill.warning {
+    border-color: var(--warning-border);
+    background-color: var(--warning);
+}
+
+/* ===================== */
 /* Toast Notifications   */
 /* ===================== */
 
@@ -777,7 +965,7 @@ main, .content-area {
 .toast-message {
     font-size: var(--h3-font-size);
     font-weight: var(--h3-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .toast-close {
@@ -855,13 +1043,13 @@ main, .content-area {
 .modal-title {
     font-size: var(--h2-font-size);
     font-weight: var(--h2-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .modal-message {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
     line-height: 1.4;
 }
 
@@ -874,7 +1062,7 @@ main, .content-area {
 .modal-hint {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
     text-align: center;
     width: 100%;
 }
@@ -890,7 +1078,7 @@ main, .content-area {
 .input-label {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .input-field {
