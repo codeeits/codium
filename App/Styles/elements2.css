@@ -299,6 +299,7 @@ main, .content-area {
     display: flex;
     margin-top: var(--gap-xxl);
     width: 100%;
+    margin-bottom: var(--gap-xxl);
 }
 
 /* sections */
