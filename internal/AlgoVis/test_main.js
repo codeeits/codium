@@ -1,16 +1,21 @@
-let view = new Viewport(600, 400, 0, 0, "#1B0524", "black", 2);
-let root = new RootContainer(800, 600, view);
+let view = new Viewport(1220, 1000, 0, 0, "#1B0524", "black", 2);
+let root = new RootContainer(1220, 1000, view);
 
-root.addChild(new Container(200, 150, 50, 50, "red", "black", 1));
-root.addChild(new Container(300, 200, 300, 200, "blue", "black", 1));
-root.addChild(new Container(400, 200, 400, 200, "red", "black", 1));
-root.children[0].addChild(new Container(100, 75, 10, 10, "green", "black", 1));
+for (let i = 0; i < 10; i++) {
+    let container = new Container(100, 100, i * 110 + 20, root.height / 2 - 50, "rgba(255,255,255,0.1)", "white", 2, "center");
+    let element = document.createElement("p");
+    element.innerText = i.toString();
+    element.style.color = "white";
+    element.style.fontWeight = "bold";
+    element.style.fontSize = "30px";
+    element.style.fontFamily = "Arial, sans-serif";
+    element.style.verticalAlign = "middle";
 
-console.log(root)
+    container.setElement(element);
+    root.addChild(container);
+}
 
-let text = document.createElement("span");
-text.innerText = "Hello"
-root.children[0].children[0].setElement(text)
+console.log(root);
 
 view.render();
 

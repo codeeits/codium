@@ -10,6 +10,7 @@ class Container {
      border_width: number = 0;
      element: HTMLElement | null = null;
      parent: Container | null = null;
+     elem_align: string;
 
      children: Container[];
 
@@ -22,8 +23,9 @@ class Container {
      * @param bg_color
      * @param border_color
      * @param border_width
+     * @param elem_align
      */
-     constructor(width: number, height: number, rel_x: number = 0, rel_y: number = 0, bg_color: string = "transparent", border_color: string = "transparent", border_width: number = 0) {
+     constructor(width: number, height: number, rel_x: number = 0, rel_y: number = 0, bg_color: string = "transparent", border_color: string = "transparent", border_width: number = 0, elem_align: string = "left") {
          this.width = width;
          this.height = height;
          this.rel_x = rel_x;
@@ -32,6 +34,7 @@ class Container {
             this.bg_color = bg_color;
             this.border_color = border_color;
             this.border_width = border_width;
+            this.elem_align = elem_align;
      }
 
     /**
@@ -113,6 +116,7 @@ class Container {
     render(): HTMLElement {
          let output = document.createElement("div");
          if (this.element) {
+             this.element.style.display = "block";
              //console.log("DEBUG: Found element in container:");
              //console.log(this.element);
              output.appendChild(this.element);
@@ -126,6 +130,8 @@ class Container {
          output.style.borderColor = this.border_color;
          output.style.borderWidth = this.border_width + "px";
          output.style.borderStyle = this.border_width > 0 ? "solid" : "none";
+            output.style.textAlign = "center";
+            output.style.verticalAlign = "middle";
 
          for (let child of this.children) {
              output.appendChild(child.render());
