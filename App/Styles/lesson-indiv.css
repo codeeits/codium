@@ -1,0 +1,130 @@
+.content-area .main-content {
+    min-width: 600px;
+    flex-direction: column;
+}
+
+.content-card-body {
+
+    justify-content: flex-start;
+    gap: var(--gap-15px);
+    padding: 0 var(--gap-md) var(--gap-md) var(--gap-md);
+
+}
+
+.content-area > div {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-lg);
+}
+
+main, .content-area {
+    gap: var(--gap-lg);
+    flex-direction: row;
+}
+
+.content-area .page-description {
+    font-weight: var(--h2-alt-font-weight);
+}
+
+.filters-list {
+    justify-content: space-between;
+    align-items: start;
+}
+
+.filters-list-left {
+    display: flex;
+    gap: var(--gap-md);
+}
+
+.content-area .separator {
+    height: 1px;
+    background: var(--border-subtle);
+}
+
+.lessons-grid-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
+    gap: var(--gap-lg);
+}
+
+.lessons-grid-container .content-card {
+    flex-direction: column;
+}
+
+.lessons-grid-container .content-card > div {
+    min-height: 0;
+    gap: var(--gap-md);
+}
+
+.lessons-grid-container .content-card img {
+    width: 100%;
+    height: auto;
+}
+
+.lessons-grid-container .content-card .lesson-class-badge {
+    text-transform: uppercase;
+    font-size: var(--small-font-size);
+    color: var(--disabled-text);
+}
+
+.header-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.content-area .side-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+}
+
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.card a {
+    color: var(--primary);
+}
+
+.lectii-sectiune .header-lectii-sectiune {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+.lectii-sectiune .visited {
+    color: var(--primary);
+}
+
+.lectii-sectiune .active {
+    color: var(--text-colour);
+}
+
+.lectii-sectiune .disabled {
+    color: var(--disabled-text);
+}
+
+.lectii-sectiune .header-lectii-sectiune h4 {
+    font-weight: var(--h4-alt-font-weight);
+
+}
+
+.lesson-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-15px);
+}
+
+.content-area ul, .content-area ol {
+    padding-left: var(--gap-lg);
+    font-size: var(--body-font-size);
+}
+
+.header-icons, .lesson-buttons-bottom {
+    display: flex;
+    gap: var(--gap-md);
+    justify-content: flex-end;
+}
