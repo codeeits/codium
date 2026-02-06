@@ -1,5 +1,6 @@
 .content-area .main-content {
     min-width: 600px;
+    width: 100%;
     flex-direction: column;
 }
 
@@ -77,6 +78,10 @@ main, .content-area {
     display: flex;
     flex-direction: column;
     gap: var(--gap-lg);
+    position: sticky;
+    top: calc(var(--padding-lg-aside) + var(--top-bar-height));
+    align-self: flex-start;
+    max-width: 400px;
 }
 
 
@@ -88,6 +93,10 @@ main, .content-area {
 
 .card a {
     color: var(--primary);
+}
+
+.card a:hover {
+    text-decoration: underline;
 }
 
 .lectii-sectiune .header-lectii-sectiune {
@@ -127,4 +136,9 @@ main, .content-area {
     display: flex;
     gap: var(--gap-md);
     justify-content: flex-end;
+}
+
+.bread {
+    font-weight: var(--h2-alt-font-weight);
+    color: var(--disabled-text);
 }

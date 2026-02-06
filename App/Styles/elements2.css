@@ -635,8 +635,6 @@ main, .content-area {
 code:not(.example-block code) {
     font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
     font-size: 0.9em;
-    background: var(--contrast);
-    border: 1px solid var(--border2-solid);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
     color: var(--primary);
