@@ -57,7 +57,8 @@ main, .content-area {
 
 .lessons-grid-container .content-card img {
     width: 100%;
-    height: auto;
+    max-height: 250px;
+    object-fit: cover;
 }
 
 .lessons-grid-container .content-card .lesson-class-badge {

@@ -18,6 +18,7 @@
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
     <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/lessons/lessonsPage.js"></script>
 
     <meta name="menu-variant" content="new">
     <meta name="sidebar-active" content="lessons">
@@ -54,15 +55,15 @@
                 <h1>Lecții</h1>
                 <h2 class="page-description">Bazele pregătirii tale teoretice</h2>
                 <div class="filters-list">
-                    <div class="filters-list-left">
-                        <button type="button" class="btn primary active">Toate</button>
+                    <div class="filters-list-left" id="class-filters">
+                        <button type="button" class="btn primary template active" id="all-lessons">Toate</button>
                         <button type="button" class="btn secondary">Clasa a IX-a</button>
                         <button type="button" class="btn secondary">Clasa a X-a</button>
                         <button type="button" class="btn secondary">Clasa a XI-a</button>
                         <button type="button" class="btn secondary">Clasa a XII-a</button>
                     </div>
                         <div class="dropdown" id="sort-dropdown">
-                            <button type="button" class="btn primary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            <button type="button" class="btn primary dropdown-toggle">
                                 Alfabetic <i class="fa-solid fa-chevron-down"></i>
                             </button>
                             <div class="dropdown-menu">
@@ -74,8 +75,8 @@
                         </div>
                 </div>
                 <div class="separator"></div>
-                <div class="lessons-grid-container">
-                    <div class="card content-card">
+                <div class="lessons-grid-container" id="lessons-container">
+                    <div class="card content-card hidden" id="template-card">
                         <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
                         <div class="content-card-body">
                             <span class="lesson-class-badge">Clasa a IX-a</span>
@@ -150,31 +151,5 @@
                 </div>
         </main>
     </div>
-    <script>
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
-
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const dropdown = this.closest('.dropdown');
-                const toggle = dropdown.querySelector('.dropdown-toggle');
-                
-                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                const icon = toggle.querySelector('i');
-                toggle.textContent = this.textContent.trim() + ' ';
-                toggle.appendChild(icon);
-                
-                dropdown.classList.remove('open');
-            });
-        });
-    </script>
 </body>
 </html>
