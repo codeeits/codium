@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/settings.css">
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="settings">
+</head>
+<body>
+    
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <h1>Setări</h1>
+            <div class="main-content">
+
+                <div class="card profile-card">
+                    <div class="profile-info">
+                        <img src="https://placehold.co/80/png" alt="Profile Picture" class="profile-avatar">
+                        <div class="profile-details">
+                            <h2 class="profile-name">Codeeitsbutlonger</h2>
+                            <p class="profile-email">mail@its-codee.com</p>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button type="button" class="btn secondary">Log-out</button>
+                        <button type="button" class="btn primary">Editează profilul</button>
+                    </div>
+                </div>
+
+                <div class="card privacy-card">
+                    <h2>Confidențialitate</h2>
+                    <div class="setting-item">
+                        <label for="profile-visibility">Make my account private</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="profile-visibility">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="profile-visibility">Make my account private</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="profile-visibility">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="profile-visibility">Make my account private</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="profile-visibility">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="request-data">Download your data</label>
+                        <button type="button" id="request-data" class="btn secondary">Download Data</button>
+                    </div>
+                </div>
+
+                <div class="card appearance-card">
+                    <h2>Cuvant pentru appearance</h2>
+                    <div class="setting-item">
+                        <label for="dark-mode">Dark mode (can't be changed lol)</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="dark-mode" checked disabled>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="font-size">Font size</label>
+                        <div class="font-size-options">
+                            <button type="button" id="font-size" class="btn secondary"><span class="small-text">Small</span></button>
+                            <button type="button" id="font-size" class="btn primary"><span class="medium-text active">Medium</span></button>
+                            <button type="button" id="font-size" class="btn secondary"><span class="large-text">Large</span></button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label for="colorblind-mode">Colorblind friendly mode</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="colorblind-mode">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="contrast-mode">High contrast mode</label>
+                        <!-- Toggle switch -->
+                        <label class="switch">
+                            <input type="checkbox" id="contrast-mode">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card other-stuff-card">
+                    <h2>Alte chestii</h2>
+                    <div class="setting-item">
+                        <label for="language-selector">Limba de afișare</label>
+                        <!-- Toggle switch -->
+                        <div class="dropdown" id="language-selector-dropdown">
+                            <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                                Română <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu" id="dropdown-menu">
+                                <div class="dropdown-item active">Română</div>
+                                <div class="dropdown-item">Engleză</div>
+                                <div class="dropdown-item">Catalană (că de ce nu)</div>
+                                <div class="dropdown-item">Germană</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label for="support-form">Formular de suport</label>
+                        <!-- Toggle switch -->
+                        <button type="button" id="support-form" class="btn primary">Contact Support</button>
+                    </div>
+                </div>
+
+            </div>
+            <footer class="settings-footer">
+                <p>&copy; 2026 Codium. Toate drepturile rezervate.</p>
+                <p>Codium este un proiect open-source. <a href="https://github.com/codeeits/codium">Contribuie pe GitHub</a>.</p>
+                <p>made with &hearts; by andrew & codeeits ^_^</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+
+        // Handle dropdown item selection
+
+        function handleDropdownSelection() {
+            const dropdown = this.closest('.dropdown');
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            
+            // Update active state
+            dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update button text (keep icon)
+            const icon = toggle.querySelector('i');
+            toggle.textContent = this.textContent.trim() + ' ';
+            toggle.appendChild(icon);
+            
+            // Close dropdown
+            dropdown.classList.remove('open');
+        }
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', handleDropdownSelection);
+        });
+
+        // easter egg: romenglez
+        let clickCount = 0;
+        const languageSelector = document.getElementById('language-selector-dropdown');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+
+        languageSelector.addEventListener('click', function() {
+            clickCount++;
+            if (clickCount === 10) {
+                alert('Felicitări! Ai descoperit limba secretă: Romengleză! Acum poți vorbi ca un adevărat codianist!');
+                const romengOption = document.createElement('div');
+                romengOption.classList.add('dropdown-item');
+                romengOption.textContent = 'Romengleză';
+                romengOption.addEventListener('click', handleDropdownSelection);
+                dropdownMenu.appendChild(romengOption);
+
+                setLanguage('roen');
+                clickCount = 0;
+            }
+        })
+    </script>
+</body>
+</html>

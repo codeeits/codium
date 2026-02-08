@@ -1,0 +1,61 @@
+main {
+    flex-direction: column;
+    gap: var(--gap-lg);
+}
+
+.content-area .main-content {
+    min-width: 600px;
+    gap: var(--gap-lg);
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto;
+    gap: var(--gap-lg);
+}
+
+.privacy-card, .appearance-card, .other-stuff-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.profile-card {
+    grid-column: 1 / 3;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.font-size-options {
+    display: flex;
+    gap: var(--gap-sm);
+}
+
+.settings-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: var(--small-font-size);
+    font-weight: var(--small-font-weight);
+    color: var(--text-colour);
+}
+
+.settings-footer p, a{
+    font-size: var(--small-font-size);
+    font-weight: var(--small-font-weight);
+}
+
+.settings-footer a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.other-stuff-card {
+    grid-column: 1 / 3;
+}

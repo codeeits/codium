@@ -95,7 +95,7 @@ main, .content-area {
 
 }
 
-.lesson-body {
+.problem-body {
     display: flex;
     flex-direction: column;
     gap: var(--gap-15px);
@@ -106,10 +106,16 @@ main, .content-area {
     font-size: var(--body-font-size);
 }
 
-.header-icons, .lesson-buttons-bottom {
+.header-icons, .problem-buttons-bottom {
     display: flex;
     gap: var(--gap-md);
     justify-content: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
 }
 
 .bread {

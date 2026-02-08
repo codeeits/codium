@@ -123,6 +123,13 @@ p {
     line-height: 1.4;
 }
 
+label {
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+    color: var(--text-colour);
+    line-height: 1.4;
+
+}
 a {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
@@ -141,6 +148,24 @@ option, select {
     font-family: 'Raleway', sans-serif;
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
+    color: var(--text-colour);
+}
+
+.small-text {
+    font-size: var(--small-font-size);
+    font-weight: var(--small-font-weight);
+    color: var(--text-colour);
+}
+
+.medium-text {
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+    color: var(--text-colour);
+}
+
+.large-text {
+    font-size: var(--h2-font-size);
+    font-weight: var(--h2-font-weight);
     color: var(--text-colour);
 }
 
@@ -371,6 +396,57 @@ main, .content-area {
     width: 100%;
 }
 
+/* switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 35px;
+    height: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;   
+    -ms-user-select: none;   
+    user-select: none;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--contrast);
+    transition: .4s;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
+.slider::before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 1px;
+    bottom: 1px;
+    background-color: var(--text-colour);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+    background-color: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(15px);
+}
+
 /* card base */
 .card {
     background-color: var(--fundal);
@@ -542,14 +618,14 @@ main, .content-area {
     gap: var(--gap-sm);
 }
 
-.header-feed-card .feed-card-hashtags > a {
+.header-feed-card .feed-card-hashtags > a, .problem-hashtags > a {
     font-size: var(--h4-font-size);
     font-weight: var(--h4-font-weight);
     color: var(--disabled-text);
     text-decoration: none;
 }
 
-.header-feed-card .feed-card-hashtags > a:hover {
+.header-feed-card .feed-card-hashtags > a:hover, .problem-hashtags > a:hover {
     color: var(--primary);
 }
 
@@ -566,11 +642,29 @@ main, .content-area {
     gap: var(--gap-md);
 }
 
-.feed-card-body .example-block {
+.feed-card-body .example-block, .problem-body .example-block {
     display: flex;
     flex-direction: row;
     gap: var(--gap-lg);
     width: 100%;
+}
+
+/* The visual-only copy symbol */
+.example-block pre::before {
+    font-family: "Font Awesome 7 Free";
+    content: "\f0c5";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 0.9rem;
+    filter: grayscale(100%);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.example-block pre:hover::before {
+    opacity: 1;
+    filter: grayscale(0%);
 }
 
 .feed-card-body ul {
@@ -612,13 +706,20 @@ main, .content-area {
 }
 
 .example-block pre {
+    position: relative; 
     background: var(--contrast);
-    border: 1px solid var(--border2-solid);
+    border: 1px solid var(--border-subtle);
     padding: var(--gap-lg);
     border-radius: var(--border-radius-sm);
     overflow-x: auto;
     margin: 0;
     height: 100%;
+    cursor: pointer;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.example-block pre:hover {
+    border-color: var(--primary);
 }
 
 .example-block code {
@@ -1084,7 +1185,7 @@ pre:not(.example-block pre) code {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 36px;
+    min-height: 36px;
     padding: var(--gap-md);
     background-color: var(--contrast);
     border: 1px solid var(--border2-solid);
@@ -1099,10 +1200,20 @@ pre:not(.example-block pre) code {
 .input-field.dropzone {
     cursor: pointer;
     border-style: dashed;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    text-align: center;
+    transition: border-color 0.2s ease-in-out;
 }
 
 .input-field.dropzone:hover {
     border-color: var(--primary);
+}
+
+.input-field.dropzone.dragover {
+    border-color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 8%, var(--contrast));
 }
 
 .input-text {
