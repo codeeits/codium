@@ -916,7 +916,7 @@ class ToastsLoader {
         }
         
         const toast = document.createElement('div');
-        toast.className = `card toast toast-${type}`;
+        toast.className = `card-t toast toast-${type}`;
         if(type === validTypes[0]) { // info
             toast.innerHTML = `<i class="fas fa-info-circle"></i><p>${message}</p>`;
         } else if(type === validTypes[1]) { // danger

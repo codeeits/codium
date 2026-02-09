@@ -144,11 +144,46 @@ span {
     color: var(--text-colour);
 }
 
+span.no-style {
+    all: unset;
+}
+
+
+
 option, select {
     font-family: 'Raleway', sans-serif;
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: var(--text-colour);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0; 
+    margin: var(--gap-lg) 0;
+    border: 1px solid var(--border2-solid);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden; 
+}
+
+table th {
+    padding: var(--gap-sm);
+    background-color: var(--primary);
+    color: var(--text-colour);
+    text-align: left;
+}
+
+table td {
+    padding: var(--gap-sm);
+    background-color: var(--contrast);
+    color: var(--text-colour);
+    border-top: 1px solid var(--border2-solid);
+}
+
+table th:not(:first-child), 
+table td:not(:first-child) {
+    border-left: 1px solid var(--border2-solid);
 }
 
 .small-text {
@@ -172,6 +207,118 @@ option, select {
 /* ====================== */
 /* ======END==RESET====== */
 /* ====================== */
+
+/* toast */
+/* ----------------------------------------
+    for errors/succes/info sutff
+    use toastsLoader.showToast('Your message', 'type', duration);
+    types: info, danger, warning, confirm
+*/
+
+.toast-container {
+    position: fixed;
+    top: calc(var(--top-bar-height) + var(--padding-lg-aside));
+    right: 1rem;
+    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+.toast.fade-out {
+    animation: fadeOut 1s ease forwards;
+}
+
+/*
+.toast {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    text-align: end;
+    font-size: 1.2rem;
+    align-items: start;
+    backdrop-filter: blur(5px);
+    pointer-events: auto;
+    min-width: 250px;
+    max-width: 400px; 
+    animation: fadeIn 1s ease forwards;
+}
+
+.toast::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    padding: 1px;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.toast-info {
+    background-color: var(--secondary);
+}
+
+.toast-info::before {
+    background: var(--border-gradient);
+}
+
+.toast-danger {
+    background-color: var(--danger-transparent);
+}
+
+.toast-danger::before {
+    background: var(--danger-solid);
+}
+
+.toast-warning {
+    background-color: var(--warning-transparent);
+}
+
+.toast-warning::before {
+    background: var(--warning-solid);
+}
+
+.toast-confirm {
+    background-color: var(--confirm-transparent);
+}
+
+.toast-confirm::before {
+    background: var(--confirm-solid);
+}
+*/
+
+/* -------------------------
+    for general elements
+    some of these might be overridden by more specific styles in other files
+*/
 
 .hidden {
     display: none !important;
@@ -735,7 +882,7 @@ main, .content-area {
 /* Inline code (outside example blocks) */
 code:not(.example-block code) {
     font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 0.9em;
+    font-size: var(--small-font-size);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
     color: var(--primary);
@@ -756,6 +903,14 @@ pre:not(.example-block pre) code {
     border: none;
     padding: 0;
     color: var(--text-cream);
+}
+
+blockquote {
+    border-left: 4px solid var(--primary);
+    padding-left: var(--gap-lg);
+    margin-left: 0;
+    color: var(--text-cream);
+    font-style: italic;
 }
 
 /* section header with navigation */
@@ -1035,7 +1190,7 @@ pre:not(.example-block pre) code {
     padding: var(--gap-md);
     border-radius: var(--border-radius-sm);
     border: 1px solid transparent;
-    animation: slideIn 0.3s ease-out;
+    animation: fadeIn 1s ease forwards;
     box-shadow: 0px 0px 7.5px 0px transparent;
 }
 
@@ -1050,7 +1205,7 @@ pre:not(.example-block pre) code {
     box-shadow: 0px 0px 7.5px 0px rgba(89, 41, 65, 0.3);
 }
 
-.toast-success {
+.toast-confirm {
     background-color: var(--confirm);
     border-color: var(--confirm-border);
     box-shadow: 0px 0px 7.5px 0px rgba(101, 157, 72, 0.3);

@@ -14,10 +14,41 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="/app/Styles/elements2.css">
     <link rel="stylesheet" href="/app/Styles/lesson-indiv.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- MathJax Configuration (Safari-compatible) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            startup: {
+                ready: function () {
+                    console.log('MathJax is ready');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
     <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/lessonsInterface.js"></script>
 
     <meta name="menu-variant" content="new">
     <meta name="sidebar-active" content="lessons">
@@ -47,22 +78,27 @@
     
     <div id="top-menu-container"></div>
 
+    <div id="reading-progress-container">
+        <div id="reading-progress-bar"></div>
+    </div>
+
     <div class="main-layout">
         <div id="sidebar-container"></div>
 
         <main class="content-area">
             <div class="main-content">
-                <h2 class="bread">Informatică / Clasa a X a / Sectiunea 1</h2>
+                <h2 class="bread"><span class="no-style" id="lesson-module">a</span> / Clasa a <span class="no-style" id="lesson-class">b</span>-a / Sectiunea <span class="no-style" id="lesson-section">c</span></h2>
                 <div class="header-title">
-                    <h1>Nume lecție 4</h1>
+                    <h1 id="lesson-title">Nume lecție 4</h1>
                     <div class="header-icons">
-                        <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
-                        <button type="button" class="btn secondary"><i class="fa-solid fa-pencil"></i></button>
-                        <button type="button" class="btn secondary"><i class="fa-solid fa-share"></i></button>
+                        <button type="button" class="btn secondary" id="bookmarkButton"><i class="fa-solid fa-bookmark"></i></button>
+                        <button type="button" class="btn secondary" id="editButton"><i class="fa-solid fa-pencil"></i></button>
+                        <button type="button" class="btn secondary" id="favoriteButton"><i class="fa-solid fa-heart"></i></button>
+                        <button type="button" class="btn secondary" id="shareButton"><i class="fa-solid fa-share"></i></button>
                     </div>
                 </div>
                 <div class="separator"></div>
-                <div class="lesson-body"><!-- dinamically loaded -->
+                <div class="lesson-body" id="lesson-body"><!-- dinamically loaded -->
                     <p>Instrucțiunea do ... while este o structură repetitivă cu număr necunoscut de pași și test final.</p>
                     <h2>Sintaxă</h2>
                     <pre><code>
@@ -99,17 +135,17 @@
                 </div>
             </div>
             <div class="side-content">
-                <div class="card cuprins">
+                <div class="card cuprins" id="cuprins-card">
                     <h2>Cuprins</h2>
                     <a href="#">#Sintaxa</a>
                     <a href="#">#Mod de execuție</a>
                     <a href="#">#Observații</a>
                     <a href="#">#Exemplu</a>
                 </div>
-                <div class="card lectii-sectiune">
+                <div class="card lectii-sectiune" id="lectii-sectiune">
                     <div class="header-lectii-sectiune">
-                        <h2>Clasa a X a</h2>
-                        <h4>Secțiunea 1</h4>
+                        <h2 id="lectii-sesiune-clasa">Clasa a X a</h2>
+                        <h4 id="lectii-sesiune">Secțiunea 1</h4>
                     </div>
                     <a href="#" class="visited">Lecția 1: Instrucțiunea if</a>
                     <a href="#" class="visited">Lecția 2: Instrucțiunea switch</a>

@@ -121,7 +121,7 @@ async function updateAuthButton() {
             setLanguage(selectedLang);
         };
         languageSelector.title = 'Select language';
-    }
+    } 
 
     if(hardLessonsExit) {
         hardLessonsExit.onclick = function() {

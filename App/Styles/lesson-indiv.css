@@ -101,6 +101,17 @@ main, .content-area {
     gap: var(--gap-15px);
 }
 
+.lesson-body a {
+    color: var(--text-colour);
+    text-decoration: underline;
+    transition: all 0.2s ease-in-out;
+}
+
+.lesson-body a:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
 .content-area ul, .content-area ol {
     padding-left: var(--gap-lg);
     font-size: var(--body-font-size);
