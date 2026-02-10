@@ -868,6 +868,17 @@ class ApiService {
             error: result.run?.stderr || null
         };
     }
+
+    // ===========================================
+    // Misc Stuff
+    // ===========================================
+
+    getPatternUrl(seed, type = 'shapes') {
+        // type: glass, identicon, shapes... more at https://avatars.dicebear.com/styles
+        const response = `https://api.dicebear.com/9.x/${type}/svg?seed=${seed}&backgroundColor=6247eb,4747eb&backgroundType=gradientLinear,solid&randomizeIds=true`;
+        return response;
+    }
+        
 }
 // ===========================================
 // Toasts Loader

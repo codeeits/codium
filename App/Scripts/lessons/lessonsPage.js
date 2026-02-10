@@ -60,12 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     return titleA.localeCompare(titleB);
                 
                 case 'Cele mai noi':
-                    return b.lesson.ID - a.lesson.ID; 
+                    return new Date(b.lesson.CreatedAt.Time) - new Date(a.lesson.CreatedAt.Time); 
 
                 case 'Cele mai vechi':
-                    return a.lesson.ID - b.lesson.ID;
+                    return new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time);
 
                 case 'Dificultate':
+                    // chestia asta nu face nimic momentan, dar daca o sa avem dificultate in baza de date putem sorta dupa ea
                     const map = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
                     const valA = map[a.difficulty] || 0;
                     const valB = map[b.difficulty] || 0;
@@ -87,10 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = card.querySelector('.content-card-image');
             const seed = encodeURIComponent(lesson.lesson.ID || 'codium');
 
-            const patternUrl = `https://api.dicebear.com/9.x/glass/svg?seed=${seed}&backgroundColor=6247eb,4747eb&backgroundType=gradientLinear,solid&randomizeIds=true`;
-            const patternUrl2 = `https://api.dicebear.com/9.x/identicon/svg?seed=${seed}&backgroundColor=6247eb&backgroundType=gradientLinear,solid&randomizeIds=true`;
+            const patternUrl = window.apiService.getPatternUrl(seed, "shapes"); // "Glass" is just a pattern type, can be changed to others if needed
 
-            if (img) img.src = patternUrl2;
+            if (img) img.src = patternUrl;
 
             const badge = card.querySelector('.lesson-class-badge');
             if (badge) badge.textContent = `Clasa ${lesson.flag_translation.class}`;
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(diffText && lesson.difficulty) diffText.textContent = lesson.difficulty;
 
             card.addEventListener('click', () => {
-                window.location.href = `/app/Lectii/lesson.html?id=${lesson.lesson.ID}`;
+                window.location.href = `/app/Lectii/lessonindiv.html?id=${lesson.lesson.ID}`;
             });
 
             lessonsContainer.appendChild(card);

@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sidebar: document.getElementById("lesson-sidebar") || document.getElementById("lectii-sectiune"),
         sidebarTitle: document.getElementById("lesson-sidebar_title") || document.getElementById("lectii-sesiune-clasa"),
         cuprinsCard: document.getElementById("cuprins-card"),
+        keypointsCard: document.getElementById("keypoints-card"),
         // Buttons
         bookmarkBtn: document.getElementById("bookmarkButton"),
         favoriteBtn: document.getElementById("favoriteButton"),
@@ -229,8 +230,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     state.h2Array.push({ text: plain, slug });
                 }
                 return `<h${level} id="${slug}">${plain}</h${level}>`;
-            }
+            },
         };
+
+        // Extract key points for the "De reținut" card, hiding the lines from the marked parser
+        const keyPointsRegex = /\n?\/\/\/\/\/key\s*([\s\S]*?)\s*\/\/\/\/\/\n?/;
+        const keyPointsMatch = state.markdownContent.match(keyPointsRegex);
+        if (keyPointsMatch && keyPointsMatch[1]) {
+            const keyPointsText = keyPointsMatch[1].trim();
+            const keyPointsArray = keyPointsText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            if (elements.keypointsCard) {
+                const ul = elements.keypointsCard.querySelector("ul") || document.createElement("ul");
+                ul.innerHTML = ''; // clear existing points
+                keyPointsArray.forEach(point => {
+                    const li = document.createElement("li");
+                    li.textContent = point;
+                    ul.appendChild(li);
+                });
+                if (!ul.parentElement) {
+                    elements.keypointsCard.appendChild(ul);
+                }
+            }
+        } else {
+            if (elements.keypointsCard) elements.keypointsCard.style.display = "none";
+        }
+        state.markdownContent = state.markdownContent.replace(keyPointsRegex, '');
 
         marked.use({ renderer });
         marked.setOptions({
@@ -453,16 +477,23 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupNavigationButtons() {
         // Next Button
         if (elements.nextBtn) {
-            elements.nextBtn.addEventListener("click", () => nextButtonHandler(state.meta.nextLessonId));
+            if (elements.sidebar.id === "lectii-sectiune") {
+                elements.nextBtn.addEventListener("click", () => nextButtonHandler(state.meta.nextLessonId, false)); // isLegacyUI = false -> new section container
+            } else {
+                elements.nextBtn.addEventListener("click", () => nextButtonHandler(state.meta.nextLessonId));
+            }
             
             if (!state.meta.nextLessonId) {
                 // clone next button and disable
                 const finishedBtn = elements.nextBtn.cloneNode();
                 finishedBtn.id = "finished-lesson-btn";
                 finishedBtn.innerHTML = "<i class='fas fa-check'></i> Finish section";
-                
                 if (isAuthenticated) {
-                    finishedBtn.addEventListener("click", () => finishButtonHandler(finishedBtn));
+                    if (elements.sidebar.id === "lectii-sectiune") {
+                        finishedBtn.addEventListener("click", () => finishButtonHandler(finishedBtn, false)); // isLegacyUI = false -> new section container
+                    } else {
+                        finishedBtn.addEventListener("click", () => finishButtonHandler(finishedBtn));
+                    }
                     finishedBtn.disabled = false;
                 } else {
                     finishedBtn.disabled = true;
@@ -581,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    async function nextButtonHandler(nextLessonId) {
+    async function nextButtonHandler(nextLessonId, isLegacyUI = true) {
         if (!elements.nextBtn) {
             if (debugMode) console.warn("Next lesson button not found");
             return;
@@ -599,18 +630,26 @@ document.addEventListener("DOMContentLoaded", () => {
             await new Promise(resolve => setTimeout(resolve, 3000));
         }
         
-        window.location.href = `lesson.html?id=${nextLessonId}`;
+        if (isLegacyUI) {
+            window.location.href = `lesson.html?id=${nextLessonId}`;
+        } else {
+            window.location.href = `lessonindiv.html?id=${nextLessonId}`;
+        }
     }
 
-    async function prevButtonHandler(prevLessonId) {
+    async function prevButtonHandler(prevLessonId, isLegacyUI = true) {
         if (!elements.prevBtn) {
             if (debugMode) console.warn("Previous lesson button not found");
             return;
         }
-        window.location.href = `lesson.html?id=${prevLessonId}`;
+        if (isLegacyUI) {
+            window.location.href = `lesson.html?id=${prevLessonId}`;
+        } else {
+            window.location.href = `lessonindiv.html?id=${prevLessonId}`;
+        }
     }
 
-    async function finishButtonHandler(finishedBtn) {
+    async function finishButtonHandler(finishedBtn, isLegacyUI = true) {
         if (!finishedBtn) {
             if (debugMode) console.warn("Finish lesson button not found");
             return;
@@ -623,6 +662,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const d = await window.apiService.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
             toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
+        }
+
+        if (isLegacyUI) {
+            window.location.href = `lessons.html`;
+        } else {
+            window.location.href = `lessons2.html`;
         }
     }
 

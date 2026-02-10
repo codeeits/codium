@@ -218,7 +218,7 @@ table td:not(:first-child) {
 .toast-container {
     position: fixed;
     top: calc(var(--top-bar-height) + var(--padding-lg-aside));
-    right: 1rem;
+    right: var(--padding-left-right);
     gap: 1rem;
     display: flex;
     flex-direction: column;
@@ -514,7 +514,6 @@ main, .content-area {
 
 .btn.secondary {
     background-color: var(--contrast);
-    transition: background-color 0.2s ease;
 }
 
 .btn.secondary:hover {
