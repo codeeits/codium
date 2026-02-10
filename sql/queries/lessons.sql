@@ -106,3 +106,9 @@ UPDATE lessons
 SET suggested = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: UpdateLessonThumbnail :one
+UPDATE lessons
+SET thumbnail_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

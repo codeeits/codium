@@ -44,6 +44,7 @@ type Lesson struct {
 	PrevLessonID   uuid.NullUUID
 	SectionStarter bool
 	Suggested      bool
+	ThumbnailID    uuid.NullUUID
 }
 
 type LessonsUser struct {
