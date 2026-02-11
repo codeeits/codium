@@ -154,6 +154,8 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		cfg.UpdateLessonFlagsHandler(w, r, lesson)
 	case "section_starter":
 		cfg.UpdateLessonsSectionStarterHandler(w, r, lesson)
+	case "thumbnail":
+		cfg.UpdateLessonThumbnailHandler(w, r, lesson)
 	default:
 		cfg.logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -1327,6 +1329,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		Module      int       `json:"module"`
 		Previous    uuid.UUID `json:"previous"`
 		Next        uuid.UUID `json:"next"`
+		Thumbnail   uuid.UUID `json:"thumbnail"`
 	}
 
 	//check if database is connected
@@ -1417,6 +1420,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		PrevLessonID: prevLesson,
 		NextLessonID: nextLesson,
 		Suggested:    UserHasPermission(sendingUser, PermissionCanSuggestLessons),
+		ThumbnailID:  uuid.NullUUID{UUID: p.Thumbnail, Valid: p.Thumbnail != uuid.Nil},
 	})
 	if err != nil {
 		cfg.logger.Printf("Failed to add lesson: %v", err)
@@ -1865,6 +1869,40 @@ func (cfg *ApiCfg) UpdateLessonsSectionStarterHandler(w http.ResponseWriter, _ *
 	res, err := cfg.UpdateSectionStartedLesson(targetLesson.ID)
 	if err != nil {
 		cfg.logger.Printf("Failed to update section starter lesson: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
+}
+
+func (cfg *ApiCfg) UpdateLessonThumbnailHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
+	type params struct {
+		ThumbnailID string `json:"thumbnail_id"`
+	}
+
+	//Database check is done in the disambiguation function
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	thumbnailUUID, err := uuid.Parse(p.ThumbnailID)
+	if err != nil {
+		cfg.logger.Printf("Invalid UUID format for thumbnail_id: %v", err)
+		http.Error(w, "Invalid thumbnail_id format", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.db.UpdateLessonThumbnail(r.Context(), database.UpdateLessonThumbnailParams{
+		ID:          targetLesson.ID,
+		ThumbnailID: uuid.NullUUID{UUID: thumbnailUUID, Valid: true},
+		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.logger.Printf("Failed to update lesson thumbnail: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

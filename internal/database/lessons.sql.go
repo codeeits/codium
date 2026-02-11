@@ -13,8 +13,8 @@ import (
 )
 
 const addLesson = `-- name: AddLesson :one
-INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, suggested)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, suggested, thumbnail_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
@@ -30,6 +30,7 @@ type AddLessonParams struct {
 	NextLessonID uuid.NullUUID
 	PrevLessonID uuid.NullUUID
 	Suggested    bool
+	ThumbnailID  uuid.NullUUID
 }
 
 func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, error) {
@@ -45,6 +46,7 @@ func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, e
 		arg.NextLessonID,
 		arg.PrevLessonID,
 		arg.Suggested,
+		arg.ThumbnailID,
 	)
 	var i Lesson
 	err := row.Scan(
