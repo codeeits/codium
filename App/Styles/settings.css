@@ -46,6 +46,10 @@ main {
     color: var(--text-colour);
 }
 
+.settings-footer a {
+    font-size: var(--small-font-size);
+}
+
 .settings-footer p, a{
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
