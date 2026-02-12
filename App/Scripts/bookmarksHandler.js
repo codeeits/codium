@@ -8,28 +8,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const filters = {
         all: document.getElementById('all-bookmarks'),
         problem: document.getElementById('problem-bookmarks'),
-        lesson: document.getElementById('lesson-bookmarks')
+        lesson: document.getElementById('lesson-bookmarks'),
+        sortDropdown: document.getElementById('sort-dropdown'),
     };
 
     // --- STATE ---
     let userId = null;
     let bookmarksData = [];
     let currentFilter = 'all';
+    let currentSort = 'default';
 
     // --- FETCH DATA ---
     async function fetchBookmarks() {
         try {
             const response = await window.apiService.getBookmarks(userId);
-            if (response) {
-                if (response.length === 0) {
-                    console.log('No bookmarks found for user:', userId);
-                    noBookmarksMessage.classList.remove('hidden');
-                } else {
-                    console.log('Bookmarks for user:', userId, response);
-                    noBookmarksMessage.classList.add('hidden');
-                    bookmarksData = response;
-                    renderBookmarks();
-                }
+            
+            if (!response || response.length === 0) {
+                console.log('No bookmarks found for user:', userId);
+                noBookmarksMessage.classList.remove('hidden');
+                bookmarksData = [];
+            } else {
+                console.log('Raw Bookmarks:', response);
+                noBookmarksMessage.classList.add('hidden');
+
+                const hydratedDataPromises = response.map(async (bookmark) => {
+                    try {
+                        const fullData = await window.apiService.getLessonById(bookmark.LessonID);
+                        return {
+                            ...bookmark,
+                            lesson: fullData.lesson,
+                            flag_translation: fullData.flag_translation,
+                            difficulty: fullData.difficulty || 'Unknown' 
+                        };
+                    } catch (err) {
+                        console.error(`Failed to load lesson for bookmark ${bookmark.ID}`, err);
+                        return null; 
+                    }
+                });
+
+                const results = await Promise.all(hydratedDataPromises);
+                bookmarksData = results.filter(item => item !== null);
+
+                renderBookmarks();
             }
         } catch (error) {
             console.error('Error fetching bookmarks:', error);
@@ -37,10 +57,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- RENDER BOOKMARKS ---
-    async function renderBookmarks() {
+    function renderBookmarks() { // No longer needs to be async
         bookmarksGridContainer.innerHTML = '';
 
-        const processedData = bookmarksData; 
+        let processedData = [...bookmarksData];
+
+        // 2. SORT
+        processedData.sort((a, b) => {
+            // Safety check
+            const titleA = a.lesson?.Title || "";
+            const titleB = b.lesson?.Title || "";
+
+            switch (currentSort) {
+                case 'Alfabetic':
+                    return titleA.localeCompare(titleB);
+                
+                case 'Cele mai noi':
+                    return new Date(b.lesson.CreatedAt.Time) - new Date(a.lesson.CreatedAt.Time); 
+
+                case 'Cele mai vechi':
+                    return new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time);
+
+                case 'Dificultate':
+                    const map = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+                    const valA = map[a.difficulty] || 0;
+                    const valB = map[b.difficulty] || 0;
+                    return valA - valB;
+
+                default:
+                    return 0;
+            }
+        });
 
         if (processedData.length === 0) {
             noBookmarksMessage.classList.remove('hidden');
@@ -50,52 +97,45 @@ document.addEventListener('DOMContentLoaded', () => {
             noBookmarksMessage.classList.add('hidden');
         }
 
-        for (const bookmarkElement of processedData) {
+        processedData.forEach(bookmarkedElementData => {
             const bookmarkCard = bookmarkTemplate.cloneNode(true);
-            bookmarkCard.id = `bookmark-${bookmarkElement.ID}`;
+            bookmarkCard.id = `bookmark-${bookmarkedElementData.ID}`;
             bookmarkCard.classList.remove('hidden');
 
-            try {
-                const bookmarkedElementData = await window.apiService.getLessonById(bookmarkElement.LessonID);
-                console.log('Bookmarked element data:', bookmarkedElementData);
+            const title = bookmarkCard.querySelector('.content-card-title');
+            if (title) title.textContent = bookmarkedElementData.lesson.Title;
 
-                const title = bookmarkCard.querySelector('.content-card-title');
-                if (title) title.textContent = bookmarkedElementData.lesson.Title;
+            const badge = bookmarkCard.querySelector('.bookmarks-class-badge');
+            if (badge) badge.textContent = `${bookmarkedElementData.flag_translation?.class || '?'} / nada de momento`; 
 
-                const badge = bookmarkCard.querySelector('.bookmarks-class-badge');
-                if (badge) badge.textContent = `${bookmarkedElementData.flag_translation.class} / nada de momento`; 
-
-                const icon = bookmarkCard.querySelector('.bookmark-icon');
-                if (icon) icon.addEventListener('click', (event) => handleBookmarkClick(event, bookmarkedElementData.lesson.ID));
-                if (icon) icon.style.cursor = 'pointer';
-
-                bookmarkCard.addEventListener('click', () => {
-                    window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
-                });
-
-                bookmarksGridContainer.appendChild(bookmarkCard);
-            } catch (err) {
-                console.error(`Error fetching details for bookmark ${bookmarkElement.ID}`, err);
+            const icon = bookmarkCard.querySelector('.bookmark-icon');
+            if (icon) {
+                icon.style.cursor = 'pointer';
+                icon.addEventListener('click', (event) => handleBookmarkClick(event, bookmarkedElementData.lesson.ID));
             }
-        }
+
+            bookmarkCard.addEventListener('click', () => {
+                window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
+            });
+
+            bookmarksGridContainer.appendChild(bookmarkCard);
+        });
     }
 
     // --- ACTIONS ---
     async function handleBookmarkClick(event, lessonId) {
-
         event.preventDefault();
         event.stopPropagation();
-        
+
         const card = event.currentTarget.closest('.content-card');
-        const bookmarkId = card.id.replace('bookmark-', '');
-        
-        console.log('Bookmark clicked:', bookmarkId);
         
         try {
-            const rawId = lessonId;
+            await window.apiService.modifyBookmark(lessonId);
             
-            await window.apiService.modifyBookmark(rawId);
-            document.getElementById(card.id).remove();
+            card.remove();
+            
+            bookmarksData = bookmarksData.filter(b => b.lesson.ID !== lessonId);
+
             if (bookmarksGridContainer.children.length === 0) {
                 noBookmarksMessage.classList.remove('hidden');
                 bookmarksGridContainer.appendChild(noBookmarksMessage);
@@ -105,47 +145,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FILTER BUTTONS LOGIC ---
-    function initFilters() {
-        const filterButtons = [filters.all, filters.problem, filters.lesson];
+    function initDropdown() {
+        const dropdown = filters.sortDropdown;
+        if (!dropdown) return;
 
-        filterButtons.forEach(btn => {
-            if(!btn) return;
-            
-            btn.addEventListener('click', (e) => {
-                // Update State
-                if (btn === filters.all) currentFilter = 'all';
-                else if (btn === filters.problem) currentFilter = 'problem';
-                else if (btn === filters.lesson) currentFilter = 'lesson';
+        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+        const items = dropdown.querySelectorAll('.dropdown-item');
 
-                // Update UI Styles
-                filterButtons.forEach(b => {
-                    if (b) {
-                        b.classList.remove('primary', 'active');
-                        b.classList.add('secondary');
-                    }
-                });
-                btn.classList.remove('secondary');
-                btn.classList.add('primary', 'active');
+        toggleBtn.onclick = null;
 
-                // Re-render
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            dropdown.classList.toggle('open');
+        });
+
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                const selectedText = item.textContent.trim();
+                
+                currentSort = selectedText; 
+
+                toggleBtn.innerHTML = `${selectedText} <i class="fa-solid fa-chevron-down"></i>`;
+
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                dropdown.classList.remove('open');
                 renderBookmarks();
             });
         });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
     }
 
-    // --- INITIALIZATION ---
+    // --- INIT ---
     async function initApp() {
-        // 1. Auth Check
         window.apiService.isAuthenticated(true);
-        
         try {
             const currentUser = await window.apiService.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
             
-            // 2. Init UI & Data
-            initFilters();
+            initDropdown();
             await fetchBookmarks();
 
         } catch (err) {
