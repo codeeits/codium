@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Codium/internal/core"
 	"Codium/internal/database"
 	"database/sql"
 	"log"
@@ -12,30 +13,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type ApiCfg struct {
-	logger       log.Logger
-	db           *database.Queries
-	secret       string
-	running      bool
-	websiteUrl   string
-	websiteState string
-	adminCfg     struct {
-		Username string
-		Password string
-		Token    string
-	}
-	smtpCfg struct {
-		Url      string
-		Port     int
-		User     string
-		Password string
-	}
-	databaseCfg struct {
-		Url    string
-		Loaded bool
-	}
-}
-
 /*
 ===========================================
 
@@ -45,7 +22,7 @@ type ApiCfg struct {
 */
 func main() {
 	// Initialize logger
-	var cfg *ApiCfg
+	var cfg *core.ApiCfg
 	{
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -63,13 +40,13 @@ func main() {
 			panic(err)
 		}
 
-		cfg = &ApiCfg{
-			logger: *log.New(logFile, "[API] ", log.LstdFlags),
-			databaseCfg: struct {
+		cfg = &core.ApiCfg{
+			Logger: *log.New(logFile, "[API] ", log.LstdFlags),
+			DatabaseCfg: struct {
 				Url    string
 				Loaded bool
 			}{Loaded: false},
-			running: true,
+			Running: true,
 		}
 
 		// Clear the file on startup
@@ -78,47 +55,47 @@ func main() {
 			panic(err)
 		}
 
-		cfg.logger.Print("Hewwo World! :333")
+		cfg.Logger.Print("Hewwo World! :333")
 	}
 
 	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
-		cfg.logger.Fatal("Error loading .env file: ", err)
+		cfg.Logger.Fatal("Error loading .env file: ", err)
 	}
 
-	cfg.databaseCfg.Url = os.Getenv("DB_URL")
-	cfg.secret = os.Getenv("SECRET")
-	cfg.adminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
-	cfg.adminCfg.Username = "CodiumAdmin"
-	cfg.smtpCfg.Url = os.Getenv("SMTP_URL")
-	cfg.smtpCfg.Port = 587 // Default SMTP port
-	cfg.smtpCfg.User = os.Getenv("SMTP_USER")
-	cfg.smtpCfg.Password = os.Getenv("SMTP_PASSWORD")
-	cfg.websiteUrl = os.Getenv("WEBSITE_URL")
-	cfg.websiteState = os.Getenv("WEBSITE_STATE")
+	cfg.DatabaseCfg.Url = os.Getenv("DB_URL")
+	cfg.Secret = os.Getenv("SECRET")
+	cfg.AdminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+	cfg.AdminCfg.Username = "CodiumAdmin"
+	cfg.SmtpCfg.Url = os.Getenv("SMTP_URL")
+	cfg.SmtpCfg.Port = 587 // Default SMTP port
+	cfg.SmtpCfg.User = os.Getenv("SMTP_USER")
+	cfg.SmtpCfg.Password = os.Getenv("SMTP_PASSWORD")
+	cfg.WebsiteUrl = os.Getenv("WEBSITE_URL")
+	cfg.WebsiteState = os.Getenv("WEBSITE_STATE")
 
-	if cfg.secret == "" {
-		cfg.logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
+	if cfg.Secret == "" {
+		cfg.Logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
 	}
 
-	if cfg.databaseCfg.Url != "" {
-		cfg.logger.Print("Using Database URL: " + cfg.databaseCfg.Url)
-		db, err := sql.Open("postgres", cfg.databaseCfg.Url)
+	if cfg.DatabaseCfg.Url != "" {
+		cfg.Logger.Print("Using Database URL: " + cfg.DatabaseCfg.Url)
+		db, err := sql.Open("postgres", cfg.DatabaseCfg.Url)
 		if err != nil {
-			cfg.logger.Fatal("Error connecting to the database: ", err)
+			cfg.Logger.Fatal("Error connecting to the database: ", err)
 		}
 
 		err = db.Ping()
 		if err != nil {
-			cfg.logger.Fatal("Error pinging the database: ", err)
+			cfg.Logger.Fatal("Error pinging the database: ", err)
 		}
 
-		cfg.db = database.New(db)
-		cfg.databaseCfg.Loaded = true
-		cfg.logger.Print("Successfully connected to the database!")
+		cfg.Db = database.New(db)
+		cfg.DatabaseCfg.Loaded = true
+		cfg.Logger.Print("Successfully connected to the database!")
 	} else {
-		cfg.logger.Print("No Database URL provided- skipping database connection.")
+		cfg.Logger.Print("No Database URL provided- skipping database connection.")
 	}
 	// test
 	// Serve static files from the "App" directory at the "/app/" URL path
@@ -210,24 +187,24 @@ func main() {
 		}
 
 		cfg.StartCLI()
-		if cfg.websiteState == "production" {
-			cfg.logger.Println("Starting server in production mode with TLS...")
+		if cfg.WebsiteState == "production" {
+			cfg.Logger.Println("Starting server in production mode with TLS...")
 			err = server.ListenAndServeTLS("./certs/cert.pem", "./certs/key.pem")
 			if err != nil {
-				cfg.logger.Println("Error starting server with certificates: ", err)
+				cfg.Logger.Println("Error starting server with certificates: ", err)
 
-				cfg.logger.Println("Starting server without TLS...")
+				cfg.Logger.Println("Starting server without TLS...")
 
 				err = simpleServer.ListenAndServe()
 				if err != nil {
-					cfg.logger.Fatal("Error starting server: ", err)
+					cfg.Logger.Fatal("Error starting server: ", err)
 				}
 			}
 		} else {
-			cfg.logger.Println("Starting server in development mode without TLS...")
+			cfg.Logger.Println("Starting server in development mode without TLS...")
 			err = simpleServer.ListenAndServe()
 			if err != nil {
-				cfg.logger.Fatal("Error starting server: ", err)
+				cfg.Logger.Fatal("Error starting server: ", err)
 			}
 		}
 	}

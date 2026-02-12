@@ -1,4 +1,4 @@
-package main
+package core
 
 //This file is going to contain tests for the entire application stack, divided into sections for each major component.
 
@@ -19,6 +19,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 /*
@@ -179,57 +180,57 @@ func TestSuiteStart(t *testing.T) {
 func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	t.Run(".envTests", func(t *testing.T) {
 		// Call .env-related test functions here
-		err := godotenv.Load()
+		err := godotenv.Load("../../.env")
 		if err != nil {
 			t.Fatal("Error loading .env file")
 		}
 
-		cfg.databaseCfg.Url = os.Getenv("DB_URL")
-		cfg.secret = os.Getenv("SECRET")
-		cfg.adminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
-		cfg.smtpCfg.Url = os.Getenv("SMTP_URL")
-		cfg.smtpCfg.Port = 587 // Default SMTP port
-		cfg.smtpCfg.User = os.Getenv("SMTP_USER")
-		cfg.smtpCfg.Password = os.Getenv("SMTP_PASSWORD")
-		cfg.websiteUrl = os.Getenv("WEBSITE_URL")
-		cfg.websiteState = os.Getenv("WEBSITE_STATE")
+		cfg.DatabaseCfg.Url = os.Getenv("DB_URL")
+		cfg.Secret = os.Getenv("SECRET")
+		cfg.AdminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+		cfg.SmtpCfg.Url = os.Getenv("SMTP_URL")
+		cfg.SmtpCfg.Port = 587 // Default SMTP port
+		cfg.SmtpCfg.User = os.Getenv("SMTP_USER")
+		cfg.SmtpCfg.Password = os.Getenv("SMTP_PASSWORD")
+		cfg.WebsiteUrl = os.Getenv("WEBSITE_URL")
+		cfg.WebsiteState = os.Getenv("WEBSITE_STATE")
 
-		if cfg.websiteState == "" {
+		if cfg.WebsiteState == "" {
 			//website state is MANDATORY; it determines whether the website resets at the end of testing suite
 			t.Fatal("No website state provided")
 		}
-		if cfg.secret == "" {
+		if cfg.Secret == "" {
 			t.Log("No secret provided")
 			t.Fail()
 		}
-		if cfg.databaseCfg.Url == "" {
+		if cfg.DatabaseCfg.Url == "" {
 			t.Log("No db url provided")
 			t.Fail()
 		}
-		if cfg.adminCfg.Password == "" {
+		if cfg.AdminCfg.Password == "" {
 			t.Log("No admin default password provided")
 			t.Fail()
 		}
-		if cfg.smtpCfg.Url == "" {
+		if cfg.SmtpCfg.Url == "" {
 			t.Log("No SMTP url provided")
 			t.Fail()
 		}
-		if cfg.smtpCfg.User == "" {
+		if cfg.SmtpCfg.User == "" {
 			t.Log("No SMTP user provided")
 			t.Fail()
 		}
-		if cfg.smtpCfg.Password == "" {
+		if cfg.SmtpCfg.Password == "" {
 			t.Log("No SMTP password provided")
 			t.Fail()
 		}
-		if cfg.websiteUrl == "" {
+		if cfg.WebsiteUrl == "" {
 			t.Log("No website url provided")
 			t.Fail()
 		}
 	})
 
 	t.Run("DatabaseTests", func(t *testing.T) {
-		db, err := sql.Open("postgres", cfg.databaseCfg.Url)
+		db, err := sql.Open("postgres", cfg.DatabaseCfg.Url)
 		if err != nil {
 			t.Fatal("Error connecting to the database: ", err)
 		}
@@ -239,8 +240,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			t.Fatal("Error pinging database: ", err)
 		}
 
-		cfg.db = database.New(db)
-		cfg.databaseCfg.Loaded = true
+		cfg.Db = database.New(db)
+		cfg.DatabaseCfg.Loaded = true
 		t.Log("Successfully connected to the database!")
 	})
 
@@ -249,7 +250,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	var adminID uuid.UUID
 	t.Run("ApiTests", func(t *testing.T) {
 		// Call API-related test functions here
-		if !cfg.databaseCfg.Loaded {
+		if !cfg.DatabaseCfg.Loaded {
 			return
 		}
 
@@ -292,7 +293,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			===========================================
 		*/
 		t.Run("TestGetDefaultAdminUser", func(t *testing.T) {
-			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.adminCfg.Password + `"}`)
+			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.AdminCfg.Password + `"}`)
 
 			type params struct {
 				User         database.User `json:"user"`
@@ -819,7 +820,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[len(lessonIds)-1].String(), lesson.Lesson.PrevLessonID.UUID.String())
 				}
 
-				prevLesson, err := cfg.db.GetLessonByID(context.Background(), lesson.Lesson.PrevLessonID.UUID)
+				prevLesson, err := cfg.Db.GetLessonByID(context.Background(), lesson.Lesson.PrevLessonID.UUID)
 				if err != nil {
 					t.Fatal("Error getting previous lesson: ", err)
 				}
@@ -1601,7 +1602,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	})
 
 	t.Run("TestAuthorizedReset", func(t *testing.T) {
-		if cfg.websiteState == "production" {
+		if cfg.WebsiteState == "production" {
 			t.Log("Skipping reset test in production environment")
 			return
 		}
