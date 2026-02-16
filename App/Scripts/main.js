@@ -115,10 +115,20 @@ async function updateAuthButton() {
     }
 
     if(languageSelector) {
+        // Add this to your Top Menu initialization
+        window.addEventListener('codium:language-changed', (e) => {
+            const newIso = e.detail.iso;
+            // logic to update the Top Menu active class/text based on newIso
+            console.log("Top menu updating to:", newIso);
+        });
         languageSelector.value = localStorage.getItem('lang') || 'ro';
         languageSelector.onchange = function() {
             const selectedLang = languageSelector.value;
             setLanguage(selectedLang);
+
+            window.dispatchEvent(new CustomEvent('codium:language-changed', { 
+                detail: { iso: selectedLang } 
+            }));
         };
         languageSelector.title = 'Select language';
     } 

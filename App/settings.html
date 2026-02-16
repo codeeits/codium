@@ -18,6 +18,7 @@
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
     <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/settings.js" defer></script>
 
     <meta name="menu-variant" content="new">
     <meta name="sidebar-active" content="settings">
@@ -33,7 +34,7 @@
             <h1>Setări</h1>
             <div class="main-content">
 
-                <div class="card profile-card">
+                <div class="card profile-card" id="profileCard">
                     <div class="profile-info">
                         <img src="https://placehold.co/80/png" alt="Profile Picture" class="profile-avatar">
                         <div class="profile-details">
@@ -42,12 +43,12 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn secondary">Log-out</button>
-                        <button type="button" class="btn primary">Editează profilul</button>
+                        <button type="button" class="btn secondary" id="logOutBtn">Log-out</button>
+                        <button type="button" class="btn primary" id="editProfileBtn">Editează profilul</button>
                     </div>
                 </div>
 
-                <div class="card privacy-card">
+                <div class="card privacy-card" id="privacyCard">
                     <h2>Confidențialitate</h2>
                     <div class="setting-item">
                         <label for="profile-visibility">Make my account private</label>
@@ -79,7 +80,7 @@
                     </div>
                 </div>
 
-                <div class="card appearance-card">
+                <div class="card appearance-card" id="appearanceCard">
                     <h2>Cuvant pentru appearance</h2>
                     <div class="setting-item">
                         <label for="dark-mode">Dark mode (can't be changed lol)</label>
@@ -91,10 +92,10 @@
                     </div>
                     <div class="setting-item">
                         <label for="font-size">Font size</label>
-                        <div class="font-size-options">
-                            <button type="button" id="font-size" class="btn secondary"><span class="small-text">Small</span></button>
-                            <button type="button" id="font-size" class="btn primary"><span class="medium-text active">Medium</span></button>
-                            <button type="button" id="font-size" class="btn secondary"><span class="large-text">Large</span></button>
+                        <div class="font-size-options" id="font-size-options">
+                            <button type="button" id="font-size-small" class="btn secondary"><span class="small-text">Small</span></button>
+                            <button type="button" id="font-size-medium" class="btn primary"><span class="medium-text active">Medium</span></button>
+                            <button type="button" id="font-size-large" class="btn secondary"><span class="large-text">Large</span></button>
                         </div>
                     </div>
                     <div class="setting-item">
@@ -115,7 +116,7 @@
                     </div>
                 </div>
 
-                <div class="card other-stuff-card">
+                <div class="card other-stuff-card" id="otherStuffCard">
                     <h2>Alte chestii</h2>
                     <div class="setting-item">
                         <label for="language-selector">Limba de afișare</label>
@@ -149,6 +150,7 @@
     </div>
 
     <script>
+        /*
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(e) {
             document.querySelectorAll('.dropdown.open').forEach(dropdown => {
@@ -181,8 +183,10 @@
         document.querySelectorAll('.dropdown-item').forEach(item => {
             item.addEventListener('click', handleDropdownSelection);
         });
+        */
 
         // easter egg: romenglez
+        /*
         let clickCount = 0;
         const languageSelector = document.getElementById('language-selector-dropdown');
         const dropdownMenu = document.getElementById('dropdown-menu');
@@ -201,6 +205,7 @@
                 clickCount = 0;
             }
         })
+            */
     </script>
 </body>
 </html>
