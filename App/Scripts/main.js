@@ -115,20 +115,21 @@ async function updateAuthButton() {
     }
 
     if(languageSelector) {
-        // Add this to your Top Menu initialization
-        window.addEventListener('codium:language-changed', (e) => {
-            const newIso = e.detail.iso;
-            // logic to update the Top Menu active class/text based on newIso
-            console.log("Top menu updating to:", newIso);
+
+        // event listener
+
+        window.addEventListener('codium:lang-changed', (e) => {
+            const newLang = e.detail.iso;
+            console.log('Received codium:lang-changed event with detail:', newLang);
+            if (languageSelector.value !== newLang) {
+                languageSelector.value = newLang;
+            }
         });
+
         languageSelector.value = localStorage.getItem('lang') || 'ro';
         languageSelector.onchange = function() {
             const selectedLang = languageSelector.value;
             setLanguage(selectedLang);
-
-            window.dispatchEvent(new CustomEvent('codium:language-changed', { 
-                detail: { iso: selectedLang } 
-            }));
         };
         languageSelector.title = 'Select language';
     } 
@@ -349,5 +350,8 @@ function applyTranslationsToElement(element) {
 
 function setLanguage(langCode) {
   localStorage.setItem('lang', langCode);
+  // fire custom event for other components to react to language change
+  window.dispatchEvent(new CustomEvent('codium:lang-changed', { detail: { iso: langCode } }));
+  console.log('Language changed event dispatched with detail:', langCode);
   loadLanguage(langCode);
 }

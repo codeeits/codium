@@ -253,6 +253,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // --- HELPER - for custom event to change selected language in dropdown ---
+
+    window.addEventListener('codium:lang-changed', (e) => {
+        console.log('Received language changed event with detail:', e.detail);
+        const newLangIso = e.detail.iso;
+        const dropdown = elements.languageSelect;
+        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+        const items = dropdown.querySelectorAll('.dropdown-item');
+
+        const selectedLangData = languages.find(l => l.iso === newLangIso);
+        if (selectedLangData) {
+            toggleBtn.innerHTML = `${selectedLangData.displayName} <i class="fa-solid fa-chevron-down"></i>`;
+
+            items.forEach(i => {
+                if (i.dataset.iso === newLangIso) {
+                    i.classList.add('active');
+                } else {
+                    i.classList.remove('active');
+                }
+            });
+        } else {
+            console.warn(`Language with ISO code ${newLangIso} not found in available languages.`);
+        }
+    });
+
     // --- innit mate ---
     async function initApp() {
         window.apiService.isAuthenticated(true);
