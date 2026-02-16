@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fontSizeSelect: document.getElementById('font-size-options'),
         colorblindModeToggle: document.getElementById('colorblind-mode'),
         highContrastModeToggle: document.getElementById('contrast-mode'),
+        hueSlider: document.getElementById('hue-slider'),
 
         // other settings
         otherSettingsCard: document.getElementById('otherStuffCard'),
@@ -260,7 +261,29 @@ document.addEventListener("DOMContentLoaded", () => {
             elements.highContrastModeToggle.checked = true;
         }
         elements.highContrastModeToggle.addEventListener('change', () => {
+            if (document.body.classList.contains('colorblind')) {
+                document.body.classList.remove('colorblind');
+                elements.colorblindModeToggle.checked = false;
+                localStorage.setItem('colorblind', 'false');
+            }
             highContrastMode(); // external function defined in main.js that toggles the class on body
+        });
+    }
+
+    function enableColorblindMode() {
+        // Check localStorage for colorblind mode preference
+        if (localStorage.getItem('colorblind') === 'true') {
+            document.body.classList.add('colorblind');
+            elements.colorblindModeToggle.checked = true;
+        }
+        elements.colorblindModeToggle.addEventListener('change', () => {
+            console.log('Colorblind mode enabled from localStorage');
+            if (document.body.classList.contains('high-contrast')) {
+                document.body.classList.remove('high-contrast');
+                elements.highContrastModeToggle.checked = false;
+                localStorage.setItem('highContrast', 'false');
+            }
+            colorblindMode(); // external function defined in main.js that toggles the class on body
         });
     }
 
@@ -317,6 +340,22 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUI(currentSizeId);
     }
 
+    function slideHue() {
+        const hueValue = elements.hueSlider.value;
+        document.documentElement.style.setProperty('--rotation', hueValue);
+        localStorage.setItem('hueRotation', hueValue);
+    }
+
+    function initHueSlider() {
+        const savedHue = localStorage.getItem('hueRotation') || 0;
+        elements.hueSlider.value = savedHue;
+        document.documentElement.style.setProperty('--rotation', savedHue);
+
+        elements.hueSlider.addEventListener('input', () => {
+            slideHue();
+        });
+    }
+
     // --- HELPER - for custom event to change selected language in dropdown ---
 
     window.addEventListener('codium:lang-changed', (e) => {
@@ -355,7 +394,9 @@ document.addEventListener("DOMContentLoaded", () => {
             renderLanguageOptions();
             initDropdown(); // Initialize dropdown logic
 
+            initHueSlider(); // Initialize hue slider logic
             enableHighContrastMode();
+            enableColorblindMode();
             setFontSize();
 
         } catch (err) {

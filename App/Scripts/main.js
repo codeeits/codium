@@ -9,12 +9,28 @@ in memoriam doamna stan.
 
 function highContrastMode() {
     document.body.classList.toggle('high-contrast');
+    document.body.classList.remove('colorblind'); // ensure colorblind mode is off when high contrast is toggled
     localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
 }
 
 // Check and apply High Contrast immediately
 if (localStorage.getItem('highContrast') === 'true') {
     highContrastMode();
+}
+
+function colorblindMode() {
+    document.body.classList.toggle('colorblind');
+    document.body.classList.remove('high-contrast'); // ensure high contrast is off when colorblind mode is toggled
+    localStorage.setItem('colorblind', document.body.classList.contains('colorblind'));
+}
+
+// Check and apply Colorblind mode immediately
+if (localStorage.getItem('colorblind') === 'true') {
+    colorblindMode();
+}
+
+if (localStorage.getItem('hueRotation')) {
+    document.documentElement.style.setProperty('--rotation', localStorage.getItem('hueRotation'));
 }
 
 window.applyStoredFontSize = function() {

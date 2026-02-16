@@ -1,26 +1,30 @@
 :root {
-    --fundal: #1B0524;
-    --contrast: #100217;
-    --border2-solid: #321E3A;
-    --border2-solid-colorblind: #B992C3;
-    --primary: #B07BC9;
-    --primary-colorblind: #67347F;
 
-    --text-colour: #FFFFFF;
-    --text-colour-primary-button: #FFFFFF;
+    /* constants colours */
+    
+    --base-fundal:                     #1B0524;
+    --base-contrast:                   #100217;
+    --base-border2-solid:              #321E3A;
+    --base-primary:                    #B07BC9;
 
-    --disabled-text: #808080;
-    --confirm: #659D48;
-    --warning: #9D9548;
-    --danger: #592941;
-    --confirm-border: #4F7A38;
-    --warning-border: #7A7438;
-    --danger-border: #341826;
+    --base-text-colour:                #FFFFFF;
+    --base-text-colour-primary-button: #FFFFFF;
 
-    --text-cream: #FFFCEB;
-    --border-subtle: rgba(255, 255, 255, 0.1);
-    --card-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 0.25);
-    --primary-shadow: 0px 0px 7.5px 0px rgba(176, 123, 201, 0.3);
+    --base-disabled-text:              #808080;
+    --base-confirm:                    #659D48;
+    --base-warning:                    #9D9548;
+    --base-danger:                     #592941;
+    --base-confirm-border:             #4F7A38;
+    --base-warning-border:             #7A7438;
+    --base-danger-border:              #341826;
+
+    --base-text-cream:                 #FFFCEB;
+    --base-border-subtle:              rgba(255, 255, 255, 0.1);
+    --base-card-shadow:                  0px 0px 5px 0px rgba(255, 255, 255, 0.25);
+    --base-primary-shadow:               0px 0px 7.5px 0px rgba(176, 123, 201, 0.3);
+
+    /* rotation colours */
+    --rotation: 0;
 
     /* typography */
     font-family: 'Raleway', sans-serif;
@@ -78,12 +82,23 @@
 }
 
 body {
-    background-color: var(--fundal);
-    color: var(--text-colour);
-    font-family: 'Raleway', sans-serif;
-    display: flex;
-    flex-direction: column;
-    padding: 0 var(--padding-left-right);
+    --fundal:                     oklch(from var(--base-fundal) l c calc(h + var(--rotation)));
+    --contrast:                   oklch(from var(--base-contrast) l c calc(h + var(--rotation)));
+    --border2-solid:              oklch(from var(--base-border2-solid) l c calc(h + var(--rotation)));
+    --primary:                    oklch(from var(--base-primary) l c calc(h + var(--rotation)));
+    --text-colour:                oklch(from var(--base-text-colour) l c calc(h + var(--rotation)));
+    --text-colour-primary-button: oklch(from var(--base-text-colour-primary-button) l c calc(h + var(--rotation)));
+    --disabled-text:              oklch(from var(--base-disabled-text) l c calc(h + var(--rotation)));
+    --confirm:                    oklch(from var(--base-confirm) l c calc(h + var(--rotation)));
+    --warning:                    oklch(from var(--base-warning) l c calc(h + var(--rotation)));
+    --danger:                     oklch(from var(--base-danger) l c calc(h + var(--rotation)));
+    --confirm-border:             oklch(from var(--base-confirm-border) l c calc(h + var(--rotation)));
+    --warning-border:             oklch(from var(--base-warning-border) l c calc(h + var(--rotation)));
+    --danger-border:              oklch(from var(--base-danger-border) l c calc(h + var(--rotation)));
+    --text-cream:                 oklch(from var(--base-text-cream) l c calc(h + var(--rotation)));
+    --border-subtle:              oklch(from var(--base-border-subtle) l c calc(h + var(--rotation)));
+    --card-shadow:                var(--base-card-shadow);
+    --primary-shadow:             var(--base-primary-shadow);
 
     --small-font-size:  calc(var(--base-small-size) * var(--font-scale));
     --body-font-size:   calc(var(--base-body-size) * var(--font-scale));
@@ -92,6 +107,13 @@ body {
     --h2-font-size:     calc(var(--base-h2-size) * var(--font-scale));
     --h1-font-size:     calc(var(--base-h1-size) * var(--font-scale));
     --button-font-size: calc(var(--base-button-size) * var(--font-scale));
+
+    background-color: var(--fundal);
+    color: var(--text-colour);
+    font-family: 'Raleway', sans-serif;
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--padding-left-right);
 }
 
 body.high-contrast {
@@ -117,6 +139,27 @@ body.high-contrast {
     --border-subtle: #FFFFFF;
     --card-shadow: none;
     --primary-shadow: none;
+}
+
+body.colorblind {
+    --rotation: 250;
+
+    --fundal: oklch(from var(--base-fundal) l c 250); 
+    --contrast: oklch(from var(--base-contrast) l c 250);
+    --border2-solid: oklch(from var(--base-border2-solid) l c 250);
+    --primary: oklch(from var(--base-primary) l 0.15 70);
+    --primary-shadow: 0px 0px 7.5px 0px oklch(from var(--primary) l c h / 0.3);
+
+    /* same text colours */
+
+    --confirm: oklch(from var(--base-confirm) 0.7 0.1 210);
+    --confirm-border: oklch(from var(--base-confirm-border) 0.5 0.1 210);
+
+    --warning: oklch(from var(--base-warning) 0.85 0.05 90);
+    --warning-border: oklch(from var(--base-warning-border) 0.65 0.05 90);
+
+    --danger: oklch(from var(--base-danger) 0.5 0.2 25);
+    --danger-border: oklch(from var(--base-danger-border) 0.3 0.2 25);
 }
 
 body.font-size-small {
