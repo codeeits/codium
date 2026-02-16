@@ -5,6 +5,16 @@ O melodie caracteristica pentru acest este Lou Bega - Mambo No. 5 (A Little Bit 
 in memoriam doamna stan.
 */
 
+function highContrastMode() {
+    document.body.classList.toggle('high-contrast');
+
+    localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+}
+
+if (localStorage.getItem('highContrast') === 'true') {
+    highContrastMode();
+}
+
 async function loadTopMenu(variant = 'default') {
     try {
         const response = await fetch('/app/elements.html');

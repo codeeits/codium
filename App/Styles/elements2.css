@@ -2,8 +2,13 @@
     --fundal: #1B0524;
     --contrast: #100217;
     --border2-solid: #321E3A;
+    --border2-solid-colorblind: #B992C3;
     --primary: #B07BC9;
+    --primary-colorblind: #67347F;
+
     --text-colour: #FFFFFF;
+    --text-colour-primary-button: #FFFFFF;
+
     --disabled-text: #808080;
     --confirm: #659D48;
     --warning: #9D9548;
@@ -94,6 +99,49 @@ body {
     padding: 0 var(--padding-left-right);
 }
 
+body.high-contrast {
+    --fundal: #000000;
+    --contrast: #000000;
+    --border2-solid: #FFFFFF;
+    --border2-solid-colorblind: #FFFFFF;
+    --primary: #FFFFFF;
+    --primary-colorblind: #FFFFFF;
+
+    --text-colour: #FFFFFF;
+    --text-colour-primary-button: #000000;
+
+    --disabled-text: #FFFFFF;
+    --confirm: #FFFFFF;
+    --warning: #FFFFFF;
+    --danger: #FFFFFF;
+    --confirm-border: #FFFFFF;
+    --warning-border: #FFFFFF;
+    --danger-border: #FFFFFF;
+
+    --text-cream: #FFFFFF;
+    --border-subtle: #FFFFFF;
+    --card-shadow: none;
+    --primary-shadow: none;
+}
+
+.high-contrast a {
+    text-decoration: underline !important;
+}
+
+.high-contrast a:hover {
+    text-decoration: none !important;
+}
+
+.high-contrast .active {
+    background-color: var(--primary) !important;
+    color: var(--text-colour-primary-button) !important;
+}
+
+.high-contrast .visited {
+    text-decoration: line-through !important;
+    text-decoration-thickness: 3px !important;
+}
+
 /* typography */
 h1 {
     font-size: var(--h1-font-size);
@@ -174,6 +222,10 @@ table th {
     text-align: left;
 }
 
+.high-contrast table th {
+    color: var(--text-colour-primary-button) !important;
+}
+
 table td {
     padding: var(--gap-sm);
     background-color: var(--contrast);
@@ -202,6 +254,14 @@ table td:not(:first-child) {
     font-size: var(--h2-font-size);
     font-weight: var(--h2-font-weight);
     color: var(--text-colour);
+}
+
+.high-contrast span.large-text:hover {
+    color: var(--text-colour-primary-button) !important;
+}
+
+.high-contrast span.small-text:hover {
+    color: var(--text-colour-primary-button) !important;
 }
 
 /* ====================== */
@@ -344,7 +404,7 @@ table td:not(:first-child) {
     margin-left: calc(-1 * var(--padding-left-right));
     margin-right: calc(-1 * var(--padding-left-right));
     padding: 0 var(--padding-left-right);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    border-bottom: 1px solid var(--border2-solid);
     background: var(--fundal);
     color: var(--text-colour);
     font-size: var(--body-font-size);
@@ -421,6 +481,11 @@ table td:not(:first-child) {
     padding-right: 32px;
 }
 
+.high-contrast .language-dropdown {
+    border: 1px solid var(--text-colour) !important;
+}
+
+
 .language-dropdown option {
     background-color: var(--fundal);
     color: var(--text-colour);
@@ -496,7 +561,7 @@ main, .content-area {
     font-family: 'Raleway', sans-serif;
     font-size: var(--button-font-size);
     font-weight: var(--button-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
@@ -506,6 +571,7 @@ main, .content-area {
 .btn.primary {
     background-color: var(--primary);
     box-shadow: var(--primary-shadow);
+    color: var(--text-colour-primary-button);
 }
 
 .btn.primary:hover {
@@ -514,6 +580,28 @@ main, .content-area {
 
 .btn.secondary {
     background-color: var(--contrast);
+    color: var(--text-colour);
+}
+
+.high-contrast .btn.primary:hover {
+    filter: none;
+    background-color: var(--contrast) !important;
+    color: var(--text-colour) !important;
+    border: 1px solid var(--text-colour) !important;
+}
+
+.high-contrast .btn.secondary {
+    background-color: var(--contrast) !important;
+    color: var(--text-colour) !important;
+}
+
+.high-contrast .btn.secondary:hover {
+    background-color: var(--border2-solid) !important;
+    color: var(--text-colour-primary-button) !important;
+}
+
+.high-contrast .btn.secondary:hover > * {
+    color: var(--text-colour-primary-button) !important;
 }
 
 .btn.secondary:hover {
@@ -536,6 +624,20 @@ main, .content-area {
 
 .btn.danger:hover {
     background-color: var(--danger-border);
+}
+
+.high-contrast .btn.danger, .high-contrast .btn.confirm {
+    background-color: var(--primary) !important;
+    color: var(--text-colour-primary-button) !important;
+}
+
+.high-contrast .btn.danger span, .high-contrast .btn.confirm span{
+    color: var(--text-colour-primary-button) !important;
+}
+
+.high-contrast .btn.danger:hover, .high-contrast .btn.confirm:hover {
+    background-color: var(--primary) !important;
+    color: var(--text-colour-primary-button) !important;
 }
 
 .btn.full-width {
@@ -593,6 +695,10 @@ main, .content-area {
     transform: translateX(15px);
 }
 
+.high-contrast .switch input:checked + .slider::before {
+    background-color: var(--text-colour-primary-button);
+}
+
 /* card base */
 .card {
     background-color: var(--fundal);
@@ -634,13 +740,13 @@ main, .content-area {
 .profile-name {
     font-size: var(--h2-font-size);
     font-weight: var(--h2-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .profile-email {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-cream);
+    color: var(--text-colour);
 }
 
 .profile-actions {
@@ -711,6 +817,11 @@ main, .content-area {
     display: flex;
     flex-direction: column;
     gap: var(--gap-sm);
+}
+
+.high-contrast .content-card:hover * {
+    color: var(--text-colour-primary-button) !important;
+
 }
 
 /* hover stuff */
@@ -1053,6 +1164,10 @@ blockquote {
     overflow: hidden;
 }
 
+.high-contrast .achievement-progress {
+    border: 1px solid var(--primary) !important;
+}
+
 .progress-bar {
     height: 100%;
     background-color: var(--primary);
@@ -1121,12 +1236,13 @@ blockquote {
     align-items: center;
     gap: 6px;
     padding: var(--gap-lg) 15px var(--gap-md);
+    color: var(--border2-solid);
 }
 
 .divider-text {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
-    color: var(--border2-solid);
+    color: inherit;
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -1157,6 +1273,12 @@ blockquote {
 .pill.warning {
     border-color: var(--warning-border);
     background-color: var(--warning);
+}
+
+.high-contrast .pill.warning {
+    border-color: var(--primary) !important;
+    background-color: var(--primary) !important;
+    color: var(--text-colour-primary-button) !important;
 }
 
 /* ===================== */
@@ -1192,6 +1314,13 @@ blockquote {
     animation: fadeIn 1s ease forwards;
     box-shadow: 0px 0px 7.5px 0px transparent;
 }
+
+.high-contrast .toast, .high-contrast .toast * {
+    border-color: var(--text-colour) !important;
+    color: var(--text-colour-primary-button) !important;
+    background-color: var(--primary) !important;
+}
+
 
 .toast-info {
     background-color: var(--contrast);
@@ -1540,6 +1669,10 @@ blockquote {
     }
 
     .top-bar > div > nav {
+        display: none;
+    }
+
+    .high-contrast .top-bar > div > nav {
         display: none;
     }
 

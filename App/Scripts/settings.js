@@ -253,6 +253,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function enableHighContrastMode() {
+        // Check localStorage for high contrast mode preference
+        if (localStorage.getItem('highContrast') === 'true') {
+            document.body.classList.add('high-contrast');
+            elements.highContrastModeToggle.checked = true;
+        }
+        elements.highContrastModeToggle.addEventListener('change', () => {
+            highContrastMode(); // external function defined in main.js that toggles the class on body
+        });
+    }
     // --- HELPER - for custom event to change selected language in dropdown ---
 
     window.addEventListener('codium:lang-changed', (e) => {
@@ -290,6 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             renderLanguageOptions();
             initDropdown(); // Initialize dropdown logic
+
+            enableHighContrastMode();
 
         } catch (err) {
             console.error('Failed to get current user:', err);
