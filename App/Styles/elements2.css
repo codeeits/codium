@@ -25,41 +25,28 @@
     /* typography */
     font-family: 'Raleway', sans-serif;
 
-    /* small text: 12px, Regular */
-    --small-font-size: 12px;
+    /* constants */
+    --base-small-size:  12px;
+    --base-body-size:   14px;
+    --base-h4-size:     14px;
+    --base-h3-size:     16px;
+    --base-h2-size:     20px;
+    --base-h1-size:     30px;
+    --base-button-size: 14px;
+
+    /* scale */
+    --font-scale: 1;
+
+    /* greutati */
     --small-font-weight: 400;
-
-    /* body (p): 14px, Regular */
-    --body-font-size: 14px;
     --body-font-weight: 400;
-
-    /* subtitle (H4): 14px, SemiBold */
-    --h4-font-size: 14px;
     --h4-font-weight: 600;
-
-    /* subtitle (H4) altern: 14px, Medium */
     --h4-alt-font-weight: 500;
-
-    /* subtitle (H3): 16px, SemiBold */
-    --h3-font-size: 16px;
     --h3-font-weight: 600;
-
-    /* subtitle (H3) altern: 16px, Medium */
     --h3-alt-font-weight: 500;
-
-    /* subtitle (H2): 20px, SemiBold */
-    --h2-font-size: 20px;
     --h2-font-weight: 600;
-
-    /* subtitle (H2) altern: 20px, Regular */
     --h2-alt-font-weight: 400;
-
-    /* title (H1): 30px, Bold */
-    --h1-font-size: 30px;
     --h1-font-weight: 700;
-
-    /* button: 14px, Regular */
-    --button-font-size: 14px;
     --button-font-weight: 400;
 
     /* spacing */
@@ -97,6 +84,14 @@ body {
     display: flex;
     flex-direction: column;
     padding: 0 var(--padding-left-right);
+
+    --small-font-size:  calc(var(--base-small-size) * var(--font-scale));
+    --body-font-size:   calc(var(--base-body-size) * var(--font-scale));
+    --h4-font-size:     calc(var(--base-h4-size) * var(--font-scale));
+    --h3-font-size:     calc(var(--base-h3-size) * var(--font-scale));
+    --h2-font-size:     calc(var(--base-h2-size) * var(--font-scale));
+    --h1-font-size:     calc(var(--base-h1-size) * var(--font-scale));
+    --button-font-size: calc(var(--base-button-size) * var(--font-scale));
 }
 
 body.high-contrast {
@@ -122,6 +117,14 @@ body.high-contrast {
     --border-subtle: #FFFFFF;
     --card-shadow: none;
     --primary-shadow: none;
+}
+
+body.font-size-small {
+    --font-scale: 0.85;
+}
+
+body.font-size-large {
+    --font-scale: 1.2;
 }
 
 .high-contrast a {

@@ -5,15 +5,33 @@ O melodie caracteristica pentru acest este Lou Bega - Mambo No. 5 (A Little Bit 
 in memoriam doamna stan.
 */
 
+// --- VISUAL SETTINGS (High Contrast & Font Size) ---
+
 function highContrastMode() {
     document.body.classList.toggle('high-contrast');
-
     localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
 }
 
+// Check and apply High Contrast immediately
 if (localStorage.getItem('highContrast') === 'true') {
     highContrastMode();
 }
+
+window.applyStoredFontSize = function() {
+    const defaultSizeId = 'font-size-medium';
+    const currentSizeId = localStorage.getItem('fontSize') || defaultSizeId;
+
+    document.body.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
+
+    if (currentSizeId !== defaultSizeId) {
+        document.body.classList.add(currentSizeId);
+    }
+};
+
+window.applyStoredFontSize();
+
+
+// --- ASYNC LOADERS ---
 
 async function loadTopMenu(variant = 'default') {
     try {
@@ -277,13 +295,17 @@ function getActiveSidebarPage() {
     return null;
 }
 
+// --- INITIALIZATION ---
+
 document.addEventListener('DOMContentLoaded', async function() {
+    // 1. UI Loaders
     const variant = getMenuVariant();
     await loadTopMenu(variant);
     
     const activeSidebarPage = getActiveSidebarPage();
     await loadSidebar(activeSidebarPage);
     
+    // 2. Event Listeners
     window.addEventListener('storage', function(e) {
         if (e.key === 'authToken' || e.key === 'username') {
             updateAuthButton();
@@ -294,6 +316,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateAuthButton();
     });
 
+    // 3. Language Load
     await loadLanguage(localStorage.getItem('lang') || 'ro');
 });
 
@@ -311,6 +334,8 @@ window.addEventListener('load', () => {
     }
   }, 200);
 });
+
+// --- I18N / TRANSLATIONS ---
 
 let currentTranslations = {};
 

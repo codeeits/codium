@@ -263,6 +263,60 @@ document.addEventListener("DOMContentLoaded", () => {
             highContrastMode(); // external function defined in main.js that toggles the class on body
         });
     }
+
+    function setFontSize() {
+        const container = elements.fontSizeSelect; 
+        
+        const updateUI = (activeId) => {
+            const currentButtons = container.querySelectorAll('button');
+
+            currentButtons.forEach(btn => {
+                if (btn.id === activeId) {
+                    btn.classList.add('primary');
+                    btn.classList.remove('secondary');
+                } else {
+                    btn.classList.remove('primary');
+                    btn.classList.add('secondary');
+                }
+
+                const span = btn.querySelector('span');
+                if (span) {
+                    if (btn.id === activeId) {
+                        span.classList.add('active');
+                    } else {
+                        span.classList.remove('active');
+                    }
+                }
+            });
+        };
+
+        const defaultSizeId = 'font-size-medium';
+        const currentSizeId = localStorage.getItem('fontSize') || defaultSizeId;
+
+        const oldButtons = container.querySelectorAll('button');
+        
+        oldButtons.forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', () => {
+                const newSizeId = newBtn.id;
+                
+                localStorage.setItem('fontSize', newSizeId);
+                
+                updateUI(newSizeId);
+                
+                if (window.applyStoredFontSize) {
+                    window.applyStoredFontSize();
+                }
+                
+                console.log(`Font size set to: ${newSizeId}`);
+            });
+        });
+
+        updateUI(currentSizeId);
+    }
+
     // --- HELPER - for custom event to change selected language in dropdown ---
 
     window.addEventListener('codium:lang-changed', (e) => {
@@ -302,6 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initDropdown(); // Initialize dropdown logic
 
             enableHighContrastMode();
+            setFontSize();
 
         } catch (err) {
             console.error('Failed to get current user:', err);
