@@ -20,8 +20,8 @@
 
     --base-text-cream:                 #FFFCEB;
     --base-border-subtle:              rgba(255, 255, 255, 0.1);
-    --base-card-shadow:                  0px 0px 5px 0px rgba(255, 255, 255, 0.25);
-    --base-primary-shadow:               0px 0px 7.5px 0px rgba(176, 123, 201, 0.3);
+    --base-card-shadow:                0px 0px 5px 0px rgba(255, 255, 255, 0.25);
+    --base-primary-shadow:             0px 0px 7.5px 0px rgba(176, 123, 201, 0.3);
 
     /* rotation colours */
     --rotation: 0;
@@ -42,28 +42,28 @@
     --font-scale: 1;
 
     /* greutati */
-    --small-font-weight: 400;
-    --body-font-weight: 400;
-    --h4-font-weight: 600;
+    --small-font-weight:  400;
+    --body-font-weight:   400;
+    --h4-font-weight:     600;
     --h4-alt-font-weight: 500;
-    --h3-font-weight: 600;
+    --h3-font-weight:     600;
     --h3-alt-font-weight: 500;
-    --h2-font-weight: 600;
+    --h2-font-weight:     600;
     --h2-alt-font-weight: 400;
-    --h1-font-weight: 700;
+    --h1-font-weight:     700;
     --button-font-weight: 400;
 
     /* spacing */
-    --gap-sm: 5px;
-    --gap-md: 10px;
+    --gap-sm:   5px;
+    --gap-md:   10px;
     --gap-15px: 15px;
-    --gap-lg: 20px;
-    --gap-xxl: 80px;
+    --gap-lg:   20px;
+    --gap-xxl:  80px;
 
-    --padding-card: 20px;
+    --padding-card:        20px;
     --padding-right-small: 10px;
-    --padding-lg-aside: 30px;
-    --padding-left-right: 100px; /* more like a margin actually */
+    --padding-lg-aside:    30px;
+    --padding-left-right:  100px; /* more like a margin actually */
 
     --border-radius-sm: 10px;
     --border-radius-lg: 20px;
@@ -109,57 +109,55 @@ body {
     --button-font-size: calc(var(--base-button-size) * var(--font-scale));
 
     background-color: var(--fundal);
-    color: var(--text-colour);
-    font-family: 'Raleway', sans-serif;
-    display: flex;
-    flex-direction: column;
-    padding: 0 var(--padding-left-right);
+    color:            var(--text-colour);
+    font-family:      'Raleway', sans-serif;
+    display:          flex;
+    flex-direction:   column;
+    padding:          0 var(--padding-left-right);
 }
 
 body.high-contrast {
-    --fundal: #000000;
-    --contrast: #000000;
-    --border2-solid: #FFFFFF;
-    --border2-solid-colorblind: #FFFFFF;
-    --primary: #FFFFFF;
-    --primary-colorblind: #FFFFFF;
+    --fundal:                     #000000;
+    --contrast:                   #000000;
+    --border2-solid:              #FFFFFF;
+    --primary:                    #FFFFFF;
 
-    --text-colour: #FFFFFF;
+    --text-colour:                #FFFFFF;
     --text-colour-primary-button: #000000;
 
-    --disabled-text: #FFFFFF;
-    --confirm: #FFFFFF;
-    --warning: #FFFFFF;
-    --danger: #FFFFFF;
-    --confirm-border: #FFFFFF;
-    --warning-border: #FFFFFF;
-    --danger-border: #FFFFFF;
+    --disabled-text:              #FFFFFF;
+    --confirm:                    #FFFFFF;
+    --warning:                    #FFFFFF;
+    --danger:                     #FFFFFF;
+    --confirm-border:             #FFFFFF;
+    --warning-border:             #FFFFFF;
+    --danger-border:              #FFFFFF;
 
-    --text-cream: #FFFFFF;
-    --border-subtle: #FFFFFF;
-    --card-shadow: none;
-    --primary-shadow: none;
+    --text-cream:                 #FFFFFF;
+    --border-subtle:              #FFFFFF;
+    --card-shadow:                none;
+    --primary-shadow:             none;
 }
 
 body.colorblind {
     --rotation: 250;
 
-    --fundal: oklch(from var(--base-fundal) l c 250); 
-    --contrast: oklch(from var(--base-contrast) l c 250);
-    --border2-solid: oklch(from var(--base-border2-solid) l c 250);
-    --primary: oklch(from var(--base-primary) l 0.15 70);
+    --fundal:         oklch(from var(--base-fundal) l c 250); 
+    --contrast:       oklch(from var(--base-contrast) l c 250);
+    --border2-solid:  oklch(from var(--base-border2-solid) l c 250);
+    --primary:        oklch(from var(--base-primary) l 0.15 70);
     --primary-shadow: 0px 0px 7.5px 0px oklch(from var(--primary) l c h / 0.3);
 
     /* same text colours */
 
-    --confirm: oklch(from var(--base-confirm) 0.7 0.1 210);
+    --confirm:        oklch(from var(--base-confirm) 0.7 0.1 210);
     --confirm-border: oklch(from var(--base-confirm-border) 0.5 0.1 210);
 
-    --warning: oklch(from var(--base-warning) 0.85 0.05 90);
+    --warning:        oklch(from var(--base-warning) 0.85 0.05 90);
     --warning-border: oklch(from var(--base-warning-border) 0.65 0.05 90);
 
-    --danger: oklch(from var(--base-danger) 0.5 0.2 25);
-    --danger-border: oklch(from var(--base-danger-border) 0.3 0.2 25);
+    --danger:         oklch(from var(--base-danger) 0.5 0.2 25);
+    --danger-border:  oklch(from var(--base-danger-border) 0.3 0.2 25);
 }
 
 body.font-size-small {
@@ -1654,7 +1652,18 @@ blockquote {
     background-color: var(--border2-solid);
     margin: var(--gap-sm) 0;
 }
+/*
+.dropdown-item:focus {
+    background-color: var(--fundal);
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
 
+.dropdown-toggle:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+*/
 /* Responsive */
 @media (max-width: 768px) {
     :root {

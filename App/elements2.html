@@ -45,27 +45,27 @@
         <h2>Dropdown</h2>
         <div class="buttons-row">
             <div class="dropdown" id="sort-dropdown">
-                <button type="button" class="btn primary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
                     Alfabetic <i class="fa-solid fa-chevron-down"></i>
                 </button>
-                <div class="dropdown-menu">
-                    <div class="dropdown-item active">Alfabetic</div>
-                    <div class="dropdown-item">Dificultate</div>
-                    <div class="dropdown-item">Cele mai noi</div>
-                    <div class="dropdown-item">Cele mai vechi</div>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-item active" role="menuitem" tabindex="0">Alfabetic</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Dificultate</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Cele mai noi</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Cele mai vechi</div>
                 </div>
             </div>
             <div class="dropdown" id="filter-dropdown">
-                <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                <button type="button" class="btn secondary dropdown-toggle" aria-expanded="false">
                     Filtrează <i class="fa-solid fa-filter"></i>
                 </button>
-                <div class="dropdown-menu">
-                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a IX-a</div>
-                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a X-a</div>
-                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a XI-a</div>
-                    <div class="dropdown-item"><i class="fa-solid fa-graduation-cap"></i> Clasa a XII-a</div>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a IX-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a X-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a XI-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a XII-a</div>
                     <div class="dropdown-divider"></div>
-                    <div class="dropdown-item"><i class="fa-solid fa-rotate-left"></i> Resetează</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-rotate-left"></i> Resetează</div>
                 </div>
             </div>
         </div>
@@ -388,34 +388,100 @@
     </div>
 
     <script>
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('open');
+        document.addEventListener('DOMContentLoaded', () => {
+    // Select ALL dropdowns, not just the first one
+    const dropdowns = document.querySelectorAll('.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const items = dropdown.querySelectorAll('.dropdown-item');
+
+        // 1. Toggle Menu (Click)
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent document click from immediately closing it
+            const isOpen = dropdown.classList.contains('open');
+            
+            // Close all other dropdowns first (optional, but good UX)
+            document.querySelectorAll('.dropdown.open').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('open');
+                    d.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        // 2. Open/Close Helpers
+        function openDropdown() {
+            dropdown.classList.add('open');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            
+            // Wait for CSS to render, then focus the first item
+            setTimeout(() => {
+                if(items.length > 0) items[0].focus();
+            }, 50);
+        }
+
+        function closeDropdown() {
+            dropdown.classList.remove('open');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        // 3. Item Interaction (Click + Enter Key)
+        items.forEach(item => {
+            // Helper to handle selection
+            const handleSelect = (e) => {
+                e.stopPropagation(); // Stop bubbling
+                e.preventDefault();  // Stop scrolling if spacebar
+
+                // Update Visuals
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                // Update Button Text (Preserving the Icon)
+                const icon = toggleBtn.querySelector('i');
+                // We create a temp clone to save the icon before wiping text
+                const iconClone = icon ? icon.cloneNode(true) : null;
+                
+                toggleBtn.textContent = item.textContent.trim() + ' ';
+                if (iconClone) toggleBtn.appendChild(iconClone);
+
+                closeDropdown();
+                toggleBtn.focus(); // Return focus to main button
+            };
+
+            item.addEventListener('click', handleSelect);
+            
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    handleSelect(e);
+                }
+                // Allow ESC to close
+                if (e.key === 'Escape') {
+                    closeDropdown();
+                    toggleBtn.focus();
                 }
             });
         });
+    });
 
-        // Handle dropdown item selection
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const dropdown = this.closest('.dropdown');
-                const toggle = dropdown.querySelector('.dropdown-toggle');
-                
-                // Update active state
-                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Update button text (keep icon)
-                const icon = toggle.querySelector('i');
-                toggle.textContent = this.textContent.trim() + ' ';
-                toggle.appendChild(icon);
-                
-                // Close dropdown
+    // 4. Global Click Outside
+    document.addEventListener('click', (e) => {
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(e.target)) {
                 dropdown.classList.remove('open');
-            });
+                const btn = dropdown.querySelector('.dropdown-toggle');
+                if(btn) btn.setAttribute('aria-expanded', 'false');
+            }
         });
+    });
+});
     </script>
 
 </body>

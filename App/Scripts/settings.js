@@ -144,9 +144,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
         const itemsContainer = dropdown.querySelector('.dropdown-menu');
 
-        // render current language
+        // Render current language visual
         const currLang = localStorage.getItem('lang') || 'ro';
         const currLangData = languages.find(l => l.iso === currLang);
+        
+        // Note: We don't add listeners here anymore. main.js handles clicks!
         if (currLangData) {
             toggleBtn.innerHTML = `${currLangData.displayName} <i class="fa-solid fa-chevron-down"></i>`;
         }
@@ -157,7 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const item = document.createElement('div');
             item.classList.add('dropdown-item');
             item.textContent = lang.displayName;
-            item.dataset.iso = lang.iso;
+            item.dataset.iso = lang.iso; // Critical for the event system
+            item.setAttribute('role', 'menuitem');
+            item.setAttribute('tabindex', '0');
 
             if(lang.iso === currLang) {
                 item.classList.add('active');
@@ -165,11 +169,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             itemsContainer.appendChild(item);
         });
-        
-        initDropdownItems();
     }
 
     // --- ACTIONS ---
+
+    function setupEasterEgg() {
+        const dropdown = elements.languageSelect;
+        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+
+        // We simply add a listener. It runs alongside the global toggle logic.
+        toggleBtn.addEventListener('click', () => {
+            easterEggClickCount++;
+            if (easterEggClickCount === 10) {
+                triggerEasterEgg();
+                easterEggClickCount = 0; 
+            }
+        });
+    }
 
     function triggerEasterEgg() {
         alert('Felicitări! Ai descoperit limba secretă: Romengleză! Acum poți vorbi ca un adevărat codianist!');
@@ -180,78 +196,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const romengOption = document.createElement('div');
         romengOption.classList.add('dropdown-item');
         romengOption.textContent = 'Romengleză';
-        romengOption.dataset.iso = 'roen'; // pseudo iso lmao
+        romengOption.dataset.iso = 'roen'; 
 
-        romengOption.addEventListener('click', () => {
-            const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-            
-            toggleBtn.innerHTML = `Romengleză <i class="fa-solid fa-chevron-down"></i>`;
-            
-            dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-            romengOption.classList.add('active');
-            
-            dropdown.classList.remove('open');
-            console.log('Selected language: Romengleză');
-            
-            setLanguage('roen'); 
-        });
-
+        // No click listener needed! main.js will catch the click on this new item.
         itemsContainer.appendChild(romengOption);
     }
 
-    function initDropdownItems() {
+    function initDropdownLogic() {
         const dropdown = elements.languageSelect;
-        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-        const items = dropdown.querySelectorAll('.dropdown-item');
 
-        items.forEach(item => {
-            const newItem = item.cloneNode(true);
-            item.parentNode.replaceChild(newItem, item);
+        // Listen for the custom event dispatched by main.js
+        dropdown.addEventListener('dropdown-selected', (e) => {
+            const iso = e.detail.iso;
+            console.log('Language Selected via Global Controller:', iso);
             
-            newItem.addEventListener('click', () => {
-                const selectedText = newItem.textContent.trim();
-                
-                toggleBtn.innerHTML = `${selectedText} <i class="fa-solid fa-chevron-down"></i>`;
-
-                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-                newItem.classList.add('active');
-
-                dropdown.classList.remove('open');
-                console.log('Selected language:', selectedText);
-
-                setLanguage(newItem.dataset.iso);
-            });
-        });
-    }
-
-    function initDropdown() {
-        const dropdown = elements.languageSelect;
-        if (!dropdown) return;
-
-        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-
-        toggleBtn.onclick = null;
-
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            dropdown.classList.toggle('open');
-
-            // --- EASTER EGG LOGIC START ---
-            easterEggClickCount++;
-            if (easterEggClickCount === 10) {
-                triggerEasterEgg();
-                easterEggClickCount = 0; 
-            }
-            // --- EASTER EGG LOGIC END ---
+            // Your specific business logic
+            setLanguage(iso);
         });
 
-        initDropdownItems();
-
-        document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target)) {
-                dropdown.classList.remove('open');
-            }
-        });
+        setupEasterEgg();
     }
 
     function enableHighContrastMode() {
@@ -392,9 +355,9 @@ document.addEventListener("DOMContentLoaded", () => {
             await fetchUserData();
             
             renderLanguageOptions();
-            initDropdown(); // Initialize dropdown logic
+            initDropdownLogic(); // Replaces initDropdown
 
-            initHueSlider(); // Initialize hue slider logic
+            initHueSlider(); 
             enableHighContrastMode();
             enableColorblindMode();
             setFontSize();

@@ -126,14 +126,14 @@
                         <label for="language-selector">Limba de afișare</label>
                         <!-- Toggle switch -->
                         <div class="dropdown" id="language-selector-dropdown">
-                            <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            <button type="button" class="btn secondary dropdown-toggle" aria-expanded="false">
                                 Română <i class="fa-solid fa-chevron-down"></i>
                             </button>
-                            <div class="dropdown-menu" id="dropdown-menu">
-                                <div class="dropdown-item active">Română</div>
-                                <div class="dropdown-item">Engleză</div>
-                                <div class="dropdown-item">Catalană (că de ce nu)</div>
-                                <div class="dropdown-item">Germană</div>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-iso="ro">Română</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-iso="en">Engleză</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-iso="ca">Catalană (că de ce nu)</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-iso="de">Germană</div>
                             </div>
                         </div>
                     </div>
