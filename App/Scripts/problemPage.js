@@ -45,7 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         noSolutionsMsg: document.getElementById("no-solutions-msg"),
         dropzone: document.querySelector('.input-field.dropzone'),
         fileInput: document.getElementById('file-input'),
-        bookmarkBtn: document.getElementById("bookmark-btn")
+        bookmarkBtn: document.getElementById("bookmark-btn"),
+
     };
 
     // --- STATE ---
@@ -63,7 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
             module: null,
             section: null,
             thumbnailId: null
-        }
+        },
+        h2Array: []
     };
 
     // --- HELPERS & UTILS ---
@@ -140,6 +142,125 @@ document.addEventListener("DOMContentLoaded", () => {
             if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
             toastsLoader.showToast("Failed to toggle bookmark", "danger");
         });
+    }
+
+    function renderExternalLibraries() {
+        // Process MathJax
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            setTimeout(() => {
+                MathJax.typesetPromise([elements.container]).then(() => {
+                    if (debugMode) console.log('[MATH] MathJax processing complete');
+                }).catch((err) => {
+                    if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
+                });
+            }, 100);
+        } else if (window.MathJax && window.MathJax.Hub) {
+            setTimeout(() => {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, elements.container]);
+            }, 100);
+        }
+
+        // Process Mermaid
+        if (window.mermaid) {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: 'dark',
+                themeVariables: {
+                    primaryColor: '#9B59BB',
+                    primaryTextColor: '#FFFFFF',
+                    primaryBorderColor: '#9B59BB',
+                    lineColor: '#B380CB',
+                    secondaryColor: '#B380CB',
+                    tertiaryColor: '#8E44AD',
+                }
+            });
+
+            setTimeout(() => {
+                mermaid.run({
+                    querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
+                }).then(() => {
+                    if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
+                }).catch((err) => {
+                    if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
+                });
+            }, 200);
+        }
+    }
+
+    function tomarkdown(text) {
+        if (!text) return '';
+
+        // --- RENDERER CONFIGURATION ---
+        const renderer = {
+            heading(token) {
+                const plain = token.text || '';
+                const level = token.depth;
+                const slug = plain
+                    .toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^\w]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                
+                // Assuming 'state' is a globally accessible object for the TOC
+                if (level === 2 && typeof state !== 'undefined') {
+                    state.h2Array.push({ text: plain, slug });
+                }
+                return `<h${level} id="${slug}">${plain}</h${level}>`;
+            },
+        };
+
+        // --- DATA EXTRACTION ---
+        const extractCustomBlock = (content, tag) => {
+            const regex = new RegExp(`\\n?\\/\\/\\/\\/\\/${tag}\\s*([\\s\\S]*?)\\s*\\/\\/\\/\\/\\/\\n?`);
+            const match = content.match(regex);
+            return {
+                match: match ? match[1].trim() : null,
+                cleanedText: content.replace(regex, '')
+            };
+        };
+
+        const inputData = extractCustomBlock(text, 'input');
+        text = inputData.cleanedText;
+
+        const outputData = extractCustomBlock(text, 'output');
+        text = outputData.cleanedText;
+
+        // --- VIRTUAL ui construction ---
+        let ioHtml = '';
+        if (inputData.match || outputData.match) {
+            ioHtml += `<div class="example-block" id="io-container">`;
+            if (inputData.match) {
+                ioHtml += `<div class="example-input"><p><strong>Intrare:</strong></p><pre><code>${inputData.match}</code></pre></div>`;
+            }
+            if (outputData.match) {
+                ioHtml += `<div class="example-output"><p><strong>Ieșire:</strong></p><pre><code>${outputData.match}</code></pre></div>`;
+            }
+            ioHtml += `</div>`;
+        }
+
+        // --- MARKED CONFIGURATION ---
+        marked.use({ renderer });
+        marked.setOptions({
+            highlight: (code, lang) => {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        // --- RETURN ---
+        const parsedMarkdown = marked.parse(text);
+        
+        setTimeout(() => {
+            hljs.highlightAll();
+            renderExternalLibraries();
+        }, 0);
+
+        return parsedMarkdown + ioHtml;
+
     }
 
     // --- FETCH DATA ---
@@ -239,7 +360,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const p = state.problemData.problem;
 
         elements.title.textContent = state.meta.title;
-        elements.description.textContent = p.Description;
+        if (state.isNewUi){ elements.description.innerHTML = tomarkdown(p.Description || "Fără descriere"); }
+        else { elements.description.textContent = p.Description || "Fără descriere"; }
+
+
         elements.difficulty.textContent = getDifficultyLabel(state.meta.difficulty);
 
         if (elements.module && state.meta.module) elements.module.textContent = `Modul ${state.meta.module}`;

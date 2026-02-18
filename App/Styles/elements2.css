@@ -961,6 +961,20 @@ main, .content-area {
     filter: grayscale(100%);
     opacity: 0.6;
     pointer-events: none;
+
+    transition: all 0.3s ease-in-out;
+}
+
+.example-block pre.copied::before {
+    content: "\f00c";
+    color: var(--confirm);
+    opacity: 1;
+    filter: grayscale(0%);
+    transform: scale(1.2);
+}
+
+.example-block pre.copied, .example-block pre.copied:hover {
+    border-color: var(--confirm);
 }
 
 .example-block pre:hover::before {
@@ -1018,6 +1032,7 @@ main, .content-area {
     cursor: pointer;
     transition: border-color 0.2s ease-in-out;
 }
+
 
 .example-block pre:hover {
     border-color: var(--primary);

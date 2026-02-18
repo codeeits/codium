@@ -14,6 +14,36 @@
     <!-- Stylesheet -->
     <link rel="stylesheet" href="/app/Styles/elements2.css">
     <link rel="stylesheet" href="/app/Styles/problem.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- MathJax Configuration (Safari-compatible) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            startup: {
+                ready: function () {
+                    console.log('MathJax is ready');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
@@ -87,7 +117,7 @@
                         <li>Se garantează că suma <code>S</code> poate fi plătită cu bancnotele disponibile.</li>
                     </ul>
                     <h2>Exemplu</h2>
-                    <div class="example-block">
+                    <div class="example-block" id="io-container">
                         <div class="example-input">
                             <p>Intrare:</p>
                             <pre><code>5

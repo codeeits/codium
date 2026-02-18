@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;
 
             card.addEventListener('click', () => {
-                window.location.href = `/app/Probleme/problem.html?id=${problem.problem.ID}`;
+                window.location.href = `/app/Probleme/problem2.html?id=${problem.problem.ID}`;
             });
 
             problemsGridContainer.appendChild(card);
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const randomProblem = problemsData[randomIndex];
             
             setTimeout(() => {
-                window.location.href = `/app/Probleme/problem.html?id=${randomProblem.problem.ID}`;
+                window.location.href = `/app/Probleme/problem2.html?id=${randomProblem.problem.ID}`;
             }, 500);
         });
     }

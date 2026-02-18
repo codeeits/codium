@@ -375,6 +375,28 @@ function setupScrollRestoration() {
     });
 }
 
+// ----------------------------------
+// Global copy/paste for pre elements
+// ----------------------------------
+
+function setupPreCopy() {
+    document.addEventListener('click', async (e) => {
+        const pre = e.target.closest('pre');
+        if (!pre) return;
+
+        const code = pre.querySelector('code');
+        const text = code ? code.textContent : pre.textContent;
+
+        try {
+            await navigator.clipboard.writeText(text);
+
+            pre.classList.add('copied');
+            setTimeout(() => pre.classList.remove('copied'), 800);
+        } catch (err) {
+            console.error('Copy failed:', err);
+        }
+    });
+}
 
 // ----------------------------------
 // innit mate ain't it?
@@ -385,6 +407,8 @@ async function initApp() {
 
     InteractionHandler.init();
     setupScrollRestoration();
+
+    setupPreCopy();
 
     await Promise.all([
         loadTopMenu(),

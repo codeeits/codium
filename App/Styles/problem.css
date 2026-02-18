@@ -12,6 +12,12 @@
 
 }
 
+#problem-source-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-sm);
+}
+
 .content-area > div {
     display: flex;
     flex-direction: row;
@@ -55,7 +61,7 @@ main, .content-area {
     position: sticky;
     top: calc(var(--padding-lg-aside) + var(--top-bar-height));
     align-self: flex-start;
-    max-width: 400px;
+    min-width: 250px;
 }
 
 
