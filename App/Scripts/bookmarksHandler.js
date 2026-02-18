@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE ---
     let userId = null;
+    let debugMode = true; // Set to true to enable console logs for debugging
     let bookmarksData = [];
     let currentFilter = 'all';
     let currentSort = 'default';
@@ -21,36 +22,76 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FETCH DATA ---
     async function fetchBookmarks() {
         try {
-            const response = await window.apiService.getBookmarks(userId);
-            
-            if (!response || response.length === 0) {
-                console.log('No bookmarks found for user:', userId);
-                noBookmarksMessage.classList.remove('hidden');
-                bookmarksData = [];
-            } else {
-                console.log('Raw Bookmarks:', response);
-                noBookmarksMessage.classList.add('hidden');
+            const [lessonResult, problemResult] = await Promise.allSettled([
+                window.apiService.getBookmarks(userId),
+                window.apiService.getBookmarkedProblems(userId)
+            ])
 
-                const hydratedDataPromises = response.map(async (bookmark) => {
-                    try {
+            const rawLessons = lessonResult.status === 'fulfilled' ? lessonResult.value : [];
+            const rawProblems = problemResult.status === 'fulfilled' ? problemResult.value : [];
+
+            if (debugMode) {
+                console.log('Fetched Bookmarks - Lessons:', rawLessons);
+                console.log('Fetched Bookmarks - Problems:', rawProblems);
+            }
+
+            const uniqueMap = new Map();
+
+            [...rawLessons, ...rawProblems].forEach(bookmark => {
+                if (bookmark.LessonID && bookmark.LessonID !== 0) {
+                    uniqueMap.set(`lesson-${bookmark.LessonID}`, bookmark);
+                } else if (bookmark.ProblemID && bookmark.ProblemID !== 0) {
+                    uniqueMap.set(`problem-${bookmark.ProblemID}`, bookmark);
+                }
+            });
+
+            const uniqueRaw = Array.from(uniqueMap.values());
+
+            if(uniqueRaw.length === 0) {
+                if (debugMode) console.log('No bookmarks found for user:', userId);
+                bookmarksData = [];
+                noBookmarksMessage.classList.remove('hidden');
+                return;
+            }
+
+            noBookmarksMessage.classList.add('hidden');
+            const promises = uniqueRaw.map(async (bookmark) => {
+                try {
+                    // case 1: lesson bookmark
+                    if (bookmark.LessonID && bookmark.LessonID !== 0) {
                         const fullData = await window.apiService.getLessonById(bookmark.LessonID);
                         return {
                             ...bookmark,
                             lesson: fullData.lesson,
                             flag_translation: fullData.flag_translation,
-                            difficulty: fullData.difficulty || 'Unknown' 
+                            difficulty: fullData.difficulty || 'Unknown',
+                            type: 'lesson'
                         };
-                    } catch (err) {
-                        console.error(`Failed to load lesson for bookmark ${bookmark.ID}`, err);
-                        return null; 
                     }
-                });
 
-                const results = await Promise.all(hydratedDataPromises);
-                bookmarksData = results.filter(item => item !== null);
+                    // case 2: problem bookmark
+                    else if (bookmark.ProblemID && bookmark.ProblemID !== 0) {
+                        const fullData = await window.apiService.getProblemById(bookmark.ProblemID);
+                        return {
+                            ...bookmark,
+                            problem: fullData.problem,
+                            flag_translation: fullData.tag_translation,
+                            difficulty: fullData.difficulty || 'Unknown',
+                            type: 'problem'
+                        };
+                    }
+                    
+                    return null;
+                } catch (err) {
+                    console.error(`Failed to load lesson for bookmark ${bookmark.ID}`, err);
+                    return null; 
+                }
+            });
 
-                renderBookmarks();
-            }
+            const results = await Promise.all(promises);
+            bookmarksData = results.filter(item => item !== null);
+            renderBookmarks();
+
         } catch (error) {
             console.error('Error fetching bookmarks:', error);
         }
@@ -61,6 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
         bookmarksGridContainer.innerHTML = '';
 
         let processedData = [...bookmarksData];
+
+        // 1. FILTER
+        if (currentFilter === 'problem') {
+            processedData = processedData.filter(b => b.type === 'problem');
+        } else if (currentFilter === 'lesson') {
+            processedData = processedData.filter(b => b.type === 'lesson');
+        }
 
         // 2. SORT
         processedData.sort((a, b) => {
@@ -99,23 +147,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         processedData.forEach(bookmarkedElementData => {
             const bookmarkCard = bookmarkTemplate.cloneNode(true);
-            bookmarkCard.id = `bookmark-${bookmarkedElementData.ID}`;
+            bookmarkCard.id = `bookmark-${bookmarkedElementData.ID}-${bookmarkedElementData.type}`;
             bookmarkCard.classList.remove('hidden');
 
             const title = bookmarkCard.querySelector('.content-card-title');
-            if (title) title.textContent = bookmarkedElementData.lesson.Title;
+            if (title) title.textContent = bookmarkedElementData.lesson?.Title || bookmarkedElementData.problem?.Title || 'Untitled';
+
+            const description = bookmarkCard.querySelector('.content-card-description');
+            if (description) description.textContent = bookmarkedElementData.lesson?.Description.String || bookmarkedElementData.problem?.Description || 'No description available.';
 
             const badge = bookmarkCard.querySelector('.bookmarks-class-badge');
-            if (badge) badge.textContent = `${bookmarkedElementData.flag_translation?.class || '?'} / nada de momento`; 
+            if (badge) badge.textContent = `${bookmarkedElementData.flag_translation?.class || bookmarkedElementData.flag_translation?.verification_type || 'Unknown'} / nada de momento`; 
 
             const icon = bookmarkCard.querySelector('.bookmark-icon');
             if (icon) {
                 icon.style.cursor = 'pointer';
-                icon.addEventListener('click', (event) => handleBookmarkClick(event, bookmarkedElementData.lesson.ID));
+                icon.addEventListener('click', (event) => handleBookmarkClick(event, bookmarkedElementData.lesson?.ID || bookmarkedElementData.problem?.ID, bookmarkedElementData.type));
             }
 
             bookmarkCard.addEventListener('click', () => {
-                window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
+                if (bookmarkedElementData.type === 'lesson') {
+                    window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
+                } else if (bookmarkedElementData.type === 'problem') {
+                    window.location.href = `/app/probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
+                }
             });
 
             bookmarksGridContainer.appendChild(bookmarkCard);
@@ -123,18 +178,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- ACTIONS ---
-    async function handleBookmarkClick(event, lessonId) {
+    async function handleBookmarkClick(event, typeId, type = 'lesson') {
         event.preventDefault();
         event.stopPropagation();
 
         const card = event.currentTarget.closest('.content-card');
         
         try {
-            await window.apiService.modifyBookmark(lessonId);
+            
+            if (type === 'lesson') {
+                await window.apiService.modifyBookmark(typeId);
+            } else if (type === 'problem') {
+                await window.apiService.modifyBookmarkProblem(typeId);
+            }
             
             card.remove();
             
-            bookmarksData = bookmarksData.filter(b => b.lesson.ID !== lessonId);
+            bookmarksData = bookmarksData.filter(b => b.lesson?.ID !== typeId && b.problem?.ID !== typeId);
 
             if (bookmarksGridContainer.children.length === 0) {
                 noBookmarksMessage.classList.remove('hidden');
@@ -182,6 +242,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- FILTER BUTTONS LOGIC ---
+    function initFilterButtons() {
+        const filterKeys = ['all', 'problem', 'lesson'];
+
+        filterKeys.forEach(key => {
+            const element = filters[key];
+            if (!element) return;
+
+            const btn = element.tagName === 'BUTTON' ? element : element.querySelector('button');
+
+            if (!btn) {
+                console.warn(`No button found for filter: ${key}`);
+                return;
+            }
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentFilter = key; 
+                updateAllButtonStyles();
+                renderBookmarks();
+            });
+        });
+
+        updateAllButtonStyles();
+    }
+
+    function updateAllButtonStyles() {
+        const filterKeys = ['all', 'problem', 'lesson'];
+
+        filterKeys.forEach(key => {
+            const element = filters[key];
+            if (!element) return;
+
+            const btn = element.tagName === 'BUTTON' ? element : element.querySelector('button');
+            if (!btn) return;
+
+            const isActive = (currentFilter === key);
+            applyBtnStyle(btn, isActive);
+        });
+    }
+
+    // Helper: Apply Button Styling
+    function applyBtnStyle(btn, isActive) {
+        if (isActive) {
+            btn.classList.add('primary', 'active');
+            btn.classList.remove('secondary');
+        } else {
+            btn.classList.add('secondary');
+            btn.classList.remove('primary', 'active');
+        }
+    }
+
     // --- INIT ---
     async function initApp() {
         window.apiService.isAuthenticated(true);
@@ -191,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userId = userData.ID;
             
             initDropdown();
+            initFilterButtons();
             await fetchBookmarks();
 
         } catch (err) {

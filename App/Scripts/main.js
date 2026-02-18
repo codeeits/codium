@@ -289,6 +289,9 @@ const InteractionHandler = {
             if (!isOpen) {
                 dropdown.classList.add('open');
                 toggleBtn.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.classList.remove('open');
+                toggleBtn.setAttribute('aria-expanded', 'false');
             }
             return;
         }

@@ -736,6 +736,27 @@ class ApiService {
         return this.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
     }
 
+    async modifyBookmarkProblem(problemId) {
+        return this.post(`/api/problems/${problemId}/bookmark`, {}, true);
+    }
+
+    async getBookmarkedProblems(userId) {
+        return this.get(`/api/users/${userId}/bookmarked_problems`, true);
+    }
+
+    async getProblemBookmarkStatus(problemId, userId = null) {
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        
+        const bookmarks = await this.getBookmarkedProblems(userId);
+        console.log('Bookmarked Problems:', bookmarks);
+        const isBookmarked = bookmarks.some(bookmark => bookmark.ProblemID === problemId);
+        return isBookmarked;
+    }
+
     // ===========================================
     // File Management Endpoints
     // ===========================================
@@ -766,11 +787,11 @@ class ApiService {
     }
 
     // ===========================================
-    // Code Execution (Piston API)
+    // Code Execution (Piston API) WE ARE USING JUDGE0 UNTIL WE CAN SELF HOST PISTON
     // ===========================================
 
-    async runCode(code, inputFile = null, stdin = '') {
-        const PISTON_API = 'https://emkc.org/api/v2/piston/execute';
+    async runCodePiston(code, inputFile = null, stdin = '') {
+        const PISTON_API = 'https://cpp-runner.fly.dev/api/v2/piston/execute';
         const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
         const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
 
@@ -866,6 +887,122 @@ class ApiService {
             console: consoleOutput || '',
             file: fileOutput,
             error: result.run?.stderr || null
+        };
+    }
+
+    async runCode(code, inputFile = null, stdin = '') {
+        const JUDGE0_API = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
+        
+        const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
+        const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
+
+        let processedCode = code;
+        let injectedCode = '';
+
+        if (inputFile && inputFile.name && inputFile.content) {
+            const escaped = inputFile.content
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n');
+
+            injectedCode += `
+                #include <fstream>
+                void __create_input_file() {
+                std::ofstream f("${inputFile.name}");
+                f << "${escaped}";
+                f.close();
+                }
+                struct __FileCreator { __FileCreator() { __create_input_file(); } } __fc;
+            `;
+        }
+
+        injectedCode += `
+            #include <fstream>
+            #include <iostream>
+            #include <string>
+            struct __FileReader {
+            ~__FileReader() {
+                std::ifstream f("output.txt");
+                if (f.good()) {
+                std::cout << "${FILE_OUTPUT_MARKER}";
+                std::string line;
+                while (std::getline(f, line)) {
+                    std::cout << line << "\\n";
+                }
+                std::cout << "${FILE_OUTPUT_END_MARKER}";
+                f.close();
+                }
+            }
+            } __fr;
+        `;
+
+        const includeMatch = processedCode.match(/^((?:#include\s*<[^>]+>\s*\n|#include\s*"[^"]+"\s*\n|using\s+namespace\s+\w+;\s*\n)*)/);
+        if (includeMatch) {
+            const includes = includeMatch[1];
+            const rest = processedCode.slice(includes.length);
+            processedCode = includes + injectedCode + rest;
+        } else {
+            processedCode = injectedCode + processedCode;
+        }
+
+        // 2. Updated Fetch Call for Judge0
+        const res = await fetch(JUDGE0_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language_id: 54, // ID 54 = C++ (GCC 9.2.0)
+                source_code: processedCode,
+                stdin: stdin
+            })
+        });
+
+        const result = await res.json();
+
+        // Judge0 returns a "message" field if there is an API-level error (e.g. rate limit)
+        if (result.message) {
+            return { success: false, error: "API Error: " + result.message, console: '', file: '' };
+        }
+
+        // Status ID 6 = "Compilation Error" (Judge0 specific)
+        if (result.status?.id === 6) {
+            return { 
+                success: false, 
+                error: result.compile_output || "Compilation failed", 
+                console: '', 
+                file: '' 
+            };
+        }
+
+        let stdout = result.stdout || '';
+        let fileOutput = '';
+
+        // --- OUTPUT EXTRACTION LOGIC ---
+        const startIdx = stdout.indexOf(FILE_OUTPUT_MARKER);
+        const endIdx = stdout.indexOf(FILE_OUTPUT_END_MARKER);
+        if (startIdx !== -1 && endIdx !== -1) {
+            fileOutput = stdout.slice(startIdx + FILE_OUTPUT_MARKER.length, endIdx);
+            stdout = stdout.slice(0, startIdx) + stdout.slice(endIdx + FILE_OUTPUT_END_MARKER.length);
+        }
+
+        let consoleOutput = '';
+        
+        // Judge0 provides compile output in a different field, and it's only present if there are warnings (not just errors)
+        if (result.compile_output) { 
+            consoleOutput += 'Warnings:\n' + result.compile_output + '\n';
+        }
+        
+        if (stdout) consoleOutput += stdout;
+        
+        if (result.stderr) consoleOutput += '\nStderr:\n' + result.stderr;
+
+        // Status ID 3 is "Accepted"
+        const isSuccess = result.status?.id === 3;
+
+        return {
+            success: isSuccess,
+            console: consoleOutput || '',
+            file: fileOutput,
+            error: result.stderr || null
         };
     }
 

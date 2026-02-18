@@ -1,178 +1,89 @@
 /*
+ __    ____  ___  ___  _____  _  _  ___  ____  _  _  ____  ____  ____  ____  __    ___  ____     ____  ___ 
+(  )  ( ___)/ __)/ __)(  _  )( \( )/ __)(_  _)( \( )(_  _)( ___)(  _ \( ___)/__\  / __)( ___)   (_  _)/ __)
+ )(__  )__) \__ \\__ \ )(_)(  )  ( \__ \ _)(_  )  (   )(   )__)  )   / )__)/(__)\( (__  )__)   .-_)(  \__ \
+(____)(____)(___/(___/(_____)(_)\_)(___/(____)(_)\_) (__) (____)(_)\_)(__)(__)(__)\___)(____)()\____) (___/
+
+Problem Page Logic
 */
 
-document.addEventListener("DOMContentLoaded", async function() {
+function getDifficultyLabel(difficulty) {
+    const labels = {
+        0: "Neclasificat",
+        1: "Ușor",
+        2: "Mediu",
+        3: "Greu"
+    };
+    return labels[difficulty] || `Dificultate ${difficulty}`;
+}
 
+document.addEventListener("DOMContentLoaded", () => {
+
+    const debugMode = true; 
     const baseurl = window.location.href;
     const isAuthenticated = window.apiService.isAuthenticated();
 
-    // DOM Elements
-    const titleElement = document.getElementById("problem-title");
-    const authorElement = document.getElementById("problem-author");
-    const sourceElement = document.getElementById("problem-source");
-    const difficultyElement = document.getElementById("problem-difficulty");
-    const moduleElement = document.getElementById("problem-module");
-    const sectionElement = document.getElementById("problem-section");
-    const thumbnailElement = document.getElementById("problem-thumbnail");
-    const descriptionElement = document.getElementById("problem-description");
-    const testsCountElement = document.getElementById("tests-count");
-    const codeEditor = document.getElementById("code-editor");
-    const submitCodeBtn = document.getElementById("submit-code-btn");
-    const resultsContainer = document.getElementById("results-container");
-    const backToProblemsBtn = document.getElementById("back-to-problems-btn");
-    const solutionsCountElement = document.getElementById("solutions-count");
-    const correctSolutionsCountElement = document.getElementById("correct-solutions-count");
-    const mySolutionsList = document.getElementById("my-solutions-list");
-    const noSolutionsMsg = document.getElementById("no-solutions-msg");
+    // --- DOM ELEMENTS ---
+    const elements = {
+        title: document.getElementById("problem-title"),
+        author: document.getElementById("problem-author"),
+        source: document.getElementById("problem-source"), // Legacy
+        sourceContainer: document.getElementById("problem-source-container"), // New UI
+        difficulty: document.getElementById("problem-difficulty"),
+        module: document.getElementById("problem-module"),
+        section: document.getElementById("problem-section"),
+        thumbnail: document.getElementById("problem-thumbnail"),
+        description: document.getElementById("problem-description"),
+        testsCount: document.getElementById("tests-count"),
+        codeEditor: document.getElementById("code-editor"),
+        submitBtn: document.getElementById("submit-code-btn"),
+        resultsContainer: document.getElementById("results-container"),
+        backBtn: document.getElementById("back-to-problems-btn"),
+        solutionsCount: document.getElementById("solutions-count"),
+        correctSolutionsCount: document.getElementById("correct-solutions-count"),
+        mySolutionsList: document.getElementById("my-solutions-list"),
+        noSolutionsMsg: document.getElementById("no-solutions-msg"),
+        dropzone: document.querySelector('.input-field.dropzone'),
+        fileInput: document.getElementById('file-input'),
+        bookmarkBtn: document.getElementById("bookmark-btn")
+    };
 
-    // Get problem ID from URL
-    let problemId = baseurl.split("?id=")[1];
-    
-    if (!problemId) {
-        titleElement.textContent = "Eroare: Problemă negăsită";
-        descriptionElement.textContent = "Nu a fost specificat un ID valid pentru problemă.";
-        return;
+    // --- STATE ---
+    const state = {
+        problemId: baseurl.split("?id=")[1]?.trim(),
+        isNewUi: !!elements.sourceContainer,
+        problemData: null,
+        solutions: [],
+        meta: {
+            title: '',
+            author: '67',
+            authorId: null,
+            source: '67',
+            difficulty: 0,
+            module: null,
+            section: null,
+            thumbnailId: null
+        }
+    };
+
+    // --- HELPERS & UTILS ---
+
+    function getDropzonePlaceholder() {
+        return elements.dropzone ? elements.dropzone.querySelector('.input-text') : null;
     }
 
-    problemId = problemId.trim();
-
-    // Load problem data
-    try {
-        const problemData = await window.apiService.getProblemById(problemId);
-        console.log("Problem Data:", problemData);
-
-        if (!problemData || !problemData.problem) {
-            throw new Error("Problem not found");
+    function updateFileLabel(files) {
+        const placeholder = getDropzonePlaceholder();
+        if (!placeholder) return;
+        
+        if (!files || files.length === 0) {
+            placeholder.textContent = 'Apasă pentru a încărca sau drag and drop';
+            placeholder.classList.add('placeholder');
+            return;
         }
-
-        const problem = problemData.problem;
-        const tags = problemData.tag_translation;
-
-        document.title = `${problem.Title} - Codium`;
-        titleElement.textContent = problem.Title;
-
-        if (problem.Source && problem.Source.Valid) {
-            sourceElement.textContent = problem.Source.String;
-        } else {
-            sourceElement.textContent = "67";
-        }
-
-        if (problem.AuthorID) {
-            try {
-                const authorData = await window.apiService.getUserById(problem.AuthorID);
-                authorElement.textContent = authorData.Username || "67";
-                authorElement.href = `/app/user.html?id=${problem.AuthorID}`;
-            } catch (e) {
-                authorElement.textContent = "67";
-            }
-        } else {
-            authorElement.textContent = "67??!!";
-        }
-
-        // tags
-        if (tags) {
-            difficultyElement.textContent = getDifficultyLabel(tags.difficulty);
-            moduleElement.textContent = `Modul ${tags.module}`;
-            sectionElement.textContent = `Secțiunea ${tags.section}`;
-        }
-
-        // thumbnail
-        if (problem.ThumbnailFileID) {
-            const thumbnailUrl = window.apiService.getFileUrl(problem.ThumbnailFileID);
-            thumbnailElement.src = thumbnailUrl;
-            thumbnailElement.style.display = "block";
-        }
-
-        // description
-        descriptionElement.textContent = problem.Description;
-
-        // count tests
-        if (problem.FirstTest) {
-            try {
-                const testChain = await window.apiService.getTestChainForFirstTest(problem.FirstTest, null);
-                testsCountElement.textContent = testChain.length;
-            } catch (e) {
-                testsCountElement.textContent = "?";
-            }
-        } else {
-            testsCountElement.textContent = "0";
-        }
-
-        // load solution counts
-        if (isAuthenticated) {
-            loadSolutionStats(problemId); // <-- this could return all of the users solutions for thus problem (at some pount)
-            loadMySolutions(problemId);
-        }
-
-    } catch (error) {
-        console.error("Failed to load problem:", error);
-        titleElement.textContent = "Eroare la încărcarea problemei";
-        descriptionElement.textContent = error.message || "A apărut o eroare neașteptată.";
-    }
-
-    // el
-    if (backToProblemsBtn) {
-        backToProblemsBtn.addEventListener("click", function() {
-            window.location.href = "/app/Probleme/index.html";
-        });
-    }
-
-    if (submitCodeBtn) {
-        submitCodeBtn.addEventListener("click", async function() {
-            if (!isAuthenticated) {
-                showResult("Trebuie să fii autentificat pentru a trimite soluția.", "error");
-                return;
-            }
-
-            const code = codeEditor.value.trim();
-            if (!code) {
-                showResult("Scrie ceva cod înainte de a trimite.", "error");
-                return;
-            }
-
-            submitCodeBtn.disabled = true;
-            submitCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Se trimite...';
-
-            try {
-                const runResult = await window.apiService.runCodeAgainstProblemTests(problemId, code);
-                
-                // create solution record
-                const solutionData = {
-                    code: code,
-                    language: 'cpp'
-                };
-                const solution = await window.apiService.createSolution(problemId, solutionData);
-                
-                await window.apiService.updateSolution(solution.ID, 'tests', {
-                    tests_passed: runResult.score,
-                    total_tests: runResult.total
-                });
-
-                displayResults(runResult, true);
-                
-                loadMySolutions(problemId);
-
-            } catch (error) {
-                showResult("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
-            } finally {
-                submitCodeBtn.disabled = false;
-                submitCodeBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Trimite';
-            }
-        });
-    }
-
-    function getDifficultyLabel(difficulty) {
-        const labels = {
-            0: "Neclasificat",
-            1: "Ușor",
-            2: "Mediu",
-            3: "Greu"
-        };
-        return labels[difficulty] || `Dificultate ${difficulty}`;
-    }
-
-    function showResult(message, type = "info") {
-        resultsContainer.innerHTML = `<p class="${type}">${message}</p>`;
+        const fileName = files.length === 1 ? files[0].name : `${files.length} fișiere selectate`;
+        placeholder.textContent = fileName;
+        placeholder.classList.remove('placeholder');
     }
 
     function displayResults(result, submitted = false) {
@@ -183,55 +94,358 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (percentage === 100) scoreClass = "perfect";
         else if (percentage >= 50) scoreClass = "partial";
 
-        const submittedText = submitted ? '<p><i class="fas fa-check"></i> Soluție trimisă cu succes!</p>' : '';
-
-        resultsContainer.innerHTML = `
-            ${submittedText}
-            <p class="result-score ${scoreClass}">${score} / ${total} teste trecute</p>
-            <p>Scor: ${percentage.toFixed(0)}%</p>
-        `;
-    }
-
-    async function loadSolutionStats(problemId) {
-        try {
-            const countData = await window.apiService.countSolutionsForProblem(problemId);
-            if (countData) {
-                solutionsCountElement.textContent = countData.count_total || 0;
-                correctSolutionsCountElement.textContent = countData.count_correct || 0;
-            }
-        } catch (e) {
-            console.warn("Could not load solution stats:", e);
+        if (!state.isNewUi && elements.resultsContainer) {
+            const submittedText = submitted ? '<p><i class="fas fa-check"></i> Soluție trimisă cu succes!</p>' : '';
+            elements.resultsContainer.innerHTML = `
+                ${submittedText}
+                <p class="score ${scoreClass}">Teste trecute: ${score} / ${total} (${percentage.toFixed(2)}%)</p>
+            `;
+        } else {
+            toastsLoader.showToast(`Teste trecute: ${score} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
         }
     }
 
-    async function loadMySolutions(problemId) {
+    function bookmarkToggle(getStatusOnly = false) {
+        if (!elements.bookmarkBtn) return;
+        
+        if (getStatusOnly) {
+            window.apiService.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
+                if (isBookmarked) {
+                    elements.bookmarkBtn.classList.remove("secondary");
+                    elements.bookmarkBtn.classList.add("primary");
+                } else {
+                    elements.bookmarkBtn.classList.remove("primary");
+                    elements.bookmarkBtn.classList.add("secondary");
+                }
+            });
+            return;
+        }
+
+        window.apiService.modifyBookmarkProblem(state.problemId).then(() => {
+            // Re-run handler logic to update UI (recursively simple)
+            window.apiService.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
+                if (isBookmarked) {
+                    elements.bookmarkBtn.classList.remove("secondary");
+                    elements.bookmarkBtn.classList.add("primary");
+                    elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
+                    toastsLoader.showToast("Problem bookmarked", "confirm");
+                } else {
+                    elements.bookmarkBtn.classList.remove("primary");
+                    elements.bookmarkBtn.classList.add("secondary");
+                    elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
+                    toastsLoader.showToast("Bookmark removed", "info");
+                }
+            });
+        }).catch(error => {
+            if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
+            toastsLoader.showToast("Failed to toggle bookmark", "danger");
+        });
+    }
+
+    // --- FETCH DATA ---
+
+    async function fetchProblemData() {
+        if (debugMode) console.log("[DEBUG] Problem ID:", state.problemId);
+
+        if (!state.problemId) {
+            elements.title.textContent = "Eroare: Problemă negăsită";
+            elements.description.textContent = "Nu a fost specificat un ID valid pentru problemă.";
+            return;
+        }
+
         try {
-            const solutions = await window.apiService.getSolutionsByProblem(problemId);
+            const data = await window.apiService.getProblemById(state.problemId);
+            state.problemData = data;
+
+            if (!data || !data.problem) throw new Error("Problem not found");
+
+            const p = data.problem;
+            const t = data.tag_translation;
+
+            state.meta.title = p.Title;
+            state.meta.source = p.Source && p.Source.Valid ? p.Source.String : "67";
+            state.meta.authorId = p.AuthorID;
+            state.meta.thumbnailId = p.ThumbnailFileID;
             
-            if (solutions && solutions.length > 0) {
-                noSolutionsMsg.style.display = "none";
-                mySolutionsList.innerHTML = "";
-                
-                solutions.forEach(sol => {
-                    const item = document.createElement("div");
-                    item.className = "solution-item";
-                    
-                    const date = new Date(sol.CreatedAt.Time || sol.CreatedAt);
-                    const dateStr = date.toLocaleDateString('ro-RO');
-                    
-                    const scoreClass = sol.TestsPassed.Int32 === sol.TotalTests.Int32 ? "perfect" : 
-                                       sol.TestsPassed.Int32 > 0 ? "partial" : "fail";
-                    
-                    item.innerHTML = `
-                        <span class="score ${scoreClass}">${sol.TestsPassed.Int32}/${sol.TotalTests.Int32}</span>
-                        <span class="date">${dateStr}</span>
-                    `;
-                    mySolutionsList.appendChild(item);
-                });
+            if (t) {
+                state.meta.difficulty = t.difficulty;
+                state.meta.module = t.module;
+                state.meta.section = t.section;
             }
-        } catch (e) {
-            console.warn("Could not load my solutions:", e);
+
+            document.title = `${state.meta.title} - Codium`;
+
+            // Fetch Author Details
+            if (state.meta.authorId) {
+                try {
+                    const authorData = await window.apiService.getUserById(state.meta.authorId);
+                    state.meta.author = authorData.Username || "67";
+                } catch (e) {
+                    if (debugMode) console.warn("Failed to fetch author", e);
+                }
+            }
+
+            // Fetch Test Counts
+            if (p.FirstTest) {
+                try {
+                    const testChain = await window.apiService.getTestChainForFirstTest(p.FirstTest, null);
+                    if (elements.testsCount) elements.testsCount.textContent = testChain.length;
+                } catch (e) {
+                    if (elements.testsCount) elements.testsCount.textContent = "?";
+                }
+            } else {
+                if (elements.testsCount) elements.testsCount.textContent = "0";
+            }
+
+            // Stats
+            if (isAuthenticated) {
+                loadSolutionStats();
+                loadMySolutions();
+            }
+
+        } catch (error) {
+            if (debugMode) console.error("Failed to load problem:", error);
+            elements.title.textContent = "Eroare la încărcarea problemei";
+            elements.description.textContent = error.message || "A apărut o eroare neașteptată.";
         }
     }
 
+    async function loadSolutionStats() {
+        try {
+            const countData = await window.apiService.countSolutionsForProblem(state.problemId);
+            if (countData) {
+                if (elements.solutionsCount) elements.solutionsCount.textContent = countData.count_total || 0;
+                if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = countData.count_correct || 0;
+            }
+        } catch (e) {
+            if (debugMode) console.warn("Could not load solution stats:", e);
+        }
+    }
+
+    async function loadMySolutions() {
+        try {
+            const solutions = await window.apiService.getSolutionsByProblem(state.problemId);
+            state.solutions = solutions || [];
+            renderMySolutions();
+        } catch (e) {
+            if (debugMode) console.warn("Could not load my solutions:", e);
+        }
+    }
+
+    // --- RENDERERS ---
+
+    function renderProblemUI() {
+        if (!state.problemData) return;
+        const p = state.problemData.problem;
+
+        elements.title.textContent = state.meta.title;
+        elements.description.textContent = p.Description;
+        elements.difficulty.textContent = getDifficultyLabel(state.meta.difficulty);
+
+        if (elements.module && state.meta.module) elements.module.textContent = `Modul ${state.meta.module}`;
+        if (elements.section && state.meta.section) elements.section.textContent = `Secțiunea ${state.meta.section}`;
+
+        // Author
+        if (elements.author) {
+            elements.author.textContent = state.meta.author;
+            if (state.meta.authorId) elements.author.href = `/app/user.html?id=${state.meta.authorId}`;
+        }
+
+        // Thumbnail
+        if (state.meta.thumbnailId && elements.thumbnail) {
+            elements.thumbnail.src = window.apiService.getFileUrl(state.meta.thumbnailId);
+            elements.thumbnail.style.display = "block";
+        }
+
+        // Source Rendering (Split logic for UI versions)
+        if (!state.isNewUi) {
+            if (elements.source) elements.source.textContent = state.meta.source;
+        } else {
+            const sourceText = state.meta.source;
+            const parts = sourceText.split(",").map(part => part.trim());
+            elements.sourceContainer.innerHTML = "";
+            parts.forEach(part => {
+                const a = document.createElement("a");
+                a.textContent = part.startsWith("#") ? part : `#${part}`;
+                a.href = `/app/Probleme/index.html?source=${part}`;
+                a.className = "hashtag";
+                elements.sourceContainer.appendChild(a);
+            });
+        }
+    }
+
+    function renderMySolutions() {
+        if (!elements.mySolutionsList) return;
+        
+        elements.mySolutionsList.innerHTML = "";
+        
+        if (state.solutions.length > 0) {
+            if (elements.noSolutionsMsg) elements.noSolutionsMsg.style.display = "none";
+            
+            state.solutions.forEach(sol => {
+                const item = document.createElement("div");
+                item.className = "solution-item";
+                
+                const date = new Date(sol.CreatedAt.Time || sol.CreatedAt);
+                const dateStr = date.toLocaleDateString('ro-RO');
+                const passed = sol.TestsPassed.Int32;
+                const total = sol.TotalTests.Int32;
+                
+                const scoreClass = passed === total ? "perfect" : passed > 0 ? "partial" : "fail";
+                
+                item.innerHTML = `
+                    <span class="score ${scoreClass}">${passed}/${total}</span>
+                    <span class="date">${dateStr}</span>
+                `;
+                elements.mySolutionsList.appendChild(item);
+            });
+        }
+    }
+
+    // --- HANDLERS ---
+
+    function setupEventListeners() {
+        // Back Button
+        if (elements.backBtn) {
+            elements.backBtn.addEventListener("click", () => {
+                window.location.href = "/app/Probleme/index.html";
+            });
+        }
+
+        // Bookmark
+        if (elements.bookmarkBtn) {
+            elements.bookmarkBtn.addEventListener("click", () => bookmarkToggle());
+        }
+
+        // Drag & Drop (New UI)
+        if (state.isNewUi && elements.dropzone && elements.fileInput) {
+            setupDragAndDrop();
+        }
+
+        // Submit
+        if (elements.submitBtn) {
+            elements.submitBtn.addEventListener("click", handleSubmission);
+        }
+    }
+
+    function setupDragAndDrop() {
+        const { dropzone, fileInput } = elements;
+        let dragDepth = 0;
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        dropzone.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragDepth++;
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragover', (e) => e.preventDefault());
+
+        dropzone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDepth = 0;
+            dropzone.classList.remove('dragover');
+            const droppedFiles = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : [];
+            if (droppedFiles.length > 0) {
+                const dt = new DataTransfer();
+                droppedFiles.forEach(f => dt.items.add(f));
+                fileInput.files = dt.files;
+                updateFileLabel(fileInput.files);
+            }
+        });
+
+        fileInput.addEventListener('change', () => updateFileLabel(fileInput.files));
+    }
+
+    async function handleSubmission() {
+        if (!isAuthenticated) {
+            toastsLoader.showToast("Trebuie să fii autentificat pentru a trimite o soluție.", "error");
+            return;
+        }
+
+        let code = "";
+
+        if (state.isNewUi) {
+            // New UI: File Upload
+            toastsLoader.showToast("Trimiterea soluțiilor nu este încă disponibilă în noua interfață. Lucrăm la asta!", "info");
+            
+            const inputFile = elements.fileInput;
+            if (!inputFile || inputFile.files.length === 0) {
+                toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "error");
+                return;
+            }
+
+            const file = inputFile.files[0];
+            try {
+                code = await file.text();
+                if (!code) throw new Error("File empty");
+            } catch (e) {
+                toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "error");
+                return;
+            }
+        } else {
+            // Old UI: Text Area
+            code = elements.codeEditor.value.trim();
+            if (!code) {
+                toastsLoader.showToast("Scrie ceva cod înainte de a trimite.", "error");
+                return;
+            }
+        }
+
+        await processCodeSubmission(code);
+    }
+
+    async function processCodeSubmission(code) {
+        elements.submitBtn.disabled = true;
+        elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Se trimite...';
+
+        try {
+            const runResult = await window.apiService.runCodeAgainstProblemTests(state.problemId, code);
+            
+            const solutionData = { code: code, language: 'cpp' };
+            const solution = await window.apiService.createSolution(state.problemId, solutionData);
+            
+            await window.apiService.updateSolution(solution.ID, 'tests', {
+                tests_passed: runResult.score,
+                total_tests: runResult.total
+            });
+
+            displayResults(runResult, true);
+            loadMySolutions();
+
+        } catch (error) {
+            toastsLoader.showToast("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
+        } finally {
+            elements.submitBtn.disabled = false;
+            elements.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Trimite';
+        }
+    }
+
+    // --- INITIALIZATION ---
+
+    async function initApp() {
+        if (debugMode) console.log("Initializing Problem Page...");
+        if (state.isNewUi) console.log("New UI detected");
+
+        bookmarkToggle(true); // Initialize bookmark state
+
+        setupEventListeners();
+        await fetchProblemData();
+        renderProblemUI();
+    }
+
+    initApp();
 });

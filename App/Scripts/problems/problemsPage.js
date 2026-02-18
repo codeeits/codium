@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const noResultsM2 = document.getElementById('noResultsMessage2');
 
     const switchDisplayBtn = document.getElementById('toggle-view-btn');
+    const supriseBtn = document.getElementById('surprise-btn');
+
+    const canvas = document.getElementById('confetti-canvas');
 
     // --- STATE ---
     let problemsData = [];
@@ -48,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- RENDER PROBLEMS (GRID) ---
     function renderProblems() {
         // Clear current items
         const gridCards = problemsGridContainer.querySelectorAll('.content-card:not(#grid-template-card)');
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProblemsFeed(processedData);
     }
 
+    // --- RENDER PROBLEMS (GRID) ---
     function renderProblemsGrid(receivedData) {
         receivedData.forEach(problem => {
             const card = gridTemplateCard.cloneNode(true);
@@ -329,6 +332,117 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function initSurpriseButton() {
+        if (!supriseBtn) return;
+
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const colors = [
+            '#B07BC9', // base-primary
+            '#321E3A', // base-border2-solid
+            '#592941', // base-danger
+            '#659D48', // base-confirm
+            '#9D9548', // base-warning
+            '#1B0524'  // base-fundal
+        ];
+        
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                
+                this.size = Math.random() * 5 + 5;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 2; 
+                this.speedX = Math.cos(angle) * speed;
+                this.speedY = Math.sin(angle) * speed;
+
+                this.gravity = 0.2; 
+                this.friction = 0.96;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 10;
+                this.opacity = 1;
+                this.decay = Math.random() * 0.015 + 0.005;
+            }
+
+            update() {
+                this.speedY += this.gravity;
+                this.speedX *= this.friction;
+                this.speedY *= this.friction;
+                
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                this.rotation += this.rotationSpeed;
+                this.opacity -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                if (particles[i].opacity <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+
+            if (particles.length > 0) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function triggerConfetti(x, y, customColor) {
+            for (let i = 0; i < 100; i++) {
+                const color = customColor || colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+            if (particles.length <= 100) { 
+                animate();
+            }
+        }
+
+        supriseBtn.addEventListener('click', (e) => {
+            const rect = supriseBtn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            triggerConfetti(x, y);
+
+            if (problemsData.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * problemsData.length);
+            const randomProblem = problemsData[randomIndex];
+            
+            setTimeout(() => {
+                window.location.href = `/app/Probleme/problem.html?id=${randomProblem.problem.ID}`;
+            }, 500);
+        });
+    }
+
     // --- FEED SCROLL MECHANICS ---
     function scrollToProblem(direction) {
         const containers = Array.from(problemsFeedContainer.querySelectorAll('.main-problem-container:not(.hidden)'));
@@ -379,8 +493,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     async function initApp() {
+
         initDropdownFilters();
         await fetchProblems();
+
+        initSurpriseButton();
+
         populateClassFilters();
         renderProblems();
     }
