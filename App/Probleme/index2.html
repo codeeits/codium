@@ -149,61 +149,14 @@
                     </div>
                 </div>
                 <!-- Infinite scroll mode -->
-                <div class="problems-feed-container">
-                    <div class="above-problem-container">
-                        <div class="card feed-card" id="feed-template-card">
-                            <div class="header-feed-card">
-                                <div class="header-feed-card-left">
-                                    <h2 class="feed-card-title">Eureni</h2>
-                                    <div class="feed-card-hashtags">
-                                        <a href="#" class="hashtag">#ONIA</a>
-                                        <a href="#" class="hashtag">#olimp</a>
-                                    </div>
-                                </div>
-                                <div class="header-feed-card-right">
-                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
-                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
-                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
-                                </div>
-                            </div>
-                            <div class="feed-card-body">
-                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
-                                <h3>Intrare</h3>
-                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
-                                <h3>Ieșire</h3>
-                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
-                                <h3>Restricții</h3>
-                                <ul>
-                                    <li>1 ≤ n ≤ 1000</li>
-                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
-                                </ul>
-                                <h3>Exemplu</h3>
-                                <div class="example-block">
-                                    <div class="example-input">
-                                        <p>Intrare:</p>
-                                        <pre><code>5
-    3 -1 4 -2 5</code></pre>
-                                    </div>
-                                    <div class="example-output">
-                                        <p>Ieșire:</p>
-                                        <pre><code>2</code></pre>
-                                    </div>
-                                </div>
-                                <h3>Rezolvare:</h3>
-                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
-                            </div>
-                        </div>
-                        <div class="right-buttons">
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
-                            <div class="center-buttons">
-                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
-                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
-                            </div>
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
+                <div class="problems-feed-container" id="problems-feed-container">
+                    <div class="no-problems hidden" id="noResultsMessage2">
+                        <i class="fa-solid fa-code"></i>
+                        <h2 class="no-bookmarks-message">Nu există probleme pentru filtrele selectate.</h2>
+                        <p>Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
                     </div>
-                    <div class="main-problem-container">
-                        <div class="card feed-card" id="feed-template-card">
+                    <div class="main-problem-container hidden" id="feed-template-card">
+                        <div class="card feed-card">
                             <div class="header-feed-card">
                                 <div class="header-feed-card-left">
                                     <h2 class="feed-card-title">Eureni</h2>
@@ -220,67 +173,6 @@
                             </div>
                             <div class="feed-card-body">
                                 <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
-                                <h3>Intrare</h3>
-                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
-                                <h3>Ieșire</h3>
-                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
-                                <h3>Restricții</h3>
-                                <ul>
-                                    <li>1 ≤ n ≤ 1000</li>
-                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
-                                </ul>
-                                <h3>Exemplu</h3>
-                                <div class="example-block">
-                                    <div class="example-input">
-                                        <p>Intrare:</p>
-                                        <pre><code>5
-    3 -1 4 -2 5</code></pre>
-                                    </div>
-                                    <div class="example-output">
-                                        <p>Ieșire:</p>
-                                        <pre><code>2</code></pre>
-                                    </div>
-                                </div>
-                                <h3>Rezolvare:</h3>
-                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
-                            </div>
-                        </div>
-                        <div class="right-buttons">
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
-                            <div class="center-buttons">
-                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
-                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
-                            </div>
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                    </div>
-                    <div class="bellow-problem-container">
-                        <div class="card feed-card" id="feed-template-card">
-                            <div class="header-feed-card">
-                                <div class="header-feed-card-left">
-                                    <h2 class="feed-card-title">Eureni</h2>
-                                    <div class="feed-card-hashtags">
-                                        <a href="#" class="hashtag">#ONIA</a>
-                                        <a href="#" class="hashtag">#olimp</a>
-                                    </div>
-                                </div>
-                                <div class="header-feed-card-right">
-                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
-                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
-                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
-                                </div>
-                            </div>
-                            <div class="feed-card-body">
-                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
-                                <h3>Intrare</h3>
-                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
-                                <h3>Ieșire</h3>
-                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
-                                <h3>Restricții</h3>
-                                <ul>
-                                    <li>1 ≤ n ≤ 1000</li>
-                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
-                                </ul>
                                 <h3>Exemplu</h3>
                                 <div class="example-block">
                                     <div class="example-input">

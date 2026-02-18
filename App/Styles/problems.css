@@ -22,12 +22,27 @@
 
 .problems-feed-container {
     flex-direction: column !important;
+    height: calc(100vh - var(--gap-xxl) - 300px);
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+}
+
+.problems-feed-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
 }
 
 .problems-feed-container > div {
     gap: var(--gap-lg);
     flex-direction: row;
     display: flex;
+}
+
+.main-problem-container {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    height: calc(100vh - var(--gap-xxl) - 300px);
 }
 
 .problems-feed-container[hidden] {
@@ -45,6 +60,22 @@
 main, .content-area {
     gap: var(--gap-lg);
     flex-direction: column;
+}
+
+.main-problem-container {
+    width: 100%;
+}
+
+.main-problem-container .feed-card {
+    width: 100%;
+}
+
+.right-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    justify-content: center;
+    align-items: center;
 }
 
 .content-area .page-description {
@@ -93,7 +124,7 @@ main, .content-area {
     color: var(--disabled-text);
 }
 
-#noResultsMessage {
+#noResultsMessage, #noResultsMessage2 {
     display: flex;
     flex-direction: column;
     align-items: center;

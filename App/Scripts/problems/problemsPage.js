@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gridTemplateCard = document.getElementById('grid-template-card');
     const feedTemplateCard = document.getElementById('feed-template-card');
     const noResultsMessage = document.getElementById('noResultsMessage');
+    const noResultsM2 = document.getElementById('noResultsMessage2');
 
     const switchDisplayBtn = document.getElementById('toggle-view-btn');
 
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         difficulty: 'all'
     };
     let currentView = 'grid'; // or 'feed'
+    let feedScrollInitialized = false;
 
     // --- FETCH DATA ---
     async function fetchProblems(classFilter = null, difficultyFilter = null) {
@@ -49,8 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- RENDER PROBLEMS (GRID) ---
     function renderProblems() {
         // Clear current items
-        const cards = problemsGridContainer.querySelectorAll('.content-card:not(#grid-template-card)');
-        cards.forEach(card => card.remove());
+        const gridCards = problemsGridContainer.querySelectorAll('.content-card:not(#grid-template-card)');
+        gridCards.forEach(card => card.remove());
+
+        const feedCards = problemsFeedContainer.querySelectorAll('.main-problem-container:not(#feed-template-card)');
+        feedCards.forEach(card2 => card2.remove());
 
         // 1. FILTER
         let processedData = problemsData.filter(item => {
@@ -69,9 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (processedData.length === 0) {
             noResultsMessage.classList.remove('hidden');
+            noResultsM2.classList.remove('hidden');
             return;
         } else {
             noResultsMessage.classList.add('hidden');
+            noResultsM2.classList.add('hidden');
         }
 
         // 2. SORT
@@ -101,7 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (processedData.length === 0) return;
 
         // 3. RENDER
-        processedData.forEach(problem => {
+        renderProblemsGrid(processedData);
+        renderProblemsFeed(processedData);
+    }
+
+    function renderProblemsGrid(receivedData) {
+        receivedData.forEach(problem => {
             const card = gridTemplateCard.cloneNode(true);
             card.id = `problem-${problem.problem.ID}`;
             card.classList.remove('hidden');
@@ -135,8 +147,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- RENDER PROBLEMS (FEED) ---
-    function renderProblemsFeed() {
-        // Clear current items
+    function renderProblemsFeed(receivedData) {
+        receivedData.forEach(problem => {
+            const card = feedTemplateCard.cloneNode(true);
+            card.id = `problem-${problem.problem.ID}`;
+            card.classList.remove('hidden');
+            
+            const section = card.querySelector('.feed-card-section-pill');
+            if (section) section.textContent = `Secțiunea ${problem.tag_translation.section || "N/A"}`;
+            
+            const classA = card.querySelector('.feed-card-class-pill');
+            if (classA) classA.textContent = `Clasa ${problem.tag_translation.verification_type || "N/A"}`;
+
+            const diffText = card.querySelector('.feed-card-difficulty-pill');
+            if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;
+            
+            const title = card.querySelector('.feed-card-title');
+            if (title) title.textContent = problem.problem.Title;
+            
+            const desc = card.querySelector('.feed-card-description');
+            if (desc) desc.textContent = problem.problem.Description.String;
+
+            // Hook up navigation buttons
+            const upBtn = card.querySelector('.right-buttons .fa-chevron-up')?.closest('button');
+            const downBtn = card.querySelector('.right-buttons .fa-chevron-down')?.closest('button');
+            
+            if (upBtn) upBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                scrollToProblem('up');
+            });
+            
+            if (downBtn) downBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                scrollToProblem('down');
+            });
+
+            problemsFeedContainer.appendChild(card);
+        });
+        
+        // Initialize feed scroll handlers after rendering (only once)
+        if (receivedData.length > 0 && !feedScrollInitialized) {
+            initFeedScrollHandlers();
+            feedScrollInitialized = true;
+        }
     }
 
     // --- HELPER: GET CLASSES ---
@@ -274,6 +327,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderProblems();
             });
         }
+    }
+
+    // --- FEED SCROLL MECHANICS ---
+    function scrollToProblem(direction) {
+        const containers = Array.from(problemsFeedContainer.querySelectorAll('.main-problem-container:not(.hidden)'));
+        if (containers.length === 0) return;
+
+        // Find currently visible container
+        const containerHeight = problemsFeedContainer.clientHeight;
+        const scrollTop = problemsFeedContainer.scrollTop;
+        
+        let currentIndex = 0;
+        for (let i = 0; i < containers.length; i++) {
+            const offsetTop = containers[i].offsetTop - problemsFeedContainer.offsetTop;
+            if (Math.abs(scrollTop - offsetTop) < containerHeight / 2) {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        let targetIndex = currentIndex;
+        if (direction === 'down') {
+            targetIndex = Math.min(currentIndex + 1, containers.length - 1);
+        } else if (direction === 'up') {
+            targetIndex = Math.max(currentIndex - 1, 0);
+        }
+
+        if (targetIndex !== currentIndex) {
+            containers[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function initFeedScrollHandlers() {
+        if (!problemsFeedContainer) return;
+
+        // Keyboard shortcuts for navigation
+        document.addEventListener('keydown', (e) => {
+            // Only handle if feed is visible
+            if (problemsFeedContainer.hidden) return;
+            
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                e.preventDefault();
+                scrollToProblem('down');
+            } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                e.preventDefault();
+                scrollToProblem('up');
+            }
+        });
     }
 
     // --- INITIALIZATION ---
