@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         difficulty: document.getElementById("problem-difficulty"),
         module: document.getElementById("problem-module"),
         section: document.getElementById("problem-section"),
+        classlabel: document.getElementById("problem-class"),
         thumbnail: document.getElementById("problem-thumbnail"),
         description: document.getElementById("problem-description"),
         testsCount: document.getElementById("tests-count"),
@@ -63,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
             difficulty: 0,
             module: null,
             section: null,
+            classlabel: null,
             thumbnailId: null
         },
         h2Array: []
@@ -285,6 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.meta.difficulty = t.difficulty;
                 state.meta.module = t.module;
                 state.meta.section = t.section;
+                state.meta.classlabel = t.verification_type; // Assuming 'verification_type' is used as class label, adjust if needed
             }
 
             document.title = `${state.meta.title} - Codium`;
@@ -361,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (elements.module && state.meta.module) elements.module.textContent = `Modul ${state.meta.module}`;
         if (elements.section && state.meta.section) elements.section.textContent = `Secțiunea ${state.meta.section}`;
+        if (elements.classlabel && state.meta.classlabel) elements.classlabel.textContent = `Clasa a ${state.meta.classlabel} a`;
 
         // Author
         if (elements.author) {
