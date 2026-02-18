@@ -20,6 +20,16 @@
     display: none !important;
 }
 
+.problems-feed-container {
+    flex-direction: column !important;
+}
+
+.problems-feed-container > div {
+    gap: var(--gap-lg);
+    flex-direction: row;
+    display: flex;
+}
+
 .problems-feed-container[hidden] {
     display: none !important;
 }
@@ -73,11 +83,97 @@ main, .content-area {
 
 .problems-grid-container .content-card img {
     width: 100%;
-    height: auto;
+    max-height: 250px;
+    object-fit: cover;
 }
 
 .problems-grid-container .content-card .problem-class-badge {
     text-transform: uppercase;
     font-size: var(--small-font-size);
     color: var(--disabled-text);
+}
+
+#noResultsMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-md);
+    padding: var(--gap-lg);
+    text-align: center;
+}
+
+/* --- FEED VIEW FIXES --- */
+
+/* 1. Fix the Container to hold overlapping cards */
+.problems-feed-container {
+    position: relative;
+    width: 100%;
+    height: 700px; /* Fixed height is needed for the window effect */
+    overflow: hidden; /* Hide the cards that are off-screen */
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    /* Reset existing flex gaps that might break absolute positioning */
+    gap: 0 !important; 
+}
+
+/* 2. Position the 3 slots absolutely so they overlap/stack */
+.above-problem-container,
+.main-problem-container,
+.bellow-problem-container {
+    position: absolute;
+    width: 100%;
+    max-width: 800px; /* Match your grid card width */
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+    display: flex; /* Keep internal flex layout (card + buttons) */
+    justify-content: center;
+    align-items: flex-start;
+    gap: 15px;
+    pointer-events: none; /* Disable clicking on hidden cards */
+}
+
+/* 3. Define States (Resting Position) */
+
+/* CENTER (Active) */
+.main-problem-container {
+    z-index: 10;
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* TOP (Previous) */
+.above-problem-container {
+    z-index: 5;
+    transform: translateY(-120%) scale(0.9);
+    opacity: 0.5;
+}
+
+/* BOTTOM (Next - using your 'bellow' typo from HTML) */
+.bellow-problem-container {
+    z-index: 5;
+    transform: translateY(120%) scale(0.9);
+    opacity: 0.5;
+}
+
+/* 4. Animations (Classes added by JS) */
+
+/* Slide UP (User clicks Down button -> Go to Next) */
+.problems-feed-container.slide-up .main-problem-container {
+    transform: translateY(-120%) scale(0.9);
+    opacity: 0.5;
+}
+.problems-feed-container.slide-up .bellow-problem-container {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Slide DOWN (User clicks Up button -> Go to Prev) */
+.problems-feed-container.slide-down .main-problem-container {
+    transform: translateY(120%) scale(0.9);
+    opacity: 0.5;
+}
+.problems-feed-container.slide-down .above-problem-container {
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }

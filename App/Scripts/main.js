@@ -2,7 +2,7 @@
 Pentru cei care citesc codul acesta in viitor, main e un soi de throw-whatever-you-dont-have-a-better-place-for-it.
 O melodie caracteristica pentru acest este Lou Bega - Mambo No. 5 (A Little Bit Of...)
 
-in memoriam doamna stan.
+aprecieri doamnei stan pentru suportul acordat
 */
 
 // ----------------------------------

@@ -19,6 +19,7 @@
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
     <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/problems/problemsPage.js" defer></script>
 
     <meta name="menu-variant" content="new">
     <meta name="sidebar-active" content="problems">
@@ -58,7 +59,7 @@
                     <button type="button" class="btn primary"><i class="fa-solid fa-wand-sparkles"></i> Surprinde-mă</button>
                 </div>
                 <div class="filters-list">
-                    <div class="filters-list-left">
+                    <div class="filters-list-left" id="filters-list-left">
                         <button type="button" class="btn primary active">Toate</button>
                         <button type="button" class="btn secondary">Clasa a IX-a</button>
                         <button type="button" class="btn secondary">Clasa a X-a</button>
@@ -67,33 +68,38 @@
                     </div>
                     <div class="buttons-list-right">
                         <div class="dropdown" id="sort-dropdown">
-                            <button type="button" class="btn primary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
                                 Descoperă <i class="fa-solid fa-chevron-down"></i>
                             </button>
-                            <div class="dropdown-menu">
-                                <div class="dropdown-item active">Descoperă</div>
-                                <div class="dropdown-item">Aleatoriu</div>
-                                <div class="dropdown-item">Alfabetic</div>
-                                <div class="dropdown-item">Cele mai noi</div>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="discover">Descoperă</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="random">Aleatoriu</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="alpha">Alfabetic</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="newest">Cele mai noi</div>
                             </div>
                         </div>
-                        <div class="dropdown" id="sort-dropdown">
-                            <button type="button" class="btn primary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="dropdown" id="difficulty-dropdown">
+                            <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
                                 Dificultate <i class="fa-solid fa-chevron-down"></i>
                             </button>
-                            <div class="dropdown-menu">
-                                <div class="dropdown-item active">Dificultate</div>
-                                <div class="dropdown-item">Ușoare</div>
-                                <div class="dropdown-item">Medii</div>
-                                <div class="dropdown-item">Grele</div>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="all">Dificultate</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="easy">Ușoare</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="medium">Medii</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="hard">Grele</div>
                             </div>
                         </div>
                         <button type="button" class="btn danger" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span>Dezactivează mod feed</span></button>
                     </div>
                 </div>
                 <div class="separator"></div>
-                <div class="problems-grid-container" hidden>
-                    <div class="card content-card">
+                <div class="problems-grid-container" id="problems-grid-container" hidden>
+                    <div class="no-problems hidden" id="noResultsMessage">
+                        <i class="fa-solid fa-code"></i>
+                        <h2 class="no-bookmarks-message">Nu există probleme pentru filtrele selectate.</h2>
+                        <p>Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
+                    </div>
+                    <div class="card content-card hidden" id="grid-template-card">
                         <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
                         <div class="content-card-body">
                             <span class="problem-class-badge">Clasa a IX-a</span>
@@ -144,85 +150,166 @@
                 </div>
                 <!-- Infinite scroll mode -->
                 <div class="problems-feed-container">
-                    <div class="card feed-card">
-                        <div class="header-feed-card">
-                            <div class="header-feed-card-left">
-                                <h2 class="feed-card-title">Eureni</h2>
-                                <div class="feed-card-hashtags">
-                                    <a href="#" class="hashtag">#ONIA</a>
-                                    <a href="#" class="hashtag">#olimp</a>
+                    <div class="above-problem-container">
+                        <div class="card feed-card" id="feed-template-card">
+                            <div class="header-feed-card">
+                                <div class="header-feed-card-left">
+                                    <h2 class="feed-card-title">Eureni</h2>
+                                    <div class="feed-card-hashtags">
+                                        <a href="#" class="hashtag">#ONIA</a>
+                                        <a href="#" class="hashtag">#olimp</a>
+                                    </div>
+                                </div>
+                                <div class="header-feed-card-right">
+                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
+                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
+                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
                                 </div>
                             </div>
-                            <div class="header-feed-card-right">
-                                <span class="feed-card-section-pill pill">Secțiunea 1</span>
-                                <span class="feed-card-class-pill pill">Clasa a XI-a</span>
-                                <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
+                            <div class="feed-card-body">
+                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
+                                <h3>Intrare</h3>
+                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
+                                <h3>Ieșire</h3>
+                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
+                                <h3>Restricții</h3>
+                                <ul>
+                                    <li>1 ≤ n ≤ 1000</li>
+                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
+                                </ul>
+                                <h3>Exemplu</h3>
+                                <div class="example-block">
+                                    <div class="example-input">
+                                        <p>Intrare:</p>
+                                        <pre><code>5
+    3 -1 4 -2 5</code></pre>
+                                    </div>
+                                    <div class="example-output">
+                                        <p>Ieșire:</p>
+                                        <pre><code>2</code></pre>
+                                    </div>
+                                </div>
+                                <h3>Rezolvare:</h3>
+                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
                             </div>
                         </div>
-                        <div class="feed-card-body">
-                            <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
-                            <h3>Intrare</h3>
-                            <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
-                            <h3>Ieșire</h3>
-                            <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
-                            <h3>Restricții</h3>
-                            <ul>
-                                <li>1 ≤ n ≤ 1000</li>
-                                <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
-                            </ul>
-                            <h3>Exemplu</h3>
-                            <div class="example-block">
-                                <div class="example-input">
-                                    <p>Intrare:</p>
-                                    <pre><code>5
-3 -1 4 -2 5</code></pre>
-                                </div>
-                                <div class="example-output">
-                                    <p>Ieșire:</p>
-                                    <pre><code>2</code></pre>
-                                </div>
+                        <div class="right-buttons">
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
+                            <div class="center-buttons">
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
                             </div>
-                            <h3>Rezolvare:</h3>
-                            <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
                         </div>
                     </div>
-                    <div class="right-buttons">
-                        <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
-                        <div class="center-buttons">
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
-                            <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
+                    <div class="main-problem-container">
+                        <div class="card feed-card" id="feed-template-card">
+                            <div class="header-feed-card">
+                                <div class="header-feed-card-left">
+                                    <h2 class="feed-card-title">Eureni</h2>
+                                    <div class="feed-card-hashtags">
+                                        <a href="#" class="hashtag">#ONIA</a>
+                                        <a href="#" class="hashtag">#olimp</a>
+                                    </div>
+                                </div>
+                                <div class="header-feed-card-right">
+                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
+                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
+                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
+                                </div>
+                            </div>
+                            <div class="feed-card-body">
+                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
+                                <h3>Intrare</h3>
+                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
+                                <h3>Ieșire</h3>
+                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
+                                <h3>Restricții</h3>
+                                <ul>
+                                    <li>1 ≤ n ≤ 1000</li>
+                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
+                                </ul>
+                                <h3>Exemplu</h3>
+                                <div class="example-block">
+                                    <div class="example-input">
+                                        <p>Intrare:</p>
+                                        <pre><code>5
+    3 -1 4 -2 5</code></pre>
+                                    </div>
+                                    <div class="example-output">
+                                        <p>Ieșire:</p>
+                                        <pre><code>2</code></pre>
+                                    </div>
+                                </div>
+                                <h3>Rezolvare:</h3>
+                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
+                            </div>
                         </div>
-                        <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
+                        <div class="right-buttons">
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
+                            <div class="center-buttons">
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
+                            </div>
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                    <div class="bellow-problem-container">
+                        <div class="card feed-card" id="feed-template-card">
+                            <div class="header-feed-card">
+                                <div class="header-feed-card-left">
+                                    <h2 class="feed-card-title">Eureni</h2>
+                                    <div class="feed-card-hashtags">
+                                        <a href="#" class="hashtag">#ONIA</a>
+                                        <a href="#" class="hashtag">#olimp</a>
+                                    </div>
+                                </div>
+                                <div class="header-feed-card-right">
+                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
+                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
+                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
+                                </div>
+                            </div>
+                            <div class="feed-card-body">
+                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
+                                <h3>Intrare</h3>
+                                <p>Pe prima linie se află un număr natural n (1 ≤ n ≤ 1000), reprezentând numărul de elemente din șir. Pe a doua linie se află n numere întregi separate prin spațiu, fiecare având valoarea absolută cel mult 1000.</p>
+                                <h3>Ieșire</h3>
+                                <p>Se va afișa pe o singură linie numărul de elemente negative din șir.</p>
+                                <h3>Restricții</h3>
+                                <ul>
+                                    <li>1 ≤ n ≤ 1000</li>
+                                    <li>Valoarea absolută a fiecărui număr este cel mult 1000</li>
+                                </ul>
+                                <h3>Exemplu</h3>
+                                <div class="example-block">
+                                    <div class="example-input">
+                                        <p>Intrare:</p>
+                                        <pre><code>5
+    3 -1 4 -2 5</code></pre>
+                                    </div>
+                                    <div class="example-output">
+                                        <p>Ieșire:</p>
+                                        <pre><code>2</code></pre>
+                                    </div>
+                                </div>
+                                <h3>Rezolvare:</h3>
+                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
+                            </div>
+                        </div>
+                        <div class="right-buttons">
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
+                            <div class="center-buttons">
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
+                            </div>
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
                     </div>
                 </div>    
         </main>
     </div>
     <script>
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
-
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const dropdown = this.closest('.dropdown');
-                const toggle = dropdown.querySelector('.dropdown-toggle');
-                
-                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                const icon = toggle.querySelector('i');
-                toggle.textContent = this.textContent.trim() + ' ';
-                toggle.appendChild(icon);
-                
-                dropdown.classList.remove('open');
-            });
-        });
-
         // toggle between grid and feed view
         const toggleViewBtn = document.getElementById('toggle-view-btn');
         const gridContainer = document.querySelector('.problems-grid-container');
