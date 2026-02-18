@@ -145,45 +145,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderExternalLibraries() {
-        // Process MathJax
-        if (window.MathJax && window.MathJax.typesetPromise) {
-            setTimeout(() => {
-                MathJax.typesetPromise([elements.container]).then(() => {
+        const targetElement = elements.description;
+
+        if (!targetElement) return;
+
+        // --- MATHJAX PROCESSING ---
+        if (window.MathJax) {
+            if (window.MathJax.typesetPromise) {
+                
+                if (window.MathJax.typesetClear) {
+                    window.MathJax.typesetClear([targetElement]);
+                }
+
+                window.MathJax.typesetPromise([targetElement]).then(() => {
                     if (debugMode) console.log('[MATH] MathJax processing complete');
                 }).catch((err) => {
-                    if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
+                    console.warn('[MATH] MathJax typeset failed:', err);
                 });
-            }, 100);
-        } else if (window.MathJax && window.MathJax.Hub) {
-            setTimeout(() => {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, elements.container]);
-            }, 100);
+
+            } else if (window.MathJax.Hub) {
+                // Fallback for MathJax v2
+                window.MathJax.Hub.Queue(["Typeset", MathJax.Hub, targetElement]);
+            }
         }
 
-        // Process Mermaid
+        // --- MERMAID PROCESSING ---
         if (window.mermaid) {
-            mermaid.initialize({
-                startOnLoad: false,
-                theme: 'dark',
-                themeVariables: {
-                    primaryColor: '#9B59BB',
-                    primaryTextColor: '#FFFFFF',
-                    primaryBorderColor: '#9B59BB',
-                    lineColor: '#B380CB',
-                    secondaryColor: '#B380CB',
-                    tertiaryColor: '#8E44AD',
-                }
-            });
-
-            setTimeout(() => {
+            const mermaidBlocks = targetElement.querySelectorAll('.language-mermaid, code[class*="mermaid"]');
+            if (mermaidBlocks.length > 0) {
                 mermaid.run({
-                    querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
-                }).then(() => {
-                    if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
-                }).catch((err) => {
-                    if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
-                });
-            }, 200);
+                    nodes: mermaidBlocks
+                }).catch(err => console.warn('[MERMAID] Render failed', err));
+            }
         }
     }
 
