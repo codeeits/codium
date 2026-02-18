@@ -1,4 +1,4 @@
-let view = new Viewport(1220, 1000, 20, 0, "#1B0524", "black", 2);
+let view = new Viewport(1220, 1000, 20, 0);
 let root = new RootContainer(view.width + 40, view.height, view);
 let vector = [];
 let n = 10
@@ -7,7 +7,13 @@ for (let i = 0; i < n; i++) {
     let rand = Math.floor(Math.random() * (n - 1)) + 1;
     let size_y = (rand / n) * (root.height * 3 / 5);
     let size_X = (root.width / n) * 0.8;
-    let container = new Container(size_X, size_y, i * (root.width / n), root.height / 2 + 100 - size_y, "rgba(255,255,255,0.1)", "white", size_X > 10 ? 2 : 0, "center");
+    let template = document.createElement("div")
+
+    template.style.backgroundColor = "rgba(255,255,255,0.1)"
+    template.style.border = size_X > 10 ? "2px solid black" : "none";
+
+    let container = new Container(size_X, size_y, i * (root.width / n), root.height / 2 + 100 - size_y, template);
+
     let element = document.createElement("p");
     element.innerText = rand.toString();
     element.style.color = "white";
@@ -20,6 +26,13 @@ for (let i = 0; i < n; i++) {
     root.addChild(container);
     vector.push({container: container, value: rand});
 }
+
+let template = document.createElement("div");
+template.style.backgroundColor = "rgba(255,0,0,0.5)";
+template.style.border = "2px solid red";
+let testConn = Connection.UndetailedConstructor(root.children[0], root.children[1], template, "solid", "arrow");
+
+root.addChild(testConn);
 
 console.log(root);
 
@@ -118,7 +131,7 @@ function swapBoxes (i, j, durationFrames) {
         let temp = vector[i];
         vector[i] = vector[j];
         vector[j] = temp;
-    }); // :D :DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDd
+    }); // :D
 }
 
 let vector_copies = vector.map(v => ({...v})); // create a shallow copy for reference
