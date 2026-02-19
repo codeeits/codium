@@ -112,10 +112,10 @@ export function tomarkdown(text, state = {}) {
     if (inputData.match || outputData.match) {
         ioHtml += `<div class="example-block" id="io-container">`;
         if (inputData.match) {
-            ioHtml += `<div class="example-input"><p><strong>Intrare:</strong></p><pre><code>${inputData.match}</code></pre></div>`;
+            ioHtml += `<div class="example-input"><p>Intrare:</p><pre><code>${inputData.match}</code></pre></div>`;
         }
         if (outputData.match) {
-            ioHtml += `<div class="example-output"><p><strong>Ieșire:</strong></p><pre><code>${outputData.match}</code></pre></div>`;
+            ioHtml += `<div class="example-output"><p>Ieșire:</p><pre><code>${outputData.match}</code></pre></div>`;
         }
         ioHtml += `</div>`;
     }

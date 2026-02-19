@@ -230,6 +230,9 @@ a {
     cursor: pointer;
 }
 
+a.link:hover {
+    text-decoration: underline;
+}
 span {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
@@ -242,6 +245,7 @@ span.no-style {
 
 .hue-slider, input[type="range"] {
     -webkit-appearance: none;
+    appearance: none;
     height: 20px;
     background: var(--contrast);
     border: 1px solid var(--border-subtle);
@@ -881,6 +885,7 @@ main, .content-area {
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 4;
+    line-clamp: 4;
     -webkit-box-orient: vertical;
 }
 
@@ -993,6 +998,8 @@ main, .content-area {
 }
 
 .example-block pre.copied::before {
+    font-family: "Font Awesome 7 Free";
+    font-weight: 900;
     content: "\f00c";
     color: var(--confirm);
     opacity: 1;

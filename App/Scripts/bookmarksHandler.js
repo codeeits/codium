@@ -1,3 +1,5 @@
+import { extractCustomBlock } from './markdownRenderer.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM ELEMENTS ---
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const fullData = await window.apiService.getProblemById(bookmark.ProblemID);
                         return {
                             ...bookmark,
+                            short_desc: extractCustomBlock(fullData.problem.Description, 'short-desc', false).match || fullData.problem.Description,
                             problem: fullData.problem,
                             flag_translation: fullData.tag_translation,
                             difficulty: fullData.difficulty || 'Unknown',
@@ -154,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title) title.textContent = bookmarkedElementData.lesson?.Title || bookmarkedElementData.problem?.Title || 'Untitled';
 
             const description = bookmarkCard.querySelector('.content-card-description');
-            if (description) description.textContent = bookmarkedElementData.lesson?.Description.String || bookmarkedElementData.problem?.Description || 'No description available.';
+            if (description) description.textContent = bookmarkedElementData.lesson?.Description.String || bookmarkedElementData.short_desc || 'No description available.';
 
             const badge = bookmarkCard.querySelector('.bookmarks-class-badge');
             if (badge) badge.textContent = `${bookmarkedElementData.flag_translation?.class || bookmarkedElementData.flag_translation?.verification_type || 'Unknown'} / nada de momento`; 

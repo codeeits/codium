@@ -20,6 +20,14 @@
 
 }
 
+.feed-card-hashtags {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-sm);
+    text-wrap: nowrap;
+    flex-wrap: wrap;
+}
+
 .problems-grid-container {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
@@ -33,17 +41,16 @@
 .problems-feed-container {
     flex-direction: column !important;
     height: calc(100vh - var(--gap-xxl) - 300px);
+    min-height: calc(100vh - var(--gap-xxl) - 300px);
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     scroll-behavior: smooth;
     scrollbar-width: none; /* Firefox */
 }
 
-.problems-feed-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
-}
-
 .problems-feed-container > div {
+    height: calc(100vh - var(--gap-xxl) - 300px);
+    min-height: calc(100vh - var(--gap-xxl) - 300px);
     gap: var(--gap-lg);
     flex-direction: row;
     display: flex;
@@ -53,6 +60,14 @@
     scroll-snap-align: start;
     scroll-snap-stop: always;
     height: calc(100vh - var(--gap-xxl) - 300px);
+    min-height: calc(100vh - var(--gap-xxl) - 300px);
+    display: flex;
+    flex-shrink: 0;
+}
+
+.main-problem-container .feed-card {
+    width: 100%;
+    height: 100%;
 }
 
 .problems-feed-container[hidden] {
@@ -114,6 +129,7 @@ main, .content-area {
 
 .problems-grid-container .content-card {
     flex-direction: column;
+    height: 100%;
     /* max-width: min-content; */
 }
 

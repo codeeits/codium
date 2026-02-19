@@ -1,4 +1,5 @@
 import { extractCustomBlock } from '../markdownRenderer.js';
+import { getHashtagsFromContent } from '../helper/helper.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -171,7 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title) title.textContent = problem.problem.Title;
             
             const desc = card.querySelector('.feed-card-description');
-            if (desc) desc.textContent = extractCustomBlock(problem.problem.Description, 'short-desc', false).match || problem.problem.Description;
+            if (desc) desc.textContent = (extractCustomBlock(problem.problem.Description, 'short-desc', false).match || problem.problem.Description) + ' ';
+
+            const linkToProblem = document.createElement('a');
+            linkToProblem.href = `/app/Probleme/problem2.html?id=${problem.problem.ID}`;
+            linkToProblem.textContent = "Vezi detalii";
+            linkToProblem.className = "see-details link";
+            desc.appendChild(linkToProblem);
+
+
+            const hashtagsContainer = card.querySelector('.feed-card-hashtags');
+            console.log(hashtagsContainer, problem.problem.Source);
+            if (hashtagsContainer && problem.problem.Source) {
+                console.log("Extracting hashtags from source:", problem.problem.Source);
+                getHashtagsFromContent(problem.problem.Source.String, hashtagsContainer);
+            }
 
             const ioExample = card.querySelector('.example-block');
             if (ioExample) {
@@ -182,14 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     ioExample.innerHTML = ''; // Clear placeholder text
                     const inputDiv = document.createElement('div');
                     inputDiv.classList.add('example-input');
-                    inputDiv.innerHTML = `<p><strong>Intrare:</strong></p><pre><code>${inputContent}</code></pre>`;
+                    inputDiv.innerHTML = `<p>Intrare:</p><pre><code>${inputContent}</code></pre>`;
                     ioExample.appendChild(inputDiv);
                 }
 
                 if (outputContent) {
                     const outputDiv = document.createElement('div');
                     outputDiv.classList.add('example-output');
-                    outputDiv.innerHTML = `<p><strong>Ieșire:</strong></p><pre><code>${outputContent}</code></pre>`;
+                    outputDiv.innerHTML = `<p>Ieșire:</p><pre><code>${outputContent}</code></pre>`;
                     ioExample.appendChild(outputDiv);
                 }
             }
@@ -368,13 +383,15 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        const bodyStyle = window.getComputedStyle(document.body);
+
         const colors = [
-            '#B07BC9', // base-primary
-            '#321E3A', // base-border2-solid
-            '#592941', // base-danger
-            '#659D48', // base-confirm
-            '#9D9548', // base-warning
-            '#1B0524'  // base-fundal
+            bodyStyle.getPropertyValue('--primary').trim(),
+            bodyStyle.getPropertyValue('--border2-solid').trim(),
+            bodyStyle.getPropertyValue('--danger').trim(),
+            bodyStyle.getPropertyValue('--confirm').trim(),
+            bodyStyle.getPropertyValue('--warning').trim(),
+            bodyStyle.getPropertyValue('--fundal').trim()
         ];
         
         class Particle {
