@@ -1,3 +1,5 @@
+import { extractCustomBlock } from '../markdownRenderer.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const debugMode = true;
@@ -135,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title) title.textContent = problem.problem.Title;
             
             const desc = card.querySelector('.content-card-description');
-            if (desc) desc.textContent = problem.problem.Description.String;
+            if (desc && problem.problem.Description) desc.textContent = extractCustomBlock(problem.problem.Description, 'short-desc').match || problem.problem.Description;
 
             // Optional difficulty text update
             const diffText = card.querySelector('.difficulty-text');
@@ -169,8 +171,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title) title.textContent = problem.problem.Title;
             
             const desc = card.querySelector('.feed-card-description');
-            if (desc) desc.textContent = problem.problem.Description.String;
+            if (desc) desc.textContent = extractCustomBlock(problem.problem.Description, 'short-desc', false).match || problem.problem.Description;
 
+            const ioExample = card.querySelector('.example-block');
+            if (ioExample) {
+                const inputContent = extractCustomBlock(problem.problem.Description, 'input', false).match;
+                const outputContent = extractCustomBlock(problem.problem.Description, 'output', false).match;
+
+                if (inputContent) {
+                    ioExample.innerHTML = ''; // Clear placeholder text
+                    const inputDiv = document.createElement('div');
+                    inputDiv.classList.add('example-input');
+                    inputDiv.innerHTML = `<p><strong>Intrare:</strong></p><pre><code>${inputContent}</code></pre>`;
+                    ioExample.appendChild(inputDiv);
+                }
+
+                if (outputContent) {
+                    const outputDiv = document.createElement('div');
+                    outputDiv.classList.add('example-output');
+                    outputDiv.innerHTML = `<p><strong>Ieșire:</strong></p><pre><code>${outputContent}</code></pre>`;
+                    ioExample.appendChild(outputDiv);
+                }
+            }
             // Hook up navigation buttons
             const upBtn = card.querySelector('.right-buttons .fa-chevron-up')?.closest('button');
             const downBtn = card.querySelector('.right-buttons .fa-chevron-down')?.closest('button');

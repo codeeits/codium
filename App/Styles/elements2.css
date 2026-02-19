@@ -240,7 +240,34 @@ span.no-style {
     all: unset;
 }
 
+.hue-slider, input[type="range"] {
+    -webkit-appearance: none;
+    height: 20px;
+    background: var(--contrast);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-sm);
+    outline: none;
+    cursor: pointer;
+}
 
+.hue-slider::-webkit-slider-thumb, input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: grab;
+    border: none;
+}
+
+.hue-slider::-webkit-slider-thumb:hover, input[type="range"]::-webkit-slider-thumb:hover {
+    background: var(--text-colour);
+}
+
+.hue-slider::-webkit-slider-thumb:active, input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+}
 
 option, select {
     font-family: 'Raleway', sans-serif;
