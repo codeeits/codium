@@ -1054,7 +1054,7 @@ class ApiService {
         shapes/svg?
         seed=${seed}&
         shape1Color=${color6Hex}&
-        shape2Color=${color2Hex},${color4Hex}&
+        shape2Color=${color4Hex}&
         shape3Color=${color3Hex},${color5Hex}&
         backgroundColor=${color1Hex}&
         randomizeIds=true`
