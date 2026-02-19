@@ -1010,10 +1010,55 @@ class ApiService {
     // Misc Stuff
     // ===========================================
 
+    getResolvedHex(cssColor) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = cssColor;
+        ctx.fillRect(0, 0, 1, 1);
+        
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        
+        const toHex = (v) => v.toString(16).padStart(2, '0');
+        return `${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
     getPatternUrl(seed, type = 'shapes') {
-        // type: glass, identicon, shapes... more at https://avatars.dicebear.com/styles
-        const response = `https://api.dicebear.com/9.x/${type}/svg?seed=${seed}&backgroundColor=6247eb,4747eb&backgroundType=gradientLinear,solid&randomizeIds=true`;
-        return response;
+        const bodyStyle = window.getComputedStyle(document.body);
+        
+        // 1. Get the raw variable strings
+        const color1 = bodyStyle.getPropertyValue('--primary').trim() || 
+                        bodyStyle.getPropertyValue('--base-primary').trim();
+        const color2 = bodyStyle.getPropertyValue('--contrast').trim() || "#ffffff";
+        const color3 = bodyStyle.getPropertyValue('--fundal').trim() || "#ffffff";
+        const color4 = bodyStyle.getPropertyValue('--confirm').trim() || "#ffffff";
+        const color5 = bodyStyle.getPropertyValue('--danger').trim() || "#ffffff";
+        const color6 = bodyStyle.getPropertyValue('--warning').trim() || "#ffffff";
+
+        let color1Hex = "000000"; 
+        if (color1) {
+            const colorToResolve = color1.includes('(') ? color1 : `oklch(${color1})`;
+            color1Hex = this.getResolvedHex(colorToResolve);
+        }
+
+        const color2Hex = this.getResolvedHex(color2);
+        const color3Hex = this.getResolvedHex(color3);
+        const color4Hex = this.getResolvedHex(color4);
+        const color5Hex = this.getResolvedHex(color5);
+        const color6Hex = this.getResolvedHex(color6);
+
+        const selectedShapes = 'circle,square,triangle'; 
+        return `https://api.dicebear.com/9.x/
+        shapes/svg?
+        seed=${seed}&
+        shape1Color=${color6Hex}&
+        shape2Color=${color2Hex},${color4Hex}&
+        shape3Color=${color3Hex},${color5Hex}&
+        backgroundColor=${color1Hex}&
+        randomizeIds=true`
+        .replace(/\s/g, '');
     }
         
 }
