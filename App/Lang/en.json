@@ -83,5 +83,9 @@
         "update": "update",
         "login": "log in",
         "register": "sign up"
+    },
+    "pdf_transl": {
+        "generated_on": "Generated on",
+        "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR)."
     }
 }

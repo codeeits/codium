@@ -6,6 +6,50 @@ aprecieri doamnei stan pentru suportul acordat
 */
 
 // ----------------------------------
+// Preferences Management
+// ----------------------------------
+
+const PreferencesManager = {
+    storageKey: 'profilePreferences',
+    defaults: {
+        hueRotation: 0,
+        fontSize: 'font-size-medium',
+        highContrast: false,
+        colorblind: false
+    },
+
+    get() {
+        try {
+            const stored = localStorage.getItem(this.storageKey);
+            return stored ? JSON.parse(stored) : { ...this.defaults };
+        } catch (error) {
+            console.error('Error reading preferences:', error);
+            return { ...this.defaults };
+        }
+    },
+
+    set(preferences) {
+        try {
+            const current = this.get();
+            const updated = { ...current, ...preferences };
+            localStorage.setItem(this.storageKey, JSON.stringify(updated));
+        } catch (error) {
+            console.error('Error saving preferences:', error);
+        }
+    },
+
+    getProperty(property) {
+        return this.get()[property] ?? this.defaults[property];
+    },
+
+    setProperty(property, value) {
+        const current = this.get();
+        current[property] = value;
+        this.set(current);
+    }
+};
+
+// ----------------------------------
 // Visual Settings & Theme Management
 // ----------------------------------
 
@@ -13,34 +57,35 @@ const ThemeManager = {
     toggleHighContrast: () => {
         document.body.classList.toggle('high-contrast');
         document.body.classList.remove('colorblind');
-        localStorage.setItem('highContrast', document.body.classList.contains('high-contrast'));
+        PreferencesManager.setProperty('highContrast', document.body.classList.contains('high-contrast'));
     },
 
     toggleColorblind: () => {
         document.body.classList.toggle('colorblind');
         document.body.classList.remove('high-contrast');
-        localStorage.setItem('colorblind', document.body.classList.contains('colorblind'));
+        PreferencesManager.setProperty('colorblind', document.body.classList.contains('colorblind'));
     },
 
     applyStoredSettings: () => {
         // High Contrast
-        if (localStorage.getItem('highContrast') === 'true' || 
+        if (PreferencesManager.getProperty('highContrast') || 
            (window.matchMedia('(prefers-contrast: more)').matches || window.matchMedia('(forced-colors: active)').matches)) {
             document.body.classList.add('high-contrast');
         }
 
         // Colorblind
-        if (localStorage.getItem('colorblind') === 'true') {
+        if (PreferencesManager.getProperty('colorblind')) {
             document.body.classList.add('colorblind');
         }
 
         // Hue Rotation
-        if (localStorage.getItem('hueRotation')) {
-            document.documentElement.style.setProperty('--rotation', localStorage.getItem('hueRotation'));
+        const hueRotation = PreferencesManager.getProperty('hueRotation');
+        if (hueRotation) {
+            document.documentElement.style.setProperty('--rotation', hueRotation);
         }
 
         // Font Size
-        const currentSizeId = localStorage.getItem('fontSize') || 'font-size-medium';
+        const currentSizeId = PreferencesManager.getProperty('fontSize') || 'font-size-medium';
         document.body.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
         if (currentSizeId !== 'font-size-medium') {
             document.body.classList.add(currentSizeId);

@@ -83,5 +83,9 @@
         "update": "actualitza",
         "login": "autentifica't",
         "register": "registra't"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat el",
+        "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD)."
     }
 }

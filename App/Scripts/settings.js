@@ -2,6 +2,8 @@
 Settings page
 */
 
+import {textToPDF} from './helper/pdfBuilder.js';
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const elements = {
@@ -18,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // privacy card
         privacyCard: document.getElementById('privacyCard'),
         profileVisibilityToggle: document.getElementById('profile-visibility'),
-        requestDataBtn: document.getElementById('requestDataBtn'),
+        requestDataBtn: document.getElementById('request-data'),
 
         // appearance card
         appearanceCard: document.getElementById('appearanceCard'),
@@ -40,6 +42,48 @@ document.addEventListener("DOMContentLoaded", () => {
     let languages = [];
     let easterEggClickCount = 0; // Added for Romenglez logic
 
+    // -- PREFERENCES MANAGEMENT --
+    
+    const PreferencesManager = {
+        storageKey: 'profilePreferences',
+        defaults: {
+            hueRotation: 0,
+            fontSize: 'font-size-medium',
+            highContrast: false,
+            colorblind: false
+        },
+
+        get() {
+            try {
+                const stored = localStorage.getItem(this.storageKey);
+                return stored ? JSON.parse(stored) : { ...this.defaults };
+            } catch (error) {
+                console.error('Error reading preferences:', error);
+                return { ...this.defaults };
+            }
+        },
+
+        set(preferences) {
+            try {
+                const current = this.get();
+                const updated = { ...current, ...preferences };
+                localStorage.setItem(this.storageKey, JSON.stringify(updated));
+            } catch (error) {
+                console.error('Error saving preferences:', error);
+            }
+        },
+
+        getProperty(property) {
+            return this.get()[property] ?? this.defaults[property];
+        },
+
+        setProperty(property, value) {
+            const current = this.get();
+            current[property] = value;
+            this.set(current);
+        }
+    };
+
     // -- FETCH DATA --
 
     async function fetchUserData(user = null) {
@@ -48,6 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await window.apiService.getCurrentUser();
             if (response) {
                 userData = response;
+                const bookmarkResponse = await window.apiService.getBookmarks(userData.ID);
+                if (bookmarkResponse) {
+                    userData.bookmarks = bookmarkResponse;
+                } else {
+                    userData.bookmarks = [];
+                }
                 if (userData.ProfilePicID) {
                     try {
                         const imgUrl = await window.apiService.getFileUrl(userData.ProfilePicID);
@@ -218,8 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function enableHighContrastMode() {
-        // Check localStorage for high contrast mode preference
-        if (localStorage.getItem('highContrast') === 'true') {
+        // Check preferences for high contrast mode preference
+        if (PreferencesManager.getProperty('highContrast')) {
             document.body.classList.add('high-contrast');
             elements.highContrastModeToggle.checked = true;
         }
@@ -227,24 +277,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (document.body.classList.contains('colorblind')) {
                 document.body.classList.remove('colorblind');
                 elements.colorblindModeToggle.checked = false;
-                localStorage.setItem('colorblind', 'false');
+                PreferencesManager.setProperty('colorblind', false);
             }
             highContrastMode(); // external function defined in main.js that toggles the class on body
         });
     }
 
     function enableColorblindMode() {
-        // Check localStorage for colorblind mode preference
-        if (localStorage.getItem('colorblind') === 'true') {
+        // Check preferences for colorblind mode preference
+        if (PreferencesManager.getProperty('colorblind')) {
             document.body.classList.add('colorblind');
             elements.colorblindModeToggle.checked = true;
         }
         elements.colorblindModeToggle.addEventListener('change', () => {
-            console.log('Colorblind mode enabled from localStorage');
+            console.log('Colorblind mode enabled from preferences');
             if (document.body.classList.contains('high-contrast')) {
                 document.body.classList.remove('high-contrast');
                 elements.highContrastModeToggle.checked = false;
-                localStorage.setItem('highContrast', 'false');
+                PreferencesManager.setProperty('highContrast', false);
             }
             colorblindMode(); // external function defined in main.js that toggles the class on body
         });
@@ -277,7 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const defaultSizeId = 'font-size-medium';
-        const currentSizeId = localStorage.getItem('fontSize') || defaultSizeId;
+        const currentSizeId = PreferencesManager.getProperty('fontSize') || defaultSizeId;
 
         const oldButtons = container.querySelectorAll('button');
         
@@ -288,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
             newBtn.addEventListener('click', () => {
                 const newSizeId = newBtn.id;
                 
-                localStorage.setItem('fontSize', newSizeId);
+                PreferencesManager.setProperty('fontSize', newSizeId);
                 
                 updateUI(newSizeId);
                 
@@ -306,16 +356,52 @@ document.addEventListener("DOMContentLoaded", () => {
     function slideHue() {
         const hueValue = elements.hueSlider.value;
         document.documentElement.style.setProperty('--rotation', hueValue);
-        localStorage.setItem('hueRotation', hueValue);
+        PreferencesManager.setProperty('hueRotation', hueValue);
     }
 
     function initHueSlider() {
-        const savedHue = localStorage.getItem('hueRotation') || 0;
+        const savedHue = PreferencesManager.getProperty('hueRotation') || 0;
         elements.hueSlider.value = savedHue;
         document.documentElement.style.setProperty('--rotation', savedHue);
 
         elements.hueSlider.addEventListener('input', () => {
             slideHue();
+        });
+    }
+
+    function requestData() {
+        elements.requestDataBtn.addEventListener('click', async () => {
+            const prefs = PreferencesManager.get();
+            const translatedLogoP = `<p data-i18n="welcome" class="logo-p">Learn/ Code/ Compete/</p>`;
+            const contentBody = `
+            <h1>User Data Request:</h1>
+            <p>Username: ${userData.Username}</p>
+            <p>User ID: ${userData.ID}</p>
+            <p>Email: ${userData.Email || 'N/A'}</p>
+            <p>Email verified: ${userData.EmailValidated ? 'Yes' : 'No'}</p>
+            <p>Account created: ${new Date(userData.CreatedAt.Time).toLocaleDateString('ro-RO')}</p>
+            <p>Last updated profile: ${new Date(userData.UpdatedAt.Time).toLocaleDateString('ro-RO')}</p>
+            <p>Profile picture ID: ${userData.ProfilePicID || 'N/A'}</p>
+            <p>Profile picture: <img src="${userData.profilePicUrl || 'https://placehold.co/80/png'}" alt="Profile Picture" width="80" height="80" style="object-fit: cover"></p>
+            <h2>Preferences:</h2>
+            <ul>
+                <li>Colorblind mode: ${prefs.colorblind ? 'Enabled' : 'Disabled'}</li>
+                <li>High contrast mode: ${prefs.highContrast ? 'Enabled' : 'Disabled'}</li>
+                <li>Font size: ${prefs.fontSize || 'Default'}</li>
+                <li>Hue rotation: ${prefs.hueRotation || 0} degrees</li>
+                <li>Selected language: ${localStorage.getItem('lang') || 'ro'}</li>
+            </ul>
+            <h2>Lesson bookmarks:</h2>
+            <ul>
+            ${userData.bookmarks ? userData.bookmarks.map(b => `<li>Lesson ID: ${b.LessonID}</li>`).join('') : '<li>No bookmarks available.</li>'}\n\n
+            </ul>
+            `;
+            const footerData = `
+                <p><span data-i18n="pdf_transl.generated_on"></span> ${new Date().toLocaleString('ro-RO')}</p>
+                <i data-i18n="pdf_transl.gdpr_notice">This is a request for all personal data associated with this account, in accordance with GDPR regulations.</i>
+            `;
+            const response = textToPDF(contentBody, "header", false, footerData, translatedLogoP);
+            console.log(response);
         });
     }
 
@@ -361,6 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
             enableHighContrastMode();
             enableColorblindMode();
             setFontSize();
+            requestData();
 
         } catch (err) {
             console.error('Failed to get current user:', err);

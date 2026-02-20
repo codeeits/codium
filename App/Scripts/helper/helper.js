@@ -1,5 +1,6 @@
 /** 
-* @param {HTMLElement} targetElement - The DOM element to process
+* @param {HTMLElement} containerElement - The DOM element to process
+* @returns {void}
 */
 
 export function getHashtagsFromContent(content, containerElement = null) {

@@ -89,5 +89,9 @@
         "update": "actualizează",
         "login": "autentifică-te",
         "register": "înregistrează-te"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat la: ",
+        "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR)."
     }
 }
