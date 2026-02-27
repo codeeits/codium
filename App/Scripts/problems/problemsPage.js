@@ -132,8 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (img) img.src = patternUrl;
 
             const badge = card.querySelector('.problem-class-badge');
-            if (badge) badge.textContent = `Clasa ${problem.tag_translation.verification_type || "N/A"}`; // we use verification_type as a temporary class indicator until the API provides a proper field
-            
+            if (badge){
+                badge.textContent = `Clasa ${problem.tag_translation.verification_type || "N/A"}`; // we use verification_type as a temporary class indicator until the API provides a proper field
+                badge.dataset.i18n = `classe.${problem.tag_translation.verification_type || "N/A"}`;
+            }
             const title = card.querySelector('.content-card-title');
             if (title) title.textContent = problem.problem.Title;
             
@@ -160,10 +162,26 @@ document.addEventListener('DOMContentLoaded', () => {
             card.classList.remove('hidden');
             
             const section = card.querySelector('.feed-card-section-pill');
-            if (section) section.textContent = `Secțiunea ${problem.tag_translation.section || "N/A"}`;
+            if (section){
+                section.textContent = ""; // Clear existing content
+                const spanI18n = document.createElement('span');
+                const textContent = document.createElement('span');
+
+                spanI18n.dataset.i18n = `flags.section`;
+                spanI18n.classList.add('no-style');
+
+                textContent.textContent = ` ${problem.tag_translation.section || "N/A"}`;
+                textContent.classList.add('no-style');
+
+                section.appendChild(spanI18n);
+                section.appendChild(textContent);
+            }
             
             const classA = card.querySelector('.feed-card-class-pill');
-            if (classA) classA.textContent = `Clasa ${problem.tag_translation.verification_type || "N/A"}`;
+            if (classA){
+                classA.textContent = `Clasa ${problem.tag_translation.verification_type || "N/A"}`;
+                classA.dataset.i18n = `classe.${problem.tag_translation.verification_type || "N/A"}`;
+            }
 
             const diffText = card.querySelector('.feed-card-difficulty-pill');
             if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;

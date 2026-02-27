@@ -59,6 +59,44 @@
         }
     },
 
+    "lessons-page": {
+        "title": "Lecții",
+        "desc": "Bazele pregătirii tale teoretice.",
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi"
+        },
+        "all-fliter": "Toate"
+    },
+
+    "problems-page": {
+        "title": "Probleme",
+        "desc": "Aplică teoria.",
+        "all-filter": "Toate",
+        "dropdown-1": {
+            "alfabetic": "Alfabetic",
+            "discovery": "Descopera",
+            "random": "Aleatoriu",
+            "newest": "Cele mai noi"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultate",
+            "easy": "Ușoare",
+            "medium": "Medii",
+            "hard": "Dificile"
+        },
+        "enable-feed-mode": "Activează modul feed",
+        "disable-feed-mode": "Dezactivează modul feed",
+        "surprise-me": "Surprinde-mă",
+
+        "no-problems": {
+            "title": "Nu există probleme pentru filtrele selectate.",
+            "desc": "Încearcă să modifici filtrele pentru a vedea mai multe probleme."
+        }
+    },
+
     "log-out": "deconectare",
     "top-menu": {
         "teory": "Teorie",
@@ -133,5 +171,24 @@
     "pdf_transl": {
         "generated_on": "Generat la: ",
         "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR)."
+    },
+
+    "difficulty": {
+        "easy": "Ușor",
+        "medium": "Mediu",
+        "hard": "Dificil"
+    },
+
+    "classe": {
+        "1": "Clasa a I-a",
+        "2": "Clasa a II-a",
+        "3": "Clasa a III-a",
+        "4": "Clasa a IV-a",
+        "8": "Clasa a 8-a",
+        "9": "Clasa a 9-a",
+        "10": "Clasa a 10-a",
+        "11": "Clasa a 11-a",
+        "12": "Clasa a 12-a",
+        "67": "Clasa a 67-a"
     }
 }

@@ -55,51 +55,51 @@
         <div id="sidebar-container"></div>
 
         <main class="content-area">
-                <h1>Probleme</h1>
+                <h1 data-i18n="problems-page.title">Probleme</h1>
                 <div class="subtitle section">
-                    <h2 class="page-description">Aplică teoria.</h2>
-                    <button type="button" class="btn primary" id="surprise-btn"><i class="fa-solid fa-wand-sparkles"></i> Surprinde-mă</button>
+                    <h2 class="page-description" data-i18n="problems-page.desc">Aplică teoria.</h2>
+                    <button type="button" class="btn primary" id="surprise-btn"><i class="fa-solid fa-wand-sparkles"></i> <span data-i18n="problems-page.surprise-me" class="no-style">Surprinde-mă</span></button>
                 </div>
                 <div class="filters-list">
                     <div class="filters-list-left" id="filters-list-left">
-                        <button type="button" class="btn primary active">Toate</button>
-                        <button type="button" class="btn secondary">Clasa a IX-a</button>
-                        <button type="button" class="btn secondary">Clasa a X-a</button>
-                        <button type="button" class="btn secondary">Clasa a XI-a</button>
-                        <button type="button" class="btn secondary">Clasa a XII-a</button>
+                        <button type="button" class="btn primary active" data-i18n="problems-page.all-filter">Toate</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.9">Clasa a IX-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.10">Clasa a X-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.11">Clasa a XI-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.12">Clasa a XII-a</button>
                     </div>
                     <div class="buttons-list-right">
                         <div class="dropdown" id="sort-dropdown">
                             <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
-                                Descoperă <i class="fa-solid fa-chevron-down"></i>
+                                <span data-i18n="problems-page.dropdown-1.discovery" class="no-style">Descoperă</span><i class="fa-solid fa-chevron-down"></i>
                             </button>
                             <div class="dropdown-menu" role="menu">
-                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="discover">Descoperă</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="random">Aleatoriu</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="alpha">Alfabetic</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="newest">Cele mai noi</div>
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="discover" data-i18n="problems-page.dropdown-1.discovery">Descoperă</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="random" data-i18n="problems-page.dropdown-1.random">Aleatoriu</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="alpha" data-i18n="problems-page.dropdown-1.alfabetic">Alfabetic</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="newest" data-i18n="problems-page.dropdown-1.newest">Cele mai noi</div>
                             </div>
                         </div>
                         <div class="dropdown" id="difficulty-dropdown">
                             <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
-                                Dificultate <i class="fa-solid fa-chevron-down"></i>
+                                <span class="no-style" data-i18n="problems-page.dropdown-2.dificulty">Dificultate</span><i class="fa-solid fa-chevron-down"></i>
                             </button>
                             <div class="dropdown-menu" role="menu">
-                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="all">Dificultate</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="easy">Ușoare</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="medium">Medii</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="hard">Grele</div>
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="all" data-i18n="problems-page.dropdown-2.dificulty">Dificultate</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="easy" data-i18n="difficulty.easy">Ușoare</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="medium" data-i18n="difficulty.medium">Medii</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="hard" data-i18n="difficulty.hard">Grele</div>
                             </div>
                         </div>
-                        <button type="button" class="btn danger" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span>Dezactivează mod feed</span></button>
+                        <button type="button" class="btn danger" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span data-i18n="problems-page.disable-feed-mode">Dezactivează mod feed</span></button>
                     </div>
                 </div>
                 <div class="separator"></div>
                 <div class="problems-grid-container" id="problems-grid-container" hidden>
                     <div class="no-problems hidden" id="noResultsMessage">
                         <i class="fa-solid fa-code"></i>
-                        <h2 class="no-bookmarks-message">Nu există probleme pentru filtrele selectate.</h2>
-                        <p>Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
+                        <h2 class="no-bookmarks-message" data-i18n="problems-page.no-problems.title">Nu există probleme pentru filtrele selectate.</h2>
+                        <p data-i18n="problems-page.no-problems.desc">Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
                     </div>
                     <div class="card content-card hidden" id="grid-template-card">
                         <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
@@ -220,12 +220,14 @@
                 gridContainer.hidden = true;
                 feedContainer.hidden = false;
                 toggleBtnText.textContent = 'Dezactivează mod feed';
+                toggleBtnIcon.dataset.i18n = 'problems-page.disable-feed-mode';
                 toggleBtnIcon.className = 'fa-solid fa-grip';
                 toggleViewBtn.className = 'btn secondary danger';
             } else {
                 gridContainer.hidden = false;
                 feedContainer.hidden = true;
                 toggleBtnText.textContent = 'Activează mod feed';
+                toggleBtnIcon.dataset.i18n = 'problems-page.enable-feed-mode';
                 toggleBtnIcon.className = 'fa-solid fa-scroll';
                 toggleViewBtn.className = 'btn secondary confirm';
             }

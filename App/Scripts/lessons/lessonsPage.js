@@ -93,7 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (img) img.src = patternUrl;
 
             const badge = card.querySelector('.lesson-class-badge');
-            if (badge) badge.textContent = `Clasa ${lesson.flag_translation.class}`;
+            if (badge){
+                badge.textContent = `Clasa ${lesson.flag_translation.class}`;
+                badge.dataset.i18n = `lessons-page.classe.${lesson.flag_translation.class}`;
+            }
             
             const title = card.querySelector('.content-card-title');
             if (title) title.textContent = lesson.lesson.Title;
@@ -103,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Optional difficulty text update
             const diffText = card.querySelector('.difficulty-text');
-            if(diffText && lesson.difficulty) diffText.textContent = lesson.difficulty;
+            if(diffText && lesson.difficulty){
+                diffText.textContent = lesson.difficulty;
+                diffText.dataset.i18n = `difficulty.${lesson.difficulty.toLowerCase()}`;
+            }
 
             card.addEventListener('click', () => {
                 window.location.href = `/app/Lectii/lessonindiv.html?id=${lesson.lesson.ID}`;
@@ -156,6 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.remove('template', 'hidden');
             btn.id = ""; 
             btn.textContent = `Clasa a ${cls}`;
+            if (parseInt(cls) == 67) {
+                btn.dataset.i18n = 'lessons-page.classe.67';
+            } else if (parseInt(cls) > 12) {
+                btn.dataset.i18n = ''; // no set
+                btn.textContent = `Clasa ${cls}`;
+            } else {
+                btn.dataset.i18n = `lessons-page.classe.${cls}`; // For translation
+            }
             btn.dataset.class = String(cls);
             
             applyBtnStyle(btn, currentFilters.class === cls);

@@ -68,13 +68,32 @@
             "newest": "Més nous",
             "oldest": "Més antics"
         },
-        "all-fliter": "Totes",
-        "classe": {
-            "8": "8è curs",
-            "9": "9è curs",
-            "10": "10è curs",
-            "11": "11è curs",
-            "12": "12è curs"
+        "all-fliter": "Totes"
+    },
+
+    "problems-page": {
+        "title": "Problemes",
+        "desc": "Aplica la teoria.",
+        "all-filter": "Totes",
+        "dropdown-1": {
+            "alfabetic": "Alfabètic",
+            "discovery": "Descobreix",
+            "random": "Aleatori",
+            "newest": "Més nous"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultat",
+            "easy": "Fàcil",
+            "medium": "Mitjà",
+            "hard": "Difícil"
+        },
+        "enable-feed-mode": "Activa el mode feed",
+        "disable-feed-mode": "Desactiva el mode feed",
+        "surprise-me": "Sorprèn-me",
+
+        "no-problems": {
+            "title": "No hi ha problemes per als filtres seleccionats.",
+            "desc": "Intenta modificar els filtres per veure més problemes."
         }
     },
 
@@ -152,5 +171,24 @@
     "pdf_transl": {
         "generated_on": "Generat el",
         "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD)."
+    },
+
+    "difficulty": {
+        "easy": "Fàcil",
+        "medium": "Mitjà",
+        "hard": "Difícil"
+    },
+
+    "classe": {
+        "1": "1er curs",
+        "2": "2n curs",
+        "3": "3er curs",
+        "4": "4t curs",
+        "8": "8è curs",
+        "9": "9è curs",
+        "10": "10è curs",
+        "11": "11è curs",
+        "12": "12è curs",
+        "67": "67è curs"
     }
 }

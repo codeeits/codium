@@ -59,6 +59,44 @@
         }
     },
 
+    "lessons-page": {
+        "title": "Lessons",
+        "desc": "Your base knowledge concepts",
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest"
+        },
+        "all-fliter": "All"
+    },
+
+    "problems-page": {
+        "title": "Problems",
+        "desc": "Apply the theory.",
+        "all-filter": "All",
+        "dropdown-1": {
+            "alfabetic": "Alphabetic",
+            "discovery": "Discovery",
+            "random": "Random",
+            "newest": "Newest"
+        },
+        "dropdown-2": {
+            "dificulty": "Difficulty",
+            "easy": "Easy",
+            "medium": "Medium",
+            "hard": "Hard"
+        },
+        "enable-feed-mode": "Enable feed mode",
+        "disable-feed-mode": "Disable feed mode",
+        "surprise-me": "Surprise me",
+
+        "no-problems": {
+            "title": "No problems for the selected filters.",
+            "desc": "Try modifying the filters to see more problems."
+        }
+    },
+
     "log-out": "log out",
     "top-menu": {
         "teory": "Theory",
@@ -133,5 +171,24 @@
     "pdf_transl": {
         "generated_on": "Generated on",
         "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR)."
+    },
+
+    "difficulty": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+    },
+
+    "classe": {
+        "1": "1st grade",
+        "2": "2nd grade",
+        "3": "3rd grade",
+        "4": "4th grade",
+        "8": "8th grade",
+        "9": "9th grade",
+        "10": "10th grade",
+        "11": "11th grade",
+        "12": "12th grade",
+        "67": "67th grade"
     }
 }
