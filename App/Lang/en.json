@@ -68,7 +68,11 @@
             "newest": "Newest",
             "oldest": "Oldest"
         },
-        "all-fliter": "All"
+        "all-fliter": "All",
+        "right-bar": {
+            "content": "Content",
+            "keypoints": "Key Points"
+        }
     },
 
     "problems-page": {
@@ -166,7 +170,10 @@
             "medium": "Medium",
             "large": "Large",
             "x-large": "X-Large"
-        }
+        },
+
+        "next_lesson": "Next lesson",
+        "feedback": "Feedback"
     },
     "pdf_transl": {
         "generated_on": "Generated on",
@@ -190,5 +197,15 @@
         "11": "11th grade",
         "12": "12th grade",
         "67": "67th grade"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatics",
+        "2": "Physics",
+        "3": "Chemistry",
+        "4": "Biology",
+        "5": "English",
+        "6": "Mathematics"
     }
 }

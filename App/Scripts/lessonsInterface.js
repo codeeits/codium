@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (elements.classInfo){ 
             if (elements.classInfo.parentElement.classList.contains("bread")) {
-                elements.classInfo.textContent = toRoman(state.meta.class);
+                elements.classInfo.dataset.i18n = `classe.${state.meta.class}`;
             } else {
                 elements.classInfo.textContent = `Class: ${state.meta.class}`;
             }
@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (elements.sectionInfo){
             if (elements.sectionInfo.parentElement.classList.contains("bread")) {
-                elements.sectionInfo.textContent = state.meta.section;
+                elements.sectionInfo.textContent = `${state.meta.section}`;
             } else {
                 elements.sectionInfo.textContent = `Section: ${state.meta.section}`;
             }
@@ -207,9 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (elements.moduleInfo){
             if (elements.moduleInfo.parentElement.classList.contains("bread")) {
-                if (state.meta.module == 1) {
-                    elements.moduleInfo.textContent = `Informatică`;
-                }
+                elements.moduleInfo.dataset.i18n = `modules.${state.meta.module}`;
             } else {
                 elements.moduleInfo.textContent = `Module: ${state.meta.module}`;
             }
@@ -351,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (debugMode) console.log("[DEBUG] Starting sidebar rendering...");
         console.log("[DEBUG] Rendering sidebar for class:", state.meta.class);
         elements.sidebarTitle.textContent = `Clasa a ${toRoman(state.meta.class)}-a`;
+        elements.sidebarTitle.dataset.i18n = `classe.${state.meta.class}`;
 
         try {
             const sectionArray = await window.apiService.getSectionsForClass(state.meta.class);
@@ -443,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 //Header section for new UI is "Sectiunea X"
                 const sectionHeader = document.getElementById("lectii-sesiune");
                 if (sectionHeader) {
-                    sectionHeader.textContent = `Secțiunea ${sectionNumber}`;
+                    sectionHeader.innerHTML = `<span data-i18n="flags.section" class="no-style"></span> ${sectionNumber}`;
                 }
                 // For new section container, we only render the current section without header
                 [...elements.sidebar.children].forEach((child, index) => {
@@ -688,6 +687,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setupNavigationButtons();
             setupInteractionButtons();
             await renderSidebar();
+            
+            applyTranslations(); // Re-apply translations to update the module name
         }
     }
 

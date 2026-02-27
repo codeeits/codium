@@ -68,7 +68,11 @@
             "newest": "Més nous",
             "oldest": "Més antics"
         },
-        "all-fliter": "Totes"
+        "all-fliter": "Totes",
+        "right-bar": {
+            "content": "Contingut",
+            "keypoints": "Punts clau"
+        }
     },
 
     "problems-page": {
@@ -166,7 +170,10 @@
             "medium": "Mitjà",
             "large": "Gran",
             "x-large": "Molt gran"
-        }
+        },
+
+        "next_lesson": "Seguent lliçó",
+        "feedback": "Feedback"
     },
     "pdf_transl": {
         "generated_on": "Generat el",
@@ -190,5 +197,15 @@
         "11": "11è curs",
         "12": "12è curs",
         "67": "67è curs"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informàtica",
+        "2": "Física",
+        "3": "Química",
+        "4": "Biologia",
+        "5": "Anglès",
+        "6": "Matemàtiques"
     }
 }

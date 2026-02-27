@@ -68,7 +68,11 @@
             "newest": "Cele mai noi",
             "oldest": "Cele mai vechi"
         },
-        "all-fliter": "Toate"
+        "all-fliter": "Toate",
+        "right-bar": {
+            "content": "Cuprins",
+            "keypoints": "De reținut"
+        }
     },
 
     "problems-page": {
@@ -166,7 +170,10 @@
             "medium": "Mediu",
             "large": "Mare",
             "x-large": "Foarte mare"
-        }
+        },
+
+        "next_lesson": "Următoarea lecție",
+        "feedback": "Feedback"
     },
     "pdf_transl": {
         "generated_on": "Generat la: ",
@@ -184,11 +191,21 @@
         "2": "Clasa a II-a",
         "3": "Clasa a III-a",
         "4": "Clasa a IV-a",
-        "8": "Clasa a 8-a",
-        "9": "Clasa a 9-a",
-        "10": "Clasa a 10-a",
-        "11": "Clasa a 11-a",
-        "12": "Clasa a 12-a",
+        "8": "Clasa a VIII-a",
+        "9": "Clasa a IX-a",
+        "10": "Clasa a X-a",
+        "11": "Clasa a XI-a",
+        "12": "Clasa a XII-a",
         "67": "Clasa a 67-a"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatică",
+        "2": "Fizică",
+        "3": "Chimie",
+        "4": "Biologie",
+        "5": "Engleză",
+        "6": "Matematică"
     }
 }
