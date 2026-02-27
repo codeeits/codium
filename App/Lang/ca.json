@@ -24,6 +24,60 @@
         "recent-activity": "activitat recent",
         "bookmarks": "marcadors"
     },
+
+    "settings-page": {
+        "title": "Configuració",
+        "privacy-section": {
+            "title": "Privacitat",
+            "options": {
+                "make-profile-private": "Fes que el meu compte sigui privat",
+                "download-my-data": "Descarrega les meves dades (RGPD)"
+            }
+        },
+        "appearance-section": {
+            "title": "Aparença",
+            "options": {
+                "dark-mode": "Mode fosc",
+                "font-size": "Mida de la lletra",
+                "color-blind-mode": "Apte per a daltonisme",
+                "high-contrast-mode": "Alt contrast",
+                "hue-slider": "Matís"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Altres coses",
+            "options": {
+                "language": "Llengua",
+                "support": "Formulari de contacte"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. Tots els drets reservats.",
+            "opensource": "Codium és un projecte de codi obert.",
+            "contribute": "Contribueix al GitHub",
+            "made_with_love": "realitzat amb ♥ per andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lliçons",
+        "desc": "Els teus conceptes teoretics bàsics",
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics"
+        },
+        "all-fliter": "Totes",
+        "classe": {
+            "8": "8è curs",
+            "9": "9è curs",
+            "10": "10è curs",
+            "11": "11è curs",
+            "12": "12è curs"
+        }
+    },
+
     "log-out": "tanca la sessió",
     "top-menu": {
         "teory": "Teoria",
@@ -82,7 +136,18 @@
         "create": "crea",
         "update": "actualitza",
         "login": "autentifica't",
-        "register": "registra't"
+        "register": "registra't",
+        
+        "comment": "settings specific buttons",
+        "log-out": "Tanca la sessió",
+        "support-button": "Contacta’ns",
+        "download-data": "Descarrega",
+        "font-size-labels": {
+            "small": "Petit",
+            "medium": "Mitjà",
+            "large": "Gran",
+            "x-large": "Molt gran"
+        }
     },
     "pdf_transl": {
         "generated_on": "Generat el",

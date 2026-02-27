@@ -82,20 +82,16 @@ function translateHTMLSnippet(htmlSnippet) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlSnippet;
     
-    // This uses your existing logic to swap data-i18n for real text
     applyTranslations(tempDiv);
 
     return tempDiv.innerHTML;
 }
 
 export function textToPDF(body, templateType, transformMarkdown = false, footerHTML = "", logoPSnippet = "") {
-    // 1. Translate the Logo Subtitle (e.g., the <p data-i18n="welcome">...)
     const translatedLogoP = translateHTMLSnippet(logoPSnippet);
     
-    // 2. Translate the Body (in case it contains data-i18n tags)
     const translatedBody = translateHTMLSnippet(body);
     
-    // 3. Translate the Footer (in case it contains data-i18n tags)
     const translatedFooter = translateHTMLSnippet(footerHTML);
 
     const templateHTML = (templateTypes[templateType] || templateTypes["default"])
@@ -107,7 +103,6 @@ export function textToPDF(body, templateType, transformMarkdown = false, footerH
 }
 
 function HTMLToPDF(htmlContent) {
-    // opens a new window and writes the HTML content into it, then triggers the print dialog to save as PDF
     const printWindow = window.open('', '_blank');
     printWindow.document.writeln(htmlContent);
     printWindow.document.close();

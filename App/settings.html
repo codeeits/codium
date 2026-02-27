@@ -31,7 +31,7 @@
         <div id="sidebar-container"></div>
 
         <main class="content-area">
-            <h1>Setări</h1>
+            <h1 data-i18n="settings-page.title"></h1>
             <div class="main-content">
 
                 <div class="card profile-card" id="profileCard">
@@ -43,15 +43,15 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn secondary" id="logOutBtn">Log-out</button>
-                        <button type="button" class="btn primary" id="editProfileBtn">Editează profilul</button>
+                        <button type="button" class="btn secondary" id="logOutBtn" data-i18n="buttons.log-out">Log-out</button>
+                        <button type="button" class="btn primary" id="editProfileBtn" data-i18n="buttons.edit">Editează profilul</button>
                     </div>
                 </div>
 
                 <div class="card privacy-card" id="privacyCard">
-                    <h2>Confidențialitate</h2>
+                    <h2 data-i18n="settings-page.privacy-section.title">Confidențialitate</h2>
                     <div class="setting-item">
-                        <label for="profile-visibility">Make my account private</label>
+                        <label for="profile-visibility" data-i18n="settings-page.privacy-section.options.make-profile-private">Make my account private</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="profile-visibility">
@@ -59,7 +59,7 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="profile-visibility">Make my account private</label>
+                        <label for="profile-visibility" data-i18n="settings-page.privacy-section.options.make-profile-private">Make my account private</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="profile-visibility">
@@ -67,7 +67,7 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="profile-visibility">Make my account private</label>
+                        <label for="profile-visibility" data-i18n="settings-page.privacy-section.options.make-profile-private">Make my account private</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="profile-visibility">
@@ -75,15 +75,15 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="request-data">Download your data</label>
-                        <button type="button" id="request-data" class="btn secondary">Download Data</button>
+                        <label for="request-data" data-i18n="settings-page.privacy-section.options.download-my-data">Download your data</label>
+                        <button type="button" id="request-data" class="btn secondary" data-i18n="buttons.download-data">Download Data</button>
                     </div>
                 </div>
 
                 <div class="card appearance-card" id="appearanceCard">
-                    <h2>Cuvant pentru appearance</h2>
+                    <h2 data-i18n="settings-page.appearance-section.title">Cuvant pentru appearance</h2>
                     <div class="setting-item">
-                        <label for="dark-mode">Dark mode (can't be changed lol)</label>
+                        <label for="dark-mode" data-i18n="settings-page.appearance-section.options.dark-mode">Dark mode (can't be changed lol)</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="dark-mode" checked disabled>
@@ -91,15 +91,15 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="font-size-options">Font size</label>
+                        <label for="font-size-options" data-i18n="settings-page.appearance-section.options.font-size">Font size</label>
                         <div class="font-size-options" id="font-size-options">
-                            <button type="button" id="font-size-small" class="btn secondary"><span class="small-text">Small</span></button>
-                            <button type="button" id="font-size-medium" class="btn primary"><span class="medium-text active">Medium</span></button>
-                            <button type="button" id="font-size-large" class="btn secondary"><span class="large-text">Large</span></button>
+                            <button type="button" id="font-size-small" class="btn secondary"><span class="small-text" data-i18n="buttons.font-size-labels.small">Small</span></button>
+                            <button type="button" id="font-size-medium" class="btn primary"><span class="medium-text active" data-i18n="buttons.font-size-labels.medium">Medium</span></button>
+                            <button type="button" id="font-size-large" class="btn secondary"><span class="large-text" data-i18n="buttons.font-size-labels.large">Large</span></button>
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label for="colorblind-mode">Colorblind friendly mode</label>
+                        <label for="colorblind-mode" data-i18n="settings-page.appearance-section.options.color-blind-mode">Colorblind friendly mode</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="colorblind-mode">
@@ -107,7 +107,7 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="contrast-mode">High contrast mode</label>
+                        <label for="contrast-mode" data-i18n="settings-page.appearance-section.options.high-contrast-mode">High contrast mode</label>
                         <!-- Toggle switch -->
                         <label class="switch">
                             <input type="checkbox" id="contrast-mode">
@@ -115,15 +115,15 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="hue-slider">Hue slider</label>
+                        <label for="hue-slider" data-i18n="settings-page.appearance-section.options.hue-slider">Hue slider</label>
                         <input type="range" class="hue-slider" id="hue-slider" name="hue-slider" min="0" max="360">
                     </div>
                 </div>
 
                 <div class="card other-stuff-card" id="otherStuffCard">
-                    <h2>Alte chestii</h2>
+                    <h2 data-i18n="settings-page.other-stuff-section.title">Alte chestii</h2>
                     <div class="setting-item">
-                        <label for="language-selector">Limba de afișare</label>
+                        <label for="language-selector" data-i18n="settings-page.other-stuff-section.options.language">Limba de afișare</label>
                         <!-- Toggle switch -->
                         <div class="dropdown" id="language-selector-dropdown">
                             <button type="button" class="btn secondary dropdown-toggle" aria-expanded="false">
@@ -138,17 +138,17 @@
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label for="support-form">Formular de suport</label>
+                        <label for="support-form" data-i18n="settings-page.other-stuff-section.options.support">Formular de suport</label>
                         <!-- Toggle switch -->
-                        <button type="button" id="support-form" class="btn primary">Contact Support</button>
+                        <button type="button" id="support-form" class="btn primary" data-i18n="buttons.support-button">Contact Support</button>
                     </div>
                 </div>
 
             </div>
             <footer class="settings-footer">
-                <p data-i18n="settings.copyright">&copy; 2026 Codium. Toallllte drepturile rezervate.</p>
-                <p><span data-i18n="settings.opensource">Codium este un proiect open.</span> <a href="https://github.com/codeeits/codium" data-i18n="settings.contribute">Contribuie pe GitHub</a>.</p>
-                <p data-i18n="settings.made_with_love">made with &hearts; by andrew & codeeits ^_^</p>
+                <p data-i18n="settings-page.footer.copyright">&copy; 2026 Codium. Toallllte drepturile rezervate.</p>
+                <p><span data-i18n="settings-page.footer.opensource">Codium este un proiect open-source.</span> <a href="https://github.com/codeeits/codium" data-i18n="settings-page.footer.contribute">Contribuie pe GitHub</a>.</p>
+                <p data-i18n="settings-page.footer.made_with_love">made with &hearts; by andrew & codeeits ^_^</p>
             </footer>
         </main>
     </div>

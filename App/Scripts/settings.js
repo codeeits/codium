@@ -194,11 +194,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
         const itemsContainer = dropdown.querySelector('.dropdown-menu');
 
-        // Render current language visual
         const currLang = localStorage.getItem('lang') || 'ro';
         const currLangData = languages.find(l => l.iso === currLang);
         
-        // Note: We don't add listeners here anymore. main.js handles clicks!
         if (currLangData) {
             toggleBtn.innerHTML = `${currLangData.displayName} <i class="fa-solid fa-chevron-down"></i>`;
         }
@@ -209,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const item = document.createElement('div');
             item.classList.add('dropdown-item');
             item.textContent = lang.displayName;
-            item.dataset.iso = lang.iso; // Critical for the event system
+            item.dataset.iso = lang.iso;
             item.setAttribute('role', 'menuitem');
             item.setAttribute('tabindex', '0');
 
@@ -227,7 +225,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const dropdown = elements.languageSelect;
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
 
-        // We simply add a listener. It runs alongside the global toggle logic.
         toggleBtn.addEventListener('click', () => {
             easterEggClickCount++;
             if (easterEggClickCount === 10) {
@@ -255,12 +252,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function initDropdownLogic() {
         const dropdown = elements.languageSelect;
 
-        // Listen for the custom event dispatched by main.js
         dropdown.addEventListener('dropdown-selected', (e) => {
             const iso = e.detail.iso;
             console.log('Language Selected via Global Controller:', iso);
             
-            // Your specific business logic
             setLanguage(iso);
         });
 
@@ -268,16 +263,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function enableHighContrastMode() {
-        // Check preferences for high contrast mode preference
         if (PreferencesManager.getProperty('highContrast')) {
             document.body.classList.add('high-contrast');
             elements.highContrastModeToggle.checked = true;
         }
         elements.highContrastModeToggle.addEventListener('change', () => {
             if (document.body.classList.contains('colorblind')) {
-                document.body.classList.remove('colorblind');
                 elements.colorblindModeToggle.checked = false;
-                PreferencesManager.setProperty('colorblind', false);
             }
             highContrastMode(); // external function defined in main.js that toggles the class on body
         });
@@ -292,9 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.colorblindModeToggle.addEventListener('change', () => {
             console.log('Colorblind mode enabled from preferences');
             if (document.body.classList.contains('high-contrast')) {
-                document.body.classList.remove('high-contrast');
                 elements.highContrastModeToggle.checked = false;
-                PreferencesManager.setProperty('highContrast', false);
             }
             colorblindMode(); // external function defined in main.js that toggles the class on body
         });

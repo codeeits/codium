@@ -24,6 +24,41 @@
         "recent-activity": "recent activity",
         "bookmarks": "bookmarks"
     },
+
+    "settings-page": {
+        "title": "Settings",
+        "privacy-section": {
+            "title": "Privacy",
+            "options": {
+                "make-profile-private": "Make my profile private",
+                "download-my-data": "Download my data"
+            }
+        },
+        "appearance-section": {
+            "title": "Appearance",
+            "options": {
+                "dark-mode": "Dark mode (locked lol)",
+                "font-size": "Font size",
+                "color-blind-mode": "Color blind mode",
+                "high-contrast-mode": "High contrast mode",
+                "hue-slider": "Hue slider"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Other stuff",
+            "options": {
+                "language": "Display language",
+                "support": "Contact form"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. All rights reserved.",
+            "opensource": "Codium is an open source project.",
+            "contribute": "Contribute on GitHub",
+            "made_with_love": "made with ♥ by andrew & codeeits ^_^"
+        }
+    },
+
     "log-out": "log out",
     "top-menu": {
         "teory": "Theory",
@@ -82,7 +117,18 @@
         "create": "create",
         "update": "update",
         "login": "log in",
-        "register": "sign up"
+        "register": "sign up",
+
+        "comment": "settings specific buttons",
+        "log-out": "Log out",
+        "support-button": "Contact support",
+        "download-data": "Download my data",
+        "font-size-labels": {
+            "small": "Small",
+            "medium": "Medium",
+            "large": "Large",
+            "x-large": "X-Large"
+        }
     },
     "pdf_transl": {
         "generated_on": "Generated on",
