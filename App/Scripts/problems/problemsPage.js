@@ -1,4 +1,4 @@
-import { extractCustomBlock } from '../markdownRenderer.js';
+import { extractCustomBlock } from '/app/Scripts/markdownRenderer.js';
 import { getHashtagsFromContent } from '../helper/helper.js';
 
 document.addEventListener('DOMContentLoaded', () => {

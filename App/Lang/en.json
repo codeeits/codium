@@ -98,6 +98,22 @@
         "no-problems": {
             "title": "No problems for the selected filters.",
             "desc": "Try modifying the filters to see more problems."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activity",
+                "available_tests": "Available tests",
+                "sent_solutions": "Sent solutions",
+                "correct_solutions": "Correct solutions"
+            },
+            "send-solution": {
+                "title": "Send solution",
+                "desc": "Press here to upload or drag and drop."
+            },
+            "solutions": {
+                "title": "Solutions"
+            }
         }
     },
 
@@ -153,7 +169,7 @@
     "buttons": {
         "save": "save",
         "cancel": "cancel",
-        "submit": "submit",
+        "submit": "Submit",
         "edit": "edit profile",
         "delete": "delete",
         "create": "create",
@@ -173,7 +189,9 @@
         },
 
         "next_lesson": "Next lesson",
-        "feedback": "Feedback"
+        "feedback": "Feedback",
+
+        "next_problem": "Next problem"
     },
     "pdf_transl": {
         "generated_on": "Generated on",

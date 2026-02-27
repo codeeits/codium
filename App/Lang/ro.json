@@ -98,6 +98,22 @@
         "no-problems": {
             "title": "Nu există probleme pentru filtrele selectate.",
             "desc": "Încearcă să modifici filtrele pentru a vedea mai multe probleme."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitate",
+                "available_tests": "Teste disponibile",
+                "sent_solutions": "Soluții trimise",
+                "correct_solutions": "Soluții corecte"
+            },
+            "send-solution": {
+                "title": "Trimite soluție",
+                "desc": "Apasă aici pentru a încărca sau trage și plasează."
+            },
+            "solutions": {
+                "title": "Soluții"
+            }
         }
     },
 
@@ -153,7 +169,7 @@
     "buttons": {
         "save": "salvează",
         "cancel": "anulează",
-        "submit": "trimite",
+        "submit": "Trimite",
         "edit": "editează profil",
         "delete": "șterge",
         "create": "creează",
@@ -173,7 +189,9 @@
         },
 
         "next_lesson": "Următoarea lecție",
-        "feedback": "Feedback"
+        "feedback": "Feedback",
+
+        "next_problem": "Următoarea problemă"
     },
     "pdf_transl": {
         "generated_on": "Generat la: ",

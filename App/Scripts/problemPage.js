@@ -11,9 +11,9 @@ import { renderExternalLibraries, tomarkdown } from './markdownRenderer.js';
 function getDifficultyLabel(difficulty) {
     const labels = {
         0: "Neclasificat",
-        1: "Ușor",
-        2: "Mediu",
-        3: "Greu"
+        1: "difficulty.easy",
+        2: "difficulty.medium",
+        3: "difficulty.hard"
     };
     return labels[difficulty] || `Dificultate ${difficulty}`;
 }
@@ -249,11 +249,17 @@ document.addEventListener("DOMContentLoaded", () => {
         else { elements.description.textContent = p.Description || "Fără descriere"; }
 
 
-        elements.difficulty.textContent = getDifficultyLabel(state.meta.difficulty);
+        elements.difficulty.dataset.i18n = getDifficultyLabel(state.meta.difficulty);
 
         if (elements.module && state.meta.module) elements.module.textContent = `Modul ${state.meta.module}`;
-        if (elements.section && state.meta.section) elements.section.textContent = `Secțiunea ${state.meta.section}`;
-        if (elements.classlabel && state.meta.classlabel) elements.classlabel.textContent = `Clasa a ${state.meta.classlabel} a`;
+        if (elements.section && state.meta.section){
+            //elements.section.textContent = `Secțiunea ${state.meta.section}`;
+            elements.section.innerHTML = `<span class="no-style" data-i18n="flags.section"></span> ${state.meta.section}`;
+        }
+        if (elements.classlabel && state.meta.classlabel){
+            elements.classlabel.textContent = `Clasa a ${state.meta.classlabel} a`;
+            elements.classlabel.dataset.i18n = `classe.${state.meta.classlabel}`;
+        }
 
         // Author
         if (elements.author) {
@@ -455,6 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEventListeners();
         await fetchProblemData();
         renderProblemUI();
+        applyTranslations();
     }
 
     initApp();

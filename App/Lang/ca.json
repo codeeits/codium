@@ -98,6 +98,22 @@
         "no-problems": {
             "title": "No hi ha problemes per als filtres seleccionats.",
             "desc": "Intenta modificar els filtres per veure més problemes."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitat",
+                "available_tests": "Tests disponibles",
+                "sent_solutions": "Solucions enviades",
+                "correct_solutions": "Solucions correctes"
+            },
+            "send-solution": {
+                "title": "Envia solució",
+                "desc": "Prem aquí per pujar o arrossegar i deixar anar."
+            },
+            "solutions": {
+                "title": "Solucions"
+            }
         }
     },
 
@@ -153,7 +169,7 @@
     "buttons": {
         "save": "desa",
         "cancel": "anula",
-        "submit": "envia",
+        "submit": "Envia",
         "edit": "edita el perfil",
         "delete": "elimina",
         "create": "crea",
@@ -173,7 +189,9 @@
         },
 
         "next_lesson": "Seguent lliçó",
-        "feedback": "Feedback"
+        "feedback": "Feedback",
+
+        "next_problem": "Seguent problema"
     },
     "pdf_transl": {
         "generated_on": "Generat el",

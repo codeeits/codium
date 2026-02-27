@@ -131,32 +131,32 @@
                     <p>Acest program afișează numerele de la 1 la 10.</p>
                 </div>
                 <div class="problem-buttons-bottom">
-                    <button type="button" class="btn secondary">Feedback</button>
-                    <button type="button" class="btn primary">Următoarea problemă</button>
+                    <button type="button" class="btn secondary" data-i18n="buttons.feedback">Feedback</button>
+                    <button type="button" class="btn primary" data-i18n="buttons.next_problem">Următoarea problemă</button>
                 </div>
             </div>
             <div class="side-content">
                 <div class="card stats-card">
-                    <h2>Activitate</h2>
-                    <p>Teste disponibile: <span id="tests-count">5</span></p>
-                    <p>Soluții trimise de tine: <span id="solutions-count">3</span></p>
-                    <p>Soluții corecte: <span id="correct-solutions-count">2</span></p>
+                    <h2 data-i18n="problems-page.right-bar.activity.activity">Activitate</h2>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.available_tests"></span>: <span id="tests-count">5</span></p>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.sent_solutions"></span>: <span id="solutions-count">3</span></p>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.correct_solutions"></span>: <span id="correct-solutions-count">2</span></p>
                 </div>
                 <div class="card submit-card">
-                    <h2>Trimite soluția</h2>
+                    <h2 data-i18n="problems-page.right-bar.send-solution.title">Trimite soluția</h2>
                     <form id="submit-form">
                         <div class="form-group">
                             <div class="input-field dropzone" role="button" tabindex="0" aria-label="Selectează un fișier pentru încărcare">
                                 <input type="file" id="file-input" name="solution-file" accept=".cpp,.py" hidden>
                                 <i class="fa-solid fa-upload"></i>
-                                <span class="input-text placeholder">Apasă pentru a încărca sau drag and drop</span>
+                                <span class="input-text placeholder" data-i18n="problems-page.right-bar.send-solution.desc">Apasă pentru a încărca sau drag and drop</span>
                             </div>
-                            <button type="button" class="btn primary" id="submit-code-btn">Trimite</button>
+                            <button type="button" class="btn primary" id="submit-code-btn" data-i18n="buttons.submit">Trimite</button>
                         </div>
                     </form>
                 </div>
                 <div class="card solution-card">
-                    <h2>Soluții</h2>
+                    <h2 data-i18n="problems-page.right-bar.solutions.title">Soluții</h2>
                     <ul id="my-solutions-list">
                         <li class="hidden" id="no-solutions-msg">Nu ai trimis încă nicio soluție pentru această problemă.</li>
                         <li>2/5 22.10.2025</li>
