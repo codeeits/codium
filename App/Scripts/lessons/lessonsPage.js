@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const badge = card.querySelector('.lesson-class-badge');
             if (badge){
                 badge.textContent = `Clasa ${lesson.flag_translation.class}`;
-                badge.dataset.i18n = `lessons-page.classe.${lesson.flag_translation.class}`;
+                badge.dataset.i18n = `classe.${lesson.flag_translation.class}`;
             }
             
             const title = card.querySelector('.content-card-title');
@@ -163,12 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.id = ""; 
             btn.textContent = `Clasa a ${cls}`;
             if (parseInt(cls) == 67) {
-                btn.dataset.i18n = 'lessons-page.classe.67';
+                btn.dataset.i18n = 'classe.67';
             } else if (parseInt(cls) > 12) {
                 btn.dataset.i18n = ''; // no set
                 btn.textContent = `Clasa ${cls}`;
             } else {
-                btn.dataset.i18n = `lessons-page.classe.${cls}`; // For translation
+                btn.dataset.i18n = `classe.${cls}`; // For translation
             }
             btn.dataset.class = String(cls);
             

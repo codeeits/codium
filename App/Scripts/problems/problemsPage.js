@@ -294,6 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.remove('template', 'hidden');
             btn.id = ""; 
             btn.textContent = `Clasa a ${cls}`;
+            if (parseInt(cls) == 67) {
+                btn.dataset.i18n = 'classe.67';
+            } else if (parseInt(cls) > 12) {
+                btn.dataset.i18n = ''; // no set
+                btn.textContent = `Clasa ${cls}`;
+            } else {
+                btn.dataset.i18n = `classe.${cls}`; // For translation
+            }
             btn.dataset.class = String(cls);
             
             applyBtnStyle(btn, currentFilters.class === cls);

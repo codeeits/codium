@@ -219,18 +219,17 @@
             if (isFeedMode) {
                 gridContainer.hidden = true;
                 feedContainer.hidden = false;
-                toggleBtnText.textContent = 'Dezactivează mod feed';
-                toggleBtnIcon.dataset.i18n = 'problems-page.disable-feed-mode';
+                toggleBtnText.dataset.i18n = 'problems-page.disable-feed-mode';
                 toggleBtnIcon.className = 'fa-solid fa-grip';
                 toggleViewBtn.className = 'btn secondary danger';
             } else {
                 gridContainer.hidden = false;
                 feedContainer.hidden = true;
-                toggleBtnText.textContent = 'Activează mod feed';
-                toggleBtnIcon.dataset.i18n = 'problems-page.enable-feed-mode';
+                toggleBtnText.dataset.i18n = 'problems-page.enable-feed-mode';
                 toggleBtnIcon.className = 'fa-solid fa-scroll';
                 toggleViewBtn.className = 'btn secondary confirm';
             }
+            applyTranslations(toggleViewBtn);
         });
     </script>
 </body>
