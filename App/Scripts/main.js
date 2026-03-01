@@ -373,7 +373,9 @@ const InteractionHandler = {
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
         if (dropdown.dataset.updateText !== 'false' && toggleBtn) {
             const icon = toggleBtn.querySelector('i');
-            toggleBtn.textContent = item.textContent.trim() + ' ';
+            const i18n = item.getAttribute('data-i18n');
+            toggleBtn.innerHTML = '<span class="no-style" data-i18n="' + i18n + '"></span> ';
+            applyTranslations(toggleBtn);
             if (icon) toggleBtn.appendChild(icon.cloneNode(true));
         }
 

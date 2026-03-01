@@ -117,6 +117,27 @@
         }
     },
 
+    "bookmarks-page": {
+        "title": "Marcadors",
+        "desc": "Noi, això és el que t'ha agradat més!",
+        "no-bookmarks": {
+            "title": "No tins cap element guardat.",
+            "desc": "Per començar, explora les lliçons disponibles i afegeix-les als marcadors."
+        },
+        "buttons": {
+            "all": "Totes",
+            "lessons": "Lliçons",
+            "problems": "Problemes",
+            "explore-lessons": "Explora les lliçons"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics"
+        }
+    },
+
     "log-out": "tanca la sessió",
     "top-menu": {
         "teory": "Teoria",

@@ -52,23 +52,23 @@
         <div id="sidebar-container"></div>
 
         <main class="content-area">
-                <h1>Bookmarks</h1>
-                <h2 class="page-description">Ce ai salvat tu mai!</h2>
+                <h1 data-i18n="bookmarks-page.title">Bookmarks</h1>
+                <h2 class="page-description" data-i18n="bookmarks-page.desc">Ce ai salvat tu mai!</h2>
                 <div class="filters-list">
                     <div class="filters-list-left" id="class-filters">
-                        <button type="button" class="btn primary template active" id="all-bookmarks">Toate</button>
-                        <button type="button" class="btn secondary" id="problem-bookmarks">Probleme</button>
-                        <button type="button" class="btn secondary" id="lesson-bookmarks">Lecții</button>
+                        <button type="button" class="btn primary template active" id="all-bookmarks" data-i18n="bookmarks-page.buttons.all">Toate</button>
+                        <button type="button" class="btn secondary" id="problem-bookmarks" data-i18n="bookmarks-page.buttons.problems">Probleme</button>
+                        <button type="button" class="btn secondary" id="lesson-bookmarks" data-i18n="bookmarks-page.buttons.lessons">Lecții</button>
                     </div>
                     <div class="dropdown" id="sort-dropdown">
                         <button type="button" class="btn primary dropdown-toggle">
-                            Alfabetic <i class="fa-solid fa-chevron-down"></i>
+                            <span class="no-style" data-i18n="bookmarks-page.dropdown.alfabetic">Alfabetic</span> <i class="fa-solid fa-chevron-down"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <div class="dropdown-item active">Alfabetic</div>
-                            <div class="dropdown-item">Dificultate</div>
-                            <div class="dropdown-item">Cele mai noi</div>
-                            <div class="dropdown-item">Cele mai vechi</div>
+                            <div class="dropdown-item active" data-i18n="bookmarks-page.dropdown.alfabetic">Alfabetic</div>
+                            <div class="dropdown-item" data-i18n="bookmarks-page.dropdown.dificuly">Dificultate</div>
+                            <div class="dropdown-item" data-i18n="bookmarks-page.dropdown.newest">Cele mai noi</div>
+                            <div class="dropdown-item" data-i18n="bookmarks-page.dropdown.oldest">Cele mai vechi</div>
                         </div>
                     </div>
                 </div>
@@ -93,9 +93,9 @@
                     </div>
                     <div class="no-bookmarks hidden" id="noBookmarksAv">
                         <i class="fa-solid fa-bookmark"></i>
-                        <h2 class="no-bookmarks-message">Nu ai niciun element salvat.</h2>
-                        <p>Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri.</p>
-                        <button type="button" class="btn primary" onclick="window.location.href='/app/lectii/lessons2.html'">Explorează lecțiile</button>
+                        <h2 class="no-bookmarks-message" data-i18n="bookmarks-page.no-bookmarks.title">Nu ai niciun element salvat.</h2>
+                        <p data-i18n="bookmarks-page.no-bookmarks.desc">Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri.</p>
+                        <button type="button" class="btn primary" onclick="window.location.href='/app/lectii/lessons2.html'" data-i18n="bookmarks-page.buttons.explore-lessons">Explorează lecțiile</button>
                     </div>
                 </div>
         </main>

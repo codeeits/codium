@@ -67,7 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             lesson: fullData.lesson,
                             flag_translation: fullData.flag_translation,
                             difficulty: fullData.difficulty || 'Unknown',
-                            type: 'lesson'
+                            type: 'lesson',
+                            updatedAtProcessed: bookmark.UpdatedAt ? new Date(bookmark.UpdatedAt.Time) : null,
+                            TitleProcessed: fullData.lesson.Title || 'Untitled',
                         };
                     }
 
@@ -80,7 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             problem: fullData.problem,
                             flag_translation: fullData.tag_translation,
                             difficulty: fullData.difficulty || 'Unknown',
-                            type: 'problem'
+                            type: 'problem',
+                            updatedAtProcessed: bookmark.UpdatedAt ? new Date(bookmark.UpdatedAt) : null,
+                            TitleProcessed: fullData.problem.Title || 'Untitled',
                         };
                     }
                     
@@ -105,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bookmarksGridContainer.innerHTML = '';
 
         let processedData = [...bookmarksData];
+        console.log('Rendering bookmarks with filter:', currentFilter, 'and sort:', currentSort);
 
         // 1. FILTER
         if (currentFilter === 'problem') {
@@ -116,18 +121,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. SORT
         processedData.sort((a, b) => {
             // Safety check
-            const titleA = a.lesson?.Title || "";
-            const titleB = b.lesson?.Title || "";
+            console.log(a, b);
+            const titleA = a.TitleProcessed || "";
+            const titleB = b.TitleProcessed || "";
 
+            const lowerA = titleA.toLowerCase();
+            const lowerB = titleB.toLowerCase();
             switch (currentSort) {
                 case 'Alfabetic':
-                    return titleA.localeCompare(titleB);
+                    return lowerA.localeCompare(lowerB);
                 
                 case 'Cele mai noi':
-                    return new Date(b.lesson.CreatedAt.Time) - new Date(a.lesson.CreatedAt.Time); 
+                    return b.updatedAtProcessed - a.updatedAtProcessed;
 
                 case 'Cele mai vechi':
-                    return new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time);
+                    return a.updatedAtProcessed - b.updatedAtProcessed;
 
                 case 'Dificultate':
                     const map = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
@@ -136,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return valA - valB;
 
                 default:
-                    return 0;
+                    return lowerA.localeCompare(lowerB);
             }
         });
 
@@ -154,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bookmarkCard.classList.remove('hidden');
 
             const title = bookmarkCard.querySelector('.content-card-title');
-            if (title) title.textContent = bookmarkedElementData.lesson?.Title || bookmarkedElementData.problem?.Title || 'Untitled';
+            if (title) title.textContent = bookmarkedElementData.TitleProcessed || 'Untitled';
 
             const description = bookmarkCard.querySelector('.content-card-description');
             if (description) description.textContent = bookmarkedElementData.lesson?.Description.String || bookmarkedElementData.short_desc || 'No description available.';

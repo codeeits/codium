@@ -117,6 +117,27 @@
         }
     },
 
+    "bookmarks-page": {
+        "title": "Bookmarks",
+        "desc": "Your saved lessons and problems for quick access.",
+        "no-bookmarks": {
+            "title": "You don't have any bookmarks yet.",
+            "desc": "To get started, explore the available lessons and add them to your bookmarks."
+        },
+        "buttons": {
+            "all": "All",
+            "lessons": "Lessons",
+            "problems": "Problems",
+            "explore-lessons": "Explore lessons"
+        },
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest"
+        }
+    },
+
     "log-out": "log out",
     "top-menu": {
         "teory": "Theory",

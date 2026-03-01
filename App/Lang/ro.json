@@ -117,6 +117,27 @@
         }
     },
 
+    "bookmarks-page": {
+        "title": "Elemente salvate",
+        "desc": "Ce ai salvat tu mai!",
+        "no-bookmarks": {
+            "title": "Nu ai niciun element salvat.",
+            "desc": "Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri."
+        },
+        "buttons": {
+            "all": "Toate",
+            "lessons": "Lecții",
+            "problems": "Probleme",
+            "explore-lessons": "Explorează lecțiile"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi"
+        }
+    },
+
     "log-out": "deconectare",
     "top-menu": {
         "teory": "Teorie",
