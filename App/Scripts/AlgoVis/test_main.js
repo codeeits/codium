@@ -1,3 +1,6 @@
+import ExtraHelpers from "./Helpers.js";
+import PrefabAnimations from "./Animations.js";
+
 let view = new Viewport(1220, 1000, 20, 0);
 let root = new RootContainer(view.width + 40, view.height, view);
 let vector = [];
@@ -26,13 +29,6 @@ for (let i = 0; i < n; i++) {
     root.addChild(container);
     vector.push({container: container, value: rand});
 }
-
-let template = document.createElement("div");
-template.style.backgroundColor = "rgba(255,0,0,0.5)";
-template.style.border = "2px solid red";
-let testConn = Connection.UndetailedConstructor(root.children[0], root.children[1], template, "solid", "arrow");
-
-root.addChild(testConn);
 
 console.log(root);
 
@@ -76,7 +72,7 @@ viewPortElement.addEventListener("pointermove", (e) => {
     e.preventDefault(); // prevents default behaviors while dragging
     const dx = e.clientX - prev.x;
     const dy = e.clientY - prev.y;
-    prev.x = e.clientX;
+    prev.x = e.clientX
     prev.y = e.clientY;
 
     // update your logical view position
@@ -111,40 +107,11 @@ viewPortElement.addEventListener("pointercancel", stopDrag);
 
 let animator = new AnimationHandler()
 
-function swapBoxes (i, j, durationFrames) {
-    let startX1 = vector[i].container.rel_x;
-    let startX2 = vector[j].container.rel_x;
-    animator.ScheduleAnimationAfterPrevious((deltaTime) => {
-        COMMON_ANIMATIONS.LinearInterpolation(startX1, startX2, (v) => {
-            vector[i].container.rel_x = v;
-            scheduleRender();
-        })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
-
-        COMMON_ANIMATIONS.LinearInterpolation(startX2, startX1, (v) => {
-            vector[j].container.rel_x = v;
-            scheduleRender();
-        })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
-
-        return deltaTime >= 1.0;
-    }, durationFrames, () => {
-        console.log("Finished swapping", i, j);
-        let temp = vector[i];
-        vector[i] = vector[j];
-        vector[j] = temp;
-    }); // :D
+function compare(i, j) {
+    return vector[i].value > vector[j].value;
 }
 
-let vector_copies = vector.map(v => ({...v})); // create a shallow copy for reference
-console.log(vector.toString())
-for (let i = 0; i < n  - 1; i++) {
-    for (let j = i + 1; j < n; j++) {
-        if (vector_copies[i].value > vector_copies[j].value) {
-            swapBoxes(i, j, 30);
-            let temp = vector_copies[i];
-            vector_copies[i] = vector_copies[j];
-            vector_copies[j] = temp;
-        }
-    }
-}
+ExtraHelpers.SetAnimator(animator);
+PrefabAnimations.BUBBLE_SORT_ANIMATION(vector, compare, scheduleRender)
 
 animator.Start();

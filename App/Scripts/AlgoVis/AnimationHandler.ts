@@ -69,6 +69,10 @@ class AnimationHandler {
         this.lastFrame += delay + duration;
     }
 
+    ScheduleAnimationWithPrevious(animation: (t: number) => boolean, duration: number, callback: () => boolean): void {
+        this.animations.push([animation, this.lastFrame - duration, duration, callback]);
+    }
+
     Start(): void {
         this.running = true;
         this.timerId = window.setInterval(() => this.Update(), 16);
@@ -105,6 +109,12 @@ const COMMON_ANIMATION_EASING_FUNCTIONS = {
     },
     EaseInOutCubic: (t: number): number => {
         return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    },
+    EaseInCubic: (t: number): number => {
+        return t * t * t;
+    },
+    EaseOutCubic: (t: number): number => {
+        return (--t) * t * t + 1;
     }
 }
 
@@ -155,6 +165,10 @@ const COMMON_ANIMATIONS = {
             return false;
         }
     },
+
+    // A generic linear interpolation function that can be used for any numeric property.
+    // Returns a function that takes in a parameter for time and calls the callback with the interpolated value.
+    // The function returns true when the animation is complete.
     LinearInterpolation: (startValue: number, endValue: number, callback: (value: number) => void) => {
         return (t: number): boolean => {
             const currentValue = startValue + (endValue - startValue) * t;
