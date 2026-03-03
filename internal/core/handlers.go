@@ -1884,25 +1884,25 @@ func (cfg *ApiCfg) UpdateLessonThumbnailHandler(w http.ResponseWriter, r *http.R
 	//Database check is done in the disambiguation function
 	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
-		cfg.logger.Printf("Invalid request body: %v", err)
+		cfg.Logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	thumbnailUUID, err := uuid.Parse(p.ThumbnailID)
 	if err != nil {
-		cfg.logger.Printf("Invalid UUID format for thumbnail_id: %v", err)
+		cfg.Logger.Printf("Invalid UUID format for thumbnail_id: %v", err)
 		http.Error(w, "Invalid thumbnail_id format", http.StatusBadRequest)
 		return
 	}
 
-	res, err := cfg.db.UpdateLessonThumbnail(r.Context(), database.UpdateLessonThumbnailParams{
+	res, err := cfg.Db.UpdateLessonThumbnail(r.Context(), database.UpdateLessonThumbnailParams{
 		ID:          targetLesson.ID,
 		ThumbnailID: uuid.NullUUID{UUID: thumbnailUUID, Valid: true},
 		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to update lesson thumbnail: %v", err)
+		cfg.Logger.Printf("Failed to update lesson thumbnail: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
