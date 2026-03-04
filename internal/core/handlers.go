@@ -1024,6 +1024,114 @@ func (cfg *ApiCfg) DeleteUserHandler(w http.ResponseWriter, r *http.Request, sen
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (cfg *ApiCfg) GetAllUserDataHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
+	type userData struct {
+		User          database.User           `json:"user"`
+		UserProblems  []database.UsersProblem `json:"users_problems"`
+		UserLessons   []database.LessonsUser  `json:"users_lessons"`
+		UserSolutions []database.Solution     `json:"user_solutions"`
+	}
+
+	cfg.Logger.Print("Received get all user data request for user ID: ", targetUser.ID.String())
+
+	// Check if database is connected
+	if !cfg.DatabaseCfg.Loaded {
+		cfg.Logger.Println("Database not connected")
+		http.Error(w, "Database not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userProblems, err := cfg.Db.GetUserProblemsByUserID(r.Context(), database.GetUserProblemsByUserIDParams{
+		UserID: targetUser.ID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve user problems: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userLessons, err := cfg.Db.GetLessonsUsersByUserID(r.Context(), database.GetLessonsUsersByUserIDParams{
+		UserID: targetUser.ID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve user lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userSolutions, err := cfg.Db.GetSolutionsByUserID(r.Context(), database.GetSolutionsByUserIDParams{
+		UserID: targetUser.ID,
+		Limit:  1000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve user solutions: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res := userData{
+		User:          targetUser,
+		UserProblems:  userProblems,
+		UserLessons:   userLessons,
+		UserSolutions: userSolutions,
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, func(data any) (string, error) {
+		userData := data.(userData)
+
+		userJson, err := PrintUserToJson(userData.User)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal user: %v", err)
+		}
+
+		userProblemsJson := "["
+		for _, userProblem := range userData.UserProblems {
+			userProblemJson, err := GenericPrinter(userProblem)
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal user problem: %v", err)
+			}
+			userProblemsJson += userProblemJson + ","
+		}
+		if len(userData.UserProblems) > 0 {
+			userProblemsJson = userProblemsJson[:len(userProblemsJson)-1] // Remove trailing comma
+		}
+		userProblemsJson += "]"
+
+		userLessonsJson := "["
+		for _, userLesson := range userData.UserLessons {
+			userLessonJson, err := GenericPrinter(userLesson)
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal user lesson: %v", err)
+			}
+			userLessonsJson += userLessonJson + ","
+		}
+		if len(userData.UserLessons) > 0 {
+			userLessonsJson = userLessonsJson[:len(userLessonsJson)-1] // Remove trailing comma
+		}
+		userLessonsJson += "]"
+
+		userSolutionsJson := "["
+		for _, userSolution := range userData.UserSolutions {
+			userSolutionJson, err := GenericPrinter(userSolution)
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal user solution: %v", err)
+			}
+			userSolutionsJson += userSolutionJson + ","
+		}
+		if len(userData.UserSolutions) > 0 {
+			userSolutionsJson = userSolutionsJson[:len(userSolutionsJson)-1] // Remove trailing comma
+		}
+		userSolutionsJson += "]"
+
+		return fmt.Sprintf(`{"user":%v,"users_problems":%v,"users_lessons":%v,"user_solutions":%v}`, userJson, userProblemsJson, userLessonsJson, userSolutionsJson), nil
+	})
+}
+
 /*
 ===========================================
 

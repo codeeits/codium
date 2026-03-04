@@ -125,6 +125,7 @@ func main() {
 		mux.Handle("POST /api/refresh", http.HandlerFunc(cfg.RefreshHandler))
 		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
 		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
+		mux.Handle("GET /api/users/gdpr", cfg.AuthenticatedEndpointMiddleware(cfg.GetAllUserDataHandler))
 		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
 
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
