@@ -1,5 +1,7 @@
 import ExtraHelpers from "./Helpers.js";
 import PrefabAnimations from "./Animations.js";
+import { Container, RootContainer, Viewport, Connection } from "./Container.js";
+import { AnimationHandler } from "./AnimationHandler.js";
 
 let view = new Viewport(1220, 1000, 20, 0);
 let root = new RootContainer(view.width + 40, view.height, view);
@@ -107,8 +109,8 @@ viewPortElement.addEventListener("pointercancel", stopDrag);
 
 let animator = new AnimationHandler()
 
-function compare(i, j) {
-    return vector[i].value > vector[j].value;
+function compare(a, b) {
+    return a.value > b.value;
 }
 
 ExtraHelpers.SetAnimator(animator);

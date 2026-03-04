@@ -1,4 +1,4 @@
-class AnimationHandler {
+export class AnimationHandler {
     private animations: Array<[(t: number) => boolean, start_frame: number, duration: number, callback: (() => boolean)]>;
     //Capping the animation at 60 FPS
     private timerId: number | null = null;
@@ -100,7 +100,7 @@ class AnimationHandler {
     }
 }
 
-const COMMON_ANIMATION_EASING_FUNCTIONS = {
+export const COMMON_ANIMATION_EASING_FUNCTIONS = {
     Linear: (t: number): number => {
         return t;
     },
@@ -118,7 +118,7 @@ const COMMON_ANIMATION_EASING_FUNCTIONS = {
     }
 }
 
-const COMMON_ANIMATIONS = {
+export const COMMON_ANIMATIONS = {
     FadeIn: (element: HTMLElement, easingFunction: (t: number) => number) => {
         return (t: number): boolean => {
             const easedT = easingFunction(t);

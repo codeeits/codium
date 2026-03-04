@@ -1,27 +1,23 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var Helpers_1 = require("./Helpers");
-var PrefabAnimations = /** @class */ (function () {
-    function PrefabAnimations() {
-    }
-    PrefabAnimations.BUBBLE_SORT_ANIMATION = function (array, compFunction, renderer) {
-        var n = array.length;
-        var j = 0;
-        var done = false;
-        var i = 0;
-        var colors = array.map(function (container) { return container.element.style.backgroundColor; });
+import ExtraHelpers from "./Helpers.js";
+export default class PrefabAnimations {
+    static BUBBLE_SORT_ANIMATION(array, compFunction, renderer) {
+        let n = array.length;
+        let j = 0;
+        let done = false;
+        let i = 0;
+        let colors = array.map(item => item.container.template.style.backgroundColor);
         while (!done) {
             done = true;
             for (i = 0; i < n - j - 1; i++) {
-                Helpers_1.default.ColorContainers([array[i], array[i + 1]], "red", function () {
-                    Helpers_1.default.HighlightContainers([array[i], array[i + 1]], "yellow", function () {
-                        Helpers_1.default.ColorContainers([array[i], array[i + 1]], colors[0], function () {
+                ExtraHelpers.ColorContainers([array[i].container, array[i + 1].container], "red", () => {
+                    ExtraHelpers.HighlightContainers([array[i].container, array[i + 1].container], "yellow", () => {
+                        ExtraHelpers.ColorContainers([array[i].container, array[i + 1].container], colors[0], () => {
                         }, 10, renderer);
                     }, 20, renderer);
                 }, 10, renderer);
                 if (compFunction(array[i], array[i + 1])) {
-                    Helpers_1.default.SwapContainers(array[i], array[i + 1], function () {
-                        var temp = array[i];
+                    ExtraHelpers.SwapContainers(array[i].container, array[i + 1].container, () => {
+                        let temp = array[i];
                         array[i] = array[i + 1];
                         array[i + 1] = temp;
                         renderer();
@@ -30,7 +26,5 @@ var PrefabAnimations = /** @class */ (function () {
                 }
             }
         }
-    };
-    return PrefabAnimations;
-}());
-exports.default = PrefabAnimations;
+    }
+}

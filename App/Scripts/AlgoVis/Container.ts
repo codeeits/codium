@@ -1,6 +1,6 @@
 // A container class for managing layout and rendering of HTML elements in a hierarchical structure.
 // This common container can be used for most visual elements in the AlgoVis library.
-class Container {
+export class Container {
      width: number;
      height: number;
      rel_x: number;
@@ -170,7 +170,7 @@ class Container {
  * The RootContainer is a special container that serves as the top-level container for the entire layout.
  * It contains a Viewport which is responsible for rendering the visible portion of the layout.
  */
-class RootContainer extends Container {
+export class RootContainer extends Container {
     viewport : Viewport;
 
     /**
@@ -209,7 +209,7 @@ class RootContainer extends Container {
  * The Viewport is a special container that defines the visible area of the layout.
  * It is responsible for rendering only the containers that intersect with its area.
  */
-class Viewport extends Container {
+export class Viewport extends Container {
     children: null;
 
     /**
@@ -302,7 +302,7 @@ class Viewport extends Container {
     }
 }
 
-class Connection extends Container {
+export class Connection extends Container {
     from: Container
     to: Container
     direction: {x: number, y: number}

@@ -1,8 +1,10 @@
-import "./Container.js"
-import "./AnimationHandler.js"
+import { Container } from "./Container.js"
+import { AnimationHandler, COMMON_ANIMATIONS, COMMON_ANIMATION_EASING_FUNCTIONS } from "./AnimationHandler.js"
 
 export default class ExtraHelpers {
     static animator: AnimationHandler | null = null;
+    static COMMON_ANIMATIONS = COMMON_ANIMATIONS;
+    static COMMON_ANIMATION_EASING_FUNCTIONS = COMMON_ANIMATION_EASING_FUNCTIONS;
 
     static SetAnimator(animationHandler: AnimationHandler): void {
         ExtraHelpers.animator = animationHandler;

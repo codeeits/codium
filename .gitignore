@@ -3,3 +3,6 @@ app/[Ii]mages/
 app/Lessons/
 .env
 /certs/
+App/.DS_Store
+internal/.DS_Store
+.gitignore
