@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"Codium/internal/auth"
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -25,6 +26,30 @@ import (
 
 ===========================================
 */
+
+type ApiCfg struct {
+	Logger       log.Logger
+	Db           *database.Queries
+	Secret       string
+	Running      bool
+	WebsiteUrl   string
+	WebsiteState string
+	AdminCfg     struct {
+		Username string
+		Password string
+		Token    string
+	}
+	SmtpCfg struct {
+		Url      string
+		Port     int
+		User     string
+		Password string
+	}
+	DatabaseCfg struct {
+		Url    string
+		Loaded bool
+	}
+}
 
 type FlagTranslation struct {
 	Class   int `json:"class"`
@@ -55,6 +80,8 @@ type ProblemWithTags struct {
 type FlagMasks uint32
 type LessonTagsMask uint32
 
+type UserPermissions int16
+
 const (
 	// ModuleMask Lesson flags are stored as 0xMMNNSSCC where:
 	//MM = Module
@@ -80,9 +107,30 @@ const (
 
 	// ProblemSectionMask is used to categorize problems by their specific section within a module (e.g. arrays, linked lists, sorting algorithms, etc.)
 	ProblemSectionMask LessonTagsMask = 0x000000FF
+
+	// PermissionAdmin represents administrative privileges
+	PermissionAdmin UserPermissions = 1 << 0
+
+	// PermissionCanSuggestLessons represents the ability to suggest new lessons
+	PermissionCanSuggestLessons UserPermissions = 1 << 1
+
+	// PermissionCanManageUsers represents the ability to manage user accounts
+	PermissionCanManageUsers UserPermissions = 1 << 2
+
+	// PermissionCanManageProblems represents the ability to manage problems
+	PermissionCanManageProblems UserPermissions = 1 << 3
+
+	// PermissionCanManageLessons represents the ability to manage lessons
+	PermissionCanManageLessons UserPermissions = 1 << 4
+
+	// PermissionCanViewOtherSolutions represents the ability to view other users' solutions
+	PermissionCanViewOtherSolutions UserPermissions = 1 << 5
+
+	// PermissionCanSuggestProblems represents the ability to suggest new problems
+	PermissionCanSuggestProblems UserPermissions = 1 << 6
 )
 
-/*
+/*uint32
 ===========================================
 
 	Core functions
@@ -93,24 +141,24 @@ const (
 // ResetAll Reset the database and uploaded files
 func (cfg *ApiCfg) ResetAll() error {
 
-	cfg.logger.Println("Resetting the database...")
+	cfg.Logger.Println("Resetting the database...")
 
 	/*
 		The old approach of deleting users is deprecated
-		err := cfg.db.DeleteUsers(context.Background())
+		err := cfg.Db.DeleteUsers(context.Background())
 		if err != nil {
-			cfg.logger.Printf("Failed to delete users: %v", err)
+			cfg.Logger.Printf("Failed to delete users: %v", err)
 			return err
 		}
 	*/
 
 	// Retrieve all users
-	users, err := cfg.db.GetUsers(context.Background(), database.GetUsersParams{
+	users, err := cfg.Db.GetUsers(context.Background(), database.GetUsersParams{
 		Limit:  1000,
 		Offset: 0,
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to retrieve users: %v", err)
+		cfg.Logger.Printf("Failed to retrieve users: %v", err)
 		return err
 	}
 	// Delete each user individually, deleting their associated data
@@ -118,58 +166,82 @@ func (cfg *ApiCfg) ResetAll() error {
 		err = cfg.DeleteUser(user.ID)
 	}
 
-	cfg.logger.Println("All users deleted.")
+	cfg.Logger.Println("All users deleted.")
+	// Reset all problemTests
+	tests, err := cfg.Db.ListAllCodeTests(context.Background(), database.ListAllCodeTestsParams{
+		Limit:  10000,
+		Offset: 0,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve problem tests: %v", err)
+		return err
+	}
+	for _, test := range tests {
+		err = cfg.Db.DeleteCodeTestByID(context.Background(), test.ID)
+		if err != nil {
+			cfg.Logger.Printf("Failed to delete problem test %v: %v", test.ID, err)
+			return err
+		}
+	}
+
 	// Reset the uploaded images
 	_, err = os.Stat("App/Images/uploads")
 	if !os.IsNotExist(err) {
 		err = os.RemoveAll("App/Images/uploads")
 		if err != nil {
-			cfg.logger.Printf("Failed to delete uploaded images: %v", err)
+			cfg.Logger.Printf("Failed to delete uploaded images: %v", err)
 			return err
 		}
-		cfg.logger.Println("All uploaded images deleted.")
+		cfg.Logger.Println("All uploaded images deleted.")
 	}
 
 	err = os.MkdirAll("App/Images/uploads", os.ModePerm)
 	if err != nil {
-		cfg.logger.Printf("Failed to recreate uploads directory: %v", err)
+		cfg.Logger.Printf("Failed to recreate uploads directory: %v", err)
 		return err
 	}
-	cfg.logger.Println("Uploads directory recreated.")
+	cfg.Logger.Println("Uploads directory recreated.")
 
 	// Add default admin user
-	hashedPassword, err := auth.HashPassword(cfg.adminDefaultPassword)
+	hashedPassword, err := auth.HashPassword(cfg.AdminCfg.Password)
 	if err != nil {
-		cfg.logger.Printf("Failed to hash default admin password: %v", err)
+		cfg.Logger.Printf("Failed to hash default admin password: %v", err)
 		return err
 	}
 
-	defaultAdmin, err := cfg.db.CreateUser(context.Background(), database.CreateUserParams{
+	defaultAdmin, err := cfg.Db.CreateUser(context.Background(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Email:        "codiumOfficial@lekas.tech",
 		PasswordHash: hashedPassword,
-		Username:     "codiumOfficial",
+		Username:     cfg.AdminCfg.Username,
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		IsAdmin:      true,
+		CuredEmail:   sql.NullString{String: "codiumOfficial@lekastech", Valid: true},
+		Permissions:  int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
+		Title:        "admin",
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to create default admin user: %v", err)
+		cfg.Logger.Printf("Failed to create default admin user: %v", err)
 		return err
 	}
 
-	cfg.logger.Print("[!!!] Default admin user created successfully.")
+	cfg.AdminCfg.Token, err = auth.MakeJWT(defaultAdmin.ID, cfg.Secret, time.Hour*24*30)
+	if err != nil {
+		cfg.Logger.Printf("Failed to create default admin JWT token: %v", err)
+	}
+
+	cfg.Logger.Print("[!!!] Default admin user created successfully.")
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		cfg.logger.Printf("Failed to get current working directory: %v", err)
+		cfg.Logger.Printf("Failed to get current working directory: %v", err)
 		return err
 	}
-	//add markdown test lesson
+	//add Markdown test lesson
 	testLessonContentPath := cwd + "/markdown_test_all_elements.md"
 	fileContent, err := os.ReadFile(testLessonContentPath)
 	if err != nil {
-		cfg.logger.Printf("Failed to read test lesson content: %v", err)
+		cfg.Logger.Printf("Failed to read test lesson content: %v", err)
 		return err
 	}
 
@@ -178,11 +250,11 @@ func (cfg *ApiCfg) ResetAll() error {
 
 	err = os.WriteFile(lessonFilePath, fileContent, 0644)
 	if err != nil {
-		cfg.logger.Printf("Failed to write test lesson file: %v", err)
+		cfg.Logger.Printf("Failed to write test lesson file: %v", err)
 		return err
 	}
 
-	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
+	_, err = cfg.Db.CreateFile(context.Background(), database.CreateFileParams{
 		ID:       lessonFileID,
 		UserID:   defaultAdmin.ID,
 		Filename: lessonFileID.String() + ".md",
@@ -194,12 +266,12 @@ func (cfg *ApiCfg) ResetAll() error {
 		},
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to record test lesson file in database: %v", err)
+		cfg.Logger.Printf("Failed to record test lesson file in database: %v", err)
 		return err
 	}
 
 	flags, _ := BuildLessonFlags(67, 0, 0, 0) // No specific flags for the test lesson
-	_, err = cfg.db.AddLesson(context.Background(), database.AddLessonParams{
+	_, err = cfg.Db.AddLesson(context.Background(), database.AddLessonParams{
 		ID:        uuid.New(),
 		Title:     "Markdown Test - All Elements",
 		ContentID: lessonFileID,
@@ -208,25 +280,25 @@ func (cfg *ApiCfg) ResetAll() error {
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
-		cfg.logger.Printf("Failed to create test lesson in database: %v", err)
+		cfg.Logger.Printf("Failed to create test lesson in database: %v", err)
 		return err
 	}
 
-	cfg.logger.Println("[!!!] Test lesson created successfully.")
+	cfg.Logger.Println("[!!!] Test lesson created successfully.")
 
-	cfg.logger.Println("[!!!] Database reset completed successfully.")
+	cfg.Logger.Println("[!!!] Database reset completed successfully.")
 	return nil
 }
 
 func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
-	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+	res, err := cfg.Db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
 		LessonID: lessonID,
 		UserID:   userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add favorite
-			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+			// Interaction not initialized yet, add favorite
+			res, err = cfg.Db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:  lessonID,
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -242,7 +314,7 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 
 	// Interaction exists, toggle favorite
 	newFavoriteStatus := !res.Favorited
-	res, err = cfg.db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
+	res, err = cfg.Db.UpdateLessonsUsersFavorited(context.Background(), database.UpdateLessonsUsersFavoritedParams{
 		Favorited: newFavoriteStatus,
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:  lessonID,
@@ -256,14 +328,14 @@ func (cfg *ApiCfg) ToggleLessonUserFavorite(lessonID uuid.UUID, userID uuid.UUID
 }
 
 func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
-	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+	res, err := cfg.Db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
 		LessonID: lessonID,
 		UserID:   userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add bookmark
-			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+			// Interaction not initialized yet, add bookmark
+			res, err = cfg.Db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:   lessonID,
 				UserID:     userID,
 				CreatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
@@ -279,7 +351,7 @@ func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID
 
 	// Interaction exists, toggle bookmark
 	newBookmarkStatus := !res.Bookmarked
-	res, err = cfg.db.UpdateLessonsUsersBookmarked(context.Background(), database.UpdateLessonsUsersBookmarkedParams{
+	res, err = cfg.Db.UpdateLessonsUsersBookmarked(context.Background(), database.UpdateLessonsUsersBookmarkedParams{
 		Bookmarked: newBookmarkStatus,
 		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:   lessonID,
@@ -293,14 +365,14 @@ func (cfg *ApiCfg) ToggleLessonUserBookmark(lessonID uuid.UUID, userID uuid.UUID
 }
 
 func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
-	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+	res, err := cfg.Db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
 		LessonID: lessonID,
 		UserID:   userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
-			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+			// Interaction not initialized yet, create it
+			res, err = cfg.Db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:  lessonID,
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -315,7 +387,7 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 		return res, nil
 	}
 	// Interaction exists, update startedAt
-	res, err = cfg.db.UpdateLessonsUsersStart(context.Background(), database.UpdateLessonsUsersStartParams{
+	res, err = cfg.Db.UpdateLessonsUsersStart(context.Background(), database.UpdateLessonsUsersStartParams{
 		StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:  lessonID,
@@ -329,14 +401,14 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 }
 
 func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID) (database.LessonsUser, error) {
-	res, err := cfg.db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
+	res, err := cfg.Db.GetLessonsUsersByLessonIDAndUserID(context.Background(), database.GetLessonsUsersByLessonIDAndUserIDParams{
 		LessonID: lessonID,
 		UserID:   userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
-			res, err = cfg.db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
+			// Interaction not initialized yet, create it
+			res, err = cfg.Db.CreateLessonsUsers(context.Background(), database.CreateLessonsUsersParams{
 				LessonID:    lessonID,
 				UserID:      userID,
 				CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
@@ -351,7 +423,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		return res, nil
 	}
 	// Interaction exists, update completedAt
-	res, err = cfg.db.UpdateLessonsUsersComplete(context.Background(), database.UpdateLessonsUsersCompleteParams{
+	res, err = cfg.Db.UpdateLessonsUsersComplete(context.Background(), database.UpdateLessonsUsersCompleteParams{
 		CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 		LessonID:    lessonID,
@@ -365,14 +437,14 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 }
 
 func (cfg *ApiCfg) ToggleProblemUserLiked(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
-	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+	res, err := cfg.Db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
 		ProblemID: problemID,
 		UserID:    userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add like
-			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+			// Interaction not initialized yet, add like
+			res, err = cfg.Db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID: problemID,
 				UserID:    userID,
 				CreatedAt: time.Now(),
@@ -390,7 +462,7 @@ func (cfg *ApiCfg) ToggleProblemUserLiked(problemID uuid.UUID, userID uuid.UUID)
 
 	// Interaction exists, toggle like
 	newLikeStatus := !res.Liked.Bool
-	res, err = cfg.db.UpdateUserProblemLike(context.Background(), database.UpdateUserProblemLikeParams{
+	res, err = cfg.Db.UpdateUserProblemLike(context.Background(), database.UpdateUserProblemLikeParams{
 		Liked:     sql.NullBool{Bool: newLikeStatus, Valid: true},
 		UpdatedAt: time.Now(),
 		ProblemID: problemID,
@@ -403,14 +475,14 @@ func (cfg *ApiCfg) ToggleProblemUserLiked(problemID uuid.UUID, userID uuid.UUID)
 }
 
 func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
-	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+	res, err := cfg.Db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
 		ProblemID: problemID,
 		UserID:    userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, add bookmark
-			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+			// Interaction not initialized yet, add bookmark
+			res, err = cfg.Db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID:  problemID,
 				UserID:     userID,
 				CreatedAt:  time.Now(),
@@ -426,7 +498,7 @@ func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.
 	}
 	// Interaction exists, toggle bookmark
 	newBookmarkStatus := !res.Bookmarked.Bool
-	res, err = cfg.db.UpdateUserProblemBookmark(context.Background(), database.UpdateUserProblemBookmarkParams{
+	res, err = cfg.Db.UpdateUserProblemBookmark(context.Background(), database.UpdateUserProblemBookmarkParams{
 		Bookmarked: sql.NullBool{Bool: newBookmarkStatus, Valid: true},
 		UpdatedAt:  time.Now(),
 		ProblemID:  problemID,
@@ -439,14 +511,14 @@ func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.
 }
 
 func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) (database.UsersProblem, error) {
-	res, err := cfg.db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
+	res, err := cfg.Db.GetUserProblemByUserIDAndProblemID(context.Background(), database.GetUserProblemByUserIDAndProblemIDParams{
 		ProblemID: problemID,
 		UserID:    userID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Interaction not initialised yet, create it
-			res, err = cfg.db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+			// Interaction not initialized yet, create it
+			res, err = cfg.Db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
 				ProblemID: problemID,
 				UserID:    userID,
 				CreatedAt: time.Now(),
@@ -466,7 +538,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 		return res, nil // Already marked as solved
 	}
 
-	res, err = cfg.db.UpdateUserProblemSolvedAt(context.Background(), database.UpdateUserProblemSolvedAtParams{
+	res, err = cfg.Db.UpdateUserProblemSolvedAt(context.Background(), database.UpdateUserProblemSolvedAtParams{
 		SolvedAt:  sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt: time.Now(),
 		ProblemID: problemID,
@@ -511,7 +583,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		defer func(dst *os.File) {
 			err := dst.Close()
 			if err != nil {
-				cfg.logger.Printf("Error closing the file: %v", err)
+				cfg.Logger.Printf("Error closing the file: %v", err)
 			}
 		}(dst)
 
@@ -520,13 +592,13 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		if err != nil {
 			return "", "", fmt.Errorf("failed to save file: %v", err)
 		}
-		cfg.logger.Printf("Image uploaded successfully: %s", filePath)
+		cfg.Logger.Printf("Image uploaded successfully: %s", filePath)
 		// Return the file path or URL
 		filePath = strings.TrimPrefix(filePath, cwd+"/")
-		cfg.logger.Printf("Image accessible at path: %s", filePath)
+		cfg.Logger.Printf("Image accessible at path: %s", filePath)
 
 	case "lessons":
-		// Check if file is markdown
+		// Check if file is Markdown
 		if strings.HasPrefix(fileType, "text/") == false {
 			return "", "", fmt.Errorf("invalid file type for lessons: %v", fileType)
 		}
@@ -534,7 +606,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
-		if !user.IsAdmin {
+		if !UserHasPermission(user, PermissionCanManageLessons) {
 			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
@@ -554,7 +626,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		defer func(dst *os.File) {
 			err := dst.Close()
 			if err != nil {
-				cfg.logger.Printf("Error closing the file: %v", err)
+				cfg.Logger.Printf("Error closing the file: %v", err)
 			}
 		}(dst)
 		//copy the uploaded file to the destination file
@@ -562,16 +634,16 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 		if err != nil {
 			return "", "", fmt.Errorf("failed to save file: %v", err)
 		}
-		cfg.logger.Printf("Lesson uploaded successfully: %s", filePath)
+		cfg.Logger.Printf("Lesson uploaded successfully: %s", filePath)
 		// Return the file path or URL
 		filePath = strings.TrimPrefix(filePath, cwd+"/")
-		cfg.logger.Printf("Lesson accessible at path: %s", filePath)
+		cfg.Logger.Printf("Lesson accessible at path: %s", filePath)
 
 	default:
 		return "", "", fmt.Errorf("invalid location: %v", location)
 	}
 
-	_, err = cfg.db.CreateFile(context.Background(), database.CreateFileParams{
+	_, err = cfg.Db.CreateFile(context.Background(), database.CreateFileParams{
 		ID:       fileId,
 		UserID:   user.ID,
 		Filename: fileId.String() + "." + fileExtensions,
@@ -592,35 +664,35 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 
 // DeleteUser Delete a user and all their associated files
 func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
-	uploadedFiles, err := cfg.db.GetFilesByUserID(context.Background(), database.GetFilesByUserIDParams{
+	uploadedFiles, err := cfg.Db.GetFilesByUserID(context.Background(), database.GetFilesByUserIDParams{
 		UserID: userID,
 		Limit:  2000,
 		Offset: 0,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.logger.Printf("No files found for user: %v", userID)
+			cfg.Logger.Printf("No files found for user: %v", userID)
 		}
 		return fmt.Errorf("failed to retrieve user files: %v", err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		cfg.logger.Printf("Failed to get current working directory: %v", err)
+		cfg.Logger.Printf("Failed to get current working directory: %v", err)
 		return fmt.Errorf("failed to get current working directory: %v", err)
 	}
 
 	// Delete files from filesystem
 	for _, file := range uploadedFiles {
-		cfg.logger.Printf("Deleting file: %v/%v", cwd, file.Filepath)
+		cfg.Logger.Printf("Deleting file: %v/%v", cwd, file.Filepath)
 		err = os.Remove(cwd + "/" + file.Filepath)
 		if err != nil {
-			cfg.logger.Printf("Failed to delete file from filesystem: %v", err)
+			cfg.Logger.Printf("Failed to delete file from filesystem: %v", err)
 			return fmt.Errorf("failed to delete file from filesystem: %v", err)
 		}
 	}
 
-	err = cfg.db.DeleteUserById(context.Background(), userID)
+	err = cfg.Db.DeleteUserById(context.Background(), userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %v", err)
 	}
@@ -628,7 +700,7 @@ func (cfg *ApiCfg) DeleteUser(userID uuid.UUID) error {
 }
 
 func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
-	lesson, err := cfg.db.GetLessonByID(context.Background(), lessonID)
+	lesson, err := cfg.Db.GetLessonByID(context.Background(), lessonID)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve lesson: %v", err)
 	}
@@ -636,7 +708,7 @@ func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete lesson content file: %v", err)
 	}
-	err = cfg.db.DeleteLessonByID(context.Background(), lessonID)
+	err = cfg.Db.DeleteLessonByID(context.Background(), lessonID)
 	if err != nil {
 		return fmt.Errorf("failed to delete lesson: %v", err)
 	}
@@ -645,7 +717,7 @@ func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
 
 // ListUsers List all users without password hashes
 func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
-	users, err := cfg.db.GetUsers(context.Background(), database.GetUsersParams{
+	users, err := cfg.Db.GetUsers(context.Background(), database.GetUsersParams{
 		Limit:  100,
 		Offset: 0,
 	})
@@ -660,7 +732,7 @@ func (cfg *ApiCfg) ListUsers() ([]database.User, error) {
 
 // ListLessons List all lessons
 func (cfg *ApiCfg) ListLessons() ([]database.Lesson, error) {
-	lessons, err := cfg.db.GetLessons(context.Background(), database.GetLessonsParams{
+	lessons, err := cfg.Db.GetLessons(context.Background(), database.GetLessonsParams{
 		Limit:  100,
 		Offset: 0,
 	})
@@ -677,7 +749,7 @@ func (cfg *ApiCfg) ListLessons() ([]database.Lesson, error) {
 
 // ListFiles List all files
 func (cfg *ApiCfg) ListFiles() ([]database.File, error) {
-	files, err := cfg.db.GetFiles(context.Background(), database.GetFilesParams{
+	files, err := cfg.Db.GetFiles(context.Background(), database.GetFilesParams{
 		Limit:  100,
 		Offset: 0,
 	})
@@ -717,7 +789,7 @@ func ParseProblemTags(tags int32) TagTranslation {
 }
 
 func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
-	file, err := cfg.db.GetFileByID(context.Background(), fileID)
+	file, err := cfg.Db.GetFileByID(context.Background(), fileID)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve file: %v", err)
 	}
@@ -734,7 +806,7 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 	}
 
 	// Delete file record from database
-	err = cfg.db.DeleteFileByID(context.Background(), fileID)
+	err = cfg.Db.DeleteFileByID(context.Background(), fileID)
 	if err != nil {
 		return fmt.Errorf("failed to delete file record from database: %v", err)
 	}
@@ -745,18 +817,18 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		cfg.logger.Printf("Unauthorized access attempt: %v", err)
+		cfg.Logger.Printf("Unauthorized access attempt: %v", err)
 		return database.User{}, err
 	}
 
-	targetId, err := auth.ValidateJWT(token, cfg.secret)
+	targetId, err := auth.ValidateJWT(token, cfg.Secret)
 	if err != nil {
-		cfg.logger.Printf("Invalid token: %v", err)
+		cfg.Logger.Printf("Invalid token: %v", err)
 		return database.User{}, err
 	}
-	targetUser, err := cfg.db.GetUserByID(r.Context(), targetId)
+	targetUser, err := cfg.Db.GetUserByID(r.Context(), targetId)
 	if err != nil {
-		cfg.logger.Printf("Failed to retrieve user: %v", err)
+		cfg.Logger.Printf("Failed to retrieve user: %v", err)
 		return database.User{}, err
 	}
 
@@ -782,13 +854,13 @@ func (cfg *ApiCfg) WriteSingleJsonOutput(w http.ResponseWriter, statusCode int, 
 	w.WriteHeader(statusCode)
 	jsonData, err := printer(data)
 	if err != nil {
-		cfg.logger.Printf("Failed to marshal problem test: %v", err)
+		cfg.Logger.Printf("Failed to marshal problem test: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 	_, err = w.Write([]byte(jsonData))
 	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
+		cfg.Logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
@@ -801,7 +873,7 @@ func (cfg *ApiCfg) WriteListJsonOutput(w http.ResponseWriter, statusCode int, da
 
 	_, err := w.Write([]byte("["))
 	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
+		cfg.Logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
@@ -809,27 +881,27 @@ func (cfg *ApiCfg) WriteListJsonOutput(w http.ResponseWriter, statusCode int, da
 		if i > 0 {
 			_, err = w.Write([]byte(","))
 			if err != nil {
-				cfg.logger.Printf("Failed to write response: %v", err)
+				cfg.Logger.Printf("Failed to write response: %v", err)
 				http.Error(w, "Failed to write response", http.StatusInternalServerError)
 				return
 			}
 		}
 		dataJson, err := printer(obj)
 		if err != nil {
-			cfg.logger.Printf("Failed to marshal obj: %v", err)
+			cfg.Logger.Printf("Failed to marshal obj: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 		_, err = w.Write([]byte(dataJson))
 		if err != nil {
-			cfg.logger.Printf("Failed to write response: %v", err)
+			cfg.Logger.Printf("Failed to write response: %v", err)
 			http.Error(w, "Failed to write response", http.StatusInternalServerError)
 			return
 		}
 	}
 	_, err = w.Write([]byte("]"))
 	if err != nil {
-		cfg.logger.Printf("Failed to write response: %v", err)
+		cfg.Logger.Printf("Failed to write response: %v", err)
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
@@ -964,4 +1036,35 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 	}
 
 	return tags, mask
+}
+
+func BuildUserPermissions(canManageUsers bool, canManageProblems bool, canManageLessons bool, canViewOtherSolutions bool, canSuggestProblems bool, isAdmin bool, canSuggestLessons bool) UserPermissions {
+	var permissions UserPermissions = 0
+	if canManageUsers {
+		permissions |= PermissionCanManageUsers
+	}
+	if canManageProblems {
+		permissions |= PermissionCanManageProblems
+	}
+	if canManageLessons {
+		permissions |= PermissionCanManageLessons
+	}
+	if canViewOtherSolutions {
+		permissions |= PermissionCanViewOtherSolutions
+	}
+	if canSuggestProblems {
+		permissions |= PermissionCanSuggestProblems
+	}
+	if isAdmin {
+		permissions |= PermissionAdmin
+	}
+	if canSuggestLessons {
+		permissions |= PermissionCanSuggestLessons
+	}
+
+	return permissions
+}
+
+func UserHasPermission(user database.User, permission UserPermissions) bool {
+	return (UserPermissions(user.Permissions) & permission) == permission
 }

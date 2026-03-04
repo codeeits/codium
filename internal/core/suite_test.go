@@ -1,4 +1,4 @@
-package main
+package core
 
 //This file is going to contain tests for the entire application stack, divided into sections for each major component.
 
@@ -19,6 +19,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 /*
@@ -37,6 +38,7 @@ type RequestBuilder struct {
 	wantedStatus     int
 	targetStructType interface{}
 	token            string
+	contentType      string
 }
 
 // Build builds and executes the HTTP request, returning the response decoded into the target struct type.
@@ -46,6 +48,7 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 	if err != nil {
 		return u.targetStructType, err
 	}
+	req.Header.Set("Content-Type", u.contentType)
 	if u.token != "" {
 		req.Header.Set("Authorization", "Bearer "+u.token)
 	}
@@ -112,6 +115,32 @@ func (u *RequestBuilder) WithAuthToken(token string) *RequestBuilder {
 	return u
 }
 
+func (u *RequestBuilder) WithContentType(contentType string) *RequestBuilder {
+	u.contentType = contentType
+	return u
+}
+
+// WithGeneratedFile adds a generated file to the request body as multipart/form-data.
+func (u *RequestBuilder) WithGeneratedFile(fileData []byte, fieldName, fileName string) *RequestBuilder {
+	var requestFileData bytes.Buffer
+	writer := multipart.NewWriter(&requestFileData)
+	part, err := writer.CreateFormFile(fieldName, fileName)
+	if err != nil {
+		return u
+	}
+	_, err = part.Write(fileData)
+	if err != nil {
+		return u
+	}
+	err = writer.Close()
+	if err != nil {
+		return u
+	}
+	u.bytesBody = requestFileData.Bytes()
+	u.contentType = writer.FormDataContentType()
+	return u
+}
+
 // For the sake of testing we'll assume we're using localhost:6767 as base URL
 func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, _ T) *RequestBuilder {
 	return &RequestBuilder{
@@ -120,6 +149,7 @@ func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, 
 		method:           method,
 		bytesBody:        jsonBody,
 		wantedStatus:     wantedStatus,
+		contentType:      "application/json",
 		targetStructType: new(T),
 	}
 }
@@ -150,57 +180,57 @@ func TestSuiteStart(t *testing.T) {
 func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	t.Run(".envTests", func(t *testing.T) {
 		// Call .env-related test functions here
-		err := godotenv.Load()
+		err := godotenv.Load("../../.env")
 		if err != nil {
 			t.Fatal("Error loading .env file")
-		} else {
-			cfg.dbUrl = os.Getenv("DB_URL")
-			cfg.secret = os.Getenv("SECRET")
-			cfg.adminDefaultPassword = os.Getenv("ADMIN_DEFAULT_PASSWORD")
-			cfg.smtpUrl = os.Getenv("SMTP_URL")
-			cfg.smtpPort = 587 // Default SMTP port
-			cfg.smtpUser = os.Getenv("SMTP_USER")
-			cfg.smtpPassword = os.Getenv("SMTP_PASSWORD")
-			cfg.websiteUrl = os.Getenv("WEBSITE_URL")
-			cfg.websiteState = os.Getenv("WEBSITE_STATE")
+		}
 
-			if cfg.websiteState == "" {
-				//website state is MANDATORY; it determines whether the website resets at the end of testing suite
-				t.Fatal("No website state provided")
-			}
-			if cfg.secret == "" {
-				t.Log("No secret provided")
-				t.Fail()
-			}
-			if cfg.dbUrl == "" {
-				t.Log("No db url provided")
-				t.Fail()
-			}
-			if cfg.adminDefaultPassword == "" {
-				t.Log("No admin default password provided")
-				t.Fail()
-			}
-			if cfg.smtpUrl == "" {
-				t.Log("No SMTP url provided")
-				t.Fail()
-			}
-			if cfg.smtpUser == "" {
-				t.Log("No SMTP user provided")
-				t.Fail()
-			}
-			if cfg.smtpPassword == "" {
-				t.Log("No SMTP password provided")
-				t.Fail()
-			}
-			if cfg.websiteUrl == "" {
-				t.Log("No website url provided")
-				t.Fail()
-			}
+		cfg.DatabaseCfg.Url = os.Getenv("DB_URL")
+		cfg.Secret = os.Getenv("SECRET")
+		cfg.AdminCfg.Password = os.Getenv("ADMIN_DEFAULT_PASSWORD")
+		cfg.SmtpCfg.Url = os.Getenv("SMTP_URL")
+		cfg.SmtpCfg.Port = 587 // Default SMTP port
+		cfg.SmtpCfg.User = os.Getenv("SMTP_USER")
+		cfg.SmtpCfg.Password = os.Getenv("SMTP_PASSWORD")
+		cfg.WebsiteUrl = os.Getenv("WEBSITE_URL")
+		cfg.WebsiteState = os.Getenv("WEBSITE_STATE")
+
+		if cfg.WebsiteState == "" {
+			//website state is MANDATORY; it determines whether the website resets at the end of testing suite
+			t.Fatal("No website state provided")
+		}
+		if cfg.Secret == "" {
+			t.Log("No secret provided")
+			t.Fail()
+		}
+		if cfg.DatabaseCfg.Url == "" {
+			t.Log("No db url provided")
+			t.Fail()
+		}
+		if cfg.AdminCfg.Password == "" {
+			t.Log("No admin default password provided")
+			t.Fail()
+		}
+		if cfg.SmtpCfg.Url == "" {
+			t.Log("No SMTP url provided")
+			t.Fail()
+		}
+		if cfg.SmtpCfg.User == "" {
+			t.Log("No SMTP user provided")
+			t.Fail()
+		}
+		if cfg.SmtpCfg.Password == "" {
+			t.Log("No SMTP password provided")
+			t.Fail()
+		}
+		if cfg.WebsiteUrl == "" {
+			t.Log("No website url provided")
+			t.Fail()
 		}
 	})
 
 	t.Run("DatabaseTests", func(t *testing.T) {
-		db, err := sql.Open("postgres", cfg.dbUrl)
+		db, err := sql.Open("postgres", cfg.DatabaseCfg.Url)
 		if err != nil {
 			t.Fatal("Error connecting to the database: ", err)
 		}
@@ -210,8 +240,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			t.Fatal("Error pinging database: ", err)
 		}
 
-		cfg.db = database.New(db)
-		cfg.dbLoaded = true
+		cfg.Db = database.New(db)
+		cfg.DatabaseCfg.Loaded = true
 		t.Log("Successfully connected to the database!")
 	})
 
@@ -220,7 +250,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	var adminID uuid.UUID
 	t.Run("ApiTests", func(t *testing.T) {
 		// Call API-related test functions here
-		if !cfg.dbLoaded {
+		if !cfg.DatabaseCfg.Loaded {
 			return
 		}
 
@@ -263,7 +293,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			===========================================
 		*/
 		t.Run("TestGetDefaultAdminUser", func(t *testing.T) {
-			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.adminDefaultPassword + `"}`)
+			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.AdminCfg.Password + `"}`)
 
 			type params struct {
 				User         database.User `json:"user"`
@@ -277,8 +307,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			var translated = resp.(params)
 
-			if translated.User.IsAdmin != true {
-				t.Fatalf("Expected isAdmin %t, got %t", true, translated.User.IsAdmin)
+			if !UserHasPermission(translated.User, PermissionAdmin) {
+				t.Fatalf("Expected user to have admin permissions, got %v", translated.User.Permissions)
 			}
 			if translated.Token == "" {
 				t.Fatal("Expected non-empty token")
@@ -310,8 +340,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != averageUserUsername {
 				t.Fatalf("Expected username %s, got %s", averageUserUsername, user.Username)
 			}
-			if user.IsAdmin != false {
-				t.Fatalf("Expected isAdmin %t, got %t", false, user.IsAdmin)
+			if UserHasPermission(user, PermissionAdmin) {
+				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
 		})
 
@@ -422,13 +452,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
-		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-		})
-
 		var secondAverageUserID uuid.UUID
 		var secondAverageUserEmail = "second@hello.world"
 		var secondAverageToken string
@@ -467,85 +490,55 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			secondAverageToken = translated.Token
 		})
 
-		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+		t.Run("TestUpdateSecondUserToAdminAsAverageUser", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
+			_, err := NewRequestBuilderNoTarget("POST", jsonBody, http.StatusForbidden).WithPath("/admin/users/account_status").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
-		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
+		t.Run("TestUpdateSecondUserToAdminAsAdmin", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if UserPermissions(user.Permissions)&PermissionAdmin == 0 {
+				t.Fatalf("Expected user to have admin permissions, got %v", user.Permissions)
+			}
+		})
+
+		t.Run("TestUpdateSecondUserToBasic", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "basic"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if UserPermissions(user.Permissions)&PermissionAdmin != 0 {
+				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
 		})
 
 		//Test files
 		uploadedFileID := uuid.Nil
 		t.Run("TestUploadFile", func(t *testing.T) {
-			cwd, _ := os.Getwd()
-			folderPath := cwd + "/out/test_resources/"
-			filePath := cwd + "/out/test_resources/file_upload.txt"
-			err := os.MkdirAll(folderPath, 0755)
-			if err != nil {
-				t.Fatal("Error creating test resources directory: ", err)
-			}
-			defer os.RemoveAll(cwd + "/out/test_resources/")
-
-			fileContent := []byte("This is a test file for upload.")
-			err = os.WriteFile(filePath, fileContent, 0644)
-			if err != nil {
-				t.Fatal("Error creating test file: ", err)
-			}
-			fileData, err := os.Open(filePath)
-			if err != nil {
-				t.Fatal("Error opening test file: ", err)
-			}
-			defer fileData.Close()
-
-			var requestFileData bytes.Buffer
-
-			writer := multipart.NewWriter(&requestFileData)
-			part, err := writer.CreateFormFile("file", "file_upload.txt")
-			if err != nil {
-				t.Fatal("Error creating form file: ", err)
-			}
-
-			_, err = io.Copy(part, fileData)
-			if err != nil {
-				t.Fatal("Error copying file data: ", err)
-			}
-			err = writer.Close()
-			if err != nil {
-				t.Fatal("Error closing writer: ", err)
-			}
-
-			req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
-			if err != nil {
-				t.Fatal("Error creating request: ", err)
-			}
-			req.Header.Set("Content-Type", writer.FormDataContentType())
-			req.Header.Set("Authorization", "Bearer "+adminToken)
-
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-			}
-
 			type params struct {
 				FileID   uuid.UUID `json:"file_id"`
 				FilePath string    `json:"file_path"`
 			}
 
+			resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile([]byte("This is a test file."), "file", "testfile.txt").Build()
 			var responseParams params
-			err = json.NewDecoder(resp.Body).Decode(&responseParams)
-			if err != nil {
+			if responseParams = resp.(params); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
 
@@ -640,69 +633,18 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		var fileIds []uuid.UUID
 		t.Run("CreateFilesForLinkingTest", func(t *testing.T) {
-			cwd, _ := os.Getwd()
-			folderPath := cwd + "/out/test_resources/"
-			err := os.MkdirAll(folderPath, 0755)
-			if err != nil {
-				t.Fatal("Error creating test resources directory: ", err)
-			}
-			defer os.RemoveAll(cwd + "/out/test_resources/")
-
-			for i := 0; i < 25; i++ {
-				filePath := cwd + "/out/test_resources/file_linking_" + strconv.Itoa(i) + ".txt"
-				fileContent := []byte("This is a test file for linking " + strconv.Itoa(i) + ".")
-				err = os.WriteFile(filePath, fileContent, 0644)
-				if err != nil {
-					t.Fatal("Error creating test file: ", err)
-				}
-				fileData, err := os.Open(filePath)
-				if err != nil {
-					t.Fatal("Error opening test file: ", err)
-				}
-				defer fileData.Close()
-
-				var requestFileData bytes.Buffer
-
-				writer := multipart.NewWriter(&requestFileData)
-				part, err := writer.CreateFormFile("file", "file_linking_"+strconv.Itoa(i)+".txt")
-				if err != nil {
-					t.Fatal("Error creating form file: ", err)
-				}
-
-				_, err = io.Copy(part, fileData)
-				if err != nil {
-					t.Fatal("Error copying file data: ", err)
-				}
-				err = writer.Close()
-				if err != nil {
-					t.Fatal("Error closing writer: ", err)
-				}
-
-				req, err := http.NewRequest("POST", "http://localhost:6767/api/upload?location=lessons", &requestFileData)
-				if err != nil {
-					t.Fatal("Error creating request: ", err)
-				}
-				req.Header.Set("Content-Type", writer.FormDataContentType())
-				req.Header.Set("Authorization", "Bearer "+adminToken)
-
-				resp, err := client.Do(req)
-				if err != nil {
-					t.Fatal("Error making request: ", err)
-				}
-				defer resp.Body.Close()
-
-				if resp.StatusCode != http.StatusOK {
-					t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
-				}
-
+			for i := 0; i < 26; i++ {
 				type params struct {
 					FileID   uuid.UUID `json:"file_id"`
 					FilePath string    `json:"file_path"`
 				}
 
+				fileContent := []byte("This is test file number " + strconv.Itoa(i) + " for upload.")
+				fileName := "file_upload_" + strconv.Itoa(i) + ".txt"
+				resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile(fileContent, "file", fileName).Build()
+
 				var responseParams params
-				err = json.NewDecoder(resp.Body).Decode(&responseParams)
-				if err != nil {
+				if responseParams = resp.(params); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
 
@@ -714,6 +656,146 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				}
 
 				fileIds = append(fileIds, responseParams.FileID)
+			}
+		})
+
+		t.Run("TestMakeSecondUserTeacher", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "teacher"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
+				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
+			}
+		})
+
+		t.Run("TestSuggestLessonAsAverageUserForbidden", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Forbidden Suggested Lesson","description":"This is a forbidden suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
+			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/lessons").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		var suggestedLessonID uuid.UUID
+		t.Run("TestSuggestLessonAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Suggested Lesson","description":"This is a suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(secondAverageToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Suggested Lesson", lesson.Lesson.Title)
+			}
+			if lesson.Lesson.Suggested != true {
+				t.Fatalf("Expected lesson suggested %t, got %t", true, lesson.Lesson.Suggested)
+			}
+			suggestedLessonID = lesson.Lesson.ID
+		})
+
+		t.Run("TestUpdateLessonSuggestedForbidden", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
+			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestUpdateLessonSuggestedAsAdmin", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Updated Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Updated Suggested Lesson", lesson.Lesson.Title)
+			}
+		})
+
+		t.Run("TestUpdateLessonSuggestedAsAuthor", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Author Updated Suggested Lesson"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
+
+			var lesson LessonWithFlags
+			if lesson = resp.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Title != "Author Updated Suggested Lesson" {
+				t.Fatalf("Expected lesson title %s, got %s", "Author Updated Suggested Lesson", lesson.Lesson.Title)
+			}
+		})
+
+		t.Run("TestGetSuggestedLessons", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lessons []LessonWithFlags
+			if lessons = resp.([]LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if len(lessons) < 1 {
+				t.Fatal("No suggested lessons found")
+			}
+		})
+
+		t.Run("TestGetSuggestedLessonsByTeacher", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithQueryParam("author_id", secondAverageUserID.String()).WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lessons []LessonWithFlags
+			if lessons = resp.([]LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if len(lessons) < 1 {
+				t.Fatal("No suggested lessons found for the teacher")
+			}
+		})
+
+		t.Run("TestApproveSuggestedLessonWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
+			res, err := NewRequestBuilder("POST", nil, http.StatusOK, LessonWithFlags{}).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var lesson LessonWithFlags
+			if lesson = res.(LessonWithFlags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if lesson.Lesson.Suggested != false {
+				t.Fatalf("Lesson is suggested, expected to not be suggested")
 			}
 		})
 
@@ -738,7 +820,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[len(lessonIds)-1].String(), lesson.Lesson.PrevLessonID.UUID.String())
 				}
 
-				prevLesson, err := cfg.db.GetLessonByID(context.Background(), lesson.Lesson.PrevLessonID.UUID)
+				prevLesson, err := cfg.Db.GetLessonByID(context.Background(), lesson.Lesson.PrevLessonID.UUID)
 				if err != nil {
 					t.Fatal("Error getting previous lesson: ", err)
 				}
@@ -1096,6 +1178,72 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		var suggestedProblemID uuid.UUID
+		t.Run("TestCreateProblemAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Teacher Problem","description":"This is a test problem created by a teacher", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
+			res, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var problem ProblemWithTags
+			if problem = res.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.Suggested != true {
+				t.Fatalf("Expected problem suggested %t, got %t", true, problem.Problem.Suggested)
+			}
+			suggestedProblemID = problem.Problem.ID
+		})
+
+		t.Run("TestUpdateSuggestedProblemAsAverageUser", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Teacher Problem"}`)
+			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestUpdateSuggestedProblemAsTeacher", func(t *testing.T) {
+			jsonData := []byte(`{"title":"Updated Teacher Problem", "description":"This is an updated teacher test problem", "source":"ONI2026"}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = resp.(ProblemWithTags); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if problem.Problem.Title != "Updated Teacher Problem" {
+				t.Fatalf("Expected problem title %s, got %s", "Updated Teacher Problem", problem.Problem.Title)
+			}
+		})
+
+		t.Run("TestApproveSuggestedProblemWithoutAuth", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestApproveSuggestedProblemAsAdmin", func(t *testing.T) {
+			res, err := NewRequestBuilder("POST", nil, http.StatusOK, ProblemWithTags{}).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problem ProblemWithTags
+			if problem = res.(ProblemWithTags); err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			if problem.Problem.Suggested != false {
+				t.Fatalf("Problem is suggested, expected to not be suggested")
+			}
+		})
+
 		t.Run("TestGetProblemByID", func(t *testing.T) {
 			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
@@ -1186,6 +1334,197 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 		})
 
+		/*
+			===========================================
+
+				Solution Management Tests
+
+			===========================================
+		*/
+
+		var solutionID uuid.UUID
+		t.Run("TestCreateSolutionAsUser", func(t *testing.T) {
+			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(input())","language":"python"}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.ProblemID != problemID {
+				t.Fatalf("Expected solution problem ID %s, got %s", problemID.String(), sol.ProblemID.String())
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+			solutionID = sol.ID
+		})
+
+		t.Run("TestUpdateSolutionTestsAsUser", func(t *testing.T) {
+			jsonData := []byte(`{"tests_passed":3, "total_tests":5}`)
+			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+solutionID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !sol.TestsPassed.Valid || sol.TestsPassed.Int32 != 3 {
+				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 3, sol.TestsPassed.Int32)
+			}
+			if !sol.TotalTests.Valid || sol.TotalTests.Int32 != 5 {
+				t.Fatalf("Received wrong number of total tests, expected %d got %d", 5, sol.TotalTests.Int32)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsAdmin", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(adminToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsUser", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if sol.Language != "python" {
+				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
+			}
+			if sol.SentCode != "print(input())" {
+				t.Fatalf("Expected solution code %s, got %s", "print(input())", sol.SentCode)
+			}
+		})
+
+		t.Run("TestGetSolutionByIDAsOtherUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusForbidden).WithPath("/api/solutions").WithAuthToken(averageUserToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestBookmarkProblemAsUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/bookmark").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestLikeProblemAsUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/like").WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestGetBookmarkedProblemsAsUser", func(t *testing.T) {
+			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.UsersProblem{}).WithPath("/api/users/" + secondAverageUserID.String() + "/bookmarked_problems").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var problems []database.UsersProblem
+			if problems = resp.([]database.UsersProblem); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			found := false
+			for _, problem := range problems {
+				if problem.ProblemID == problemID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("Expected to find bookmarked problem with ID %s", problemID.String())
+			}
+		})
+
+		t.Run("TestCreateCorrectSolutionAndCheckAcceptance", func(t *testing.T) {
+			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(int(input()) + int(input()))","language":"python"}`)
+			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var sol database.Solution
+			if sol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			jsonData = []byte(`{"tests_passed":26, "total_tests":26}`)
+			resp, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var updatedSol database.Solution
+			if updatedSol = resp.(database.Solution); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !updatedSol.TestsPassed.Valid || updatedSol.TestsPassed.Int32 != 26 {
+				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 26, updatedSol.TestsPassed.Int32)
+			}
+			if !updatedSol.TotalTests.Valid || updatedSol.TotalTests.Int32 != 26 {
+				t.Fatalf("Received wrong number of total tests, expected %d got %d", 26, updatedSol.TotalTests.Int32)
+			}
+
+			// We can now count number of correct solutions for secondAverageUserID
+			type params struct {
+				CountCorrect int `json:"count_correct"`
+				CountTotal   int `json:"count_total"`
+			}
+			resp, err = NewRequestBuilder("GET", nil, http.StatusOK, params{}).WithPath("/api/solutions/count").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "user").Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+
+			var counts params
+			if counts = resp.(params); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+
+			if counts.CountCorrect < 1 {
+				t.Fatalf("Expected at least %d correct solutions, got %d", 1, counts.CountCorrect)
+			}
+			if counts.CountTotal < 2 {
+				t.Fatalf("Expected at least %d total solutions, got %d", 1, counts.CountTotal)
+			}
+		})
+
+		/*
+			===========================================
+
+				Cleanup Tests
+
+			===========================================
+		*/
+
 		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
 			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
@@ -1202,6 +1541,27 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestDeleteProblemTest", func(t *testing.T) {
 			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+		})
+
+		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
+			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1242,27 +1602,14 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 	})
 
 	t.Run("TestAuthorizedReset", func(t *testing.T) {
-		if cfg.websiteState == "production" {
+		if cfg.WebsiteState == "production" {
 			t.Log("Skipping reset test in production environment")
 			return
 		}
 
-		req, err := http.NewRequest("POST", "http://localhost:6767/admin/reset", bytes.NewReader([]byte("")))
-		if err != nil {
-			t.Fatal("Error creating request: ", err)
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+adminToken)
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/api/admin/reset").WithAuthToken(adminToken).BuildRaw()
 		if err != nil {
 			t.Fatal("Error making request: ", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 		}
 	})
 }

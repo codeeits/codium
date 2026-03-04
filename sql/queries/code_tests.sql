@@ -43,3 +43,8 @@ SET txt_input = $2,
     updated_at = $4
 WHERE id = $1
 RETURNING *;
+
+-- name: ListAllCodeTests :many
+SELECT * FROM code_tests
+ORDER BY created_at ASC
+LIMIT $1 OFFSET $2;

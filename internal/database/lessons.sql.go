@@ -13,9 +13,9 @@ import (
 )
 
 const addLesson = `-- name: AddLesson :one
-INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, suggested, thumbnail_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type AddLessonParams struct {
@@ -29,6 +29,8 @@ type AddLessonParams struct {
 	Flags        int32
 	NextLessonID uuid.NullUUID
 	PrevLessonID uuid.NullUUID
+	Suggested    bool
+	ThumbnailID  uuid.NullUUID
 }
 
 func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, error) {
@@ -43,6 +45,8 @@ func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, e
 		arg.Flags,
 		arg.NextLessonID,
 		arg.PrevLessonID,
+		arg.Suggested,
+		arg.ThumbnailID,
 	)
 	var i Lesson
 	err := row.Scan(
@@ -57,13 +61,15 @@ func (q *Queries) AddLesson(ctx context.Context, arg AddLessonParams) (Lesson, e
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
 
 const countLessons = `-- name: CountLessons :one
 SELECT COUNT(*) FROM lessons
-WHERE flags & $1 = $2
+WHERE flags & $1 = $2 and suggested = FALSE
 `
 
 type CountLessonsParams struct {
@@ -105,7 +111,7 @@ func (q *Queries) DeleteLessonByID(ctx context.Context, id uuid.UUID) error {
 }
 
 const getLessonByContentID = `-- name: GetLessonByContentID :one
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
 WHERE content_id = $1
 `
 
@@ -124,13 +130,15 @@ func (q *Queries) GetLessonByContentID(ctx context.Context, contentID uuid.UUID)
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
 
 const getLessonByFlags = `-- name: GetLessonByFlags :one
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
-WHERE flags = $1
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
+WHERE flags = $1 and suggested = FALSE
 `
 
 func (q *Queries) GetLessonByFlags(ctx context.Context, flags int32) (Lesson, error) {
@@ -148,12 +156,14 @@ func (q *Queries) GetLessonByFlags(ctx context.Context, flags int32) (Lesson, er
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
 
 const getLessonByID = `-- name: GetLessonByID :one
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
 WHERE id = $1
 `
 
@@ -172,12 +182,15 @@ func (q *Queries) GetLessonByID(ctx context.Context, id uuid.UUID) (Lesson, erro
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
 
 const getLessons = `-- name: GetLessons :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
+WHERE suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -208,6 +221,8 @@ func (q *Queries) GetLessons(ctx context.Context, arg GetLessonsParams) ([]Lesso
 			&i.NextLessonID,
 			&i.PrevLessonID,
 			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
 		); err != nil {
 			return nil, err
 		}
@@ -223,7 +238,7 @@ func (q *Queries) GetLessons(ctx context.Context, arg GetLessonsParams) ([]Lesso
 }
 
 const getLessonsByAuthorID = `-- name: GetLessonsByAuthorID :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
 WHERE author_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -256,6 +271,8 @@ func (q *Queries) GetLessonsByAuthorID(ctx context.Context, arg GetLessonsByAuth
 			&i.NextLessonID,
 			&i.PrevLessonID,
 			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
 		); err != nil {
 			return nil, err
 		}
@@ -271,8 +288,8 @@ func (q *Queries) GetLessonsByAuthorID(ctx context.Context, arg GetLessonsByAuth
 }
 
 const getLessonsByFlags = `-- name: GetLessonsByFlags :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
-WHERE flags & $1 = $2
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
+WHERE flags & $1 = $2 and suggested = FALSE
 ORDER BY flags ASC, created_at DESC
 LIMIT $3 OFFSET $4
 `
@@ -310,6 +327,8 @@ func (q *Queries) GetLessonsByFlags(ctx context.Context, arg GetLessonsByFlagsPa
 			&i.NextLessonID,
 			&i.PrevLessonID,
 			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
 		); err != nil {
 			return nil, err
 		}
@@ -325,7 +344,7 @@ func (q *Queries) GetLessonsByFlags(ctx context.Context, arg GetLessonsByFlagsPa
 }
 
 const getSectionStarterLessons = `-- name: GetSectionStarterLessons :many
-SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter FROM lessons
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
 WHERE section_starter = TRUE
 ORDER BY section_starter ASC
 `
@@ -351,6 +370,57 @@ func (q *Queries) GetSectionStarterLessons(ctx context.Context) ([]Lesson, error
 			&i.NextLessonID,
 			&i.PrevLessonID,
 			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSuggestedLessons = `-- name: GetSuggestedLessons :many
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id FROM lessons
+WHERE suggested = TRUE
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetSuggestedLessonsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetSuggestedLessons(ctx context.Context, arg GetSuggestedLessonsParams) ([]Lesson, error) {
+	rows, err := q.db.QueryContext(ctx, getSuggestedLessons, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Lesson
+	for rows.Next() {
+		var i Lesson
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.ContentID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Flags,
+			&i.NextLessonID,
+			&i.PrevLessonID,
+			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
 		); err != nil {
 			return nil, err
 		}
@@ -379,8 +449,8 @@ func (q *Queries) ResetSectionStarterForSection(ctx context.Context, flags int32
 const setSectionStarter = `-- name: SetSectionStarter :one
 UPDATE lessons
 SET section_starter = $2
-WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+WHERE id = $1 and suggested = FALSE
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type SetSectionStarterParams struct {
@@ -403,6 +473,8 @@ func (q *Queries) SetSectionStarter(ctx context.Context, arg SetSectionStarterPa
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
@@ -411,7 +483,7 @@ const updateLessonContent = `-- name: UpdateLessonContent :one
 UPDATE lessons
 SET content_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type UpdateLessonContentParams struct {
@@ -435,6 +507,8 @@ func (q *Queries) UpdateLessonContent(ctx context.Context, arg UpdateLessonConte
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
@@ -443,7 +517,7 @@ const updateLessonDetails = `-- name: UpdateLessonDetails :one
 UPDATE lessons
 SET title = $2, description = $3, updated_at = $4
 WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type UpdateLessonDetailsParams struct {
@@ -473,6 +547,8 @@ func (q *Queries) UpdateLessonDetails(ctx context.Context, arg UpdateLessonDetai
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
@@ -481,7 +557,7 @@ const updateLessonFlags = `-- name: UpdateLessonFlags :one
 UPDATE lessons
 SET flags = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type UpdateLessonFlagsParams struct {
@@ -505,6 +581,8 @@ func (q *Queries) UpdateLessonFlags(ctx context.Context, arg UpdateLessonFlagsPa
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
@@ -513,7 +591,7 @@ const updateLessonNext = `-- name: UpdateLessonNext :one
 UPDATE lessons
 SET next_lesson_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type UpdateLessonNextParams struct {
@@ -537,6 +615,8 @@ func (q *Queries) UpdateLessonNext(ctx context.Context, arg UpdateLessonNextPara
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }
@@ -545,7 +625,7 @@ const updateLessonPrev = `-- name: UpdateLessonPrev :one
 UPDATE lessons
 SET prev_lesson_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
 `
 
 type UpdateLessonPrevParams struct {
@@ -569,6 +649,76 @@ func (q *Queries) UpdateLessonPrev(ctx context.Context, arg UpdateLessonPrevPara
 		&i.NextLessonID,
 		&i.PrevLessonID,
 		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
+	)
+	return i, err
+}
+
+const updateLessonSuggested = `-- name: UpdateLessonSuggested :one
+UPDATE lessons
+SET suggested = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
+`
+
+type UpdateLessonSuggestedParams struct {
+	ID        uuid.UUID
+	Suggested bool
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) UpdateLessonSuggested(ctx context.Context, arg UpdateLessonSuggestedParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonSuggested, arg.ID, arg.Suggested, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
+	)
+	return i, err
+}
+
+const updateLessonThumbnail = `-- name: UpdateLessonThumbnail :one
+UPDATE lessons
+SET thumbnail_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id
+`
+
+type UpdateLessonThumbnailParams struct {
+	ID          uuid.UUID
+	ThumbnailID uuid.NullUUID
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) UpdateLessonThumbnail(ctx context.Context, arg UpdateLessonThumbnailParams) (Lesson, error) {
+	row := q.db.QueryRowContext(ctx, updateLessonThumbnail, arg.ID, arg.ThumbnailID, arg.UpdatedAt)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ContentID,
+		&i.AuthorID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Flags,
+		&i.NextLessonID,
+		&i.PrevLessonID,
+		&i.SectionStarter,
+		&i.Suggested,
+		&i.ThumbnailID,
 	)
 	return i, err
 }

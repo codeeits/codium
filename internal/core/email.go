@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ func (cfg *ApiCfg) SendValidationEmail(email string, userId string) {
 			message.SetHeader("To", email)
 			message.SetHeader("Subject", "Email Validation")
 
-			message.SetBody("text/html", fmt.Sprintf(`<h1>Email Validation</h1><br><p>Please verify that your email address is valid by clicking the following link</p><br><a href="%v/api/email/%v">Verify Email</a>`, cfg.websiteUrl, userId))
+			message.SetBody("text/html", fmt.Sprintf(`<h1>Email Validation</h1><br><p>Please verify that your email address is valid by clicking the following link</p><br><a href="%v/api/email/%v">Verify Email</a>`, cfg.WebsiteUrl, userId))
 
-			dialer := gomail.NewDialer(cfg.smtpUrl, cfg.smtpPort, cfg.smtpUser, cfg.smtpPassword)
+			dialer := gomail.NewDialer(cfg.SmtpCfg.Url, cfg.SmtpCfg.Port, cfg.SmtpCfg.User, cfg.SmtpCfg.Password)
 			err := dialer.DialAndSend(message)
 			if err != nil {
 
@@ -25,7 +25,7 @@ func (cfg *ApiCfg) SendValidationEmail(email string, userId string) {
 			return nil
 		}()
 		if err != nil {
-			cfg.logger.Println("Failed to send validation email:", err)
+			cfg.Logger.Println("Failed to send validation email:", err)
 		}
 	}()
 }

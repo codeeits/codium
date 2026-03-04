@@ -1,20 +1,20 @@
-package main
+package core
 
 import (
-	"Codium/internal/CLI"
 	"bufio"
 	"fmt"
 	"os"
 
+	"github.com/Andrew-The-Cat/SimpleCLI"
 	"github.com/google/uuid"
 )
 
 func (cfg *ApiCfg) StartCLI() {
-	commandsCfg := CLI.NewConsoleCfg(&cfg.logger)
+	commandsCfg := SimpleCLI.NewConsoleCfg(&cfg.Logger, false)
 
 	// Registering Commands
 	{
-		cfg.logger.Print("Registering Commands")
+		cfg.Logger.Print("Registering Commands")
 
 		commandsCfg.RegisterCommand("reset", func(args []string) error {
 			fmt.Println("ARE YOU SURE YOU WANT TO RESET?!?!?!? | YES / NO")
@@ -28,9 +28,9 @@ func (cfg *ApiCfg) StartCLI() {
 				fmt.Println("DATABASE RESET CANCELLED")
 				return nil
 			}
-			cfg.logger.Print("Received reset command via console")
+			cfg.Logger.Print("Received reset command via console")
 			fmt.Println("Resetting database...")
-			if !cfg.dbLoaded {
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			err = cfg.ResetAll()
@@ -44,9 +44,9 @@ func (cfg *ApiCfg) StartCLI() {
 				return fmt.Errorf("usage: delete_user <user_id>")
 			}
 			userIdStr := args[0]
-			cfg.logger.Printf("Received delete_user command via console for user ID %s", userIdStr)
+			cfg.Logger.Printf("Received delete_user command via console for user ID %s", userIdStr)
 			fmt.Printf("Deleting user with ID %s...\n", userIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
@@ -63,8 +63,8 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 		commandsCfg.RegisterCommand("list_users", func(args []string) error {
-			cfg.logger.Print("Received list_users command via console")
-			if !cfg.dbLoaded {
+			cfg.Logger.Print("Received list_users command via console")
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			users, err := cfg.ListUsers()
@@ -78,7 +78,7 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 		commandsCfg.RegisterCommand("parse_lesson_flags", func(args []string) error {
-			cfg.logger.Print("Received parse_lesson_flags command via console")
+			cfg.Logger.Print("Received parse_lesson_flags command via console")
 			if len(args) < 1 {
 				return fmt.Errorf("usage: parse_lesson_flags <flags_integer>")
 			}
@@ -93,8 +93,8 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 		commandsCfg.RegisterCommand("list_lessons", func(args []string) error {
-			cfg.logger.Print("Received list_lessons command via console")
-			if !cfg.dbLoaded {
+			cfg.Logger.Print("Received list_lessons command via console")
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			lessons, err := cfg.ListLessons()
@@ -109,8 +109,8 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 		commandsCfg.RegisterCommand("list_files", func(args []string) error {
-			cfg.logger.Print("Received list_files command via console")
-			if !cfg.dbLoaded {
+			cfg.Logger.Print("Received list_files command via console")
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 			files, err := cfg.ListFiles()
@@ -129,9 +129,9 @@ func (cfg *ApiCfg) StartCLI() {
 			}
 
 			fileIdStr := args[0]
-			cfg.logger.Printf("Received delete_file command via console for file ID %s", fileIdStr)
+			cfg.Logger.Printf("Received delete_file command via console for file ID %s", fileIdStr)
 			fmt.Printf("Deleting file with ID %s...\n", fileIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
@@ -153,9 +153,9 @@ func (cfg *ApiCfg) StartCLI() {
 			}
 
 			lessonIdStr := args[0]
-			cfg.logger.Printf("Received delete_lesson command via console for lesson ID %s", lessonIdStr)
+			cfg.Logger.Printf("Received delete_lesson command via console for lesson ID %s", lessonIdStr)
 			fmt.Printf("Deleting lesson with ID %s...\n", lessonIdStr)
-			if !cfg.dbLoaded {
+			if !cfg.DatabaseCfg.Loaded {
 				return fmt.Errorf("database not connected")
 			}
 
@@ -172,6 +172,10 @@ func (cfg *ApiCfg) StartCLI() {
 			return nil
 		})
 	}
-
-	commandsCfg.StartConsole()
+	go func() {
+		done := make(chan struct{})
+		commandsCfg.StartConsole(done)
+		<-done
+		os.Exit(0)
+	}()
 }

@@ -86,6 +86,49 @@ func (q *Queries) GetCodeTestByID(ctx context.Context, id uuid.UUID) (CodeTest, 
 	return i, err
 }
 
+const listAllCodeTests = `-- name: ListAllCodeTests :many
+SELECT id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id FROM code_tests
+ORDER BY created_at ASC
+LIMIT $1 OFFSET $2
+`
+
+type ListAllCodeTestsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListAllCodeTests(ctx context.Context, arg ListAllCodeTestsParams) ([]CodeTest, error) {
+	rows, err := q.db.QueryContext(ctx, listAllCodeTests, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CodeTest
+	for rows.Next() {
+		var i CodeTest
+		if err := rows.Scan(
+			&i.ID,
+			&i.TxtInput,
+			&i.FileInput,
+			&i.ExpectedOutput,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.NextTestID,
+			&i.PreviousTestID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCodeTestsByIDs = `-- name: ListCodeTestsByIDs :many
 SELECT id, txt_input, file_input, expected_output, created_at, updated_at, next_test_id, previous_test_id FROM code_tests
 WHERE id = ANY($1)

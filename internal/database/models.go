@@ -43,6 +43,8 @@ type Lesson struct {
 	NextLessonID   uuid.NullUUID
 	PrevLessonID   uuid.NullUUID
 	SectionStarter bool
+	Suggested      bool
+	ThumbnailID    uuid.NullUUID
 }
 
 type LessonsUser struct {
@@ -68,6 +70,7 @@ type Problem struct {
 	FirstTest       uuid.NullUUID
 	ThumbnailFileID uuid.NullUUID
 	AuthorID        uuid.UUID
+	Suggested       bool
 }
 
 type RefreshToken struct {
@@ -112,10 +115,11 @@ type User struct {
 	PasswordHash   string
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
-	IsAdmin        bool
 	ProfilePicID   uuid.NullUUID
 	EmailValidated bool
 	CuredEmail     sql.NullString
+	Permissions    int16
+	Title          string
 }
 
 type UsersProblem struct {
