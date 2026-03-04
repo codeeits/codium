@@ -2,7 +2,7 @@
 SELECT * FROM users WHERE email = $1;
 
 -- name: CreateUser :one
-INSERT INTO users (id, email, password_hash, username, created_at, updated_at, is_admin, cured_email, permissions)
+INSERT INTO users (id, email, password_hash, username, created_at, updated_at, cured_email, permissions, title)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 

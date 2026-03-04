@@ -115,7 +115,6 @@ type User struct {
 	PasswordHash   string
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
-	IsAdmin        bool
 	ProfilePicID   uuid.NullUUID
 	EmailValidated bool
 	CuredEmail     sql.NullString

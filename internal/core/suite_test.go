@@ -307,8 +307,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			var translated = resp.(params)
 
-			if translated.User.IsAdmin != true {
-				t.Fatalf("Expected isAdmin %t, got %t", true, translated.User.IsAdmin)
+			if !UserHasPermission(translated.User, PermissionAdmin) {
+				t.Fatalf("Expected user to have admin permissions, got %v", translated.User.Permissions)
 			}
 			if translated.Token == "" {
 				t.Fatal("Expected non-empty token")
@@ -340,8 +340,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != averageUserUsername {
 				t.Fatalf("Expected username %s, got %s", averageUserUsername, user.Username)
 			}
-			if user.IsAdmin != false {
-				t.Fatalf("Expected isAdmin %t, got %t", false, user.IsAdmin)
+			if UserHasPermission(user, PermissionAdmin) {
+				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
 		})
 

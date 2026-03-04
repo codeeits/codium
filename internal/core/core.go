@@ -216,9 +216,9 @@ func (cfg *ApiCfg) ResetAll() error {
 		Username:     cfg.AdminCfg.Username,
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		IsAdmin:      true,
 		CuredEmail:   sql.NullString{String: "codiumOfficial@lekastech", Valid: true},
 		Permissions:  int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
+		Title:        "admin",
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to create default admin user: %v", err)
@@ -606,7 +606,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
-		if !user.IsAdmin {
+		if !UserHasPermission(user, PermissionCanManageLessons) {
 			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
