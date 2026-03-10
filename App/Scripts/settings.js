@@ -44,46 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // -- PREFERENCES MANAGEMENT --
     
-    const PreferencesManager = {
-        storageKey: 'profilePreferences',
-        defaults: {
-            hueRotation: 0,
-            fontSize: 'font-size-medium',
-            highContrast: false,
-            colorblind: false
-        },
-
-        get() {
-            try {
-                const stored = localStorage.getItem(this.storageKey);
-                return stored ? JSON.parse(stored) : { ...this.defaults };
-            } catch (error) {
-                console.error('Error reading preferences:', error);
-                return { ...this.defaults };
-            }
-        },
-
-        set(preferences) {
-            try {
-                const current = this.get();
-                const updated = { ...current, ...preferences };
-                localStorage.setItem(this.storageKey, JSON.stringify(updated));
-            } catch (error) {
-                console.error('Error saving preferences:', error);
-            }
-        },
-
-        getProperty(property) {
-            return this.get()[property] ?? this.defaults[property];
-        },
-
-        setProperty(property, value) {
-            const current = this.get();
-            current[property] = value;
-            this.set(current);
-        }
-    };
-
     // -- FETCH DATA --
 
     async function fetchUserData(user = null) {
@@ -278,6 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.highContrastModeToggle.addEventListener('change', () => {
             if (document.body.classList.contains('colorblind')) {
                 elements.colorblindModeToggle.checked = false;
+                document.body.classList.remove('colorblind');
+                PreferencesManager.setProperty('colorblind', false);
             }
             highContrastMode(); // external function defined in main.js that toggles the class on body
         });
@@ -293,6 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log('Colorblind mode enabled from preferences');
             if (document.body.classList.contains('high-contrast')) {
                 elements.highContrastModeToggle.checked = false;
+                document.body.classList.remove('high-contrast');
+                PreferencesManager.setProperty('highContrast', false);
             }
             colorblindMode(); // external function defined in main.js that toggles the class on body
         });
@@ -302,6 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = elements.fontSizeSelect; 
         
         const updateUI = (activeId) => {
+            console.log(`Updating font size UI. Active ID: ${activeId}`);
             const currentButtons = container.querySelectorAll('button');
 
             currentButtons.forEach(btn => {
