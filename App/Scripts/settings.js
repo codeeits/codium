@@ -153,8 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (langResponse.ok) {
                             const langData = await langResponse.json();
                             if (langData.hidden) {
-                                console.log(`Skipping hidden language: ${isoName}`);
-                                return null;
+                                console.log(`Adding hidden parameter: ${isoName}`);
+                                return {
+                                    iso: isoName,
+                                    displayName: langData.language || isoName,
+                                    hidden: langData.hidden
+                                };
                             }
                             return {
                                 iso: isoName,
@@ -196,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const currLang = localStorage.getItem('lang') || 'ro';
         const currLangData = languages.find(l => l.iso === currLang);
-        
+
         if (currLangData) {
             toggleBtn.innerHTML = `${currLangData.displayName} <i class="fa-solid fa-chevron-down"></i>`;
         }
@@ -204,6 +208,10 @@ document.addEventListener("DOMContentLoaded", () => {
         itemsContainer.innerHTML = '';
 
         languages.forEach(lang => {
+            if (lang.hidden) {
+                console.log(`Skipping hidden language in dropdown: ${lang.iso}`);
+                return;
+            }
             const item = document.createElement('div');
             item.classList.add('dropdown-item');
             item.textContent = lang.displayName;
@@ -405,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const items = dropdown.querySelectorAll('.dropdown-item');
 
         const selectedLangData = languages.find(l => l.iso === newLangIso);
-        if (selectedLangData) {
+        if (selectedLangData || (newLangIso === 'roen' && selectedLangData === undefined)) {
             toggleBtn.innerHTML = `${selectedLangData.displayName} <i class="fa-solid fa-chevron-down"></i>`;
 
             items.forEach(i => {

@@ -1,7 +1,9 @@
 # WORK IN PROGRESS
+
 This is a code learning / problem solving WebApp for a competition
 
 ## Small development note:
+
 For the project to properly run locally, you need to have a `.env` file in the root directory with the following variables:
 
 ```
