@@ -61,7 +61,7 @@ class ExtraHelpers {
     static ColorContainers(containers, color, hook_end, frame_speed, renderer) {
         ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
             containers.forEach(container => {
-                container.element.style.backgroundColor = color;
+                container.template.style.backgroundColor = color;
             });
             renderer();
             return deltaTime >= 1.0;

@@ -9,7 +9,10 @@ let vector = [];
 let n = 10
 
 for (let i = 0; i < n; i++) {
+    /*
     let rand = Math.floor(Math.random() * (n - 1)) + 1;
+     */
+    let rand = n - i
     let size_y = (rand / n) * (root.height * 3 / 5);
     let size_X = (root.width / n) * 0.8;
     let template = document.createElement("div")
@@ -17,7 +20,7 @@ for (let i = 0; i < n; i++) {
     template.style.backgroundColor = "rgba(255,255,255,0.1)"
     template.style.border = size_X > 10 ? "2px solid black" : "none";
 
-    let container = new Container(size_X, size_y, i * (root.width / n), root.height / 2 + 100 - size_y, template);
+    let container = new Container(size_X, size_y, i * (root.width / n), 2* root.height / 3 + 100 - size_y, template);
 
     let element = document.createElement("p");
     element.innerText = rand.toString();
@@ -114,6 +117,6 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.BUBBLE_SORT_ANIMATION(vector, compare, scheduleRender)
+PrefabAnimations.BUBBLE_SORT_ANIMATION(vector, compare, scheduleRender, 1.3)
 
 animator.Start();
