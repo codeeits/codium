@@ -54,7 +54,26 @@
             </div>
             <div class="card progress-spider">
                 <h2>Spider</h2>
-                <canvas id="spiderChart"></canvas>
+                <canvas id="spiderChart"></canvas> 
+                <script>
+                    const spiderChartInstance = window.apiService.getChart('spiderChart', 'radar', {
+                        title: 'Spider Chart',
+                        data: {
+                            labels: ['HTML', 'CSS', 'JS', 'Python', 'Databases'],
+                            datasets: [{
+                                label: 'Skills',
+                                data: [80, 90, 75, 85, 70],
+                                fill: true,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                pointBackgroundColor: 'rgb(54, 162, 235)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(54, 162, 235)'
+                            }]
+                        }
+                    });
+                </script>
             </div>
             <div class="card heatmap-problems-graph">
                 <h2>Heatmap problems</h2>
@@ -72,6 +91,7 @@
     </div>
     <script>
         // Radar chart data
+        /*
 const data = {
     labels: ['HTML', 'CSS', 'JS', 'Python', 'Databases'],
     datasets: [{
@@ -86,6 +106,7 @@ const data = {
         pointHoverBorderColor: 'rgb(54, 162, 235)'
     }]
 };
+*/
 
 // Evolution Line Chart data
 const evolutionData = {
@@ -142,6 +163,7 @@ const evolutionConfig = {
 };
 
 // Radar chart configuration
+/*
 const config = {
     type: 'radar',
     data: data,
@@ -183,9 +205,12 @@ const config = {
         }
     }
 };
+*/
 // Initialize the chart
+/*
 const ctx = document.getElementById('spiderChart').getContext('2d');
 const myRadarChart = new Chart(ctx, config);
+*/
 // Initialize the Evolution chart
 const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
 const myEvolutionChart = new Chart(evolutionCtx, evolutionConfig);

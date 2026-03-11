@@ -1060,6 +1060,53 @@ class ApiService {
         randomizeIds=true`
         .replace(/\s/g, '');
     }
+
+    getChart(target, typeOf = 'radar', dataCombined = {}, extraOptions = {}) {
+        let dataExtracted = dataCombined.data || {};
+        const config = {
+            type: typeOf,
+            data: dataExtracted,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                plugins: {
+                    title: {
+                        display: false,
+                        text: dataCombined.title || '',
+                        color: '#ffffff'
+                    },
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                },
+                scales: {
+                    r: { 
+                        beginAtZero: true,
+                        suggestedMax: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
+                        pointLabels: {
+                            color: '#ffffff', 
+                            font: { size: 14 }
+                        },
+                        ticks: {
+                            color: '#a0aec0', 
+                            backdropColor: 'transparent', 
+                            stepSize: 20 
+                        }
+                    }
+                }
+            }
+        };
+
+        // Merge extra options if provided
+        if (extraOptions && typeof extraOptions === 'object') {
+            config.options = { ...config.options, ...extraOptions };
+        }
+
+        // Target can be a canvas ID (string) or a canvas context
+        return new Chart(target, config);
+    }
         
 }
 // ===========================================
