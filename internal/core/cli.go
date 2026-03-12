@@ -171,6 +171,22 @@ func (cfg *ApiCfg) StartCLI() {
 			fmt.Println("Lesson deleted successfully.")
 			return nil
 		})
+		commandsCfg.RegisterCommand("promote_user", func(args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("usage: promote_user <user_id>")
+			}
+			userIdStr := args[0]
+			userId, err := uuid.Parse(userIdStr)
+			if err != nil {
+				return fmt.Errorf("invalid user ID format")
+			}
+			err = cfg.MakeAdmin(userId)
+			if err != nil {
+				return err
+			}
+			fmt.Println("User promoted successfully.")
+			return nil
+		})
 	}
 	go func() {
 		done := make(chan struct{})
