@@ -196,7 +196,7 @@ class ApiService {
             if (response.user) {
                 localStorage.setItem('username', response.user.Username);
                 localStorage.setItem('userEmail', response.user.Email);
-                localStorage.setItem('isAdmin', response.user.IsAdmin || false);
+                localStorage.setItem('isAdmin', response.user.Permissions === 61);
                 localStorage.setItem('userID', response.user.ID);
                 if (response.user.ProfilePicID) {
                     localStorage.setItem('profilePicID', response.user.ProfilePicID);
@@ -239,7 +239,7 @@ class ApiService {
     async isCurrentAdmin() {
         const currentUser = await this.getCurrentUser();
         const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-        return userData.IsAdmin || false;
+        return userData.Permissions === 61;
     }
 
     async getUserById(userId) {
@@ -1099,12 +1099,10 @@ class ApiService {
             }
         };
 
-        // Merge extra options if provided
         if (extraOptions && typeof extraOptions === 'object') {
             config.options = { ...config.options, ...extraOptions };
         }
 
-        // Target can be a canvas ID (string) or a canvas context
         return new Chart(target, config);
     }
         

@@ -52,9 +52,9 @@
                     <h1>Expert</h1>
                 </div>
             </div>
-            <div class="card progress-spider">
+            <div class="card chart-card progress-spider">
                 <h2>Spider</h2>
-                <canvas id="spiderChart"></canvas> 
+                <div class="chart-wrapper"><canvas id="spiderChart"></canvas></div>
                 <script>
                     const spiderChartInstance = window.apiService.getChart('spiderChart', 'radar', {
                         title: 'Spider Chart',
@@ -75,13 +75,33 @@
                     });
                 </script>
             </div>
-            <div class="card heatmap-problems-graph">
+            <div class="card chart-card heatmap-problems-graph">
                 <h2>Heatmap problems</h2>
                 <img src="/app/Assets/graph.png" alt="Progress Graph">
             </div>
             <div class="card evolution-cookies">
                 <h2>Evoluție</h2>
-                <canvas id="evolutionChart"></canvas>
+                <div class="chart-wrapper"><canvas id="evolutionChart"></canvas></div>
+                <script>
+                    const evolutionDataInstance = window.apiService.getChart('evolutionChart', 'line', {
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Progres',
+                                data: [10, 25, 40, 35, 60, 75, 90],
+                                fill: true,
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                borderColor: 'rgb(153, 102, 255)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgb(153, 102, 255)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(153, 102, 255)'
+                            }]
+                        }
+                    });
+                </script>
             </div>
             <div class="card history-solutions">
                 <h2>Istoric rezolvări</h2>
@@ -109,6 +129,7 @@ const data = {
 */
 
 // Evolution Line Chart data
+/*
 const evolutionData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Replace with your actual time labels
     datasets: [{
@@ -161,7 +182,7 @@ const evolutionConfig = {
         }
     }
 };
-
+*/
 // Radar chart configuration
 /*
 const config = {
@@ -212,8 +233,10 @@ const ctx = document.getElementById('spiderChart').getContext('2d');
 const myRadarChart = new Chart(ctx, config);
 */
 // Initialize the Evolution chart
+/*
 const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
 const myEvolutionChart = new Chart(evolutionCtx, evolutionConfig);
+*/
     </script>
 </body>
 </html>

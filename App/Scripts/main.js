@@ -203,8 +203,20 @@ async function loadSidebar() {
                 container.querySelector(`[data-sidebar="${activePage}"]`)?.classList.add('active');
             }
 
+            container.querySelectorAll('.sidebar-item').forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && href === '#') {
+                    item.onclick = () => {
+                        // send toast or something that the page is not implemented yet
+                        window.apiService?.showToast('Page not implemented yet', { type: 'info' });
+                    };
+                }
+            });
+
             // Admin checks
-            if (localStorage.getItem('isAdmin') !== 'true') {
+            response = await window.apiService.isCurrentAdmin();
+            console.log('Admin status:', response);
+            if (response) {
                 container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
         }
