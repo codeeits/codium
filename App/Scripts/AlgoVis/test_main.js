@@ -15,7 +15,7 @@ for (let i = 0; i < n; i++) {
     let size_X = (root.width / n) * 0.8;
     let template = document.createElement("div")
 
-    template.style.backgroundColor = "rgba(255,255,255,0.1)"
+    template.style.backgroundColor = "oklch(0.7559 0.185 335.65)"
     template.style.border = size_X > 10 ? "2px solid black" : "none";
 
     let container = new Container(size_X, size_y, i * (root.width / n), 2* root.height / 3 + 100 - size_y, template);
@@ -115,6 +115,6 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.QUICK_SORT_ANIMATION(vector, compare, scheduleRender, 1.3)
+PrefabAnimations.QUICK_SORT_ANIMATION(vector, compare, scheduleRender, null)
 
 animator.Start();
