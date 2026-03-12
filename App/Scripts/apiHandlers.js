@@ -283,6 +283,16 @@ class ApiService {
         return this.updateUserField('image_id', fileId, true);
     }
 
+    // permissions management (admin only)
+
+    async updateUserPermissions(userId, title) {
+        const approvedTitles = ['admin', 'basic', 'teacher', 'moderator'];
+        if (!approvedTitles.includes(title)) {
+            throw new Error(`Invalid title. Approved titles are: ${approvedTitles.join(', ')}`);
+        }
+        return this.post('/admin/users/account_status', { userID: userId, title }, true);
+    }
+
     // ===========================================
     // Lesson Management Endpoints
     // ===========================================
@@ -563,6 +573,16 @@ class ApiService {
         return this.put(`/api/lessons/${lessonId}?target_field=${targetField}`, data, true);
     }
 
+    // suggestions endpoints
+
+    async getPendingLessons() {
+        return this.get('/admin/lessons/suggested', true);
+    }
+
+    async approveLesson(lessonId) {
+        return this.post(`/admin/lessons/suggested/${lessonId}/approve`, {}, true);
+    }
+
     // ===========================================
     // Problems Management Endpoints
     // ===========================================
@@ -757,6 +777,15 @@ class ApiService {
         return isBookmarked;
     }
 
+    // suggestions endpoints
+
+    async getPendingProblems() {
+        return this.get('/admin/problems/suggested', true);
+    }
+
+    async approveProblem(problemId) {
+        return this.post(`/admin/problems/suggested/${problemId}/approve`, {}, true);
+    }
     // ===========================================
     // File Management Endpoints
     // ===========================================
@@ -1104,6 +1133,10 @@ class ApiService {
         }
 
         return new Chart(target, config);
+    }
+
+    getUserDataGDPR() {
+        return this.get('/api/users/gdpr', true);
     }
         
 }

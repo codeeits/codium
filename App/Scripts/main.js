@@ -207,16 +207,15 @@ async function loadSidebar() {
                 const href = item.getAttribute('href');
                 if (href && href === '#') {
                     item.onclick = () => {
-                        // send toast or something that the page is not implemented yet
-                        window.apiService?.showToast('Page not implemented yet', { type: 'info' });
+                        toastsLoader.showToast('Page not implemented yet', 'warning');
                     };
                 }
             });
 
             // Admin checks
-            response = await window.apiService.isCurrentAdmin();
-            console.log('Admin status:', response);
-            if (response) {
+            const isAdmin = await window.apiService.isCurrentAdmin();
+            console.log('Admin status:', isAdmin);
+            if (!isAdmin) {
                 container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
         }
