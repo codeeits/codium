@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     // ------------------------------
     
     const currentUser = await window.apiService.getCurrentUser();
-
+    /*
     if (currentUser === null) {
         // Not logged in
         window.location.href = 'login.html';
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.location.href = 'user.html';
         return;  
     }
-
+*/
     const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
     userId = userData.ID;
 

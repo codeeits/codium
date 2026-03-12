@@ -606,7 +606,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
-		if !UserHasPermission(user, PermissionCanManageLessons) {
+		if !UserHasPermission(user, PermissionCanManageLessons) && !UserHasPermission(user, PermissionCanSuggestLessons) {
 			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
