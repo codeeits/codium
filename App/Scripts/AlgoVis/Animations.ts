@@ -111,8 +111,18 @@ export default class PrefabAnimations {
         let n = array.length;
         let colors = array.map(item => item.container.template.style.backgroundColor);
 
-        console.log("Creating quick animation")
         function pivot (left: number, right: number): number {
+            let bgElem: Container | null = null;
+            let bgElemTemplate = document.createElement("div");
+            bgElemTemplate.style.backgroundColor = "oklch(0.5265 0 42.35 / 16.67%)"
+            let leftPos = array[left].container.rel_x;
+            let rightPos = array[right].container.rel_x + array[right].container.width;
+            let parent = array[left].container.parent;
+            ExtraHelpers.SchedulePersonalAnimation(() => {}, 1, renderer, () => {
+                if (!bgElem) {
+                    bgElem = ExtraHelpers.NewBoxFromTemplate(bgElemTemplate, parent, rightPos - leftPos, parent.height - 2, leftPos, 2);
+                }
+            })
             let i = left;
             let j = right;
             let mode = -1;
@@ -123,7 +133,7 @@ export default class PrefabAnimations {
                 ExtraHelpers.ColorContainers([array[i].container, array[j].container], colors[0], () => {}, Math.floor(10 / settings.speed), renderer);
 
                 if (compFunction(array[i], array[j])) {
-                    ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => {renderer()}, Math.floor(20 / settings.speed), renderer);
+                    ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => {}, Math.floor(20 / settings.speed), renderer);
                     [array[i].container.rel_x, array[j].container.rel_x] = [array[j].container.rel_x, array[i].container.rel_x];
                     [array[i], array[j]] = [array[j], array[i]];
                     mode *= -1;
@@ -135,19 +145,26 @@ export default class PrefabAnimations {
                     j--;
                 }
             }
+            ExtraHelpers.SchedulePersonalAnimation(() => {}, 1, renderer, () => {
+                if (bgElem) {
+                    bgElem.parent.removeChild(bgElem);
+                    bgElem = null;
+                }
+            })
             return i;
         }
 
-        function recurse(left: number, right: number) {
-            if (left == right) {
-                return;
+        let stack: {left: number; right: number}[] = [{left: 0, right: n - 1}];
+        while (stack.length) {
+            let pos = stack.pop();
+            if (pos.left >= pos.right) {
+                continue;
             }
-            let mid = pivot(left, right);
-            recurse(left, mid - 1);
-            recurse(mid, right);
-        }
 
-        recurse(0, n - 1);
+            let mid = pivot(pos.left, pos.right);
+            stack.push({left: pos.left, right: mid - 1});
+            stack.push({left: mid + 1, right: pos.right});
+        }
 
         for (let j = 0; j < array.length; j++) {
             array[j].container.rel_x = array[j].originalPos

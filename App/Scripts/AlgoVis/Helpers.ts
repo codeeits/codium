@@ -107,4 +107,12 @@ export default class ExtraHelpers {
             return hook_end();
         });
     }
+
+    static SchedulePersonalAnimation(hook_end: () => any, frame_speed: number, renderer: () => any, tick_callback: () => any): void {
+        ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
+            tick_callback();
+            renderer();
+            return deltaTime >= 1.0;
+        }, frame_speed, hook_end);
+    }
 }

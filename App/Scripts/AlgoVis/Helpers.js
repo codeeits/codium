@@ -89,6 +89,13 @@ class ExtraHelpers {
             return hook_end();
         });
     }
+    static SchedulePersonalAnimation(hook_end, frame_speed, renderer, tick_callback) {
+        ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
+            tick_callback();
+            renderer();
+            return deltaTime >= 1.0;
+        }, frame_speed, hook_end);
+    }
 }
 ExtraHelpers.animator = null;
 ExtraHelpers.COMMON_ANIMATIONS = COMMON_ANIMATIONS;

@@ -9,9 +9,9 @@ let vector = [];
 let n = 10
 
 for (let i = 0; i < n; i++) {
-    let rand = Math.floor(Math.random() * (n - 1)) + 1;
+    let rand = Math.floor(Math.random() * n) + 1;
 
-    let size_y = (rand / n) * (root.height * 3 / 5);
+    let size_y = (rand / n) * (root.height * 3 / 5) + 40;
     let size_X = (root.width / n) * 0.8;
     let template = document.createElement("div")
 
@@ -115,6 +115,6 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.QUICK_SORT_ANIMATION(vector, compare, scheduleRender, null)
+PrefabAnimations.QUICK_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "red", highlightBorderColor: "blue", speed: 1.33})
 
 animator.Start();
