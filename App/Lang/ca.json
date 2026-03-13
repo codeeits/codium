@@ -216,7 +216,13 @@
     },
     "pdf_transl": {
         "generated_on": "Generat el",
-        "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD)."
+        "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD).",
+        "privacy_minimization_title": "El principi de minimització de dades",
+        "privacy_minimization_text": "D'acord amb el principi de minimització de dades (Article 5) del RGPD, Codium limita estrictament la recopilació de dades a la informació essencial necessària per a oferir els nostres serveis educatius i competitius. No rastregem intencionadament adreces IP, empremtes digitals del navegador o dades financeres.",    
+        
+        "email_unverified_warning": "Avís: L'adreça de correu electrònic associada a aquest compte no està verificada. Assegureu-vos de baixar aquest document de manera segura.",
+        "user_data_request": "Resultat de la sol·licitud de dades de l'usuari"
+
     },
 
     "difficulty": {

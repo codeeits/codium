@@ -216,7 +216,13 @@
     },
     "pdf_transl": {
         "generated_on": "Generated on",
-        "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR)."
+        "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR).",
+        "privacy_minimization_title": "Data Minimization Principle",
+        "privacy_minimization_text": "In accordance with the data minimization principle (Article 5) of the GDPR, Codium strictly limits the collection of data to only the essential information needed to provide our educational and competitive services. We do not intentionally track IP addresses, browser fingerprints, or financial data." ,
+    
+        "email_unverified_warning": "Warning: The email address associated with this account is not verified. Please ensure you download this document in a secure manner.",
+        "user_data_request": "User Data Request Result"
+        
     },
 
     "difficulty": {

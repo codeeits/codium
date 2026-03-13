@@ -215,8 +215,14 @@
         "next_problem": "Următoarea problemă"
     },
     "pdf_transl": {
-        "generated_on": "Generat la: ",
-        "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR)."
+        "generated_on": "Generat ",
+        "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR).",
+        "privacy_minimization_title": "Principiul Minimizării Datelor",
+        "privacy_minimization_text": "În conformitate cu principiul minimizării datelor (Articolul 5) din GDPR, Codium limitează strict colectarea datelor la informațiile esențiale necesare pentru a furniza serviciile noastre educaționale și competiționale. Nu urmărim în mod intenționat adresele IP, amprentele de browser (browser fingerprints) sau datele financiare." ,  
+    
+        "email_unverified_warning": "Avertisment: Adresa de email asociată acestui cont nu este verificată. Vă rugăm să vă asigurați că descărcați acest document într-un mod sigur.",
+        "user_data_request": "Rezultatul cererii de acces la datele cu caracter personal"
+
     },
 
     "difficulty": {

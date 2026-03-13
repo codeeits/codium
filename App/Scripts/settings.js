@@ -335,34 +335,195 @@ document.addEventListener("DOMContentLoaded", () => {
     function requestData() {
         elements.requestDataBtn.addEventListener('click', async () => {
             const prefs = PreferencesManager.get();
+            const gdprData = await window.apiService.getUserDataGDPR();
+
+            const fileBlob = new Blob([JSON.stringify(gdprData, null, 2)], { type: 'application/json' });
+            const fileUrl = URL.createObjectURL(fileBlob);
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = `codium_user_data_${gdprData.user.ID}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(fileUrl);
+
+            const currentLang = localStorage.getItem('lang') || 'ro';
+
             const translatedLogoP = `<p data-i18n="welcome" class="logo-p">Learn/ Code/ Compete/</p>`;
+
+            const emailVerified = gdprData.user.EmailValidated;
+            const emailWarning = !emailVerified ? 
+                `<p class="security-warning" data-i18n="pdf_transl.email_unverified_warning">Security Warning: This email address is unverified. Please ensure you download this document securely.</p>` : '';
+
             const contentBody = `
-            <h1>User Data Request:</h1>
-            <p>Username: ${userData.Username}</p>
-            <p>User ID: ${userData.ID}</p>
-            <p>Email: ${userData.Email || 'N/A'}</p>
-            <p>Email verified: ${userData.EmailValidated ? 'Yes' : 'No'}</p>
-            <p>Account created: ${new Date(userData.CreatedAt.Time).toLocaleDateString('ro-RO')}</p>
-            <p>Last updated profile: ${new Date(userData.UpdatedAt.Time).toLocaleDateString('ro-RO')}</p>
-            <p>Profile picture ID: ${userData.ProfilePicID || 'N/A'}</p>
-            <p>Profile picture: <img src="${userData.profilePicUrl || 'https://placehold.co/80/png'}" alt="Profile Picture" width="80" height="80" style="object-fit: cover"></p>
-            <h2>Preferences:</h2>
-            <ul>
-                <li>Colorblind mode: ${prefs.colorblind ? 'Enabled' : 'Disabled'}</li>
-                <li>High contrast mode: ${prefs.highContrast ? 'Enabled' : 'Disabled'}</li>
-                <li>Font size: ${prefs.fontSize || 'Default'}</li>
-                <li>Hue rotation: ${prefs.hueRotation || 0} degrees</li>
-                <li>Selected language: ${localStorage.getItem('lang') || 'ro'}</li>
-            </ul>
-            <h2>Lesson bookmarks:</h2>
-            <ul>
-            ${userData.bookmarks ? userData.bookmarks.map(b => `<li>Lesson ID: ${b.LessonID}</li>`).join('') : '<li>No bookmarks available.</li>'}\n\n
-            </ul>
+            <div class="gdpr-document">
+                <h1 data-i18n="pdf_transl.user_data_request">User Data Request</h1>
+
+                <div class="privacy-minimization-notice">
+                    <h3 data-i18n="pdf_transl.privacy_minimization_title">Data Minimization Principle</h3>
+                    <p data-i18n="pdf_transl.privacy_minimization_text">In accordance with the GDPR principle of Data Minimization (Article 5), Codium strictly limits data collection to the essential information required to provide our educational and competitive services. We intentionally do not track IP addresses, browser fingerprints, or financial data.</p>
+                </div>
+
+                ${emailWarning}
+
+                <p>A JSON file containing your raw data has been downloaded automatically along with this document.</p>
+
+                <h2 data-i18n="pdf_transl.profile_details">Profile Details:</h2>
+                <table class="gdpr-table profile-table">
+                    <tbody>
+                        <tr>
+                            <td>Username:</td>
+                            <td>${gdprData.user.Username}</td>
+                        </tr>
+                        <tr>
+                            <td>User ID:</td>
+                            <td>${gdprData.user.ID}</td>
+                        </tr>
+                        <tr>
+                            <td>Email:</td>
+                            <td>${gdprData.user.Email || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>Email verified:</td>
+                            <td>${emailVerified ? 'Yes' : '<span style="color: red; font-weight: bold;">No</span>'}</td>
+                        </tr>
+                        <tr>
+                            <td>Account created:</td>
+                            <td>${gdprData.user.CreatedAt?.Time ? new Date(gdprData.user.CreatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>Last updated profile:</td>
+                            <td>${gdprData.user.UpdatedAt?.Time ? new Date(gdprData.user.UpdatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>Profile picture:</td>
+                            <td>
+                                <img class="profile-picture" src="${userData.profilePicUrl || 'https://placehold.co/80/png'}" alt="Profile Picture" width="80" height="80">
+                                <br><small>ID: ${gdprData.user.ProfilePicID || 'N/A'}</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 data-i18n="preferences">Preferences:</h2>
+                <table class="gdpr-table preferences-table">
+                    <tbody>
+                        <tr>
+                            <td data-i18n="pref_colorblind">Colorblind mode:</td>
+                            <td>${prefs.colorblind ? 'Enabled' : 'Disabled'}</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="pref_high_contrast">High contrast mode:</td>
+                            <td>${prefs.highContrast ? 'Enabled' : 'Disabled'}</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="pref_font_size">Font size:</td>
+                            <td>${prefs.fontSize || 'Default'}</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="pref_hue">Hue rotation:</td>
+                            <td>${prefs.hueRotation || 0} degrees</td>
+                        </tr>
+                        <tr>
+                            <td data-i18n="pref_language">Selected language:</td>
+                            <td>${currentLang}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 data-i18n="learning_history">Learning history:</h2>
+                <p><strong data-i18n="lessons_interacted">Lessons Interacted With:</strong> ${gdprData.users_lessons ? gdprData.users_lessons.length : 0}</p>
+                <table class="gdpr-table history-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_id">ID</th>
+                            <th data-i18n="th_bookmarked">Bookmarked</th>
+                            <th data-i18n="th_started">Started at</th>
+                            <th data-i18n="th_completed">Completed at</th>
+                            <th data-i18n="th_last_interacted">Last interacted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${gdprData.users_lessons && gdprData.users_lessons.length > 0 ? 
+                            gdprData.users_lessons.map(ul => `
+                            <tr>
+                                <td>${ul.LessonID}</td>
+                                <td>${ul.Bookmarked ? 'Yes' : 'No'}</td>
+                                <td>${ul.StartedAt?.Time ? new Date(ul.StartedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                                <td>${ul.CompletedAt?.Time ? new Date(ul.CompletedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                                <td>${ul.UpdatedAt?.Time ? new Date(ul.UpdatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                            </tr>`).join('') 
+                            : `<tr><td colspan="5" data-i18n="no_lesson_interactions">No lesson interactions recorded.</td></tr>`}
+                    </tbody>
+                </table>
+
+                <h2 data-i18n="problems_interacted">Problems interacted with:</h2>
+                <p><strong data-i18n="problems_interacted_count">Problems Interacted With:</strong> ${gdprData.users_problems ? gdprData.users_problems.length : 0}</p>
+                <table class="gdpr-table history-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="th_id">ID</th>
+                            <th data-i18n="th_bookmarked">Bookmarked</th>
+                            <th data-i18n="th_solved">Solved at</th>
+                            <th data-i18n="th_last_interacted">Last interacted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${gdprData.users_problems && gdprData.users_problems.length > 0 ? 
+                            gdprData.users_problems.map(up => `
+                            <tr>
+                                <td>${up.ProblemID}</td>
+                                <td>${up.Bookmarked?.Bool ? 'Yes' : 'No'}</td>
+                                <td>${up.SolvedAt?.Time ? new Date(up.SolvedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                                <td>${up.UpdatedAt ? new Date(up.UpdatedAt).toLocaleDateString(currentLang) : 'N/A'}</td>
+                            </tr>`).join('') 
+                            : `<tr><td colspan="4" data-i18n="no_problem_interactions">No problem interactions recorded.</td></tr>`}
+                    </tbody>
+                </table>
+
+                <h2 data-i18n="submissions_solutions">Submissions (solutions):</h2>
+                <p><strong data-i18n="submissions_made">Submissions made:</strong> ${gdprData.user_solutions ? gdprData.user_solutions.length : 0}</p>
+                <table class="gdpr-table submissions-table">
+                    ${gdprData.user_solutions && gdprData.user_solutions.length > 0 ? 
+                        gdprData.user_solutions.map(us => `
+                        <tbody class="submission-entry">
+                            <tr>
+                                <td colspan="4" style="page-break-inside: avoid; break-inside: avoid;">
+                                    <strong>Problem ID:</strong> ${us.ProblemID} | 
+                                    <strong>Language:</strong> ${us.Language} | 
+                                    <strong>Tests:</strong> ${us.TestsPassed?.Int32 || 0} / ${us.TotalTests?.Int32 || 0} | 
+                                    <strong>Submitted:</strong> ${us.CreatedAt?.Time ? new Date(us.CreatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <!--<pre class="code-block" style="margin-top: 5px;"><code>${us.SentCode ? us.SentCode.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''}</code></pre>-->
+                                    <pre class="code-block" style="margin-top: 5px;"><code>code for problem id ${us.ProblemID} is included in the json file, under ${us.ID} solution ID</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                        `).join('') 
+                        : `<tbody><tr><td colspan="4" data-i18n="no_submissions">No submissions recorded.</td></tr></tbody>`}
+                </table>
+            </div>
             `;
+
             const footerData = `
-                <p><span data-i18n="pdf_transl.generated_on"></span> ${new Date().toLocaleString('ro-RO')}</p>
-                <i data-i18n="pdf_transl.gdpr_notice">This is a request for all personal data associated with this account, in accordance with GDPR regulations.</i>
+                <div class="gdpr-footer">
+                    <p><span data-i18n="pdf_transl.generated_on">Generated on</span> ${new Date().toLocaleString(currentLang, { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long',
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        second: '2-digit'
+                        })}
+                    </p>
+                    <i data-i18n="pdf_transl.gdpr_notice">This is a formal request for all personal data associated with this account, issued in accordance with the General Data Protection Regulation (GDPR).</i>
+                </div>
             `;
+
             const response = textToPDF(contentBody, "header", false, footerData, translatedLogoP);
             console.log(response);
         });
