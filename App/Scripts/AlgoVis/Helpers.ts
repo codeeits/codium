@@ -131,12 +131,14 @@ export default class ExtraHelpers {
     static MoveContainer(container:Container, x: number, y: number, hook_end:() => any, frame_speed: number, renderer: () => any) :void {
         let startX = container.rel_x;
         let startY = container.rel_y;
+        let endX = x
+        let endY = y
         ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
-            COMMON_ANIMATIONS.LinearInterpolation(startX, x, (v) => {
+            COMMON_ANIMATIONS.LinearInterpolation(startX, endX, (v) => {
                 container.rel_x = v
                 renderer()
             })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
-            COMMON_ANIMATIONS.LinearInterpolation(startY, y, (v) => {
+            COMMON_ANIMATIONS.LinearInterpolation(startY, endY, (v) => {
                 container.rel_y = v
                 renderer()
             })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));

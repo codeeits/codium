@@ -41,6 +41,10 @@ export class Container {
          this.children.push(child);
      }
 
+     toString() {
+         return `Container (width: ${this.width}, height: ${this.height}, rel_x: ${this.rel_x}, rel_y: ${this.rel_y}, children: ${this.children.length})`;
+     }
+
     /**
      * Sets the parent container. Called when adding this container as a child to another container.
      * Please do not call this method directly unless you're setting the parent of the viewport.

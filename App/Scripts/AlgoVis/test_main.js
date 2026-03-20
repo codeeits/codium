@@ -6,7 +6,7 @@ import { AnimationHandler } from "./AnimationHandler.js";
 let view = new Viewport(1220, 1000, 20, 0);
 let root = new RootContainer(view.width + 40, view.height, view);
 let vector = [];
-let n = 10
+let n = 30
 
 for (let i = 0; i < n; i++) {
     let rand = Math.floor(Math.random() * n) + 1;
@@ -115,6 +115,6 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.MERGE_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "", highlightBorderColor: "", speed: 0.03})
+PrefabAnimations.MERGE_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "", highlightBorderColor: "", speed: 0.5})
 
 animator.Start();

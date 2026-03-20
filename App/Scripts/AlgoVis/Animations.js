@@ -8,7 +8,7 @@ export default class PrefabAnimations {
         }
         let array = [];
         for (let i = 0; i < vector.length; i++) {
-            array.push({ container: vector[i].container, value: vector[i].value, originalPos: vector[i].container.rel_x });
+            array.push({ container: vector[i].container, value: vector[i].value, originalPosX: vector[i].container.rel_x, originalPosY: vector[i].container.rel_y });
         }
         return array;
     }
@@ -28,6 +28,22 @@ export default class PrefabAnimations {
         }
         return settings;
     }
+    static _swap(array, i, j, settings, renderer, comp, comparisonTrueHook) {
+        let ogColor = array[i].container.template.style.backgroundColor;
+        ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
+        ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(20 / settings.speed), renderer);
+        ExtraHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
+        if (comp(array[i], array[j])) {
+            ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => {
+                renderer();
+            }, Math.floor(30 / settings.speed), renderer);
+            [array[i].container.rel_x, array[j].container.rel_x] = [array[j].container.rel_x, array[i].container.rel_x];
+            [array[i], array[j]] = [array[j], array[i]];
+            if (comparisonTrueHook) {
+                comparisonTrueHook();
+            }
+        }
+    }
     static BUBBLE_SORT_ANIMATION(vector, compFunction, renderer, settings) {
         settings = this.settingsInit(settings);
         let array = PrefabAnimations.init(vector, settings.speed);
@@ -39,24 +55,16 @@ export default class PrefabAnimations {
         while (!done && iterations < n * n) {
             done = true;
             for (let i = 0; i < n - j - 1; i++) {
-                ExtraHelpers.ColorContainers([array[i].container, array[i + 1].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.HighlightContainers([array[i].container, array[i + 1].container], settings.highlightBorderColor, () => { }, Math.floor(20 / settings.speed), renderer);
-                ExtraHelpers.ColorContainers([array[i].container, array[i + 1].container], colors[0], () => { }, Math.floor(10 / settings.speed), renderer);
-                if (compFunction(array[i], array[i + 1])) {
-                    ExtraHelpers.SwapContainers(array[i].container, array[i + 1].container, () => {
-                        renderer();
-                    }, Math.floor(30 / settings.speed), renderer);
-                    [array[i].container.rel_x, array[i + 1].container.rel_x] = [array[i + 1].container.rel_x, array[i].container.rel_x];
-                    [array[i], array[i + 1]] = [array[i + 1], array[i]];
+                this._swap(array, i, i + 1, settings, renderer, compFunction, () => {
                     done = false;
-                }
+                });
             }
             ExtraHelpers.ColorContainers([array[n - j - 1].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
             iterations++;
             j++;
         }
         for (let j = 0; j < array.length; j++) {
-            array[j].container.rel_x = array[j].originalPos;
+            array[j].container.rel_x = array[j].originalPosX;
         }
     }
     static INSERTION_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -66,20 +74,11 @@ export default class PrefabAnimations {
         let colors = array.map(item => item.container.template.style.backgroundColor);
         for (let i = 0; i < n - 1; i++) {
             for (let j = i + 1; j < n; j++) {
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], "red", () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], "yellow", () => { }, Math.floor(20 / settings.speed), renderer);
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], colors[0], () => { }, Math.floor(10 / settings.speed), renderer);
-                if (compFunction(array[i], array[j])) {
-                    ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => {
-                        renderer();
-                    }, Math.floor(30 / settings.speed), renderer);
-                    [array[i].container.rel_x, array[j].container.rel_x] = [array[j].container.rel_x, array[i].container.rel_x];
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
+                this._swap(array, i, j, settings, renderer, compFunction, null);
             }
         }
         for (let j = 0; j < array.length; j++) {
-            array[j].container.rel_x = array[j].originalPos;
+            array[j].container.rel_x = array[j].originalPosX;
         }
     }
     static QUICK_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -110,15 +109,9 @@ export default class PrefabAnimations {
                 [array[i], array[mid]] = [array[mid], array[i]];
             }
             while (i < j) {
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], colors[0], () => { }, Math.floor(10 / settings.speed), renderer);
-                if (compFunction(array[i], array[j])) {
-                    ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => { }, Math.floor(20 / settings.speed), renderer);
-                    [array[i].container.rel_x, array[j].container.rel_x] = [array[j].container.rel_x, array[i].container.rel_x];
-                    [array[i], array[j]] = [array[j], array[i]];
+                PrefabAnimations._swap(array, i, j, settings, renderer, compFunction, () => {
                     mode *= -1;
-                }
+                });
                 if (mode === -1) {
                     i++;
                 }
@@ -145,7 +138,7 @@ export default class PrefabAnimations {
             stack.push({ left: mid + 1, right: pos.right });
         }
         for (let j = 0; j < array.length; j++) {
-            array[j].container.rel_x = array[j].originalPos;
+            array[j].container.rel_x = array[j].originalPosX;
         }
     }
     static MERGE_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -160,64 +153,75 @@ export default class PrefabAnimations {
                 maxHeight = array[i].container.height;
             }
         }
-        let secondVector = [];
+        let mergeVect = [];
+        let markerVect = [];
+        let aux = [];
         for (let j = 0; j < n; j++) {
             array[j].container.rel_y /= 2;
             let newTemplate = document.createElement("div");
             newTemplate.style = array[j].container.template.style.cssText;
-            let newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, maxHeight, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height + 20);
+            let newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height + 20);
             array[j].container.parent.addChild(newBox);
-            secondVector.push({ container: newBox, value: -1, originalPos: array[j].originalPos });
-            newTemplate.style.zIndex = "-1";
-            newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, array[j].container.height, array[j].container.rel_x, array[j].container.rel_y);
+            mergeVect.push(newBox);
+            newTemplate.style.zIndex = "-2";
+            newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height);
             array[j].container.parent.addChild(newBox);
-            array.push({ container: newBox, value: -1, originalPos: array[j].originalPos });
+            markerVect.push(newBox);
         }
         let ogColor = array[0].container.template.style.backgroundColor;
-        function copy(toCopy) {
-            return { container: toCopy.container, value: toCopy.value, originalPos: toCopy.originalPos };
-        }
         function merge(left, mid, right) {
             let i = left;
             let j = mid + 1;
             let k = 0;
-            for (let item of secondVector) {
-                console.log(item);
-            }
+            console.log(`We got left and right: ${left} & ${right} | With a calculated middle of: ${mid}`);
             while (i <= mid && j <= right) {
+                console.log(`Current k: ${k} with element: ${mergeVect[k].toString()}`);
                 ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
                 ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(10 / settings.speed), renderer);
                 ExtraHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
+                console.log(`Checking i - ${i}; j - ${j}... \n${array[i].container};\n${array[j].container};\n `);
                 if (compFunction(array[i], array[j])) {
-                    ExtraHelpers.MoveContainer(array[j + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, () => { }, 10 / settings.speed, renderer);
-                    secondVector[k++] = copy(array[j++]);
+                    ExtraHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                    array[j].container.rel_x = mergeVect[k].rel_x;
+                    array[j].container.rel_y = mergeVect[k].rel_y;
+                    aux.push(array[j]);
+                    k++;
+                    j++;
                 }
                 else {
-                    ExtraHelpers.MoveContainer(array[i + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, () => { }, 10 / settings.speed, renderer);
-                    secondVector[k++] = copy(array[i++]);
+                    ExtraHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                    array[i].container.rel_x = mergeVect[k].rel_x;
+                    array[i].container.rel_y = mergeVect[k].rel_y;
+                    aux.push(array[i]);
+                    k++;
+                    i++;
                 }
-                renderer();
             }
             while (i <= mid) {
-                ExtraHelpers.MoveContainer(array[i + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, () => { }, 10 / settings.speed, renderer);
-                array[i + n].container.rel_x = secondVector[k].container.rel_x;
-                array[i + n].container.rel_y = secondVector[k].container.rel_y;
-                secondVector[k++] = copy(array[i + n]);
-                renderer();
+                console.log(`Current k: ${k}`);
+                ExtraHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                array[i].container.rel_x = mergeVect[k].rel_x;
+                array[i].container.rel_y = mergeVect[k].rel_y;
+                aux.push(array[i]);
+                k++;
                 i++;
             }
             while (j <= right) {
-                ExtraHelpers.MoveContainer(array[j + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, () => { }, 10 / settings.speed, renderer);
-                array[j + n].container.rel_x = secondVector[k].container.rel_x;
-                array[i + n].container.rel_y = secondVector[k].container.rel_y;
-                secondVector[k++] = copy(array[j + n]);
-                renderer();
+                console.log(`Current k: ${k}`);
+                ExtraHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                array[j].container.rel_x = mergeVect[k].rel_x;
+                array[j].container.rel_y = mergeVect[k].rel_y;
+                aux.push(array[j]);
+                k++;
                 j++;
             }
-            for (let x = 0; x < k - 1; x++) {
-                ExtraHelpers.MoveContainer(array[x + n].container, array[x].container.rel_x, array[k].container.rel_y, () => { }, 30 / settings.speed, renderer);
-                array[x] = copy(secondVector[x]);
+            for (let x = 0; x < k; x++) {
+                ExtraHelpers.MoveContainer(aux[x].container, markerVect[left + x].rel_x, markerVect[left + x].rel_y - aux[x].container.height, () => { }, 10 / settings.speed, renderer);
+                aux[x].rel_x = markerVect[left + x].rel_x;
+                aux[x].rel_y = markerVect[left + x].rel_y - aux[x].container.height;
+                array[left + x] = aux[x];
             }
+            aux = [];
         }
         function sort(left, right) {
             if (left >= right) {
@@ -230,7 +234,8 @@ export default class PrefabAnimations {
         }
         sort(0, n - 1);
         for (let item of array) {
-            item.container.rel_x = item.originalPos;
+            item.container.rel_x = item.originalPosX;
+            item.container.rel_y = item.originalPosY / 2;
         }
         renderer();
     }
