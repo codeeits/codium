@@ -1420,7 +1420,7 @@ blockquote {
     border-color: var(--border2-solid);
     box-shadow: 0px 0px 7.5px 0px rgba(100, 100, 100, 0.3);
 }
-.toast-error {
+.toast-error, .toast-danger {
     background-color: var(--danger);
     border-color: var(--danger-border);
     box-shadow: 0px 0px 7.5px 0px rgba(89, 41, 65, 0.3);
