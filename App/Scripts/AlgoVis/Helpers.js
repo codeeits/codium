@@ -29,7 +29,7 @@ class ExtraHelpers {
         let containers = [];
         let individualWidth = width / n;
         for (let i = 0; i < n; i++) {
-            let container = new Container(individualWidth, height, (individualWidth + 2 * spacing) * i, start_y, template);
+            let container = new Container(individualWidth, height, start_x + (individualWidth + 2 * spacing) * i, start_y, template);
             parent.addChild(container);
             containers.push(container);
         }
@@ -46,6 +46,8 @@ class ExtraHelpers {
     static SwapContainers(container1, container2, hook_end, frame_speed, renderer) {
         let startX1 = container1.rel_x;
         let startX2 = container2.rel_x;
+        let startY1 = container1.rel_y;
+        let startY2 = container2.rel_y;
         this.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
             COMMON_ANIMATIONS.LinearInterpolation(startX1, startX2, (v) => {
                 container1.rel_x = v;
@@ -55,6 +57,14 @@ class ExtraHelpers {
                 container2.rel_x = v;
                 renderer();
             })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
+            COMMON_ANIMATIONS.LinearInterpolation(startY1, startY2, (v) => {
+                container2.rel_y = v;
+                renderer();
+            });
+            COMMON_ANIMATIONS.LinearInterpolation(startY2, startY1, (v) => {
+                container2.rel_y = v;
+                renderer();
+            });
             return deltaTime >= 1.0;
         }, frame_speed, hook_end);
     }
@@ -93,6 +103,21 @@ class ExtraHelpers {
         ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
             tick_callback();
             renderer();
+            return deltaTime >= 1.0;
+        }, frame_speed, hook_end);
+    }
+    static MoveContainer(container, x, y, hook_end, frame_speed, renderer) {
+        let startX = container.rel_x;
+        let startY = container.rel_y;
+        ExtraHelpers.animator.ScheduleAnimationAfterPrevious((deltaTime) => {
+            COMMON_ANIMATIONS.LinearInterpolation(startX, x, (v) => {
+                container.rel_x = v;
+                renderer();
+            })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
+            COMMON_ANIMATIONS.LinearInterpolation(startY, y, (v) => {
+                container.rel_y = v;
+                renderer();
+            })(COMMON_ANIMATION_EASING_FUNCTIONS.EaseInOutCubic(deltaTime));
             return deltaTime >= 1.0;
         }, frame_speed, hook_end);
     }

@@ -115,6 +115,6 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.QUICK_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "red", highlightBorderColor: "blue", speed: 1.33})
+PrefabAnimations.MERGE_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "", highlightBorderColor: "", speed: 0.03})
 
 animator.Start();

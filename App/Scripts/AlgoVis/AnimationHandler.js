@@ -4,6 +4,12 @@ export class AnimationHandler {
             return;
         }
         this.frameCount++;
+        this.renderAnimations();
+        if (this.animations.length === 0) {
+            this.Stop();
+        }
+    }
+    renderAnimations() {
         this.animations = this.animations.filter(([animation, start_frame, duration, callback]) => {
             if (this.frameCount >= start_frame && this.frameCount <= start_frame + duration) {
                 const isComplete = this.RunAnimation(animation, duration, this.frameCount - start_frame);
@@ -14,9 +20,6 @@ export class AnimationHandler {
             }
             return this.frameCount < start_frame + duration;
         });
-        if (this.animations.length === 0) {
-            this.Stop();
-        }
     }
     constructor() {
         //Capping the animation at 60 FPS
@@ -66,6 +69,16 @@ export class AnimationHandler {
         this.running = true;
         this.timerId = window.setInterval(() => this.Update(), 16);
         this.frameCount = 0;
+    }
+    Pause() {
+        if (!this.running) {
+            this.Start();
+        }
+        this.running = false;
+    }
+    Step() {
+        this.frameCount++;
+        this.renderAnimations();
     }
     Stop() {
         this.running = false;

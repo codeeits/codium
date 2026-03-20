@@ -69,6 +69,7 @@ export default class PrefabAnimations {
                     done = false;
                 }
             }
+            ExtraHelpers.ColorContainers([array[n - j - 1].container], settings.highlightColor, () => {}, Math.floor(10 / settings.speed), renderer);
             iterations++;
             j++;
         }
@@ -125,11 +126,19 @@ export default class PrefabAnimations {
             })
             let i = left;
             let j = right;
+            let mid = Math.floor((i + j) / 2)
             let mode = -1;
+
+            // Quicksort gets worse in a sorted list if you take the first or the last element, so we'll take the middle element instead
+            if (i < j) {
+                ExtraHelpers.SwapContainers(array[i].container, array[mid].container, () => {}, Math.floor(20 / settings.speed), renderer);
+                [array[i].container.rel_x, array[mid].container.rel_x] = [array[mid].container.rel_x, array[i].container.rel_x];
+                [array[i], array[mid]] = [array[mid], array[i]];
+            }
 
             while (i < j) {
                 ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => {}, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => {}, Math.floor(20 / settings.speed), renderer);
+                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => {}, Math.floor(10 / settings.speed), renderer);
                 ExtraHelpers.ColorContainers([array[i].container, array[j].container], colors[0], () => {}, Math.floor(10 / settings.speed), renderer);
 
                 if (compFunction(array[i], array[j])) {
@@ -169,5 +178,106 @@ export default class PrefabAnimations {
         for (let j = 0; j < array.length; j++) {
             array[j].container.rel_x = array[j].originalPos
         }
+    }
+
+    static MERGE_SORT_ANIMATION(vector: {container: Container, value: any}[], compFunction: (a: any, b: any) => boolean, renderer: () => any, settings: Settings | null): void {
+        settings = this.settingsInit(settings);
+        let array = PrefabAnimations.init(vector, settings.speed);
+        let n = array.length;
+
+        // gotta make space for the second vector
+        let maxHeight = 0;
+        for (let i = 0; i < n; i++) {
+            array[i].container.height = array[i].container.height / 2 - 20;
+            if (array[i].container.height > maxHeight) {
+                maxHeight = array[i].container.height;
+            }
+        }
+
+        let secondVector = []
+
+        for (let j = 0; j < n; j++) {
+            array[j].container.rel_y /= 2;
+
+            let newTemplate = document.createElement("div")
+            newTemplate.style = array[j].container.template.style.cssText
+            let newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, maxHeight, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height + 20);
+            array[j].container.parent.addChild(newBox);
+            secondVector.push({container: newBox, value: -1, originalPos: array[j].originalPos});
+
+            newTemplate.style.zIndex = "-1"
+            newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, array[j].container.height, array[j].container.rel_x, array[j].container.rel_y);
+            array[j].container.parent.addChild(newBox);
+            array.push({container: newBox, value: -1, originalPos: array[j].originalPos});
+        }
+        let ogColor = array[0].container.template.style.backgroundColor
+
+        function copy(toCopy: {container: Container, value: any, originalPos: number}) {
+            return {container: toCopy.container, value: toCopy.value, originalPos: toCopy.originalPos};
+        }
+        function merge(left: number, mid: number, right: number): void {
+            let i = left;
+            let j = mid + 1;
+            let k = 0
+
+            for (let item of secondVector) {
+                console.log(item)
+            }
+
+            while (i <= mid && j <= right) {
+                ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => {}, Math.floor(10 / settings.speed), renderer);
+                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => {}, Math.floor(10 / settings.speed), renderer);
+                ExtraHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => {}, Math.floor(10 / settings.speed), renderer);
+
+                if (compFunction(array[i], array[j])) {
+                    ExtraHelpers.MoveContainer(array[j + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, ()=>{}, 10 / settings.speed, renderer)
+                    secondVector[k++] = copy(array[j++]);
+                } else {
+                    ExtraHelpers.MoveContainer(array[i + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, ()=>{}, 10 / settings.speed, renderer)
+                    secondVector[k++] = copy(array[i++]);
+                }
+                renderer()
+            }
+
+            while (i <= mid) {
+                ExtraHelpers.MoveContainer(array[i + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, ()=>{}, 10 / settings.speed, renderer)
+                array[i + n].container.rel_x = secondVector[k].container.rel_x
+                array[i + n].container.rel_y = secondVector[k].container.rel_y
+                secondVector[k++] = copy(array[i + n]);
+                renderer()
+                i++
+            }
+            while (j <= right) {
+                ExtraHelpers.MoveContainer(array[j + n].container, secondVector[k].container.rel_x, secondVector[k].container.rel_y, ()=>{}, 10 / settings.speed, renderer)
+                array[j + n].container.rel_x = secondVector[k].container.rel_x
+                array[i + n].container.rel_y = secondVector[k].container.rel_y
+                secondVector[k++] = copy(array[j + n]);
+                renderer()
+                j++
+            }
+
+            for (let x = 0; x < k -1; x++) {
+                ExtraHelpers.MoveContainer(array[x + n].container, array[x].container.rel_x, array[k].container.rel_y, () => {}, 30 / settings.speed, renderer)
+                array[x] = copy(secondVector[x])
+            }
+        }
+
+        function sort (left: number, right: number): void {
+            if (left >= right) {
+                return;
+            }
+            let mid = Math.floor((left + right) / 2);
+            sort(left, mid)
+            sort(mid + 1, right)
+            merge(left, mid, right)
+        }
+
+        sort(0, n-1)
+
+        for (let item of array) {
+            item.container.rel_x = item.originalPos;
+        }
+
+        renderer();
     }
 }
