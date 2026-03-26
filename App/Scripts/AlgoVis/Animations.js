@@ -1,6 +1,7 @@
 import ExtraHelpers from "./Helpers.js";
 const defaultHighlightColor = "oklch(0.7 0.1 225)";
 const defaultHighlightBorderColor = "oklch(0.6765 0.1998 42.35)";
+const defaultDoneColor = "oklch(0.6813 0.1915 132.7732)";
 export default class PrefabAnimations {
     static init(vector, speed) {
         if (speed <= 0 || speed > 10) {
@@ -17,6 +18,7 @@ export default class PrefabAnimations {
             settings = {
                 highlightColor: defaultHighlightColor,
                 highlightBorderColor: defaultHighlightBorderColor,
+                doneColor: defaultDoneColor,
                 speed: 1,
             };
         }
@@ -25,6 +27,9 @@ export default class PrefabAnimations {
         }
         if (settings.highlightBorderColor == "") {
             settings.highlightBorderColor = defaultHighlightBorderColor;
+        }
+        if (settings.doneColor == "") {
+            settings.doneColor = defaultDoneColor;
         }
         return settings;
     }
@@ -50,7 +55,6 @@ export default class PrefabAnimations {
         let n = array.length;
         let j = 0;
         let done = false;
-        let colors = array.map(item => item.container.template.style.backgroundColor);
         let iterations = 0;
         while (!done && iterations < n * n) {
             done = true;
@@ -59,12 +63,15 @@ export default class PrefabAnimations {
                     done = false;
                 });
             }
-            ExtraHelpers.ColorContainers([array[n - j - 1].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
+            ExtraHelpers.ColorContainers([array[n - j - 1].container], settings.doneColor, () => { }, Math.floor(10 / settings.speed), renderer);
             iterations++;
             j++;
         }
         for (let j = 0; j < array.length; j++) {
             array[j].container.rel_x = array[j].originalPosX;
+        }
+        for (let item of array) {
+            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static INSERTION_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -79,6 +86,9 @@ export default class PrefabAnimations {
         }
         for (let j = 0; j < array.length; j++) {
             array[j].container.rel_x = array[j].originalPosX;
+        }
+        for (let item of array) {
+            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static QUICK_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -139,6 +149,9 @@ export default class PrefabAnimations {
         }
         for (let j = 0; j < array.length; j++) {
             array[j].container.rel_x = array[j].originalPosX;
+        }
+        for (let item of array) {
+            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static MERGE_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -236,6 +249,13 @@ export default class PrefabAnimations {
         for (let item of array) {
             item.container.rel_x = item.originalPosX;
             item.container.rel_y = item.originalPosY / 2;
+        }
+        for (let item of array) {
+            console.log(`Setting color of ${item.container} to done color... ${settings.doneColor}`);
+            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => {
+                item.container.height *= 2;
+                item.container.rel_y *= 2;
+            }, 1, renderer);
         }
         renderer();
     }
