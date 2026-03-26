@@ -3262,6 +3262,12 @@ func (cfg *ApiCfg) CreateSolutionHandler(w http.ResponseWriter, r *http.Request,
 
 	cfg.Logger.Print("Received create solution request")
 
+	if sendingUser.EmailValidated == false {
+		cfg.Logger.Printf("User email not validated: %v", sendingUser.ID)
+		http.Error(w, "Email not validated", http.StatusForbidden)
+		return
+	}
+
 	p, err := DecodeParamsFromBody(r, params{})
 
 	if err != nil {
