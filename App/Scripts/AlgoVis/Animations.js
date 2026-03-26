@@ -148,7 +148,7 @@ export default class PrefabAnimations {
         // gotta make space for the second vector
         let maxHeight = 0;
         for (let i = 0; i < n; i++) {
-            array[i].container.height = array[i].container.height / 2 - 20;
+            array[i].container.height = array[i].container.height / 2;
             if (array[i].container.height > maxHeight) {
                 maxHeight = array[i].container.height;
             }
@@ -217,9 +217,9 @@ export default class PrefabAnimations {
             }
             for (let x = 0; x < k; x++) {
                 ExtraHelpers.MoveContainer(aux[x].container, markerVect[left + x].rel_x, markerVect[left + x].rel_y - aux[x].container.height, () => { }, 10 / settings.speed, renderer);
-                aux[x].rel_x = markerVect[left + x].rel_x;
-                aux[x].rel_y = markerVect[left + x].rel_y - aux[x].container.height;
-                array[left + x] = aux[x];
+                array.splice(left + x, 1, aux[x]);
+                array[left + x].container.rel_x = markerVect[left + x].rel_x;
+                array[left + x].container.rel_y = markerVect[left + x].rel_y - aux[x].container.height;
             }
             aux = [];
         }
