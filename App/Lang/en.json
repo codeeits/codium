@@ -1,4 +1,5 @@
 {
+    "language": "English",
     "app_name": "codium/",
     "welcome": "Learn/ Code/ Compete/",
     "login": {
@@ -23,11 +24,140 @@
         "recent-activity": "recent activity",
         "bookmarks": "bookmarks"
     },
+
+    "settings-page": {
+        "title": "Settings",
+        "privacy-section": {
+            "title": "Privacy",
+            "options": {
+                "make-profile-private": "Make my profile private",
+                "download-my-data": "Download my data"
+            }
+        },
+        "appearance-section": {
+            "title": "Appearance",
+            "options": {
+                "dark-mode": "Dark mode (locked lol)",
+                "font-size": "Font size",
+                "color-blind-mode": "Color blind mode",
+                "high-contrast-mode": "High contrast mode",
+                "hue-slider": "Hue slider"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Other stuff",
+            "options": {
+                "language": "Display language",
+                "support": "Contact form"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. All rights reserved.",
+            "opensource": "Codium is an open source project.",
+            "contribute": "Contribute on GitHub",
+            "made_with_love": "made with ♥ by andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lessons",
+        "desc": "Your base knowledge concepts",
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest"
+        },
+        "all-fliter": "All",
+        "right-bar": {
+            "content": "Content",
+            "keypoints": "Key Points"
+        }
+    },
+
+    "problems-page": {
+        "title": "Problems",
+        "desc": "Apply the theory.",
+        "all-filter": "All",
+        "dropdown-1": {
+            "alfabetic": "Alphabetic",
+            "discovery": "Discovery",
+            "random": "Random",
+            "newest": "Newest"
+        },
+        "dropdown-2": {
+            "dificulty": "Difficulty",
+            "easy": "Easy",
+            "medium": "Medium",
+            "hard": "Hard"
+        },
+        "enable-feed-mode": "Enable feed mode",
+        "disable-feed-mode": "Disable feed mode",
+        "surprise-me": "Surprise me",
+
+        "no-problems": {
+            "title": "No problems for the selected filters.",
+            "desc": "Try modifying the filters to see more problems."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activity",
+                "available_tests": "Available tests",
+                "sent_solutions": "Sent solutions",
+                "correct_solutions": "Correct solutions"
+            },
+            "send-solution": {
+                "title": "Send solution",
+                "desc": "Press here to upload or drag and drop."
+            },
+            "solutions": {
+                "title": "Solutions"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Bookmarks",
+        "desc": "Your saved lessons and problems for quick access.",
+        "no-bookmarks": {
+            "title": "You don't have any bookmarks yet.",
+            "desc": "To get started, explore the available lessons and add them to your bookmarks."
+        },
+        "buttons": {
+            "all": "All",
+            "lessons": "Lessons",
+            "problems": "Problems",
+            "explore-lessons": "Explore lessons"
+        },
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest"
+        }
+    },
+
     "log-out": "log out",
     "top-menu": {
-        "teory": "> theory",
-        "probleme": "> problems",
-        "contact": "> contact"
+        "teory": "Theory",
+        "probleme": "Problems",
+        "contact": "Contact",
+        "coin": "cookies"
+    },
+    "sidebar": {
+        "home": "Home",
+        "bookmarks": "Bookmarks",
+        "progress": "Progress",
+        "learn": "Learn",
+        "lessons": "Lessons",
+        "problems": "Problems",
+        "tests": "Tests",
+        "other": "Other",
+        "manage-lessons": "Manage lessons",
+        "manage-problems": "Manage problems",
+        "settings": "Settings",
+        "about": "About us"
     },
     "modal": {
         "edit_profile": {
@@ -60,12 +190,67 @@
     "buttons": {
         "save": "save",
         "cancel": "cancel",
-        "submit": "submit",
+        "submit": "Submit",
         "edit": "edit profile",
         "delete": "delete",
         "create": "create",
         "update": "update",
         "login": "log in",
-        "register": "sign up"
+        "register": "sign up",
+
+        "comment": "settings specific buttons",
+        "log-out": "Log out",
+        "support-button": "Contact support",
+        "download-data": "Download my data",
+        "font-size-labels": {
+            "small": "Small",
+            "medium": "Medium",
+            "large": "Large",
+            "x-large": "X-Large"
+        },
+
+        "next_lesson": "Next lesson",
+        "feedback": "Feedback",
+
+        "next_problem": "Next problem"
+    },
+    "pdf_transl": {
+        "generated_on": "Generated on",
+        "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR).",
+        "privacy_minimization_title": "Data Minimization Principle",
+        "privacy_minimization_text": "In accordance with the data minimization principle (Article 5) of the GDPR, Codium strictly limits the collection of data to only the essential information needed to provide our educational and competitive services. We do not intentionally track IP addresses, browser fingerprints, or financial data." ,
+    
+        "email_unverified_warning": "Warning: The email address associated with this account is not verified. Please ensure you download this document in a secure manner.",
+        "user_data_request": "User Data Request Result"
+        
+    },
+
+    "difficulty": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+    },
+
+    "classe": {
+        "1": "1st grade",
+        "2": "2nd grade",
+        "3": "3rd grade",
+        "4": "4th grade",
+        "8": "8th grade",
+        "9": "9th grade",
+        "10": "10th grade",
+        "11": "11th grade",
+        "12": "12th grade",
+        "67": "67th grade"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatics",
+        "2": "Physics",
+        "3": "Chemistry",
+        "4": "Biology",
+        "5": "English",
+        "6": "Mathematics"
     }
 }

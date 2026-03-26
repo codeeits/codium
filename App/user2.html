@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/user.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="home">
+</head>
+<body>
+    <!-- COPY HEADER IN NEW PAGES -->
+    <!--<header class="top-bar">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#">Teorie</a>
+                <a href="#">Probleme</a>
+            </nav>
+        </div>
+        <div class="top-bar-right">
+            <span class="lang-toggle">RO</span>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info">
+                <div class="user-info-text">
+                    <span class="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 biscuiței</span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small">
+            </div>
+        </div>
+    </header>-->
+    
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <!-- LEFT COLUMN -->
+            <div class="main-content">
+                <div class="card profile-card">
+                    <div class="profile-info">
+                        <img src="https://placehold.co/80/png" alt="Profile Picture" class="profile-avatar">
+                        <div class="profile-details">
+                            <h2 class="profile-name">Codeeitsbutlonger</h2>
+                            <p class="profile-email">mail@its-codee.com</p>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button type="button" class="btn secondary">Log-out</button>
+                        <button type="button" class="btn primary">Editează profilul</button>
+                    </div>
+                </div>
+
+                <!-- continue -->
+                <section class="section">
+                    <div class="section-header">
+                        <h1 class="section-title">Continue learning</h1>
+                        <div class="nav-arrows">
+                            <button class="nav-arrow" aria-label="Previous">
+                                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 1L1 7L7 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+                            <button class="nav-arrow" aria-label="Next">
+                                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 1L7 7L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card content-card">
+                        <div class="content-card-image"></div>
+                        <div class="content-card-body">
+                            <div class="content-card-text">
+                                <span class="content-card-category">CLASA A IX-A</span>
+                                <h3 class="content-card-title">Problema 1</h3>
+                                <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+                            </div>
+                            <div class="content-card-footer">
+                                <div class="difficulty">
+                                    <svg class="difficulty-icon" width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="0" y="6" width="4" height="8" rx="1" fill="#659D48"></rect>
+                                        <rect x="6" y="3" width="4" height="11" rx="1" fill="#659D48"></rect>
+                                        <rect x="12" y="0" width="4" height="14" rx="1" fill="#659D48"></rect>
+                                    </svg>
+                                    <span class="difficulty-text">Easy</span>
+                                </div>
+                                <button type="button" class="btn primary full-width">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- bookmarks Section -->
+                <section class="section">
+                    <div class="section-header">
+                        <h1 class="section-title">Bookmarks</h1>
+                        <div class="nav-arrows">
+                            <button class="nav-arrow" aria-label="Previous">
+                                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 1L1 7L7 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+                            <button class="nav-arrow" aria-label="Next">
+                                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 1L7 7L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card content-card">
+                        <div class="content-card-image"></div>
+                        <div class="content-card-body">
+                            <div class="content-card-text">
+                                <span class="content-card-category">CLASA A IX-A</span>
+                                <h3 class="content-card-title">Problema 1</h3>
+                                <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+                            </div>
+                            <div class="content-card-footer">
+                                <div class="difficulty">
+                                    <svg class="difficulty-icon" width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="0" y="6" width="4" height="8" rx="1" fill="#659D48"></rect>
+                                        <rect x="6" y="3" width="4" height="11" rx="1" fill="#659D48"></rect>
+                                        <rect x="12" y="0" width="4" height="14" rx="1" fill="#659D48"></rect>
+                                    </svg>
+                                    <span class="difficulty-text">Easy</span>
+                                </div>
+                                <button type="button" class="btn primary full-width">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="side-content">
+                <!-- Progress Card -->
+                <section class="section">
+                    <div class="card stats-card">
+                        <h2 class="stats-title">Progress</h2>
+                        <div class="progress-chart">
+                            <!-- Placeholder for the spider/radar chart -->
+                            <div class="chart-placeholder">
+                                <p>Radar Chart Placeholder</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- Day Streak Card -->
+                <section class="section">
+                    <div class="card stats-card">
+                        <h2 class="stats-title">Day streak</h2>
+                        <p class="stats-description">Complete a problem today to start a new streak.</p>
+                        <div class="streak-days">
+                            <div class="streak-day active">
+                                <span class="day-label">M</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">T</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">W</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">T</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">F</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">S</span>
+                                <div class="day-circle"></div>
+                            </div>
+                            <div class="streak-day">
+                                <span class="day-label">S</span>
+                                <div class="day-circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Achievements Card -->
+                <section class="section">
+                    <div class="card stats-card">
+                        <h2 class="stats-title">Achievements</h2>
+                        <div class="achievements-list">
+                            <div class="achievement">
+                                <p class="achievement-name">Rezolvator expert</p>
+                                <div class="achievement-progress">
+                                    <div class="progress-bar" style="width: 33%;"></div>
+                                </div>
+                                <p class="achievement-status">30/90 probleme de clasa a XII-a</p>
+                            </div>
+                            <div class="achievement">
+                                <p class="achievement-name">Strateg suprem</p>
+                                <div class="achievement-progress">
+                                    <div class="progress-bar" style="width: 50%;"></div>
+                                </div>
+                                <p class="achievement-status">50/100 probleme tip Divide Et Impera</p>
+                            </div>
+                            <div class="achievement">
+                                <p class="achievement-name">Altceva...</p>
+                                <div class="achievement-progress">
+                                    <div class="progress-bar" style="width: 50%;"></div>
+                                </div>
+                                <p class="achievement-status">50%</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>

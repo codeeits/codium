@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Problems - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/manage-problems.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="manage-problems">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <!-- Tab Navigation -->
+            <div class="tabs-container card">
+                <h2>Problem & Test Management</h2>
+                <div class="tabs-nav">
+                    <button type="button" class="tab-btn btn primary active" data-tab="problems">
+                        <i class="fa-solid fa-puzzle-piece"></i> Problems
+                    </button>
+                    <button type="button" class="tab-btn btn secondary" data-tab="tests">
+                        <i class="fa-solid fa-vial"></i> Tests
+                    </button>
+                    <button type="button" class="tab-btn btn secondary" data-tab="solutions">
+                        <i class="fa-solid fa-code"></i> Solutions
+                    </button>
+                    <button type="button" class="tab-btn btn secondary" data-tab="run">
+                        <i class="fa-solid fa-play"></i> Run Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- PROBLEMS TAB -->
+            <div class="tab-content active" id="tab-problems">
+                <!-- Create Problem -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-plus"></i> Create Problem</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">Title</label>
+                            <div class="input-field">
+                                <input type="text" id="title" class="input-text" placeholder="Problem title">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="input-label">Source (optional)</label>
+                            <div class="input-field">
+                                <input type="text" id="source" class="input-text" placeholder="e.g., OJI 2023">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="input-label">Description</label>
+                        <div class="input-field">
+                            <textarea id="description" class="input-text" rows="3" placeholder="Problem description"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">First Test ID (UUID, optional)</label>
+                            <div class="input-field">
+                                <input type="text" id="first_test_id" class="input-text" placeholder="e.g., f424291e-9680-4e05-886f-ee9da849ab85">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="input-label">Thumbnail ID (UUID, optional)</label>
+                            <div class="input-field">
+                                <input type="text" id="thumbnail_id" class="input-text" placeholder="e.g., a1b2c3d4-...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4>Tags (all integers)</h4>
+                    <div class="tags-grid">
+                        <div class="form-group">
+                            <label class="input-label">Difficulty</label>
+                            <div class="input-field">
+                                <input type="number" id="difficulty" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Class</label>
+                            <div class="input-field">
+                                <input type="number" id="class" class="input-text" value="9" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Module</label>
+                            <div class="input-field">
+                                <input type="number" id="module" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Section</label>
+                            <div class="input-field">
+                                <input type="number" id="section" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Solve Type</label>
+                            <div class="input-field">
+                                <input type="number" id="solve_type" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Result Type</label>
+                            <div class="input-field">
+                                <input type="number" id="result_type" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Verification Type</label>
+                            <div class="input-field">
+                                <input type="number" id="verification_type" class="input-text" value="1" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn primary" onclick="createProblem()">
+                            <i class="fa-solid fa-plus"></i> Create Problem
+                        </button>
+                    </div>
+                    <div id="createProblemResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Problems -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-list"></i> Get Problems</h3>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getProblems()">
+                            <i class="fa-solid fa-download"></i> Get All Problems
+                        </button>
+                    </div>
+                    <div id="getProblemsResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Problem by ID -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-search"></i> Get Problem by ID</h3>
+                    <div class="form-group">
+                        <label class="input-label">Problem ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="get_problem_id" class="input-text" placeholder="Problem UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getProblemById()">
+                            <i class="fa-solid fa-search"></i> Get Problem
+                        </button>
+                    </div>
+                    <div id="getProblemResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Update Problem -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-pen"></i> Update Problem</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    
+                    <div class="form-group">
+                        <label class="input-label">Problem ID to update (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="update_problem_id" class="input-text" placeholder="Problem UUID">
+                        </div>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Tags</h4>
+                        <div class="tags-grid">
+                            <div class="form-group">
+                                <label class="input-label">Difficulty</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_difficulty" class="input-text" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Module</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_module" class="input-text" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Solve Type</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_solve_type" class="input-text" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Result Type</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_result_type" class="input-text" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Verification Type</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_verification_type" class="input-text" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Section</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_section" class="input-text" min="1">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateProblemTags()">Update Tags</button>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Details</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Title</label>
+                                <div class="input-field">
+                                    <input type="text" id="upd_title" class="input-text" placeholder="New title">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Source</label>
+                                <div class="input-field">
+                                    <input type="text" id="upd_source" class="input-text" placeholder="New source">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="input-label">Description</label>
+                            <div class="input-field">
+                                <textarea id="upd_description" class="input-text" rows="2" placeholder="New description"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateProblemDetails()">Update Details</button>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update First Test ID</h4>
+                        <div class="form-group">
+                            <label class="input-label">First Test ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="upd_first_test" class="input-text" placeholder="Test UUID">
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateProblemFirstTest()">Update First Test</button>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Thumbnail</h4>
+                        <div class="form-group">
+                            <label class="input-label">Thumbnail ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="upd_thumbnail" class="input-text" placeholder="Thumbnail file UUID">
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateProblemThumbnail()">Update Thumbnail</button>
+                    </div>
+
+                    <div id="updateProblemResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Delete Problem -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-trash"></i> Delete Problem</h3>
+                    <p class="form-hint">Requires: header authorization (admin)</p>
+                    <div class="form-group">
+                        <label class="input-label">Problem ID to delete (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="delete_problem_id" class="input-text" placeholder="Problem UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn danger" onclick="deleteProblem()">
+                            <i class="fa-solid fa-trash"></i> Delete Problem
+                        </button>
+                    </div>
+                    <div id="deleteProblemResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- TESTS TAB -->
+            <div class="tab-content" id="tab-tests">
+                <!-- Create Test -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-plus"></i> Create Problem Test</h3>
+                    <p class="form-hint">Requires: header authorization. Input: "input_text" OR "input_file" (uploaded file UUID)</p>
+                    
+                    <div class="form-group full-width">
+                        <label class="input-label">Input Text</label>
+                        <div class="input-field">
+                            <textarea id="test_input_text" class="input-text" rows="3" placeholder="Text input for the test"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="input-label">OR Input File ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="test_input_file" class="input-text" placeholder="File UUID (if both provided, file takes priority)">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="input-label">Expected Output</label>
+                        <div class="input-field">
+                            <textarea id="test_expected_output" class="input-text" rows="3" placeholder="Expected output"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">Previous Test ID (UUID, optional)</label>
+                            <div class="input-field">
+                                <input type="text" id="test_prev_id" class="input-text" placeholder="Previous test in chain">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Next Test ID (UUID, optional)</label>
+                            <div class="input-field">
+                                <input type="text" id="test_next_id" class="input-text" placeholder="Next test in chain">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn primary" onclick="createTest()">
+                            <i class="fa-solid fa-plus"></i> Create Test
+                        </button>
+                    </div>
+                    <div id="createTestResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Test by ID -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-search"></i> Get Test by ID</h3>
+                    <div class="form-group">
+                        <label class="input-label">Test ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="get_test_id" class="input-text" placeholder="Test UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getTestById()">
+                            <i class="fa-solid fa-search"></i> Get Test
+                        </button>
+                    </div>
+                    <div id="getTestResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Test Chain -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-link"></i> Get Test Chain</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">First Test ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="get_test_chain_first_id" class="input-text" placeholder="First Test UUID">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">OR Problem ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="get_test_chain_problem_id" class="input-text" placeholder="Problem UUID">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getTestChainByFirstId()">
+                            <i class="fa-solid fa-link"></i> Get Test Chain
+                        </button>
+                    </div>
+                    <div id="getTestChainResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Update Test -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-pen"></i> Update Test</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    
+                    <div class="form-group">
+                        <label class="input-label">Test ID to update (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="update_test_id" class="input-text" placeholder="Test UUID">
+                        </div>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Input</h4>
+                        <div class="form-group full-width">
+                            <label class="input-label">Input Text</label>
+                            <div class="input-field">
+                                <textarea id="upd_test_input_text" class="input-text" rows="2" placeholder="New input text"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">OR Input File ID</label>
+                            <div class="input-field">
+                                <input type="text" id="upd_test_input_file" class="input-text" placeholder="File UUID">
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateTestInput()">Update Input</button>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Expected Output</h4>
+                        <div class="form-group full-width">
+                            <label class="input-label">Expected Output</label>
+                            <div class="input-field">
+                                <textarea id="upd_test_expected_output" class="input-text" rows="2" placeholder="New expected output"></textarea>
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateTestExpectedOutput()">Update Expected Output</button>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update Prev/Next Links</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Previous Test ID</label>
+                                <div class="input-field">
+                                    <input type="text" id="upd_test_prev" class="input-text" placeholder="Previous test UUID">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Next Test ID</label>
+                                <div class="input-field">
+                                    <input type="text" id="upd_test_next" class="input-text" placeholder="Next test UUID">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn secondary" onclick="updateTestPrev()">Update Prev</button>
+                            <button type="button" class="btn secondary" onclick="updateTestNext()">Update Next</button>
+                        </div>
+                    </div>
+
+                    <div id="updateTestResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Delete Test -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-trash"></i> Delete Test</h3>
+                    <p class="form-hint">Requires: header authorization (admin)</p>
+                    <div class="form-group">
+                        <label class="input-label">Test ID to delete (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="delete_test_id" class="input-text" placeholder="Test UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn danger" onclick="deleteTest()">
+                            <i class="fa-solid fa-trash"></i> Delete Test
+                        </button>
+                    </div>
+                    <div id="deleteTestResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- SOLUTIONS TAB -->
+            <div class="tab-content" id="tab-solutions">
+                <!-- Create Solution -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-plus"></i> Create Solution</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    
+                    <div class="form-group full-width">
+                        <label class="input-label">Code</label>
+                        <div class="input-field">
+                            <textarea id="solution_code" class="input-text code-input" rows="8" placeholder="Solution code"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">Language</label>
+                            <div class="input-field">
+                                <input type="text" id="solution_language" class="input-text" placeholder="Programming language">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Problem ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="solution_problem_id" class="input-text" placeholder="e.g., f424291e-9680-4e05-886f-ee9da849ab85">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn primary" onclick="createSolution()">
+                            <i class="fa-solid fa-plus"></i> Create Solution
+                        </button>
+                    </div>
+                    <div id="createSolutionResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Update Solution -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-pen"></i> Update Solution</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    
+                    <div class="form-group">
+                        <label class="input-label">Solution ID to update (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="update_solution_id" class="input-text" placeholder="Solution UUID">
+                        </div>
+                    </div>
+
+                    <div class="update-section">
+                        <h4>Update # of tests</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Tests Passed</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_solution_tests_passed" class="input-text" min="0" placeholder="Number of tests passed">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label">Total Tests</label>
+                                <div class="input-field">
+                                    <input type="number" id="upd_solution_total_tests" class="input-text" min="0" placeholder="Total number of tests">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" onclick="updateSolutionTests()">Update # of tests</button>
+                    </div>
+
+                    <div id="updateSolutionResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Solutions by Problem ID -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-list"></i> Get Solutions by Problem ID</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    <div class="form-group">
+                        <label class="input-label">Problem ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="get_solutions_problem_id" class="input-text" placeholder="Problem UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getSolutions('problem')">
+                            <i class="fa-solid fa-download"></i> Get Solutions
+                        </button>
+                    </div>
+                    <div id="getSolutionsResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Solutions by User ID -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-user"></i> Get Solutions by User ID</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    <div class="form-group">
+                        <label class="input-label">User ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="get_solutions_user_id" class="input-text" placeholder="User UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getSolutions('user')">
+                            <i class="fa-solid fa-download"></i> Get Solutions
+                        </button>
+                    </div>
+                    <div id="getSolutionsResultUser" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Get Solution by ID -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-search"></i> Get Solution by ID</h3>
+                    <p class="form-hint">Requires: header authorization</p>
+                    <div class="form-group">
+                        <label class="input-label">Solution ID (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="get_solution_id" class="input-text" placeholder="Solution UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="getSolutionById()">
+                            <i class="fa-solid fa-search"></i> Get Solution
+                        </button>
+                    </div>
+                    <div id="getSolutionByIdResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Count Solutions -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-calculator"></i> Count Solutions</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">Problem ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="count_solutions_problem_id" class="input-text" placeholder="Problem UUID">
+                            </div>
+                            <button type="button" class="btn secondary" onclick="countSolutions('problem')" style="margin-top: var(--gap-sm);">
+                                Count by Problem
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">User ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="count_solutions_user_id" class="input-text" placeholder="User UUID">
+                            </div>
+                            <button type="button" class="btn secondary" onclick="countSolutions('user')" style="margin-top: var(--gap-sm);">
+                                Count by User
+                            </button>
+                        </div>
+                    </div>
+                    <div id="countSolutionsResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <!-- Delete Solution -->
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-trash"></i> Delete Solution</h3>
+                    <p class="form-hint">Requires: header authorization (admin)</p>
+                    <div class="form-group">
+                        <label class="input-label">Solution ID to delete (UUID)</label>
+                        <div class="input-field">
+                            <input type="text" id="delete_solution_id" class="input-text" placeholder="Solution UUID">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn danger" onclick="deleteSolution()">
+                            <i class="fa-solid fa-trash"></i> Delete Solution
+                        </button>
+                    </div>
+                    <div id="deleteSolutionResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- RUN CODE TAB -->
+            <div class="tab-content" id="tab-run">
+                <div class="card form-section">
+                    <h3><i class="fa-solid fa-play"></i> Run Code</h3>
+                    <p class="form-hint">Execute code against test cases</p>
+                    
+                    <div class="form-group full-width">
+                        <label class="input-label">Code</label>
+                        <div class="input-field">
+                            <textarea id="run_code" class="input-text code-input" rows="10" placeholder="Enter your code here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="input-label">Language</label>
+                            <div class="dropdown" id="language-dropdown">
+                                <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                                    Select Language <i class="fa-solid fa-chevron-down"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-item" data-value="cpp">C++</div>
+                                    <div class="dropdown-item" data-value="python">Python</div>
+                                    <div class="dropdown-item" data-value="java">Java</div>
+                                    <div class="dropdown-item" data-value="javascript">JavaScript</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="input-label">Problem ID (UUID)</label>
+                            <div class="input-field">
+                                <input type="text" id="run_problem_id" class="input-text" placeholder="Problem UUID">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn primary" onclick="runCode()">
+                            <i class="fa-solid fa-play"></i> Run Code
+                        </button>
+                        <button type="button" class="btn confirm" onclick="submitCode()">
+                            <i class="fa-solid fa-paper-plane"></i> Submit
+                        </button>
+                    </div>
+                    <div id="runCodeResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/app/Scripts/problemsHandler.js"></script>
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Update button states
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('active', 'primary');
+                    b.classList.add('secondary');
+                });
+                this.classList.remove('secondary');
+                this.classList.add('active', 'primary');
+                
+                // Show/hide tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById('tab-' + tabId).classList.add('active');
+            });
+        });
+
+        // Dropdown functionality
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = this.closest('.dropdown');
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                const icon = toggle.querySelector('i');
+                toggle.textContent = this.textContent.trim() + ' ';
+                toggle.appendChild(icon);
+                
+                // Store selected value
+                dropdown.dataset.value = this.dataset.value;
+                
+                dropdown.classList.remove('open');
+            });
+        });
+
+        // Helper function to show results
+        function showResult(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            el.style.display = 'block';
+            el.className = 'result-box ' + (isError ? 'error' : 'success');
+            el.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        }
+    </script>
+</body>
+</html>

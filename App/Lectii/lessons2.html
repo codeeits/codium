@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lessons - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/lessons.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/lessons/lessonsPage.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="lessons">
+</head>
+<body>
+    <!-- COPY HEADER IN NEW PAGES -->
+    <!--<header class="top-bar">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#">Teorie</a>
+                <a href="#">Probleme</a>
+            </nav>
+        </div>
+        <div class="top-bar-right">
+            <span class="lang-toggle">RO</span>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info">
+                <div class="user-info-text">
+                    <span class="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 biscuiței</span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small">
+            </div>
+        </div>
+    </header>-->
+    
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+                <h1 data-i18n="lessons-page.title">Lecții</h1>
+                <h2 class="page-description" data-i18n="lessons-page.desc">Bazele pregătirii tale teoretice</h2>
+                <div class="filters-list">
+                    <div class="filters-list-left" id="class-filters">
+                        <button type="button" class="btn primary template active" id="all-lessons" data-i18n="lessons-page.all-fliter">Toate</button>
+                        <button type="button" class="btn secondary" data-i18n="lessons-page.classe.9">Clasa a IX-a</button>
+                        <button type="button" class="btn secondary" data-i18n="lessons-page.classe.10">Clasa a X-a</button>
+                        <button type="button" class="btn secondary" data-i18n="lessons-page.classe.11">Clasa a XI-a</button>
+                        <button type="button" class="btn secondary" data-i18n="lessons-page.classe.12">Clasa a XII-a</button>
+                    </div>
+                        <div class="dropdown" id="sort-dropdown">
+                            <button type="button" class="btn primary dropdown-toggle">
+                                <span data-i18n="lessons-page.dropdown.alfabetic" class="no-style">Alfabetic</span> <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item active" data-i18n="lessons-page.dropdown.alfabetic">Alfabetic</div>
+                                <div class="dropdown-item" data-i18n="lessons-page.dropdown.dificuly">Dificultate</div>
+                                <div class="dropdown-item" data-i18n="lessons-page.dropdown.newest">Cele mai noi</div>
+                                <div class="dropdown-item" data-i18n="lessons-page.dropdown.oldest">Cele mai vechi</div>
+                            </div>
+                        </div>
+                </div>
+                <div class="separator"></div>
+                <div class="lessons-grid-container" id="lessons-container">
+                    <div class="card content-card hidden" id="template-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="lesson-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Introducere în programare</h3>
+                            <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -606,7 +606,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
-		if !UserHasPermission(user, PermissionCanManageLessons) {
+		if !UserHasPermission(user, PermissionCanManageLessons) && !UserHasPermission(user, PermissionCanSuggestLessons) {
 			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
@@ -660,6 +660,18 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	}
 
 	return filePath, fileId.String(), nil
+}
+
+func (cfg *ApiCfg) MakeAdmin(userID uuid.UUID) error {
+	_, err := cfg.Db.SetUserPermissions(context.Background(), database.SetUserPermissionsParams{
+		ID:          userID,
+		Permissions: int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
+		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to set user permissions: %v", err)
+	}
+	return nil
 }
 
 // DeleteUser Delete a user and all their associated files

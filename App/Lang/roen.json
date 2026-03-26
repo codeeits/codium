@@ -1,0 +1,89 @@
+{
+    "language": "Romengleză",
+    "hidden": "true",
+    "_comment": "Acesta este un fișier de traducere pentru limba romengleză. Have fun la tradus!",
+    "app_name": "codeează pe stadion/",
+    "welcome": "Learn/ Codează/ Ce? Palas e overhyped?/",
+    "login": {
+        "title": "",
+        "email": "e-mail",
+        "password": "password",
+        "forgot_password": "did you uitat parola?",
+        "remember_me": "dont forgetă-mă pe mine",
+        "no_account": "no account deja?",
+        "register": "registerează-te"
+    },
+    "signup": {
+        "title": "Registerează-te",
+        "username": "username",
+        "email": "e-mail",
+        "password": "password",
+        "confirm_password": "confirmă password"
+    },
+    "user-page": {
+        "progress": "progress",
+        "achievements": "acomplimentari",
+        "recent-activity": "activitate recent",
+        "bookmarks": "lessons salvate"
+    },
+    "log-out": "log afară",
+    "top-menu": {
+        "teory": "Teorie",
+        "probleme": "Problems",
+        "contact": "Contactează-usi",
+        "coin": "cuie"
+    },
+    "sidebar": {
+        "home": "Aici is acasă",
+        "bookmarks": "The salvate",
+        "progress": "Progress",
+        "learn": "Învață",
+        "lessons": "Lacții",
+        "problems": "Probleme",
+        "tests": "Nu știu cum să traduc asta",
+        "other": "probabil alte chestii",
+        "manage-lessons": "Managerizează lessons",
+        "manage-problems": "Managerizează problems",
+        "settings": "ce? setări? idk what ăla",
+        "about": "our story"
+    },
+    "modal": {
+        "edit_profile": {
+            "title": "Edit tu profil",
+            "labels": {
+                "email": "Change e-mailul:",
+                "username": "Change username:",
+                "password": "Change parola:",
+                "image": "Change poza de profil:"
+            },
+            "email": "e-mail",
+            "username": "username",
+            "current_password": "parol actual",
+            "new_password": "parol new",
+            "note": "Leave câmpurile goale if you dont want să le schimbi"
+        }
+    },
+    "flags": {
+        "module": "The modul",
+        "section": "The secțiunea",
+        "class": "The clasa"
+    },
+    "activity": {
+        "completed": "Completat",
+        "solved": "Finished",
+        "started": "Începutai",
+        "favourite": "Favoritai",
+        "earned": "Won-ed"
+    },
+    "buttons": {
+        "save": "AAASALVEAZĂ",
+        "cancel": "NU SALVEAZĂ",
+        "submit": "SEND",
+        "edit": "!NOT EDIT",
+        "delete": "Doomed",
+        "create": "Conceivează",
+        "update": "Schimbă parametrii",
+        "login": "mie i like să mă loghez",
+        "register": "mie i like să mă registerez"
+    }
+}

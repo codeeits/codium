@@ -196,7 +196,7 @@ class ApiService {
             if (response.user) {
                 localStorage.setItem('username', response.user.Username);
                 localStorage.setItem('userEmail', response.user.Email);
-                localStorage.setItem('isAdmin', response.user.IsAdmin || false);
+                localStorage.setItem('isAdmin', response.user.Permissions === 61);
                 localStorage.setItem('userID', response.user.ID);
                 if (response.user.ProfilePicID) {
                     localStorage.setItem('profilePicID', response.user.ProfilePicID);
@@ -239,7 +239,7 @@ class ApiService {
     async isCurrentAdmin() {
         const currentUser = await this.getCurrentUser();
         const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-        return userData.IsAdmin || false;
+        return userData.Permissions === 61;
     }
 
     async getUserById(userId) {
@@ -281,6 +281,16 @@ class ApiService {
 
     async updateProfilePicture(fileId) {
         return this.updateUserField('image_id', fileId, true);
+    }
+
+    // permissions management (admin only)
+
+    async updateUserPermissions(userId, title) {
+        const approvedTitles = ['admin', 'basic', 'teacher', 'moderator'];
+        if (!approvedTitles.includes(title)) {
+            throw new Error(`Invalid title. Approved titles are: ${approvedTitles.join(', ')}`);
+        }
+        return this.post('/admin/users/account_status', { userID: userId, title }, true);
     }
 
     // ===========================================
@@ -563,6 +573,16 @@ class ApiService {
         return this.put(`/api/lessons/${lessonId}?target_field=${targetField}`, data, true);
     }
 
+    // suggestions endpoints
+
+    async getPendingLessons() {
+        return this.get('/admin/lessons/suggested', true);
+    }
+
+    async approveLesson(lessonId) {
+        return this.post(`/admin/lessons/suggested/${lessonId}/approve`, {}, true);
+    }
+
     // ===========================================
     // Problems Management Endpoints
     // ===========================================
@@ -736,6 +756,36 @@ class ApiService {
         return this.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
     }
 
+    async modifyBookmarkProblem(problemId) {
+        return this.post(`/api/problems/${problemId}/bookmark`, {}, true);
+    }
+
+    async getBookmarkedProblems(userId) {
+        return this.get(`/api/users/${userId}/bookmarked_problems`, true);
+    }
+
+    async getProblemBookmarkStatus(problemId, userId = null) {
+        if (!userId) {
+            const currentUser = await this.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        
+        const bookmarks = await this.getBookmarkedProblems(userId);
+        console.log('Bookmarked Problems:', bookmarks);
+        const isBookmarked = bookmarks.some(bookmark => bookmark.ProblemID === problemId);
+        return isBookmarked;
+    }
+
+    // suggestions endpoints
+
+    async getPendingProblems() {
+        return this.get('/admin/problems/suggested', true);
+    }
+
+    async approveProblem(problemId) {
+        return this.post(`/admin/problems/suggested/${problemId}/approve`, {}, true);
+    }
     // ===========================================
     // File Management Endpoints
     // ===========================================
@@ -748,12 +798,29 @@ class ApiService {
         return `${this.baseURL}/api/files/${fileId}`;
     }
 
+    async getProfilePicture(userId = null) {
+        if (!userId) {
+            const profilePicId = localStorage.getItem('profilePicID');
+            if (profilePicId) {
+                return this.getFileUrl(profilePicId);
+            }
+            return null;
+        }
+        
+        const user = await this.getUserById(userId);
+        const userData = typeof user === 'string' ? JSON.parse(user) : user;
+        if (userData.ProfilePicID) {
+            return this.getFileUrl(userData.ProfilePicID);
+        }
+        return null;
+    }
+
     // ===========================================
-    // Code Execution (Piston API)
+    // Code Execution (Piston API) WE ARE USING JUDGE0 UNTIL WE CAN SELF HOST PISTON
     // ===========================================
 
-    async runCode(code, inputFile = null, stdin = '') {
-        const PISTON_API = 'https://emkc.org/api/v2/piston/execute';
+    async runCodePiston(code, inputFile = null, stdin = '') {
+        const PISTON_API = 'https://cpp-runner.fly.dev/api/v2/piston/execute';
         const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
         const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
 
@@ -851,6 +918,227 @@ class ApiService {
             error: result.run?.stderr || null
         };
     }
+
+    async runCode(code, inputFile = null, stdin = '') {
+        const JUDGE0_API = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
+        
+        const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
+        const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
+
+        let processedCode = code;
+        let injectedCode = '';
+
+        if (inputFile && inputFile.name && inputFile.content) {
+            const escaped = inputFile.content
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n');
+
+            injectedCode += `
+                #include <fstream>
+                void __create_input_file() {
+                std::ofstream f("${inputFile.name}");
+                f << "${escaped}";
+                f.close();
+                }
+                struct __FileCreator { __FileCreator() { __create_input_file(); } } __fc;
+            `;
+        }
+
+        injectedCode += `
+            #include <fstream>
+            #include <iostream>
+            #include <string>
+            struct __FileReader {
+            ~__FileReader() {
+                std::ifstream f("output.txt");
+                if (f.good()) {
+                std::cout << "${FILE_OUTPUT_MARKER}";
+                std::string line;
+                while (std::getline(f, line)) {
+                    std::cout << line << "\\n";
+                }
+                std::cout << "${FILE_OUTPUT_END_MARKER}";
+                f.close();
+                }
+            }
+            } __fr;
+        `;
+
+        const includeMatch = processedCode.match(/^((?:#include\s*<[^>]+>\s*\n|#include\s*"[^"]+"\s*\n|using\s+namespace\s+\w+;\s*\n)*)/);
+        if (includeMatch) {
+            const includes = includeMatch[1];
+            const rest = processedCode.slice(includes.length);
+            processedCode = includes + injectedCode + rest;
+        } else {
+            processedCode = injectedCode + processedCode;
+        }
+
+        // 2. Updated Fetch Call for Judge0
+        const res = await fetch(JUDGE0_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language_id: 54, // ID 54 = C++ (GCC 9.2.0)
+                source_code: processedCode,
+                stdin: stdin
+            })
+        });
+
+        const result = await res.json();
+
+        // Judge0 returns a "message" field if there is an API-level error (e.g. rate limit)
+        if (result.message) {
+            return { success: false, error: "API Error: " + result.message, console: '', file: '' };
+        }
+
+        // Status ID 6 = "Compilation Error" (Judge0 specific)
+        if (result.status?.id === 6) {
+            return { 
+                success: false, 
+                error: result.compile_output || "Compilation failed", 
+                console: '', 
+                file: '' 
+            };
+        }
+
+        let stdout = result.stdout || '';
+        let fileOutput = '';
+
+        // --- OUTPUT EXTRACTION LOGIC ---
+        const startIdx = stdout.indexOf(FILE_OUTPUT_MARKER);
+        const endIdx = stdout.indexOf(FILE_OUTPUT_END_MARKER);
+        if (startIdx !== -1 && endIdx !== -1) {
+            fileOutput = stdout.slice(startIdx + FILE_OUTPUT_MARKER.length, endIdx);
+            stdout = stdout.slice(0, startIdx) + stdout.slice(endIdx + FILE_OUTPUT_END_MARKER.length);
+        }
+
+        let consoleOutput = '';
+        
+        // Judge0 provides compile output in a different field, and it's only present if there are warnings (not just errors)
+        if (result.compile_output) { 
+            consoleOutput += 'Warnings:\n' + result.compile_output + '\n';
+        }
+        
+        if (stdout) consoleOutput += stdout;
+        
+        if (result.stderr) consoleOutput += '\nStderr:\n' + result.stderr;
+
+        // Status ID 3 is "Accepted"
+        const isSuccess = result.status?.id === 3;
+
+        return {
+            success: isSuccess,
+            console: consoleOutput || '',
+            file: fileOutput,
+            error: result.stderr || null
+        };
+    }
+
+    // ===========================================
+    // Misc Stuff
+    // ===========================================
+
+    getResolvedHex(cssColor) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = cssColor;
+        ctx.fillRect(0, 0, 1, 1);
+        
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        
+        const toHex = (v) => v.toString(16).padStart(2, '0');
+        return `${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    getPatternUrl(seed, type = 'shapes') {
+        const bodyStyle = window.getComputedStyle(document.body);
+        
+        // 1. Get the raw variable strings
+        const color1 = bodyStyle.getPropertyValue('--primary').trim() || 
+                        bodyStyle.getPropertyValue('--base-primary').trim();
+        const color2 = bodyStyle.getPropertyValue('--contrast').trim() || "#ffffff";
+        const color3 = bodyStyle.getPropertyValue('--fundal').trim() || "#ffffff";
+        const color4 = bodyStyle.getPropertyValue('--confirm').trim() || "#ffffff";
+        const color5 = bodyStyle.getPropertyValue('--danger').trim() || "#ffffff";
+        const color6 = bodyStyle.getPropertyValue('--warning').trim() || "#ffffff";
+
+        let color1Hex = "000000"; 
+        if (color1) {
+            const colorToResolve = color1.includes('(') ? color1 : `oklch(${color1})`;
+            color1Hex = this.getResolvedHex(colorToResolve);
+        }
+
+        const color2Hex = this.getResolvedHex(color2);
+        const color3Hex = this.getResolvedHex(color3);
+        const color4Hex = this.getResolvedHex(color4);
+        const color5Hex = this.getResolvedHex(color5);
+        const color6Hex = this.getResolvedHex(color6);
+
+        const selectedShapes = 'circle,square,triangle'; 
+        return `https://api.dicebear.com/9.x/
+        shapes/svg?
+        seed=${seed}&
+        shape1Color=${color6Hex}&
+        shape2Color=${color4Hex}&
+        shape3Color=${color3Hex},${color5Hex}&
+        backgroundColor=${color1Hex}&
+        randomizeIds=true`
+        .replace(/\s/g, '');
+    }
+
+    getChart(target, typeOf = 'radar', dataCombined = {}, extraOptions = {}) {
+        let dataExtracted = dataCombined.data || {};
+        const config = {
+            type: typeOf,
+            data: dataExtracted,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                plugins: {
+                    title: {
+                        display: false,
+                        text: dataCombined.title || '',
+                        color: '#ffffff'
+                    },
+                    legend: {
+                        labels: { color: '#ffffff' }
+                    }
+                },
+                scales: {
+                    r: { 
+                        beginAtZero: true,
+                        suggestedMax: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
+                        pointLabels: {
+                            color: '#ffffff', 
+                            font: { size: 14 }
+                        },
+                        ticks: {
+                            color: '#a0aec0', 
+                            backdropColor: 'transparent', 
+                            stepSize: 20 
+                        }
+                    }
+                }
+            }
+        };
+
+        if (extraOptions && typeof extraOptions === 'object') {
+            config.options = { ...config.options, ...extraOptions };
+        }
+
+        return new Chart(target, config);
+    }
+
+    getUserDataGDPR() {
+        return this.get('/api/users/gdpr', true);
+    }
+        
 }
 // ===========================================
 // Toasts Loader
@@ -899,7 +1187,7 @@ class ToastsLoader {
         }
         
         const toast = document.createElement('div');
-        toast.className = `card toast toast-${type}`;
+        toast.className = `card-t toast toast-${type}`;
         if(type === validTypes[0]) { // info
             toast.innerHTML = `<i class="fas fa-info-circle"></i><p>${message}</p>`;
         } else if(type === validTypes[1]) { // danger

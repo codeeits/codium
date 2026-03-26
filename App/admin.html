@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/admin.css">
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="home">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+                <h1>Admin Dashboard</h1>
+                <h2 class="page-description">Admin. Admin. Admin!!!!!!!</h2>
+                <div class="filters-list">
+                    <div class="filters-list-left" id="admin-filters">
+                        <button type="button" class="btn primary active">User control</button>
+                        <button type="button" class="btn secondary">Suggested lessons</button>
+                        <button type="button" class="btn secondary">Suggested problems</button>
+                    </div>
+                </div>
+                <div class="separator"></div>
+                <div class="user-control-container" id="user-control-container">
+                    <div class="card section-card">
+                        <h2>Set user permissions</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Username:</label>
+                                <div class="input-field">
+                                    <input type="text" id="perm-username" class="input-text" placeholder="Enter username">
+                                </div>
+                            </div>
+                            
+                            <span class=" ">or</span>
+
+                            <div class="form-group">
+                                <label class="input-label">UserID (UUID):</label>
+                                <div class="input-field">
+                                    <input type="text" id="perm-userid" class="input-text" placeholder="00000000-0000-0000-0000-000000000000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Select account title:</label>
+                                <div class="dropdown" id="account-title-dropdown">
+                                    <button type="button" class="btn secondary dropdown-toggle">
+                                        Select title <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <div class="dropdown-item" data-value="basic" data-i18n="basic">Basic</div>
+                                        <div class="dropdown-item" data-value="teacher" data-i18n="teacher">Teacher</div>
+                                        <div class="dropdown-item" data-value="moderator" data-i18n="moderator">Moderator</div>
+                                        <div class="dropdown-item" data-value="admin" data-i18n="admin">Admin</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <button type="button" class="btn primary" id="set-permissions-btn">Set Permissions</button>
+                        </div>
+                    </div>
+
+                    <div class="card section-card">
+                        <h2>Delete Account</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="input-label">Username:</label>
+                                <div class="input-field">
+                                    <input type="text" id="del-username" class="input-text" placeholder="Enter username">
+                                </div>
+                            </div>
+                            
+                            <span class=" ">or</span>
+
+                            <div class="form-group">
+                                <label class="input-label">UserID (UUID):</label>
+                                <div class="input-field">
+                                    <input type="text" id="del-userid" class="input-text" placeholder="00000000-0000-0000-0000-000000000000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <button type="button" class="btn danger" id="delete-account-btn">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="suggested-lessons-container" id="suggested-lessons-container">
+                    <div class="card section-card" style="max-width: 400px;">
+                        <h2>List of suggested lessons</h2>
+                        <div class="lessons-list-container">
+                            <div class="ll-header">
+                                <h3 class="llh-title">Title</h3>
+                                <h3 class="llh-language">Class</h3>
+                                <h3 class="llh-actions">Actions</h3>
+                            </div>
+                            <div class="ll-body" id="lessons-list-body">
+                                <!-- loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card section-card" id="lesson-preview-card">
+                        <h2>Preview lesson</h2>
+                        <h3 class="page-description" id="lesson-preview-title">Select a lesson</h3>
+                        <div class="lesson-previewed-details" id="lesson-preview-details">
+                        </div>
+                        <div class="preview-lesson-buttons">
+                            <button type="button" class="btn primary" id="lesson-raw-view-btn">Raw view</button>
+                            <button type="button" class="btn secondary" id="lesson-md-view-btn">Markdown view</button>
+                            <button type="button" class="btn primary" id="lesson-save-file-btn"><i class="fa-solid fa-file"></i> Save file</button> 
+                        </div>
+                        <div class="file-placeholder" id="lesson-preview-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                        <div class="lp-buttons">
+                            <button type="button" class="full-width btn confirm" id="lesson-approve-btn"><i class="fas fa-check"></i> Approve</button>
+                            <button type="button" class="full-width btn danger" id="lesson-reject-btn"><i class="fas fa-times"></i> Reject</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="suggested-problems-container" id="suggested-problems-container">
+                    <div class="card section-card" style="max-width: 400px;">
+                        <h2>List of suggested problems</h2>
+                        <div class="lessons-list-container">
+                            <div class="ll-header">
+                                <h3 class="llh-title">Title</h3>
+                                <h3 class="llh-language">Difficulty</h3>
+                                <h3 class="llh-actions">Actions</h3>
+                            </div>
+                            <div class="ll-body" id="problems-list-body">
+                                <!-- loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card section-card" id="problem-preview-card">
+                        <h2>Preview problem</h2>
+                        <h3 class="page-description" id="problem-preview-title">Select a problem</h3>
+                        <div class="lesson-previewed-details" id="problem-preview-details">
+                        </div>
+                        <div class="preview-lesson-buttons">
+                            <button type="button" class="btn primary" id="problem-raw-view-btn">Raw view</button>
+                            <button type="button" class="btn secondary" id="problem-md-view-btn">Markdown view</button>
+                        </div>
+                        <div class="file-placeholder" id="problem-preview-content" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                        <div class="lp-buttons">
+                            <button type="button" class="full-width btn confirm" id="problem-approve-btn"><i class="fas fa-check"></i> Approve</button>
+                            <button type="button" class="full-width btn danger" id="problem-reject-btn"><i class="fas fa-times"></i> Reject</button>
+                        </div>
+                    </div>
+                </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const api = window.apiService;
+
+        // Auth check
+        if (!api.isAuthenticated(true)) return;
+
+        // Admin check
+        try {
+            const isAdmin = await api.isCurrentAdmin();
+            if (!isAdmin) {
+                toastsLoader.showToast('Access denied. Admin privileges required.', 'danger', 5000);
+                window.location.href = '/app/index.html';
+                return;
+            }
+        } catch (e) {
+            toastsLoader.showToast('Failed to verify admin status.', 'danger', 3000);
+            return;
+        }
+
+        // ============================
+        // Tab switching
+        // ============================
+        const tabs = document.querySelectorAll('#admin-filters button');
+        const sections = [
+            document.getElementById('user-control-container'),
+            document.getElementById('suggested-lessons-container'),
+            document.getElementById('suggested-problems-container')
+        ];
+
+        function showSection(index) {
+            sections.forEach((s, i) => {
+                s.style.display = i === index ? '' : 'none';
+            });
+            tabs.forEach((t, i) => {
+                t.className = i === index ? 'btn primary active' : 'btn secondary';
+            });
+        }
+
+        tabs.forEach((tab, i) => {
+            tab.addEventListener('click', () => {
+                showSection(i);
+                if (i === 1) loadSuggestedLessons();
+                if (i === 2) loadSuggestedProblems();
+            });
+        });
+
+        showSection(0);
+
+        // ============================
+        // Dropdown logic
+        // ============================
+        let selectedTitle = null;
+        const dropdown = document.getElementById('account-title-dropdown');
+
+        dropdown.addEventListener('dropdown-selected', (e) => {
+            selectedTitle = e.detail.value;
+        });
+
+        // ============================
+        // Resolve user ID from username or direct UUID
+        // ============================
+        async function resolveUserId(usernameInputId, useridInputId) {
+            const username = document.getElementById(usernameInputId).value.trim();
+            const userid = document.getElementById(useridInputId).value.trim();
+
+            if (userid) {
+                return userid;
+            }
+
+            if (username) {
+                const user = await api.get(`/api/users/${encodeURIComponent(username)}?search_type=username`);
+                const userData = typeof user === 'string' ? JSON.parse(user) : user;
+                return userData.ID;
+            }
+
+            throw new Error('Please provide a username or user ID.');
+        }
+
+        // ============================
+        // Set Permissions
+        // ============================
+        document.getElementById('set-permissions-btn').addEventListener('click', async () => {
+            try {
+                if (!selectedTitle) {
+                    toastsLoader.showToast('Please select an account title.', 'warning', 3000);
+                    return;
+                }
+                const userId = await resolveUserId('perm-username', 'perm-userid');
+                await api.updateUserPermissions(userId, selectedTitle);
+                console.log(`Permissions for user ${userId} set to ${selectedTitle}`);
+                toastsLoader.showToast(`User permissions set to "${selectedTitle}" successfully.`, 'confirm', 3000);
+            } catch (err) {
+                window.handleApiError(err, 'Failed to set user permissions.');
+            }
+        });
+
+        // ============================
+        // Delete Account
+        // ============================
+        document.getElementById('delete-account-btn').addEventListener('click', async () => {
+            try {
+                const userId = await resolveUserId('del-username', 'del-userid');
+                if (!confirm(`Are you sure you want to delete user ${userId}? This action cannot be undone.`)) return;
+                await api.delete(`/api/users/${userId}`, true);
+                toastsLoader.showToast('Account deleted successfully.', 'confirm', 3000);
+            } catch (err) {
+                window.handleApiError(err, 'Failed to delete account.');
+            }
+        });
+
+        // ============================
+        // Suggested Lessons
+        // ============================
+        let suggestedLessons = [];
+        let selectedLesson = null;
+        let lessonViewMode = 'raw';
+
+        async function loadSuggestedLessons() {
+            const listBody = document.getElementById('lessons-list-body');
+            listBody.innerHTML = '';
+            try {
+                const response = await api.getPendingLessons();
+                suggestedLessons = typeof response === 'string' ? JSON.parse(response) : response;
+                if (!suggestedLessons || suggestedLessons.length === 0) {
+                    listBody.innerHTML = '<div class="ll-body-item"><span class="no-style llbi-title">No pending lessons</span></div>';
+                    return;
+                }
+                suggestedLessons.forEach(lesson => {
+                    const item = document.createElement('div');
+                    item.className = 'll-body-item';
+                    item.innerHTML = `
+                        <span class="no-style llbi-title">${escapeHtml(lesson.lesson.Title)}</span>
+                        <span class="no-style llbi-language">Class ${lesson.flag_translation.class}</span>
+                        <div class="llbi-actions">
+                            <button type="button" class="btn confirm btn-approve"><i class="fas fa-check"></i></button>
+                            <button type="button" class="btn danger btn-reject"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                    item.querySelector('.llbi-title').addEventListener('click', () => selectLesson(lesson));
+                    item.querySelector('.btn-approve').addEventListener('click', () => approveLesson(lesson.lesson.ID));
+                    item.querySelector('.btn-reject').addEventListener('click', () => rejectLesson(lesson.lesson.ID));
+                    listBody.appendChild(item);
+                });
+            } catch (err) {
+                window.handleApiError(err, 'Failed to load suggested lessons.');
+            }
+        }
+
+        async function selectLesson(lesson) {
+            selectedLesson = lesson;
+            document.getElementById('lesson-preview-title').textContent = lesson.lesson.Title;
+            const details = document.getElementById('lesson-preview-details');
+            details.innerHTML = `
+                <span class="element-lp">Class ${lesson.flag_translation.class}</span>
+                <span class="element-lp">Section ${lesson.flag_translation.section}</span>
+                <span class="element-lp">Module ${lesson.flag_translation.module}</span>
+            `;
+            // Load content
+            try {
+                const content = await api.getFile(lesson.lesson.ContentID);
+                selectedLesson._rawContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+                renderLessonContent();
+            } catch (err) {
+                document.getElementById('lesson-preview-content').textContent = 'Failed to load content.';
+            }
+        }
+
+        function renderLessonContent() {
+            const el = document.getElementById('lesson-preview-content');
+            if (!selectedLesson || !selectedLesson._rawContent) {
+                el.textContent = 'No content loaded.';
+                return;
+            }
+            if (lessonViewMode === 'raw') {
+                el.textContent = selectedLesson._rawContent;
+            } else {
+                el.innerHTML = marked.parse(selectedLesson._rawContent);
+            }
+        }
+
+        document.getElementById('lesson-raw-view-btn').addEventListener('click', () => {
+            lessonViewMode = 'raw';
+            renderLessonContent();
+        });
+        document.getElementById('lesson-md-view-btn').addEventListener('click', () => {
+            lessonViewMode = 'markdown';
+            renderLessonContent();
+        });
+
+        document.getElementById('lesson-save-file-btn').addEventListener('click', () => {
+            if (!selectedLesson || !selectedLesson._rawContent) return;
+            const blob = new Blob([selectedLesson._rawContent], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${selectedLesson.lesson.Title || 'lesson'}.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        async function approveLesson(lessonId) {
+            try {
+                await api.approveLesson(lessonId);
+                toastsLoader.showToast('Lesson approved!', 'confirm', 3000);
+                loadSuggestedLessons();
+                clearLessonPreview();
+            } catch (err) {
+                window.handleApiError(err, 'Failed to approve lesson.');
+            }
+        }
+
+        async function rejectLesson(lessonId) {
+            if (!confirm('Are you sure you want to reject this lesson? It will remain as suggested.')) return;
+            toastsLoader.showToast('Reject is not yet implemented on the backend.', 'warning', 3000);
+        }
+
+        document.getElementById('lesson-approve-btn').addEventListener('click', () => {
+            if (selectedLesson) approveLesson(selectedLesson.lesson.ID);
+        });
+        document.getElementById('lesson-reject-btn').addEventListener('click', () => {
+            if (selectedLesson) rejectLesson(selectedLesson.lesson.ID);
+        });
+
+        function clearLessonPreview() {
+            selectedLesson = null;
+            document.getElementById('lesson-preview-title').textContent = 'Select a lesson';
+            document.getElementById('lesson-preview-details').innerHTML = '';
+            document.getElementById('lesson-preview-content').textContent = '';
+        }
+
+        // ============================
+        // Suggested Problems
+        // ============================
+        let suggestedProblems = [];
+        let selectedProblem = null;
+        let problemViewMode = 'raw';
+
+        async function loadSuggestedProblems() {
+            const listBody = document.getElementById('problems-list-body');
+            listBody.innerHTML = '';
+            try {
+                const response = await api.getPendingProblems();
+                suggestedProblems = typeof response === 'string' ? JSON.parse(response) : response;
+                if (!suggestedProblems || suggestedProblems.length === 0) {
+                    listBody.innerHTML = '<div class="ll-body-item"><span class="no-style llbi-title">No pending problems</span></div>';
+                    return;
+                }
+                const difficultyLabels = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };
+                suggestedProblems.forEach(problem => {
+                    const item = document.createElement('div');
+                    item.className = 'll-body-item';
+                    const diff = difficultyLabels[problem.tag_translation.difficulty] || `Lvl ${problem.tag_translation.difficulty}`;
+                    item.innerHTML = `
+                        <span class="no-style llbi-title">${escapeHtml(problem.problem.Title)}</span>
+                        <span class="no-style llbi-language">${diff}</span>
+                        <div class="llbi-actions">
+                            <button type="button" class="btn confirm btn-approve"><i class="fas fa-check"></i></button>
+                            <button type="button" class="btn danger btn-reject"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                    item.querySelector('.llbi-title').addEventListener('click', () => selectProblem(problem));
+                    item.querySelector('.btn-approve').addEventListener('click', () => approveProblem(problem.problem.ID));
+                    item.querySelector('.btn-reject').addEventListener('click', () => rejectProblem(problem.problem.ID));
+                    listBody.appendChild(item);
+                });
+            } catch (err) {
+                window.handleApiError(err, 'Failed to load suggested problems.');
+            }
+        }
+
+        function selectProblem(problem) {
+            selectedProblem = problem;
+            document.getElementById('problem-preview-title').textContent = problem.problem.Title;
+            const details = document.getElementById('problem-preview-details');
+            const difficultyLabels = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };
+            const diff = difficultyLabels[problem.tag_translation.difficulty] || `Lvl ${problem.tag_translation.difficulty}`;
+            details.innerHTML = `
+                <span class="element-lp">${diff}</span>
+                <span class="element-lp">Section ${problem.tag_translation.section}</span>
+                <span class="element-lp">Module ${problem.tag_translation.module}</span>
+            `;
+            renderProblemContent();
+        }
+
+        function renderProblemContent() {
+            const el = document.getElementById('problem-preview-content');
+            if (!selectedProblem) {
+                el.textContent = 'No problem selected.';
+                return;
+            }
+            const desc = selectedProblem.problem.Description || '';
+            if (problemViewMode === 'raw') {
+                el.textContent = desc;
+            } else {
+                el.innerHTML = marked.parse(desc);
+            }
+        }
+
+        document.getElementById('problem-raw-view-btn').addEventListener('click', () => {
+            problemViewMode = 'raw';
+            renderProblemContent();
+        });
+        document.getElementById('problem-md-view-btn').addEventListener('click', () => {
+            problemViewMode = 'markdown';
+            renderProblemContent();
+        });
+
+        async function approveProblem(problemId) {
+            try {
+                await api.approveProblem(problemId);
+                toastsLoader.showToast('Problem approved!', 'confirm', 3000);
+                loadSuggestedProblems();
+                clearProblemPreview();
+            } catch (err) {
+                window.handleApiError(err, 'Failed to approve problem.');
+            }
+        }
+
+        async function rejectProblem(problemId) {
+            if (!confirm('Are you sure you want to reject this problem? It will remain as suggested.')) return;
+            toastsLoader.showToast('Reject is not yet implemented on the backend.', 'warning', 3000);
+        }
+
+        document.getElementById('problem-approve-btn').addEventListener('click', () => {
+            if (selectedProblem) approveProblem(selectedProblem.problem.ID);
+        });
+        document.getElementById('problem-reject-btn').addEventListener('click', () => {
+            if (selectedProblem) rejectProblem(selectedProblem.problem.ID);
+        });
+
+        function clearProblemPreview() {
+            selectedProblem = null;
+            document.getElementById('problem-preview-title').textContent = 'Select a problem';
+            document.getElementById('problem-preview-details').innerHTML = '';
+            document.getElementById('problem-preview-content').textContent = '';
+        }
+
+        // ============================
+        // Utility
+        // ============================
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    });
+    </script>
+</body>
+</html>

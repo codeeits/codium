@@ -1,0 +1,13 @@
+.content-area .main-content {
+    min-width: 600px;
+}
+
+.content-area > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+}
+
+main, .content-area {
+    gap: var(--gap-lg);
+}

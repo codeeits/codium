@@ -1,4 +1,5 @@
 {
+    "language": "Română",
     "app_name": "codium/",
     "welcome": "Învăță/ Programează/ Concurează/",
     "login": {
@@ -23,11 +24,140 @@
         "recent-activity": "activitate recentă",
         "bookmarks": "lecții salvate"
     },
+
+    "settings-page": {
+        "title": "Setări",
+        "privacy-section": {
+            "title": "Confidențialitate",
+            "options": {
+                "make-profile-private": "Fă-mi contul privat",
+                "download-my-data": "Descarcă datele tale"
+            }
+        },
+        "appearance-section": {
+            "title": "Aspect",
+            "options": {
+                "dark-mode": "Mod întunecat (blocat lol)",
+                "font-size": "Dimensiunea fontului",
+                "color-blind-mode": "Mod pentru daltonici",
+                "high-contrast-mode": "Mod de contrast ridicat",
+                "hue-slider": "Control de nuanță"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Alte chestii",
+            "options": {
+                "language": "Limba de afișare",
+                "support": "Formular de contact"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. Toate drepturile rezervate.",
+            "opensource": "Codium este un proiect open source.",
+            "contribute": "Contribuie pe GitHub",
+            "made_with_love": "realizat cu ♥ de andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lecții",
+        "desc": "Bazele pregătirii tale teoretice.",
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi"
+        },
+        "all-fliter": "Toate",
+        "right-bar": {
+            "content": "Cuprins",
+            "keypoints": "De reținut"
+        }
+    },
+
+    "problems-page": {
+        "title": "Probleme",
+        "desc": "Aplică teoria.",
+        "all-filter": "Toate",
+        "dropdown-1": {
+            "alfabetic": "Alfabetic",
+            "discovery": "Descopera",
+            "random": "Aleatoriu",
+            "newest": "Cele mai noi"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultate",
+            "easy": "Ușoare",
+            "medium": "Medii",
+            "hard": "Dificile"
+        },
+        "enable-feed-mode": "Activează modul feed",
+        "disable-feed-mode": "Dezactivează modul feed",
+        "surprise-me": "Surprinde-mă",
+
+        "no-problems": {
+            "title": "Nu există probleme pentru filtrele selectate.",
+            "desc": "Încearcă să modifici filtrele pentru a vedea mai multe probleme."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitate",
+                "available_tests": "Teste disponibile",
+                "sent_solutions": "Soluții trimise",
+                "correct_solutions": "Soluții corecte"
+            },
+            "send-solution": {
+                "title": "Trimite soluție",
+                "desc": "Apasă aici pentru a încărca sau trage și plasează."
+            },
+            "solutions": {
+                "title": "Soluții"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Elemente salvate",
+        "desc": "Ce ai salvat tu mai!",
+        "no-bookmarks": {
+            "title": "Nu ai niciun element salvat.",
+            "desc": "Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri."
+        },
+        "buttons": {
+            "all": "Toate",
+            "lessons": "Lecții",
+            "problems": "Probleme",
+            "explore-lessons": "Explorează lecțiile"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi"
+        }
+    },
+
     "log-out": "deconectare",
     "top-menu": {
-        "teory": "> teorie",
-        "probleme": "> probleme",
-        "contact": "> contact"
+        "teory": "Teorie",
+        "probleme": "Probleme",
+        "contact": "Contact",
+        "coin": "biscuiței"
+    },
+    "sidebar": {
+        "home": "Acasă",
+        "bookmarks": "Elemente salvate",
+        "progress": "Progres",
+        "learn": "Învață",
+        "lessons": "Lecții",
+        "problems": "Probleme",
+        "tests": "Teste",
+        "other": "Altele",
+        "manage-lessons": "Gestionează lecții",
+        "manage-problems": "Gestionează probleme",
+        "settings": "Setări",
+        "about": "Despre noi"
     },
     "modal": {
         "edit_profile": {
@@ -60,12 +190,67 @@
     "buttons": {
         "save": "salvează",
         "cancel": "anulează",
-        "submit": "trimite",
+        "submit": "Trimite",
         "edit": "editează profil",
         "delete": "șterge",
         "create": "creează",
         "update": "actualizează",
         "login": "autentifică-te",
-        "register": "înregistrează-te"
+        "register": "înregistrează-te",
+
+        "comment": "settings specific buttons",
+        "log-out": "Deconectare",
+        "support-button": "Contactează-ne",
+        "download-data": "Descarcă datele",
+        "font-size-labels": {
+            "small": "Mic",
+            "medium": "Mediu",
+            "large": "Mare",
+            "x-large": "Foarte mare"
+        },
+
+        "next_lesson": "Următoarea lecție",
+        "feedback": "Feedback",
+
+        "next_problem": "Următoarea problemă"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat ",
+        "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR).",
+        "privacy_minimization_title": "Principiul Minimizării Datelor",
+        "privacy_minimization_text": "În conformitate cu principiul minimizării datelor (Articolul 5) din GDPR, Codium limitează strict colectarea datelor la informațiile esențiale necesare pentru a furniza serviciile noastre educaționale și competiționale. Nu urmărim în mod intenționat adresele IP, amprentele de browser (browser fingerprints) sau datele financiare." ,  
+    
+        "email_unverified_warning": "Avertisment: Adresa de email asociată acestui cont nu este verificată. Vă rugăm să vă asigurați că descărcați acest document într-un mod sigur.",
+        "user_data_request": "Rezultatul cererii de acces la datele cu caracter personal"
+
+    },
+
+    "difficulty": {
+        "easy": "Ușor",
+        "medium": "Mediu",
+        "hard": "Dificil"
+    },
+
+    "classe": {
+        "1": "Clasa a I-a",
+        "2": "Clasa a II-a",
+        "3": "Clasa a III-a",
+        "4": "Clasa a IV-a",
+        "8": "Clasa a VIII-a",
+        "9": "Clasa a IX-a",
+        "10": "Clasa a X-a",
+        "11": "Clasa a XI-a",
+        "12": "Clasa a XII-a",
+        "67": "Clasa a 67-a"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatică",
+        "2": "Fizică",
+        "3": "Chimie",
+        "4": "Biologie",
+        "5": "Engleză",
+        "6": "Matematică"
     }
 }

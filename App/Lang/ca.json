@@ -1,4 +1,5 @@
 {
+    "language": "Català",
     "app_name": "codium/",
     "welcome": "Aprènde/ Programa/ Competeix/",
     "login": {
@@ -23,11 +24,140 @@
         "recent-activity": "activitat recent",
         "bookmarks": "marcadors"
     },
+
+    "settings-page": {
+        "title": "Configuració",
+        "privacy-section": {
+            "title": "Privacitat",
+            "options": {
+                "make-profile-private": "Fes que el meu compte sigui privat",
+                "download-my-data": "Descarrega les meves dades (RGPD)"
+            }
+        },
+        "appearance-section": {
+            "title": "Aparença",
+            "options": {
+                "dark-mode": "Mode fosc",
+                "font-size": "Mida de la lletra",
+                "color-blind-mode": "Apte per a daltonisme",
+                "high-contrast-mode": "Alt contrast",
+                "hue-slider": "Matís"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Altres coses",
+            "options": {
+                "language": "Llengua",
+                "support": "Formulari de contacte"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. Tots els drets reservats.",
+            "opensource": "Codium és un projecte de codi obert.",
+            "contribute": "Contribueix al GitHub",
+            "made_with_love": "realitzat amb ♥ per andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lliçons",
+        "desc": "Els teus conceptes teoretics bàsics",
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics"
+        },
+        "all-fliter": "Totes",
+        "right-bar": {
+            "content": "Contingut",
+            "keypoints": "Punts clau"
+        }
+    },
+
+    "problems-page": {
+        "title": "Problemes",
+        "desc": "Aplica la teoria.",
+        "all-filter": "Totes",
+        "dropdown-1": {
+            "alfabetic": "Alfabètic",
+            "discovery": "Descobreix",
+            "random": "Aleatori",
+            "newest": "Més nous"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultat",
+            "easy": "Fàcil",
+            "medium": "Mitjà",
+            "hard": "Difícil"
+        },
+        "enable-feed-mode": "Activa el mode feed",
+        "disable-feed-mode": "Desactiva el mode feed",
+        "surprise-me": "Sorprèn-me",
+
+        "no-problems": {
+            "title": "No hi ha problemes per als filtres seleccionats.",
+            "desc": "Intenta modificar els filtres per veure més problemes."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitat",
+                "available_tests": "Tests disponibles",
+                "sent_solutions": "Solucions enviades",
+                "correct_solutions": "Solucions correctes"
+            },
+            "send-solution": {
+                "title": "Envia solució",
+                "desc": "Prem aquí per pujar o arrossegar i deixar anar."
+            },
+            "solutions": {
+                "title": "Solucions"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Marcadors",
+        "desc": "Noi, això és el que t'ha agradat més!",
+        "no-bookmarks": {
+            "title": "No tins cap element guardat.",
+            "desc": "Per començar, explora les lliçons disponibles i afegeix-les als marcadors."
+        },
+        "buttons": {
+            "all": "Totes",
+            "lessons": "Lliçons",
+            "problems": "Problemes",
+            "explore-lessons": "Explora les lliçons"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics"
+        }
+    },
+
     "log-out": "tanca la sessió",
     "top-menu": {
-        "teory": "> teoria",
-        "probleme": "> problemes",
-        "contact": "> contacte"
+        "teory": "Teoria",
+        "probleme": "Problemes",
+        "contact": "Contacte",
+        "coin": "galetes"
+    },
+    "sidebar": {
+        "home": "Inici",
+        "bookmarks": "Marcadors",
+        "progress": "Progrés",
+        "learn": "Aprèn",
+        "lessons": "Lliçons",
+        "problems": "Problemes",
+        "tests": "Tests",
+        "other": "Altres",
+        "manage-lessons": "Gestiona lliçons",
+        "manage-problems": "Gestiona problemes",
+        "settings": "Configuració",
+        "about": "Sobre nosaltres"
     },
     "modal": {
         "edit_profile": {
@@ -60,12 +190,67 @@
     "buttons": {
         "save": "desa",
         "cancel": "anula",
-        "submit": "envia",
+        "submit": "Envia",
         "edit": "edita el perfil",
         "delete": "elimina",
         "create": "crea",
         "update": "actualitza",
         "login": "autentifica't",
-        "register": "registra't"
+        "register": "registra't",
+        
+        "comment": "settings specific buttons",
+        "log-out": "Tanca la sessió",
+        "support-button": "Contacta’ns",
+        "download-data": "Descarrega",
+        "font-size-labels": {
+            "small": "Petit",
+            "medium": "Mitjà",
+            "large": "Gran",
+            "x-large": "Molt gran"
+        },
+
+        "next_lesson": "Seguent lliçó",
+        "feedback": "Feedback",
+
+        "next_problem": "Seguent problema"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat el",
+        "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD).",
+        "privacy_minimization_title": "El principi de minimització de dades",
+        "privacy_minimization_text": "D'acord amb el principi de minimització de dades (Article 5) del RGPD, Codium limita estrictament la recopilació de dades a la informació essencial necessària per a oferir els nostres serveis educatius i competitius. No rastregem intencionadament adreces IP, empremtes digitals del navegador o dades financeres.",    
+        
+        "email_unverified_warning": "Avís: L'adreça de correu electrònic associada a aquest compte no està verificada. Assegureu-vos de baixar aquest document de manera segura.",
+        "user_data_request": "Resultat de la sol·licitud de dades de l'usuari"
+
+    },
+
+    "difficulty": {
+        "easy": "Fàcil",
+        "medium": "Mitjà",
+        "hard": "Difícil"
+    },
+
+    "classe": {
+        "1": "1er curs",
+        "2": "2n curs",
+        "3": "3er curs",
+        "4": "4t curs",
+        "8": "8è curs",
+        "9": "9è curs",
+        "10": "10è curs",
+        "11": "11è curs",
+        "12": "12è curs",
+        "67": "67è curs"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informàtica",
+        "2": "Física",
+        "3": "Química",
+        "4": "Biologia",
+        "5": "Anglès",
+        "6": "Matemàtiques"
     }
 }

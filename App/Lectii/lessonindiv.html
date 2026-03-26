@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/lesson-indiv.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- MathJax Configuration (Safari-compatible) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            startup: {
+                ready: function () {
+                    console.log('MathJax is ready');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+    <script src="/app/Scripts/lessonsInterface.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="lessons">
+</head>
+<body>
+    <!-- COPY HEADER IN NEW PAGES -->
+    <!--<header class="top-bar">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#">Teorie</a>
+                <a href="#">Probleme</a>
+            </nav>
+        </div>
+        <div class="top-bar-right">
+            <span class="lang-toggle">RO</span>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info">
+                <div class="user-info-text">
+                    <span class="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 biscuiței</span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small">
+            </div>
+        </div>
+    </header>-->
+    
+    <div id="top-menu-container"></div>
+
+    <div id="reading-progress-container">
+        <div id="reading-progress-bar"></div>
+    </div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="main-content">
+                <h2 class="bread"><span class="no-style" id="lesson-module">a</span> / <span class="no-style" id="lesson-class">b</span> / <span class="no-style" id="lesson-section-label" data-i18n="flags.section"></span> <span class="no-style" id="lesson-section">c</span></h2>
+                <div class="header-title">
+                    <h1 id="lesson-title">Nume lecție 4</h1>
+                    <div class="header-icons">
+                        <button type="button" class="btn secondary" id="bookmarkButton"><i class="fa-solid fa-bookmark"></i></button>
+                        <button type="button" class="btn secondary" id="editButton"><i class="fa-solid fa-pencil"></i></button>
+                        <button type="button" class="btn secondary" id="favoriteButton"><i class="fa-solid fa-heart"></i></button>
+                        <button type="button" class="btn secondary" id="shareButton"><i class="fa-solid fa-share"></i></button>
+                    </div>
+                </div>
+                <div class="separator"></div>
+                <div class="lesson-body" id="lesson-body"><!-- dinamically loaded -->
+                    <p>Instrucțiunea do ... while este o structură repetitivă cu număr necunoscut de pași și test final.</p>
+                    <h2>Sintaxă</h2>
+                    <pre><code>
+    do {
+        Instructiune
+    } while (condiție);
+                    </code></pre>
+                    <h2>Mod de execuție</h2>
+                    <ol>
+                        <li>Se execută <code>Instructiune</code>.</li>
+                        <li>Se evaluează <code>Expresie</code>. Rezultatul se convertește la <code>bool</code>.</li>
+                        <li>Dacă rezultatul este <code>true</code>, se reia pasul 1.</li>
+                        <li>Dacă rezultatul este <code>false</code>, se trece la instrucțiunea de după <code>do ... while</code>.</li>
+                    </ol>
+                    <h2>Observații</h2>
+                    <ul>
+                        <li><code>Instructiune</code> se execută cât timp <code>Expresie</code> este <code>true</code> - condiție adevărată.</li>
+                        <li>Dacă <code>Expresie</code> este de început false, <code>Instructiune</code> se execută exact o dată. În orice situație, <code>Instructiune</code> se execută cel puțin o dată.</li>
+                        <li><code>Instructiune</code> poate fi orice fel de instrucțiune, dar una singură. Dacă sunt necesare mai multe instrucțiuni, se va folosi instrucțiunea compusă.</li>
+                        <li>Este necesar ca cel puțin o variabilă care apare în <code>Expresie</code> să-și modifice valoarea în <code>Instructiune</code>. Altfel se obține o buclă infinită.</li>
+                    </ul>
+                    <h2>Exemplu</h2>
+                    <pre><code>    int i = 1;
+    do {
+        cout &lt;&lt; i &lt;&lt; " ";
+        i++;
+    } while (i &lt;= 10);
+                    </code></pre>
+                    <p>Acest program afișează numerele de la 1 la 10.</p>
+                </div>
+                <div class="lesson-buttons-bottom">
+                    <button type="button" class="btn secondary" data-i18n="buttons.feedback">Feedback</button>
+                    <button type="button" class="btn primary" id="next-lesson-btn" data-i18n="buttons.next_lesson">Următoarea lecție</button>
+                </div>
+            </div>
+            <div class="side-content">
+                <div class="card cuprins" id="cuprins-card">
+                    <h2 data-i18n="lessons-page.right-bar.content"></h2>
+                    <a href="#">#Sintaxa</a>
+                    <a href="#">#Mod de execuție</a>
+                    <a href="#">#Observații</a>
+                    <a href="#">#Exemplu</a>
+                </div>
+                <div class="card lectii-sectiune" id="lectii-sectiune">
+                    <div class="header-lectii-sectiune">
+                        <h2 id="lectii-sesiune-clasa">Clasa a X a</h2>
+                        <h4 id="lectii-sesiune">Secțiunea 1</h4>
+                    </div>
+                    <a href="#" class="visited">Lecția 1: Instrucțiunea if</a>
+                    <a href="#" class="visited">Lecția 2: Instrucțiunea switch</a>
+                    <a href="#" class="visited">Lecția 3: Instrucțiunile repetitive while și for</a>
+                    <a href="#" class="active">Lecția 4: Instrucțiunea do ... while</a>
+                    <a href="#" class="disabled">Lecția 5: Funcții</a>
+                    <a href="#" class="disabled">Lecția 6: Recursivitate</a>
+                </div>
+                <div class="card de-retinut" id="keypoints-card">
+                    <h2 data-i18n="lessons-page.right-bar.keypoints"></h2>
+                    <ul>
+                        <li>Instrucțiunea <code>do ... while</code> se execută cel puțin o dată.</li>
+                        <li>Este necesar ca cel puțin o variabilă care apare în condiție să-și modifice valoarea în corpul instrucțiunii.</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = this.closest('.dropdown');
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                const icon = toggle.querySelector('i');
+                toggle.textContent = this.textContent.trim() + ' ';
+                toggle.appendChild(icon);
+                
+                dropdown.classList.remove('open');
+            });
+        });
+    </script>
+</body>
+</html>

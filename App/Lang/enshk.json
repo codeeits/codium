@@ -1,0 +1,89 @@
+{
+    "language": "Shakespearean",
+    "hidden": "true",
+    "_comment": "Verily, a translation file for the noble tongue of olde. Huzzah!",
+    "app_name": "Code Upon The Stage/",
+    "welcome": "",
+    "login": {
+        "title": "",
+        "email": "Thy electronic missive",
+        "password": "Thy secret watchword",
+        "forgot_password": "Hast thou lost thy wits?",
+        "remember_me": "Hold me in thy memory",
+        "no_account": "Art thou a stranger here?",
+        "register": "Inscribe thy name"
+    },
+    "signup": {
+        "title": "Join the Fellowship",
+        "username": "Thy noble moniker",
+        "email": "Thy electronic missive",
+        "password": "Thy secret watchword",
+        "confirm_password": "Swear thy watchword again"
+    },
+    "user-page": {
+        "progress": "The Journey",
+        "achievements": "Glorious Triumphs",
+        "recent-activity": "Thy Past Deeds",
+        "bookmarks": "Scrolls Kept Safe"
+    },
+    "log-out": "Exit Stage Left",
+    "top-menu": {
+        "teory": "Ancient Lore",
+        "probleme": "Tribulations",
+        "contact": "Send a Raven",
+        "coin": "Groats"
+    },
+    "sidebar": {
+        "home": "The Hearth",
+        "bookmarks": "Hoarded Scrolls",
+        "progress": "The Journey",
+        "learn": "Partake in Wisdom",
+        "lessons": "Sermons",
+        "problems": "Tribulations",
+        "tests": "The Inquisition",
+        "other": "Sundry oddities",
+        "manage-lessons": "Govern thy Sermons",
+        "manage-problems": "Govern thy Tribulations",
+        "settings": "Strange Machinations",
+        "about": "The Tale of Us"
+    },
+    "modal": {
+        "edit_profile": {
+            "title": "Refashion Thyself",
+            "labels": {
+                "email": "Alter thy missive:",
+                "username": "Alter thy moniker:",
+                "password": "Alter thy watchword:",
+                "image": "Alter thy portrait:"
+            },
+            "email": "electronic missive",
+            "username": "noble moniker",
+            "current_password": "current watchword",
+            "new_password": "fresh watchword",
+            "note": "Let the fields lie fallow if thou art content"
+        }
+    },
+    "flags": {
+        "module": "The Tome",
+        "section": "The Chapter",
+        "class": "The Guild"
+    },
+    "activity": {
+        "completed": "Vanquished",
+        "solved": "Deciphered",
+        "started": "Embarked Upon",
+        "favourite": "Cherished",
+        "earned": "Plundered"
+    },
+    "buttons": {
+        "save": "IMMORTALIZE",
+        "cancel": "NAY! CEASE!",
+        "submit": "DISPATCH",
+        "edit": "AMEND",
+        "delete": "BANISH TO HELL",
+        "create": "CONCEIVE",
+        "update": "TRANSMOGRIFY",
+        "login": "I seek entry",
+        "register": "I seek kinship"
+    }
+}

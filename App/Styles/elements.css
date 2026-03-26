@@ -240,7 +240,7 @@
     use .card for cards
 */
 
-.card {
+.card-t, .card {
     background-color: var(--secondary);
     padding: 1rem;
     border-radius: 1rem;
@@ -255,7 +255,7 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.card::before {
+.card-t::before, .card::before {
     content: "";
     position: absolute;
     inset: 0;

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/progress.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/external/chartjs/dist/chart.umd.js"></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="home">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="card progress-top">
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Nivel</span>
+                    <h1>Expert</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Nivel</span>
+                    <h1>Expert</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Nivel</span>
+                    <h1>Expert</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Nivel</span>
+                    <h1>Expert</h1>
+                </div>
+            </div>
+            <div class="card chart-card progress-spider">
+                <h2>Spider</h2>
+                <div class="chart-wrapper"><canvas id="spiderChart"></canvas></div>
+                <script>
+                    const spiderChartInstance = window.apiService.getChart('spiderChart', 'radar', {
+                        title: 'Spider Chart',
+                        data: {
+                            labels: ['HTML', 'CSS', 'JS', 'Python', 'Databases'],
+                            datasets: [{
+                                label: 'Skills',
+                                data: [80, 90, 75, 85, 70],
+                                fill: true,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                pointBackgroundColor: 'rgb(54, 162, 235)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(54, 162, 235)'
+                            }]
+                        }
+                    });
+                </script>
+            </div>
+            <div class="card chart-card heatmap-problems-graph">
+                <h2>Heatmap problems</h2>
+                <img src="/app/Assets/graph.png" alt="Progress Graph">
+            </div>
+            <div class="card evolution-cookies">
+                <h2>Evoluție</h2>
+                <div class="chart-wrapper"><canvas id="evolutionChart"></canvas></div>
+                <script>
+                    const evolutionDataInstance = window.apiService.getChart('evolutionChart', 'line', {
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Progres',
+                                data: [10, 25, 40, 35, 60, 75, 90],
+                                fill: true,
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                borderColor: 'rgb(153, 102, 255)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgb(153, 102, 255)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgb(153, 102, 255)'
+                            }]
+                        }
+                    });
+                </script>
+            </div>
+            <div class="card history-solutions">
+                <h2>Istoric rezolvări</h2>
+                <img src="/app/Assets/history.png" alt="History of Solutions">
+            </div>
+        </main>
+    </div>
+    <script>
+        // Radar chart data
+        /*
+const data = {
+    labels: ['HTML', 'CSS', 'JS', 'Python', 'Databases'],
+    datasets: [{
+        label: 'Skills',
+        data: [80, 90, 75, 85, 70],
+        fill: true,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgb(54, 162, 235)',
+        pointBackgroundColor: 'rgb(54, 162, 235)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(54, 162, 235)'
+    }]
+};
+*/
+
+// Evolution Line Chart data
+/*
+const evolutionData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Replace with your actual time labels
+    datasets: [{
+        label: 'Progres',
+        data: [10, 25, 40, 35, 60, 75, 90], // Replace with your actual evolution data
+        fill: true, // This enables the fill under the line
+        backgroundColor: 'rgba(153, 102, 255, 0.2)', // Fill color with opacity
+        borderColor: 'rgb(153, 102, 255)', // Line color
+        borderWidth: 2,
+        tension: 0.4, // Makes the line smooth/curved (use 0 for straight lines)
+        pointBackgroundColor: 'rgb(153, 102, 255)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(153, 102, 255)'
+    }]
+};
+
+// Evolution Line Chart configuration
+const evolutionConfig = {
+    type: 'line',
+    data: evolutionData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#ffffff' 
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#a0aec0'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#a0aec0'
+                }
+            }
+        }
+    }
+};
+*/
+// Radar chart configuration
+/*
+const config = {
+    type: 'radar',
+    data: data,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // <-- THIS turns off the forced square shape!
+        plugins: {
+            title: {
+                display: false,
+                text: 'Radar Chart',
+                color: '#ffffff'
+            },
+            legend: {
+                labels: {
+                    color: '#ffffff' 
+                }
+            }
+        },
+        scales: {
+            r: { 
+                beginAtZero: true,
+                suggestedMax: 100,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)' 
+                },
+                angleLines: {
+                    color: 'rgba(255, 255, 255, 0.2)' 
+                },
+                pointLabels: {
+                    color: '#ffffff', 
+                    font: { size: 14 }
+                },
+                ticks: {
+                    color: '#a0aec0', 
+                    backdropColor: 'transparent', 
+                    stepSize: 20 
+                }
+            }
+        }
+    }
+};
+*/
+// Initialize the chart
+/*
+const ctx = document.getElementById('spiderChart').getContext('2d');
+const myRadarChart = new Chart(ctx, config);
+*/
+// Initialize the Evolution chart
+/*
+const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+const myEvolutionChart = new Chart(evolutionCtx, evolutionConfig);
+*/
+    </script>
+</body>
+</html>

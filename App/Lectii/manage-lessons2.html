@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lessons - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/manage-lessons.css">
+
+    <!-- Scripts -->
+    <script src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="manage-lessons">
+</head>
+<body>
+    <!-- COPY HEADER IN NEW PAGES -->
+    <!--<header class="top-bar">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#">Teorie</a>
+                <a href="#">Probleme</a>
+            </nav>
+        </div>
+        <div class="top-bar-right">
+            <span class="lang-toggle">RO</span>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info">
+                <div class="user-info-text">
+                    <span class="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 biscuiței</span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small">
+            </div>
+        </div>
+    </header>-->
+    
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="filters-select-container card">
+                <h2>Select lessons</h2>
+                <div class="filters-select">
+                    <div class="filters-select-item">
+                        <p>Clasa:</p>
+                        <div class="dropdown" id="sort-dropdown">
+                        <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            Descoperă <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item active">Descoperă</div>
+                            <div class="dropdown-item">Aleatoriu</div>
+                            <div class="dropdown-item">Alfabetic</div>
+                            <div class="dropdown-item">Cele mai noi</div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="filters-select-item">
+                        <p>Modul:</p>
+                        <div class="dropdown" id="sort-dropdown">
+                        <button type="button" class="btn secondary dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            Descoperă <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item active">Descoperă</div>
+                            <div class="dropdown-item">Aleatoriu</div>
+                            <div class="dropdown-item">Alfabetic</div>
+                            <div class="dropdown-item">Cele mai noi</div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="filters-select-item">
+                        <p>Secțiunea:</p>
+                        <div class="dropdown" id="sort-dropdown">
+                        <button type="button" class="btn secondary full-width dropdown-toggle" onclick="this.parentElement.classList.toggle('open')">
+                            Descoperă <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item active">Descoperă</div>
+                            <div class="dropdown-item">Aleatoriu</div>
+                            <div class="dropdown-item">Alfabetic</div>
+                            <div class="dropdown-item">Cele mai noi</div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="drag-drop-container card">
+                <h2>Manage lessons</h2>
+                <p>
+                    Select a lesson to preview. Drag to reorder, then click "Save Order".
+                </p>
+                <div class="m-lessons-list-container">
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">1.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 1</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">2.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 2</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">3.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 3</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">4.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 4</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">5.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 5</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">6.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 6</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div class="m-lesson btn secondary" draggable="true">
+                        <div class="m-lesson-left-icons">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                            <p class="m-lesson-number">7.</p>
+                        </div>
+                        <p class="m-lesson-title">lecția 7</p>
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                </div>
+                <button type="button" class="btn secondary">Save order</button>
+            </div>
+            <div class="card">
+                <h2>Preview lesson</h2>
+                <div class="preview-lesson-buttons">
+                    <button type="button" class="btn primary">Raw view</button>
+                    <button type="button" class="btn secondary">Markdown view</button>
+                    <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Save file</button> 
+                </div>
+                <button type="button" class="file-placeholder btn secondary full-width"><i class="fa-solid fa-file"></i></button>
+            </div>
+                <button type="button" class="btn primary">Save all modifications</button>
+            
+        </main>
+    </div>
+    <script>
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        });
+
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = this.closest('.dropdown');
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                const icon = toggle.querySelector('i');
+                toggle.textContent = this.textContent.trim() + ' ';
+                toggle.appendChild(icon);
+                
+                dropdown.classList.remove('open');
+            });
+        });
+
+        // Drag and drop for lessons
+        const lessonsContainer = document.querySelector('.m-lessons-list-container');
+        let draggedItem = null;
+
+        lessonsContainer.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('m-lesson')) {
+                draggedItem = e.target;
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        });
+
+        lessonsContainer.addEventListener('dragend', (e) => {
+            if (e.target.classList.contains('m-lesson')) {
+                e.target.classList.remove('dragging');
+                draggedItem = null;
+                updateLessonNumbers();
+            }
+        });
+
+        lessonsContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(lessonsContainer, e.clientY);
+            if (draggedItem) {
+                if (afterElement == null) {
+                    lessonsContainer.appendChild(draggedItem);
+                } else {
+                    lessonsContainer.insertBefore(draggedItem, afterElement);
+                }
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.m-lesson:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function updateLessonNumbers() {
+            const lessons = lessonsContainer.querySelectorAll('.m-lesson');
+            lessons.forEach((lesson, index) => {
+                const numberEl = lesson.querySelector('.m-lesson-number');
+                if (numberEl) {
+                    numberEl.textContent = `${index + 1}.`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
