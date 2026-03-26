@@ -569,7 +569,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		uploadedLessonID := uuid.Nil
 		t.Run("TestUploadLessonWithAuth", func(t *testing.T) {
-			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
+			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1, "language":"ro"}`)
 			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
@@ -582,6 +582,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			if lesson.FlagTranslation.Class != 9 || lesson.FlagTranslation.Module != 1 || lesson.FlagTranslation.Section != 1 {
 				t.Fatalf("Expected lesson flags class %d, module %d, section %d; got class %d, module %d, section %d", 9, 1, 1, lesson.FlagTranslation.Class, lesson.FlagTranslation.Module, lesson.FlagTranslation.Section)
+			}
+			if lesson.Lesson.Language != "ro" {
+				t.Fatalf("Expected lesson language %s, got %s", "ro", lesson.Lesson.Language)
 			}
 			uploadedLessonID = lesson.Lesson.ID
 		})
@@ -804,7 +807,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				//t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
-				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `"}`)
+				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `", "language": "en"}`)
 				resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
 				var lesson LessonWithFlags

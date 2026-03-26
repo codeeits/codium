@@ -45,6 +45,7 @@ type Lesson struct {
 	SectionStarter bool
 	Suggested      bool
 	ThumbnailID    uuid.NullUUID
+	Language       string
 }
 
 type LessonsUser struct {

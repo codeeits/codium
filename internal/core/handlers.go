@@ -99,6 +99,8 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 		cfg.GetLessonsByFlagsHandler(w, r)
 	case "section_starters":
 		cfg.GetSectionStarterLessonsHandler(w, r)
+	case "language":
+		cfg.GetLessonsByLanguage(w, r)
 	default:
 		cfg.Logger.Printf("Invalid search_type: %v", searchType)
 	}
@@ -156,6 +158,8 @@ func (cfg *ApiCfg) UpdateLessonDisambiguationHandler(w http.ResponseWriter, r *h
 		cfg.UpdateLessonsSectionStarterHandler(w, r, lesson)
 	case "thumbnail":
 		cfg.UpdateLessonThumbnailHandler(w, r, lesson)
+	case "language":
+		cfg.UpdateLessonLanguageHandler(w, r, lesson)
 	default:
 		cfg.Logger.Printf("Invalid target_field: %v", targetField)
 		http.Error(w, "Invalid target_field", http.StatusBadRequest)
@@ -1438,6 +1442,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		Previous    uuid.UUID `json:"previous"`
 		Next        uuid.UUID `json:"next"`
 		Thumbnail   uuid.UUID `json:"thumbnail"`
+		Language    string    `json:"language"`
 	}
 
 	//check if database is connected
@@ -1529,6 +1534,7 @@ func (cfg *ApiCfg) CreateLessonHandler(w http.ResponseWriter, r *http.Request, s
 		NextLessonID: nextLesson,
 		Suggested:    UserHasPermission(sendingUser, PermissionCanSuggestLessons),
 		ThumbnailID:  uuid.NullUUID{UUID: p.Thumbnail, Valid: p.Thumbnail != uuid.Nil},
+		Language:     p.Language,
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to add lesson: %v", err)
@@ -1660,6 +1666,34 @@ func (cfg *ApiCfg) GetLessonsByFlagsHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(lessons), PrintLessonToJson)
+}
+
+func (cfg *ApiCfg) GetLessonsByLanguage(w http.ResponseWriter, r *http.Request) {
+	queries := r.URL.Query()
+	if len(queries) < 1 {
+		cfg.Logger.Printf("Missing query parameter 'language'")
+		http.Error(w, "Missing query parameter 'language'", http.StatusBadRequest)
+		return
+	}
+
+	language := queries.Get("language")
+	res, err := cfg.Db.GetLessonsByLanguage(r.Context(), database.GetLessonsByLanguageParams{
+		Language: language,
+		Limit:    1000,
+		Offset:   0,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Language not found with specified language")
+			http.Error(w, "Language not found", http.StatusNotFound)
+			return
+		}
+		cfg.Logger.Printf("Failed to retrieve lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(res), PrintLessonToJson)
 }
 
 func (cfg *ApiCfg) GetSuggestedLessonsHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
@@ -2015,6 +2049,30 @@ func (cfg *ApiCfg) UpdateLessonThumbnailHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
+}
+
+func (cfg *ApiCfg) UpdateLessonLanguageHandler(w http.ResponseWriter, r *http.Request, targetLesson database.Lesson) {
+	type params struct {
+		Language string `json:"language"`
+	}
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.Logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.Db.UpdateLessonLanguage(r.Context(), database.UpdateLessonLanguageParams{
+		ID:        targetLesson.ID,
+		Language:  p.Language,
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update lesson language: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintLessonToJson)
 }
 
@@ -3262,7 +3320,7 @@ func (cfg *ApiCfg) CreateSolutionHandler(w http.ResponseWriter, r *http.Request,
 
 	cfg.Logger.Print("Received create solution request")
 
-	if sendingUser.EmailValidated == false {
+	if sendingUser.EmailValidated == false && cfg.WebsiteState == "production" {
 		cfg.Logger.Printf("User email not validated: %v", sendingUser.ID)
 		http.Error(w, "Email not validated", http.StatusForbidden)
 		return
