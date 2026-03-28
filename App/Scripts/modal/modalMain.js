@@ -53,41 +53,78 @@ export class ModalEngine {
      * @param {Function} [config.onConfirm] - Optional callback for form submission
      * @param {Function} [config.onCancel] - Optional callback for closing the modal
      */
-    openModal({ title, body, onConfirm, onCancel }) {
+
+    constructor() {
+        this.templates = {
+            'info': {
+                title: 'Information',
+                body: 'This is an informational modal.'
+            }
+        };
+    }
+
+    openModal(config) {
+
+        let finalConfig = { ...config };
+
+        if (config.type && this.templates[config.type]) {
+            const template = this.templates[config.type];
+            finalConfig.title = config.title || template.title;
+            finalConfig.body = config.body || template.body;
+        }
+        
+
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay active'; // overlay styles will be eventuslly handled
         
         overlay.innerHTML = `
             <div class="modal">
                 <span class="close-button" style="cursor:pointer; float:right;">&times;</span>
-                <h2 class="modal-title">${title}</h2>
+                <h2 class="modal-title">${finalConfig.title}</h2>
                 <div class="modal-body"></div>
             </div>
         `;
 
         const bodyContainer = overlay.querySelector('.modal-body');
-        if (typeof body === 'string') {
-            bodyContainer.innerHTML = body;
-        } else if (body instanceof HTMLElement) {
-            bodyContainer.appendChild(body);
+        if (typeof finalConfig.body === 'string') {
+            bodyContainer.innerHTML = finalConfig.body;
+        } else if (finalConfig.body instanceof HTMLElement) {
+            bodyContainer.appendChild(finalConfig.body);
+        }
+
+        if (finalConfig.text) {
+            const textElement = overlay.querySelector('#modal-dynamic-text');
+            if (textElement) textElement.textContent = finalConfig.text;
         }
 
         document.body.appendChild(overlay);
 
         // Handle Cleanup
         const destroyModal = () => {
-            if (onCancel) onCancel();
+            if (finalConfig.onCancel) finalConfig.onCancel();
             document.body.removeChild(overlay);
         };
 
-        const closeButton = overlay.querySelector('.close-button');
-        closeButton.addEventListener('click', destroyModal);
+        overlay.querySelector('.close-button').addEventListener('click', destroyModal);
+
+        const confirmBtn = overlay.querySelector('#modal-confirm-button');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                if (finalConfig.onConfirm) finalConfig.onConfirm();
+                destroyModal();
+            });
+        }
+
+        const cancelBtn = overlay.querySelector('#modal-cancel-button');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', destroyModal);
+        }
 
         const form = overlay.querySelector('form');
-        if (form && onConfirm) {
+        if (form && finalConfig.onConfirm) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                onConfirm(form); 
+                finalConfig.onConfirm(form);
                 destroyModal(); // if needed
             });
         }
