@@ -461,11 +461,40 @@ function setupPreCopy() {
 }
 
 // ----------------------------------
+// devTools trap
+// ----------------------------------
+
+function setupDevToolsTrap() {
+    // i am testing it so it's active, just in case, but should be only active in production!
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocalhost) return; 
+
+    setInterval(() => {
+        const before = new Date().getTime();
+        debugger;
+        const after = new Date().getTime();
+        
+        if (after - before > 100) {
+            document.body.innerHTML = `
+                <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:#ff3333;font-family:monospace;text-align:center;">
+                    <h1>Security Violation<br><br>Developer Tools are not allowed during exercises.</h1>
+                </div>
+            `;
+            setTimeout(() => {
+                window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+            }, 2000);
+        }
+    }, 1000);
+}
+
+// ----------------------------------
 // innit mate ain't it?
 // ----------------------------------
 
 async function initApp() {
     console.log('Initializing Application...');
+
+    setupDevToolsTrap();
 
     InteractionHandler.init();
     setupScrollRestoration();
