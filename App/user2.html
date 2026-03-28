@@ -63,7 +63,34 @@
                     </div>
                     <div class="profile-actions">
                         <button type="button" class="btn secondary">Log-out</button>
-                        <button type="button" class="btn primary">Editează profilul</button>
+                        <button type="button" class="btn primary" id="editButton">Editează profilul</button>
+                        <script type="module">
+                            import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+                            
+                            const engine = new ModalEngine();
+                            const editBtn = document.getElementById('editButton');
+
+                            editBtn.addEventListener('click', () => {
+                                engine.openModal({
+                                    title: 'Edit Profile',
+                                    body: `
+                                        <form id="edit-profile-form">
+                                            <label>Username: <input type="text" name="username" value="CurrentDevUser"></label><br>
+                                            <label>Email: <input type="email" name="email" value="dev@example.com"></label><br><br>
+                                            <button type="submit">Save Changes</button>
+                                        </form>
+                                    `,
+                                    onConfirm: (formElement) => {
+                                        const updatedUsername = formElement.username.value;
+                                        const updatedEmail = formElement.email.value;
+                                        console.log(`Saving... User: ${updatedUsername}, Email: ${updatedEmail}`);
+                                    },
+                                    onCancel: () => {
+                                        console.log('User cancelled the modal.');
+                                    }
+                                });
+                            });
+                        </script>
                     </div>
                 </div>
 
