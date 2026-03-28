@@ -805,6 +805,16 @@ main, .content-area {
     object-fit: cover;
 }
 
+.image-preview {
+    width: 60px; 
+    height: 60px; 
+    object-fit: cover; 
+    border-radius: 50%; 
+    margin: 0 auto; 
+    display: block; 
+    border: 2px solid var(--primary);
+}
+
 .profile-text {
     display: flex;
     flex-direction: column;

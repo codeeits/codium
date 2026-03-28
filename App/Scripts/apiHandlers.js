@@ -238,6 +238,9 @@ class ApiService {
 
     async isCurrentAdmin() {
         const currentUser = await this.getCurrentUser();
+        if (!currentUser) {
+            return false;
+        }
         const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
         return userData.Permissions === 61;
     }
@@ -312,7 +315,11 @@ class ApiService {
     }
 
     async getLessonsByFlags(classNum = null, section = null, module = null) {
-        return this.get(`/api/lessons?search_type=flags&class=${classNum}&section=${section}&module=${module}`, false);
+        const params = new URLSearchParams({ search_type: 'flags' });
+        if (classNum !== null) params.append('class', classNum);
+        if (section !== null) params.append('section', section);
+        if (module !== null) params.append('module', module);
+        return this.get(`/api/lessons?${params.toString()}`, false);
     }
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {

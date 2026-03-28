@@ -66,6 +66,16 @@ export class ModalEngine {
                 `
             },
 
+            'danger-confirmation': {
+                title: 'Logout Confirmation',
+                body: `<p class="modal-message">Are you sure you want to logout?</p>
+                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Logout</button>
+                        </div>
+                `
+            },
+
             'edit-profile': {
                 title: 'Edit Profile',
                 body: `
@@ -132,7 +142,7 @@ export class ModalEngine {
         
 
         const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay active'; // overlay styles will be eventuslly handled
+        overlay.className = 'modal-overlay active';
         
         overlay.innerHTML = `
             <div class="modal">

@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // profile card buttons
         editProfileBtn: document.getElementById('editProfileBtn'),
-        logoutBtn: document.getElementById('logoutBtn'),
+        logoutBtn: document.getElementById('logOutBtn'),
 
         // privacy card
         privacyCard: document.getElementById('privacyCard'),
@@ -345,6 +345,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
+            const fileInput = document.getElementById('editProfilePicture');
+            
+            if (fileInput) {
+                fileInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    
+                    if (file && file.type.startsWith('image/')) {
+                        const dropzone = fileInput.closest('.dropzone') || fileInput.parentElement;
+                        
+                        const icon = dropzone.querySelector('.input-icon');
+                        if (icon) icon.style.display = 'none';
+
+                        const oldPreview = dropzone.querySelector('.image-preview');
+                        if (oldPreview) oldPreview.remove();
+
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(file);
+                        img.className = 'image-preview';
+                                                
+                        dropzone.appendChild(img);
+                    }
+                });
+            }
+
+        });
+    }
+
+    function initLogoutButton() {
+        elements.logoutBtn.addEventListener('click', () => {
+            engine.openModal({
+                type: 'danger-confirmation',
+                onConfirm: () => {
+                    window.apiService.logout();
+                },
+                onCancel: () => {
+                    toastsLoader.showToast('Logout cancelled.', 'info', 2500);
+                }
+            });
         });
     }
 
@@ -683,6 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initDropdownLogic(); // Replaces initDropdown
             initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
+            initLogoutButton(); // Logout button logic
 
             initHueSlider(); 
             enableHighContrastMode();
