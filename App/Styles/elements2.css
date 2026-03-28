@@ -1499,6 +1499,12 @@ blockquote {
     overflow-y: auto;
 }
 
+.modal form, .modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
 .modal-sm {
     width: 437px;
 }
@@ -1567,6 +1573,7 @@ blockquote {
     border: 1px solid var(--border2-solid);
     border-radius: var(--border-radius-sm);
     width: 100%;
+    transition: border-color 0.2s ease-in-out;
 }
 
 .input-field.disabled {
@@ -1580,11 +1587,16 @@ blockquote {
     flex-direction: column;
     gap: var(--gap-md);
     text-align: center;
-    transition: border-color 0.2s ease-in-out;
 }
 
-.input-field.dropzone:hover {
+.input-field:hover {
     border-color: var(--primary);
+}
+
+.input-field:focus-within {
+    border-color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 8%, var(--contrast));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .input-field.dropzone.dragover {

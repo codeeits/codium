@@ -385,7 +385,11 @@ const InteractionHandler = {
         if (dropdown.dataset.updateText !== 'false' && toggleBtn) {
             const icon = toggleBtn.querySelector('i');
             const i18n = item.getAttribute('data-i18n');
-            toggleBtn.innerHTML = '<span class="no-style" data-i18n="' + i18n + '"></span> ';
+            if (i18n) {
+                toggleBtn.innerHTML = '<span class="no-style" data-i18n="' + i18n + '"></span> ';
+            } else {
+                toggleBtn.innerHTML = '<span class="no-style" data-i18n="">' + item.textContent.trim() + '</span> ';
+            }
             applyTranslations(toggleBtn);
             if (icon) toggleBtn.appendChild(icon.cloneNode(true));
         }

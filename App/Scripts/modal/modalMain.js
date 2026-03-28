@@ -58,9 +58,65 @@ export class ModalEngine {
         this.templates = {
             'info': {
                 title: 'Information',
-                body: 'This is an informational modal.'
+                body: `<p class="modal-message">This is an informational modal.</p>
+                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Delete</button>
+                        </div>
+                `
+            },
+
+            'edit-profile': {
+                title: 'Edit Profile',
+                body: `
+                <form action="" id="editProfileForm">
+                    <div class="modal-field">
+                        <label for="editEmail" class="input-label" data-i18n="modal.edit_profile.labels.email">Edit email:</label>
+                        <div class="text-container input-field">
+                            <input class="input-text" type="email" name="email" id="editEmail" placeholder="e-mail" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="20">
+                            <i class="fa-solid fa-envelope input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Edit username:</label>
+                        <div class="text-container input-field">
+                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20">
+                            <i class="fa-solid fa-signature input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <label for="oldPassword" class="input-label" data-i18n="modal.edit_profile.labels.password">Edit password:</label>
+                        <div class="text-container input-field">
+                            <input class="input-text" type="password" name="password" id="oldPassword" placeholder="actual password" data-i18n-placeholder="modal.edit_profile.current_password" minlength="6">
+                            <i class="fa-solid fa-key input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <div class="text-container input-field">
+                            <input class="input-text" type="password" name="confirmPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6">
+                            <i class="fa-solid fa-key input-icon"></i>
+                        </div>
+                    </div>
+                    <div class="modal-field">
+                        <p class="input-label" data-i18n="modal.edit_profile.labels.image">Upload profile picture:</p>
+                        
+                        <label for="editProfilePicture" class="dropzone input-field" style="cursor: pointer; display: block;">
+                            <input class="input-text" type="file" name="profilePicture" id="editProfilePicture" accept="image/*" hidden>
+                            
+                            <i class="fa-solid fa-image input-icon"></i>
+                            <span style="margin-left: 10px;">Click to select an image</span>
+                        </label>
+                    </div>
+                    <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                        <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+                        
+                        <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.save">Save</button>
+                    </div>
+                </form>
+                `,
+                footer: 'Leave fields empty if you don\'t want to change them.'
             }
-        };
+        }
     }
 
     openModal(config) {
@@ -71,6 +127,7 @@ export class ModalEngine {
             const template = this.templates[config.type];
             finalConfig.title = config.title || template.title;
             finalConfig.body = config.body || template.body;
+            finalConfig.footer = config.footer || template.footer || '';
         }
         
 
@@ -79,9 +136,13 @@ export class ModalEngine {
         
         overlay.innerHTML = `
             <div class="modal">
-                <span class="close-button" style="cursor:pointer; float:right;">&times;</span>
-                <h2 class="modal-title">${finalConfig.title}</h2>
+                <div class="modal-header">
+                    <i class="modal-icon fa-solid fa-pencil"></i>
+                    <h2 class="modal-title">${finalConfig.title}</h2>
+                    <i class="modal-icon fa-solid fa-x close-button" style="cursor:pointer; margin-left: auto;"></i>
+                </div>
                 <div class="modal-body"></div>
+                <div class="modal-footer"><p class="modal-hint">${finalConfig.footer}</p></div>
             </div>
         `;
 

@@ -52,9 +52,9 @@
                     <h1>Expert</h1>
                 </div>
             </div>
-            <div class="card chart-card progress-spider">
+            <div class="card progress-spider">
                 <h2>Spider</h2>
-                <div class="chart-wrapper"><canvas id="spiderChart"></canvas></div>
+                <canvas id="spiderChart"></canvas> 
                 <script>
                     const spiderChartInstance = window.apiService.getChart('spiderChart', 'radar', {
                         title: 'Spider Chart',
@@ -75,31 +75,29 @@
                     });
                 </script>
             </div>
-            <div class="card chart-card heatmap-problems-graph">
+            <div class="card heatmap-problems-graph">
                 <h2>Heatmap problems</h2>
                 <img src="/app/Assets/graph.png" alt="Progress Graph">
             </div>
             <div class="card evolution-cookies">
                 <h2>Evoluție</h2>
-                <div class="chart-wrapper"><canvas id="evolutionChart"></canvas></div>
+                <canvas id="evolutionChart"></canvas>
                 <script>
                     const evolutionDataInstance = window.apiService.getChart('evolutionChart', 'line', {
-                        data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                            datasets: [{
-                                label: 'Progres',
-                                data: [10, 25, 40, 35, 60, 75, 90],
-                                fill: true,
-                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                                borderColor: 'rgb(153, 102, 255)',
-                                borderWidth: 2,
-                                tension: 0.4,
-                                pointBackgroundColor: 'rgb(153, 102, 255)',
-                                pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: 'rgb(153, 102, 255)'
-                            }]
-                        }
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Replace with your actual time labels
+                        datasets: [{
+                            label: 'Progres',
+                            data: [10, 25, 40, 35, 60, 75, 90], // Replace with your actual evolution data
+                            fill: true, // This enables the fill under the line
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)', // Fill color with opacity
+                            borderColor: 'rgb(153, 102, 255)', // Line color
+                            borderWidth: 2,
+                            tension: 0.4, // Makes the line smooth/curved (use 0 for straight lines)
+                            pointBackgroundColor: 'rgb(153, 102, 255)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(153, 102, 255)'
+                        }]
                     });
                 </script>
             </div>

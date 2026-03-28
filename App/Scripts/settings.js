@@ -3,6 +3,9 @@ Settings page
 */
 
 import {textToPDF} from './helper/pdfBuilder.js';
+import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+
+const engine = new ModalEngine();
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -33,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // other settings
         otherSettingsCard: document.getElementById('otherStuffCard'),
         languageSelect: document.getElementById('language-selector-dropdown'),
+        uiSelect: document.getElementById('ui-selector-dropdown'),
         supportBtn: document.getElementById('support-form'),
     };
 
@@ -213,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
         romengOption.textContent = 'Romengleză';
         romengOption.dataset.iso = 'roen'; 
 
-        // No click listener needed! main.js will catch the click on this new item.
         itemsContainer.appendChild(romengOption);
     }
 
@@ -259,6 +262,73 @@ document.addEventListener("DOMContentLoaded", () => {
                 PreferencesManager.setProperty('highContrast', false);
             }
             colorblindMode(); // external function defined in main.js that toggles the class on body
+        });
+    }
+
+    function initUiDropdown() {
+        const dropdown = elements.uiSelect;
+
+        let currentVersion = '2.1.0'; // This should ideally come from user preferences or a config file
+
+        dropdown.addEventListener('dropdown-selected', (e) => {
+            const selectedVersion = e.detail?.element?.dataset?.version || e.detail?.value;
+
+            if (selectedVersion === '1.0.0') {
+                engine.openModal({
+                    title: 'Legacy Version Warning',
+                    body: `
+                        <p class="modal-message">Are you sure you want to switch to UI version 1.0.0? This version is outdated and may have issues.</p>
+                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Switch to 1.0.0</button>
+                        </div>
+                    `,
+                    onConfirm: () => {
+                        console.log('UI Version Switched to:', selectedVersion);
+                        currentVersion = selectedVersion;
+                        
+                        toastsLoader.showToast('UI version 1.0.0 is a legacy version that is no longer maintained. It may contain bugs and missing features. Use at your own risk!', 'warning', 5000);
+                        toastsLoader.showToast(`Selected UI version: ${selectedVersion}. Not implemented yet.`, 'info', 2500);
+                        
+                    },
+                    onCancel: () => {
+                        console.log('User cancelled UI switch.');
+                        toastsLoader.showToast('UI switch cancelled. You are still on version ' + currentVersion, 'info', 2500);
+
+                        // Reset dropdown selection to current version
+                        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+                        const items = dropdown.querySelectorAll('.dropdown-item');
+
+                        toggleBtn.innerHTML = `${currentVersion} <i class="fa-solid fa-chevron-down"></i>`;
+
+                        items.forEach(i => {
+                            if (i.dataset.version === currentVersion) {
+                                i.classList.add('active');
+                            } else {
+                                i.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            } else {
+                console.log('UI Version Switched to:', selectedVersion);
+                currentVersion = selectedVersion;
+                
+                toastsLoader.showToast(`Selected UI version: ${selectedVersion}. Not implemented yet.`, 'info', 2500);
+        }
+        });
+    }
+
+    function initEditProfileModal() {
+        elements.editProfileBtn.addEventListener('click', () => {
+            engine.openModal({
+                type: 'edit-profile',
+                onConfirm: () => {
+                    console.log('Profile edit confirmed');
+                },
+                onCancel: () => {
+                }
+            });
         });
     }
 
@@ -566,6 +636,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             renderLanguageOptions();
             initDropdownLogic(); // Replaces initDropdown
+            initUiDropdown(); // UI version selector logic
+            initEditProfileModal(); // Edit profile modal logic
 
             initHueSlider(); 
             enableHighContrastMode();
