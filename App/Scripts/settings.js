@@ -4,6 +4,7 @@ Settings page
 
 import {textToPDF} from './helper/pdfBuilder.js';
 import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
 
 const engine = new ModalEngine();
 
@@ -330,23 +331,49 @@ document.addEventListener("DOMContentLoaded", () => {
                 onCancel: () => {
                 }
             });
+
+            if (userData) {
+                const editEmailInput = document.getElementById('editEmail');
+                const editUsernameInput = document.getElementById('editUsername');
+
+                if (editUsernameInput && userData.Username) {
+                    editUsernameInput.value = userData.Username;
+                }
+
+                if (editEmailInput && userData.Email) {
+                    editEmailInput.value = userData.Email;
+                }
+            }
+
         });
     }
 
     function handleProfileEdit(formElement) {
-        const formData = new FormData(formElement);
-        const updatedUsername = formData.get('username');
-        const updatedEmail = formData.get('email');
-        const oldPassword = formData.get('password');
-        const newPassword = formData.get('newPassword');
+        const updatedUsername = formElement.elements['username']?.value || null;
+        const updatedEmail = formElement.elements['email']?.value || null;
+        const oldPassword = formElement.elements['password']?.value || null;
+        const newPassword = formElement.elements['newPassword']?.value || null;
+        const profilePictureInput = formElement.elements['profilePicture'];
+        const profilePictureFile = profilePictureInput?.files?.[0] || null;
 
         const updateData = {};
-        if (updatedUsername) updateData.Username = updatedUsername;
-        if (updatedEmail) updateData.Email = updatedEmail;
-        if (oldPassword) updateData.Password = oldPassword;
-        if (newPassword) updateData.NewPassword = newPassword;
+
+        if (updatedUsername) updateData.username = updatedUsername;
+        if (updatedEmail) updateData.email = updatedEmail;
+        if (oldPassword) updateData.oldPassword = oldPassword;
+        if (newPassword) updateData.newPassword = newPassword;
+        if (profilePictureFile) updateData.profilePicture = profilePictureFile;
 
         console.log('Updating profile with data:', updateData);
+
+        ModalHelpers.EditProfile.updateProfileData(updateData).then(() => {
+            toastsLoader.showToast('Profile updated successfully!', 'success', 3000);
+            fetchUserData(); // Refresh user data to reflect changes
+        }).catch(error => { 
+            console.error('Error updating profile:', error);
+            toastsLoader.showToast(`Error updating profile: ${error.message}`, 'error', 5000);
+        });
+
     }
 
 

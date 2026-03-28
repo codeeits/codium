@@ -73,14 +73,14 @@ export class ModalEngine {
                     <div class="modal-field">
                         <label for="editEmail" class="input-label" data-i18n="modal.edit_profile.labels.email">Edit email:</label>
                         <div class="text-container input-field">
-                            <input class="input-text" type="email" name="email" id="editEmail" placeholder="e-mail" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="20">
+                            <input class="input-text" type="email" name="email" id="editEmail" placeholder="e-mail" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="20" autocomplete="email">
                             <i class="fa-solid fa-envelope input-icon"></i>
                         </div>
                     </div>
                     <div class="modal-field">
                         <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Edit username:</label>
                         <div class="text-container input-field">
-                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20">
+                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20" autocomplete="off" value="">
                             <i class="fa-solid fa-signature input-icon"></i>
                         </div>
                     </div>

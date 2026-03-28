@@ -1,6 +1,15 @@
 // A class helper for providing modal presets (e. g. edit profile, delete confirmation, etc.) and handling common modal logic.
 
 export class ModalHelpers {
+    /**
+     * @param {Object} config
+     * @param {string} config.type - The type of modal to open (e.g. 'edit-profile', 'delete-confirmation')
+     * @param {string} [config.title] - Optional custom title for the modal
+     * @param {string|HTMLElement} [config.body] - Optional custom body content (HTML string or DOM node)
+     * @param {string} [config.footer] - Optional custom footer content (HTML string)
+     * @param {Function} [config.onConfirm] - Optional callback for form submission or confirmation action
+     * @param {Function} [config.onCancel] - Optional callback for closing the modal or cancellation action
+     */
     
     static EditProfile = {
         
@@ -31,7 +40,6 @@ export class ModalHelpers {
 
             return { 
                 valid: true, 
-                // data: { email, username, oldPassword, newPassword } 
             };
         },
 
@@ -61,5 +69,4 @@ export class ModalHelpers {
     };
 }
 
-/* USAGE: 
-*/
+/* USAGE: */
