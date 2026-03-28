@@ -477,6 +477,12 @@ async function initApp() {
         loadSidebar()
     ]);
 
+    document.addEventListener('codium:request-translation', (e) => {
+        if (e.detail && e.detail.element) {
+            applyTranslations(e.detail.element);
+        }
+    });
+
     window.addEventListener('storage', (e) => {
         if (['authToken', 'username'].includes(e.key)) updateAuthButton();
     });

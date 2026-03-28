@@ -67,6 +67,7 @@ export class ModalHelpers {
             return { success: true };
         }
     };
+
 }
 
 /* USAGE: */

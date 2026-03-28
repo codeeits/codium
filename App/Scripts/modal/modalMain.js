@@ -124,7 +124,7 @@ export class ModalEngine {
                     </div>
                 </form>
                 `,
-                footer: 'Leave fields empty if you don\'t want to change them.'
+                footer: '<p class="modal-hint" data-i18n="modal.edit_profile.note">Leave fields empty if you don\'t want to change them.</p>'
             }
         }
     }
@@ -147,12 +147,12 @@ export class ModalEngine {
         overlay.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
-                    <i class="modal-icon fa-solid fa-pencil"></i>
+                    <i class="modal-icon fa-solid ${finalConfig.icon || 'fa-info-circle'}"></i>
                     <h2 class="modal-title">${finalConfig.title}</h2>
                     <i class="modal-icon fa-solid fa-x close-button" style="cursor:pointer; margin-left: auto;"></i>
                 </div>
                 <div class="modal-body"></div>
-                <div class="modal-footer"><p class="modal-hint">${finalConfig.footer}</p></div>
+                <div class="modal-footer">${finalConfig.footer}</div>
             </div>
         `;
 
@@ -169,6 +169,10 @@ export class ModalEngine {
         }
 
         document.body.appendChild(overlay);
+
+        document.dispatchEvent(new CustomEvent('codium:request-translation', {
+            detail: { element: overlay }
+        }));
 
         // Handle Cleanup
         const destroyModal = () => {

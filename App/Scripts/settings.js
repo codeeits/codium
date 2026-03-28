@@ -284,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <button type="button" class="btn danger flex-1" id="modal-confirm-button">Switch to 1.0.0</button>
                         </div>
                     `,
+                    footer: '',
                     onConfirm: () => {
                         console.log('UI Version Switched to:', selectedVersion);
                         currentVersion = selectedVersion;
@@ -324,6 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.editProfileBtn.addEventListener('click', () => {
             engine.openModal({
                 type: 'edit-profile',
+                icon: 'fa-pencil', // font-awesome icon class for the modal header (optional)
                 onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');
                     handleProfileEdit(formElement); // function to handle profile edit form submission
