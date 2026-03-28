@@ -323,14 +323,32 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.editProfileBtn.addEventListener('click', () => {
             engine.openModal({
                 type: 'edit-profile',
-                onConfirm: () => {
+                onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');
+                    handleProfileEdit(formElement); // function to handle profile edit form submission
                 },
                 onCancel: () => {
                 }
             });
         });
     }
+
+    function handleProfileEdit(formElement) {
+        const formData = new FormData(formElement);
+        const updatedUsername = formData.get('username');
+        const updatedEmail = formData.get('email');
+        const oldPassword = formData.get('password');
+        const newPassword = formData.get('newPassword');
+
+        const updateData = {};
+        if (updatedUsername) updateData.Username = updatedUsername;
+        if (updatedEmail) updateData.Email = updatedEmail;
+        if (oldPassword) updateData.Password = oldPassword;
+        if (newPassword) updateData.NewPassword = newPassword;
+
+        console.log('Updating profile with data:', updateData);
+    }
+
 
     function setFontSize() {
         const container = elements.fontSizeSelect; 

@@ -93,7 +93,7 @@ export class ModalEngine {
                     </div>
                     <div class="modal-field">
                         <div class="text-container input-field">
-                            <input class="input-text" type="password" name="confirmPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6">
+                            <input class="input-text" type="password" name="newPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6">
                             <i class="fa-solid fa-key input-icon"></i>
                         </div>
                     </div>
