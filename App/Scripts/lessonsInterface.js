@@ -181,6 +181,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Ignore editor metadata comments like: <!-- {"fold":true} -->
+        state.markdownContent = (state.markdownContent || '').replace(/<!--\s*\{\s*"fold"\s*:\s*(?:true|false)\s*\}\s*-->/g, '');
+
         // Update UI info
         elements.title.textContent = state.meta.title;
         if (elements.auth) {

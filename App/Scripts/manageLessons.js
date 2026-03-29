@@ -22,7 +22,9 @@ document.addEventListener("DOMContentLoaded", async function() {
         return;
     }
 
-    if (!currentUser.IsAdmin) {
+    console.log("Current user:", currentUser);
+    
+    if (currentUser.IsAdmin) {
         // Logged in but not admin
         window.location.href = 'user.html';
         return;  

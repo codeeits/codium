@@ -19,3 +19,21 @@ export function getHashtagsFromContent(content, containerElement = null) {
         containerElement.appendChild(a);
     });
 }
+
+export async function excelToJson(file) {
+    try {
+        const data = await file.arrayBuffer();
+        
+        const workbook = XLSX.read(data); 
+        const payload = {};
+
+        workbook.SheetNames.forEach(sheetName => {
+            payload[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        });
+
+        return payload;
+        
+    } catch (error) {
+        throw new Error("Failed to parse Excel file: " + error.message);
+    }
+}

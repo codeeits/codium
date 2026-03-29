@@ -596,6 +596,7 @@ class ApiService {
 
     async createProblem(problemData) {
         // title, description, source, first_test_id, thumbnail_id, [TAGS] difficulty, module, solve_type, result_type, verification_type, section
+        console.log('Creating problem with data:', problemData);
         return this.post('/api/problems', problemData, true);
     }
 
@@ -793,6 +794,210 @@ class ApiService {
     async approveProblem(problemId) {
         return this.post(`/admin/problems/suggested/${problemId}/approve`, {}, true);
     }
+
+    // bulk uploading from json, both problems and tests at the same time
+    /* FORMAT:
+    {
+        "problema": [ // required, at least one problem, can be an array of multiple problems
+            {
+            "Titlu": "", // string
+            "Sursa": "", // optional, can be comma separated if multiple sources (e.g. "Sursa1, Sursa2")
+            "Descriere": "", // can be formatted as markdown but is stored as a string
+            "Grup TestID": "", // numeric
+            "Tags": "{}" // optional, can be missing
+            }
+        ],
+        "test": [ // required, at least one test, can be an array of multiple tests, must have at least one test with Grup TestID matching the problem's Grup TestID
+            {
+            "Grup TestID": "", // numeric, must match the problem's Grup TestID to be associated with that problem
+            "Input": "", // string - convert from number if necessary
+            "Expected Output": "" // string - convert from number if necessary
+            }
+        ]
+    }
+    */
+
+    async bulkUploadProblems(problemsData) {
+        if (!problemsData || typeof problemsData !== 'object') {
+            throw new Error('Invalid payload. Expected an object containing "problema" and "test" arrays.');
+        }
+
+        const normalizeHeader = (value) => String(value || '').toLowerCase().replace(/[\s_\-]/g, '');
+
+        const getField = (obj, aliases) => {
+            const aliasSet = new Set(aliases.map(normalizeHeader));
+            for (const [key, value] of Object.entries(obj || {})) {
+                if (aliasSet.has(normalizeHeader(key))) {
+                    return value;
+                }
+            }
+            return null;
+        };
+
+        const toIntOrNull = (value) => {
+            if (value === null || value === undefined || value === '') {
+                return null;
+            }
+            const parsed = parseInt(value, 10);
+            return Number.isNaN(parsed) ? null : parsed;
+        };
+
+        const problems = Array.isArray(problemsData.problema) ? problemsData.problema : [];
+        const tests = Array.isArray(problemsData.test) ? problemsData.test : [];
+
+        if (problems.length === 0 || tests.length === 0) {
+            throw new Error('Both "problema" and "test" arrays are required and must contain at least one item.');
+        }
+
+        const createdProblems = [];
+
+        for (const problem of problems) {
+            const parseTagsObject = (value) => {
+                if (!value) return null;
+                if (typeof value === 'object') return value;
+                if (typeof value !== 'string') return null;
+
+                const cleaned = value.trim()
+                    .replace(/^'/, '')
+                    .replace(/""/g, '"');
+
+                try {
+                    return JSON.parse(cleaned);
+                } catch (_err) {
+                    return null;
+                }
+            };
+
+            const parsedTags = parseTagsObject(getField(problem, ['Tags', 'tags']));
+            if (getField(problem, ['Tags', 'tags']) && !parsedTags) {
+                console.warn('Invalid Tags JSON for problem, ignoring tags fallback.');
+            }
+
+            // "temporary" convention in this project, class info is stored in verification_type (don't ask why, it is a looong story)
+
+            const readTagInt = (aliases) => {
+                if (parsedTags && typeof parsedTags === 'object') {
+                    const fromTags = toIntOrNull(getField(parsedTags, aliases));
+                    if (fromTags !== null) return fromTags;
+                }
+                return toIntOrNull(getField(problem, aliases));
+            };
+
+            const difficulty = readTagInt(['difficulty']);
+            const module = readTagInt(['module']);
+            const solveType = readTagInt(['solve_type', 'solve type']);
+            const resultType = readTagInt(['result_type', 'result type']);
+            const section = readTagInt(['section']);
+            const verificationType = readTagInt([
+                'verification_type',
+                'verification type',
+                'preventive',
+                'preventiv',
+                'class',
+                'clasa'
+            ]);
+
+            const problemPayload = {
+                title: problem.Titlu,
+                description: problem.Descriere,
+                source: problem.Sursa || '',
+                first_test_id: null,
+            };
+
+            if (difficulty !== null) problemPayload.difficulty = difficulty;
+            if (module !== null) problemPayload.module = module;
+            if (solveType !== null) problemPayload.solve_type = solveType;
+            if (resultType !== null) problemPayload.result_type = resultType;
+            if (section !== null) problemPayload.section = section;
+            if (verificationType !== null) problemPayload.verification_type = verificationType;
+
+            const createdProblemResponse = await this.createProblem(problemPayload);
+            const createdProblem = typeof createdProblemResponse === 'string'
+                ? JSON.parse(createdProblemResponse)
+                : createdProblemResponse;
+            const createdProblemId = createdProblem?.problem?.ID || createdProblem?.ID;
+
+            if (!createdProblemId) {
+                throw new Error('Problem creation succeeded but no problem ID was returned by the API. (not my fault if the API is broken, but still gotta catch this case)');
+            }
+
+            createdProblems.push({
+                id: createdProblemId,
+                grupTestId: String(problem['Grup TestID'] ?? ''),
+                firstTestSet: false,
+            });
+        }
+
+        let testsCreated = 0;
+        let testsSkipped = 0;
+
+        // Group tests by Grup TestID so each problem receives a linked test chain
+
+        const testsByGroup = new Map();
+        for (const test of tests) {
+            const groupId = String(test['Grup TestID'] ?? '');
+            if (!testsByGroup.has(groupId)) {
+                testsByGroup.set(groupId, []);
+            }
+            testsByGroup.get(groupId).push(test);
+        }
+
+        for (const problem of createdProblems) {
+            const groupTests = testsByGroup.get(problem.grupTestId) || [];
+
+            if (groupTests.length === 0) {
+                console.warn(`No tests found for problem group ${problem.grupTestId}, skipping this problem's tests.`);
+                continue;
+            }
+
+            let previousTestId = null;
+
+            for (const test of groupTests) {
+                const inputText = String(test.Input ?? '').trim();
+                const expectedOutput = String(test['Expected Output'] ?? '').trim();
+
+                if (!inputText || !expectedOutput) {
+                    console.warn(`Skipping invalid test in group ${problem.grupTestId}: missing Input or Expected Output.`);
+                    testsSkipped += 1;
+                    continue;
+                }
+
+                const testPayload = {
+                    input_text: inputText,
+                    expected_output: expectedOutput,
+                };
+
+                if (previousTestId) {
+                    testPayload.previous_test_id = previousTestId;
+                }
+
+                const createdTestResponse = await this.post('/api/tests', testPayload, true);
+                const createdTest = typeof createdTestResponse === 'string'
+                    ? JSON.parse(createdTestResponse)
+                    : createdTestResponse;
+                const createdTestId = createdTest?.test?.ID || createdTest?.ID;
+
+                if (!createdTestId) {
+                    throw new Error('Test creation succeeded but no test ID was returned by the API. details: ' + JSON.stringify(createdTestResponse));
+                }
+
+                if (!problem.firstTestSet) {
+                    await this.updateProblem(problem.id, 'test', { first_test_id: createdTestId });
+                    problem.firstTestSet = true;
+                }
+
+                previousTestId = createdTestId;
+                testsCreated += 1;
+            }
+        }
+
+        return {
+            problems_created: createdProblems.length,
+            tests_created: testsCreated,
+            tests_skipped: testsSkipped,
+        };
+    }
+
     // ===========================================
     // File Management Endpoints
     // ===========================================

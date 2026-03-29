@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to API Uploader</title>
+    
+    <script src="./external/sheetJS/xlsx.full.min.js"></script>
+    <script src="./apiHandlers.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; color: #333; padding: 40px 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .upload-section { margin-bottom: 20px; padding: 20px; border: 2px dashed #cbd5e1; border-radius: 8px; text-align: center; }
+        input[type="file"] { margin-top: 10px; }
+        .preview-box { background: #1e293b; color: #10b981; padding: 15px; border-radius: 6px; height: 250px; overflow-y: auto; font-family: monospace; font-size: 14px; white-space: pre-wrap; margin-bottom: 20px; }
+        button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Upload Problem Data</h2>
+        <p>Select your multi-sheet <b>.xlsx</b> file below. This page is for testing purposes only. Made this page to quickly test.</p>
+        
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept=".xlsx, .xls" />
+        </div>
+        
+        <h3>JSON Preview</h3>
+        <div id="jsonPreview" class="preview-box">Awaiting file upload...</div>
+        
+        <button id="sendBtn" disabled>Send to API</button>
+    </div>
+
+    <script type="module">
+        import { excelToJson } from './helper/helper.js';
+
+        let apiPayload = null;
+
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                apiPayload = await excelToJson(file);
+
+                document.getElementById('jsonPreview').textContent = JSON.stringify(apiPayload, null, 2);
+                
+                const sheetCount = Object.keys(apiPayload).length;
+                const sendBtn = document.getElementById('sendBtn');
+                sendBtn.disabled = false;
+                sendBtn.textContent = `Send ${sheetCount} Sheets to API`;
+
+            } catch (error) {
+                console.error("Failed to parse Excel file:", error);
+                document.getElementById('jsonPreview').textContent = "Error reading file. Make sure it's a valid Excel document.";
+            }
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            if (!apiPayload) return;
+            
+            const btn = document.getElementById('sendBtn');
+            btn.textContent = "Sending...";
+            btn.disabled = true;
+
+            console.log("Payload ready to send:", apiPayload);
+
+            try {
+                if (!window.apiService || typeof window.apiService.bulkUploadProblems !== 'function') {
+                    throw new Error('API service is not available on this page.');
+                }
+
+                // Accept flexible sheet naming from Excel while calling the API with required keys.
+                const findSheet = (name) => {
+                    const key = Object.keys(apiPayload).find((k) => k.toLowerCase() === name);
+                    return key ? apiPayload[key] : [];
+                };
+
+                const normalizedPayload = {
+                    problema: findSheet('problema'),
+                    test: findSheet('test')
+                };
+
+                const result = await window.apiService.bulkUploadProblems(normalizedPayload);
+                console.log('Bulk upload result:', result);
+                
+                alert("Success! Bulk upload completed. Check your browser console.");
+                btn.textContent = "Sent Successfully!";
+                btn.style.backgroundColor = "#10b981";
+
+            } catch (error) {
+                console.error("API Error:", error);
+                alert("Failed to send data to API: " + (error.message || error));
+                btn.textContent = "Try Again";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

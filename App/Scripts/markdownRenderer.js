@@ -77,6 +77,8 @@ export function extractCustomBlock(content, tag, modifyContent = true) {
 export function tomarkdown(text, state = {}) {
     if (!text) return '';
 
+    text = text.replace(/<!--\s*\{\s*"fold"\s*:\s*(?:true|false)\s*\}\s*-->/g, '');
+
     // --- RENDERER CONFIGURATION ---
     const renderer = {
         heading(token) {
