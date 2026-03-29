@@ -1477,6 +1477,10 @@ blockquote {
 /* ===================== */
 
 .modal-overlay {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out;
+
     position: fixed;
     top: 0;
     left: 0;
@@ -1484,14 +1488,15 @@ blockquote {
     bottom: 0;
     background-color: rgba(195, 36, 36, 0.05);
     backdrop-filter: blur(15px);
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
 }
 
 .modal-overlay.active {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
 }
 
 .modal {
@@ -1507,6 +1512,13 @@ blockquote {
     max-width: 90vw;
     max-height: 90vh;
     overflow-y: auto;
+
+    transform: translateY(-20px) scale(0.95) rotate(-1deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0) scale(1) rotate(0);
 }
 
 .modal form, .modal-field {
@@ -1530,6 +1542,13 @@ blockquote {
     height: 30px;
     flex-shrink: 0;
     align-content: center;
+
+    transition: all 0.2s ease-in-out;
+}
+
+.modal-icon:hover {
+    color: var(--primary);
+    transform: scale(1.1) rotate(5deg);
 }
 
 .modal-title {
