@@ -142,7 +142,7 @@ export class ModalEngine {
         
 
         const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay active';
+        overlay.className = 'modal-overlay';
         
         overlay.innerHTML = `
             <div class="modal">
@@ -170,17 +170,45 @@ export class ModalEngine {
 
         document.body.appendChild(overlay);
 
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                overlay.classList.add('active');
+            });
+        })
+
         document.dispatchEvent(new CustomEvent('codium:request-translation', {
             detail: { element: overlay }
         }));
 
         // Handle Cleanup
         const destroyModal = () => {
-            if (finalConfig.onCancel) finalConfig.onCancel();
-            document.body.removeChild(overlay);
+
+            overlay.classList.remove('active');
+
+            overlay.addEventListener('transitionend', function handler(e) {
+                if (e.target === overlay) {
+                    overlay.removeEventListener('transitionend', handler);
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                }
+            });
+
+            // if (finalConfig.onCancel) finalConfig.onCancel();
         };
 
-        overlay.querySelector('.close-button').addEventListener('click', destroyModal);
+        overlay.querySelector('.close-button').addEventListener('click', () => {
+            if (finalConfig.onCancel) finalConfig.onCancel();
+            destroyModal();
+        });
+
+        // handle click outside modal to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                if (finalConfig.onCancel) finalConfig.onCancel();
+                destroyModal();
+            }
+        });
 
         const confirmBtn = overlay.querySelector('#modal-confirm-button');
         if (confirmBtn) {
@@ -192,7 +220,10 @@ export class ModalEngine {
 
         const cancelBtn = overlay.querySelector('#modal-cancel-button');
         if (cancelBtn) {
-            cancelBtn.addEventListener('click', destroyModal);
+            cancelBtn.addEventListener('click', () => {
+                if (finalConfig.onCancel) finalConfig.onCancel();
+                destroyModal();
+            });
         }
 
         const form = overlay.querySelector('form');
