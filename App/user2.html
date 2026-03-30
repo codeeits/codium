@@ -18,6 +18,7 @@
     <!-- Scripts -->
     <script src="/app/Scripts/main.js" defer></script>
     <script src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/userHandlerNew.js"></script>
 
     <meta name="menu-variant" content="new">
     <meta name="sidebar-active" content="home">
@@ -55,42 +56,15 @@
             <div class="main-content">
                 <div class="card profile-card">
                     <div class="profile-info">
-                        <img src="https://placehold.co/80/png" alt="Profile Picture" class="profile-avatar">
+                        <img src="https://placehold.co/80/png" alt="Profile Picture" class="profile-avatar" id="userAvatar">
                         <div class="profile-details">
-                            <h2 class="profile-name">Codeeitsbutlonger</h2>
-                            <p class="profile-email">mail@its-codee.com</p>
+                            <h2 class="profile-name" id="userName">Codeeitsbutlonger</h2>
+                            <p class="profile-email" id="userEmail">mail@its-codee.com</p>
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn secondary">Log-out</button>
-                        <button type="button" class="btn primary" id="editButton">Editează profilul</button>
-                        <script type="module">
-                            import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
-                            
-                            const engine = new ModalEngine();
-                            const editBtn = document.getElementById('editButton');
-
-                            editBtn.addEventListener('click', () => {
-                                engine.openModal({
-                                    title: 'Edit Profile',
-                                    body: `
-                                        <form id="edit-profile-form">
-                                            <label>Username: <input type="text" name="username" value="CurrentDevUser"></label><br>
-                                            <label>Email: <input type="email" name="email" value="dev@example.com"></label><br><br>
-                                            <button type="submit">Save Changes</button>
-                                        </form>
-                                    `,
-                                    onConfirm: (formElement) => {
-                                        const updatedUsername = formElement.username.value;
-                                        const updatedEmail = formElement.email.value;
-                                        console.log(`Saving... User: ${updatedUsername}, Email: ${updatedEmail}`);
-                                    },
-                                    onCancel: () => {
-                                        console.log('User cancelled the modal.');
-                                    }
-                                });
-                            });
-                        </script>
+                        <button type="button" class="btn secondary" id="logoutBtn">Log-out</button>
+                        <button type="button" class="btn primary" id="editProfileBtn">Editeaza profilul</button>
                     </div>
                 </div>
 
@@ -99,12 +73,13 @@
                     <div class="section-header">
                         <h1 class="section-title">Continue learning</h1>
                         <div class="nav-arrows">
-                            <button class="nav-arrow" aria-label="Previous">
+                            <button class="nav-arrow" id="continuePrevBtn" aria-label="Previous">
                                 <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M7 1L1 7L7 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
                             </button>
-                            <button class="nav-arrow" aria-label="Next">
+                            <span id="continueNavIndicator" style="align-self:center; min-width:44px; text-align:center; color: var(--disabled-text); font-size: var(--small-font-size);">0/0</span>
+                            <button class="nav-arrow" id="continueNextBtn" aria-label="Next">
                                 <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1 1L7 7L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
@@ -112,13 +87,13 @@
                         </div>
                     </div>
 
-                    <div class="card content-card">
+                    <div class="card content-card" id="continueCard">
                         <div class="content-card-image"></div>
                         <div class="content-card-body">
                             <div class="content-card-text">
-                                <span class="content-card-category">CLASA A IX-A</span>
-                                <h3 class="content-card-title">Problema 1</h3>
-                                <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+                                <span class="content-card-category" id="continueCategory">CLASA A IX-A</span>
+                                <h3 class="content-card-title" id="continueTitle">Problema 1</h3>
+                                <p class="content-card-description" id="continueDescription">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
                             </div>
                             <div class="content-card-footer">
                                 <div class="difficulty">
@@ -127,9 +102,9 @@
                                         <rect x="6" y="3" width="4" height="11" rx="1" fill="#659D48"></rect>
                                         <rect x="12" y="0" width="4" height="14" rx="1" fill="#659D48"></rect>
                                     </svg>
-                                    <span class="difficulty-text">Easy</span>
+                                    <span class="difficulty-text" id="continueDifficulty">Easy</span>
                                 </div>
-                                <button type="button" class="btn primary full-width">Continue</button>
+                                <button type="button" class="btn primary full-width" id="continueButton">Continue</button>
                             </div>
                         </div>
                     </div>
@@ -140,12 +115,13 @@
                     <div class="section-header">
                         <h1 class="section-title">Bookmarks</h1>
                         <div class="nav-arrows">
-                            <button class="nav-arrow" aria-label="Previous">
+                            <button class="nav-arrow" id="bookmarksPrevBtn" aria-label="Previous">
                                 <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M7 1L1 7L7 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
                             </button>
-                            <button class="nav-arrow" aria-label="Next">
+                            <span id="bookmarksNavIndicator" style="align-self:center; min-width:44px; text-align:center; color: var(--disabled-text); font-size: var(--small-font-size);">0/0</span>
+                            <button class="nav-arrow" id="bookmarksNextBtn" aria-label="Next">
                                 <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1 1L7 7L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
@@ -153,13 +129,16 @@
                         </div>
                     </div>
 
-                    <div class="card content-card">
+                    <p id="bookmarksEmptyState" style="display:none; margin: 0.5rem 0 0;">No bookmarks yet.</p>
+                    <div id="bookmarksCards"></div>
+
+                    <div class="card content-card" id="bookmarkTemplate" style="display:none;">
                         <div class="content-card-image"></div>
                         <div class="content-card-body">
                             <div class="content-card-text">
-                                <span class="content-card-category">CLASA A IX-A</span>
-                                <h3 class="content-card-title">Problema 1</h3>
-                                <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+                                <span class="content-card-category bookmark-category">CLASA A IX-A</span>
+                                <h3 class="content-card-title bookmark-title">Problema 1</h3>
+                                <p class="content-card-description bookmark-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
                             </div>
                             <div class="content-card-footer">
                                 <div class="difficulty">
@@ -168,9 +147,9 @@
                                         <rect x="6" y="3" width="4" height="11" rx="1" fill="#659D48"></rect>
                                         <rect x="12" y="0" width="4" height="14" rx="1" fill="#659D48"></rect>
                                     </svg>
-                                    <span class="difficulty-text">Easy</span>
+                                    <span class="difficulty-text bookmark-difficulty">Easy</span>
                                 </div>
-                                <button type="button" class="btn primary full-width">Continue</button>
+                                <button type="button" class="btn primary full-width bookmark-button">Open</button>
                             </div>
                         </div>
                     </div>
