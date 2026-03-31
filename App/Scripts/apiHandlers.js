@@ -387,7 +387,9 @@ class ApiService {
         }
 
         // build chain
+        const visitedIds = new Set();
         lessons.push(startLesson);
+        visitedIds.add(startLesson.lesson.ID);
         nextId = startLesson.lesson.NextLessonID;
 
         while (nextId) {
@@ -400,10 +402,23 @@ class ApiService {
             const nextLesson = lessonsData.find(l => l.lesson.ID === nextId);
             if (nextLesson) {
                 lessons.push(nextLesson);
+                visitedIds.add(nextLesson.lesson.ID);
                 nextId = nextLesson.lesson.NextLessonID;
             } else {
                 nextId = null; // chain ends
             }
+        }
+
+        // Keep disconnected lessons visible so they can be repaired from the UI.
+        const disconnectedLessons = lessonsData.filter(l => !visitedIds.has(l.lesson.ID));
+        if (disconnectedLessons.length > 0) {
+            disconnectedLessons.sort((a, b) => {
+                const dateA = new Date(a.lesson.CreatedAt.Time);
+                const dateB = new Date(b.lesson.CreatedAt.Time);
+                return dateA - dateB;
+            });
+            lessons.push(...disconnectedLessons);
+            console.warn(`[WARN] Appended ${disconnectedLessons.length} disconnected lesson(s) to preserve visibility.`);
         }
 
         console.log(`[DEBUG] Final sorted lessons:`, lessons);

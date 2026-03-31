@@ -14,23 +14,24 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // ------------------------------
     
-    const currentUser = await window.apiService.getCurrentUser();
+    const currentUserRaw = await window.apiService.getCurrentUser();
+    const userData = typeof currentUserRaw === 'string' ? JSON.parse(currentUserRaw) : currentUserRaw;
 
-    if (currentUser === null) {
+    if (userData === null) {
         // Not logged in
         window.location.href = `/app/login.html?redirect=${window.location.pathname}`;
         return;
     }
 
-    console.log("Current user:", currentUser);
-    
-    if (currentUser.IsAdmin) {
+    console.log("Current user:", userData);
+
+    // Some responses expose admin status via IsAdmin, others via Permissions.
+    const isAdmin = userData.IsAdmin === true || userData.isAdmin === true || Number(userData.Permissions) === 61;
+    if (!isAdmin) {
         // Logged in but not admin
         window.location.href = 'user.html';
         return;  
     }
-
-    const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
 
     if(debugMode) console.info("[DEBUG] Current User:", userData);
 
@@ -258,15 +259,30 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         try {
             console.log('Updating lessons order:', lessonIds);
+
+            function isSectionStarter(starterValue, targetSection) {
+                if (typeof starterValue === 'boolean') {
+                    return starterValue === true;
+                }
+                if (starterValue && typeof starterValue === 'object') {
+                    return starterValue.Valid === true && Number(starterValue.Int32) === Number(targetSection);
+                }
+                return false;
+            }
             
-            // Clear all relationships and remove section starter status
+            // Clear all next relationships first (this also clears linked prev pointers server-side).
             for (const lessonId of lessonIds) {
                 await window.apiService.updateLessonOrder(lessonId, null, "00000000-0000-0000-0000-000000000000");
-                await window.apiService.updateLessonSectionStarter(lessonId, false);
             }
             
             const firstLessonId = lessonIds[0];
-            await window.apiService.updateLessonSectionStarter(firstLessonId, parseInt(sectionValue));
+
+            // Avoid toggling section starter blindly: endpoint toggles value, it does not set explicit true/false.
+            const firstLessonResult = await window.apiService.getLessonById(firstLessonId);
+            const firstLessonData = typeof firstLessonResult === 'string' ? JSON.parse(firstLessonResult) : firstLessonResult;
+            if (!isSectionStarter(firstLessonData.lesson?.SectionStarter, sectionValue)) {
+                await window.apiService.updateLessonSectionStarter(firstLessonId, parseInt(sectionValue));
+            }
             
             for (let i = 1; i < lessonIds.length; i++) {
                 const currentLessonId = lessonIds[i];

@@ -993,7 +993,7 @@ main, .content-area {
 }
 
 /* The visual-only copy symbol */
-.example-block pre::before {
+.example-block pre::before, .lesson-body pre::before {
     font-family: "Font Awesome 7 Free";
     content: "\f0c5";
     position: absolute;
@@ -1007,7 +1007,7 @@ main, .content-area {
     transition: all 0.3s ease-in-out;
 }
 
-.example-block pre.copied::before {
+.example-block pre.copied::before, .lesson-body pre.copied::before {
     font-family: "Font Awesome 7 Free";
     font-weight: 900;
     content: "\f00c";
@@ -1017,11 +1017,11 @@ main, .content-area {
     transform: scale(1.2);
 }
 
-.example-block pre.copied, .example-block pre.copied:hover {
+.example-block pre.copied, .example-block pre.copied:hover, .lesson-body pre.copied, .lesson-body pre.copied:hover {
     border-color: var(--confirm);
 }
 
-.example-block pre:hover::before {
+.example-block pre:hover::before, .lesson-body pre:hover::before {
     opacity: 1;
     filter: grayscale(0%);
 }
@@ -1109,6 +1109,16 @@ pre:not(.example-block pre) {
     border-radius: var(--border-radius-sm);
     overflow-x: auto;
     margin: var(--gap-md) 0;
+}
+
+.lesson-body pre {
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.lesson-body pre:hover {
+    border-color: var(--primary);
 }
 
 pre:not(.example-block pre) code {
