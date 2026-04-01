@@ -164,6 +164,13 @@ func NewRequestBuilderNoTarget(method string, jsonBody []byte, wantedStatus int)
 	}
 }
 
+func assertNonNilID(t *testing.T, id uuid.UUID, context string) {
+	t.Helper()
+	if id == uuid.Nil {
+		t.Fatalf("Expected non-nil ID for %s", context)
+	}
+}
+
 /*
 	===========================================
 
@@ -319,6 +326,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			adminToken = translated.Token
 			adminRefreshToken = translated.RefreshToken
 			adminID = translated.User.ID
+
+			assertNonNilID(t, translated.User.ID, "default admin login response")
 		})
 
 		var averageUserEmail = "testing@nthing.com"
@@ -343,6 +352,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if UserHasPermission(user, PermissionAdmin) {
 				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "created user")
 		})
 
 		var averageUserToken string
@@ -371,6 +382,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			averageUserToken = translated.Token
 			averageUserID = translated.User.ID
+
+			assertNonNilID(t, translated.User.ID, "average user login response")
 		})
 
 		t.Run("TestUnauthorizedReset", func(t *testing.T) {
@@ -394,6 +407,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != "UpdatedAdminUser" {
 				t.Fatalf("Expected username %s, got %s", "UpdatedAdminUser", user.Username)
 			}
+
+			assertNonNilID(t, user.ID, "updated admin profile before refresh")
 		})
 
 		t.Run("TestRefreshToken", func(t *testing.T) {
@@ -429,6 +444,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != "RefreshedAdminUser" {
 				t.Fatalf("Expected username %s, got %s", "RefreshedAdminUser", user.Username)
 			}
+
+			assertNonNilID(t, user.ID, "updated admin profile after refresh")
 		})
 
 		t.Run("TestGetUsers", func(t *testing.T) {
@@ -449,6 +466,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if user.PasswordHash != "" {
 					t.Fatalf("Expected password hash to be omitted, got %s", user.PasswordHash)
 				}
+
+				assertNonNilID(t, user.ID, "user in users list")
 			}
 		})
 
@@ -488,6 +507,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			var translated = loginResp.(loginParams)
 
 			secondAverageToken = translated.Token
+
+			assertNonNilID(t, user.ID, "second created user")
+			assertNonNilID(t, translated.User.ID, "second average user login response")
 		})
 
 		t.Run("TestUpdateSecondUserToAdminAsAverageUser", func(t *testing.T) {
@@ -511,6 +533,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if UserPermissions(user.Permissions)&PermissionAdmin == 0 {
 				t.Fatalf("Expected user to have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "promoted second user to admin")
 		})
 
 		t.Run("TestUpdateSecondUserToBasic", func(t *testing.T) {
@@ -526,6 +550,25 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if UserPermissions(user.Permissions)&PermissionAdmin != 0 {
 				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "demoted second user to basic")
+		})
+
+		t.Run("TestMakeSecondUserTeacher", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "teacher"}`)
+			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
+				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
+			}
+
+			assertNonNilID(t, user.ID, "updated second user to teacher")
 		})
 
 		//Test files
@@ -576,6 +619,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson flags")
 
 			if lesson.Lesson.Title != "Test Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Test Lesson", lesson.Lesson.Title)
@@ -587,6 +631,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected lesson language %s, got %s", "ro", lesson.Lesson.Language)
 			}
 			uploadedLessonID = lesson.Lesson.ID
+
+			assertNonNilID(t, lesson.Lesson.ID, "uploaded lesson")
 		})
 
 		t.Run("TestUpdateLessonDetailsWithAuth", func(t *testing.T) {
@@ -597,6 +643,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "linked lesson creation response")
 
 			if lesson.Lesson.Title != "Updated Test Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Updated Test Lesson", lesson.Lesson.Title)
@@ -604,6 +651,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Description.String != "This is an updated test lesson." {
 				t.Fatalf("Expected lesson description %s, got %s", "This is an updated test lesson.", lesson.Lesson.Description.String)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson details")
 		})
 
 		t.Run("TestUpdateLessonFlagsWithAuth", func(t *testing.T) {
@@ -632,6 +681,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson section starter")
 		})
 
 		var fileIds []uuid.UUID
@@ -675,6 +726,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
 				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "updated second user to teacher")
 		})
 
 		t.Run("TestSuggestLessonAsAverageUserForbidden", func(t *testing.T) {
@@ -702,6 +755,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected lesson suggested %t, got %t", true, lesson.Lesson.Suggested)
 			}
 			suggestedLessonID = lesson.Lesson.ID
+
+			assertNonNilID(t, lesson.Lesson.ID, "suggested lesson")
 		})
 
 		t.Run("TestUpdateLessonSuggestedForbidden", func(t *testing.T) {
@@ -724,6 +779,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Title != "Updated Suggested Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Updated Suggested Lesson", lesson.Lesson.Title)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated suggested lesson as admin")
 		})
 
 		t.Run("TestUpdateLessonSuggestedAsAuthor", func(t *testing.T) {
@@ -738,6 +795,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Title != "Author Updated Suggested Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Author Updated Suggested Lesson", lesson.Lesson.Title)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated suggested lesson as author")
 		})
 
 		t.Run("TestGetSuggestedLessons", func(t *testing.T) {
@@ -754,6 +813,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if len(lessons) < 1 {
 				t.Fatal("No suggested lessons found")
 			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "suggested lesson in admin list")
+			}
 		})
 
 		t.Run("TestGetSuggestedLessonsByTeacher", func(t *testing.T) {
@@ -769,6 +832,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			if len(lessons) < 1 {
 				t.Fatal("No suggested lessons found for the teacher")
+			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "suggested lesson in teacher-filtered list")
 			}
 		})
 
@@ -800,6 +867,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Suggested != false {
 				t.Fatalf("Lesson is suggested, expected to not be suggested")
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "approved suggested lesson")
 		})
 
 		var lessonIds []uuid.UUID
@@ -846,6 +915,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, lesson.Lesson.ID, "linked lesson fetch response")
 
 				if lesson.Lesson.PrevLessonID.Valid != true || lesson.Lesson.PrevLessonID.UUID != lessonIds[i] {
 					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[i].String(), lesson.Lesson.PrevLessonID.UUID.String())
@@ -870,6 +940,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if len(lessons) != 25 {
 				t.Logf("Expected %d lessons in section 69, got %d", 25, len(lessons))
 			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "lesson in section search response")
+			}
 		})
 
 		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
@@ -884,6 +958,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated linked lesson section starter")
 		})
 
 		//t.Log(lessonIds)
@@ -898,6 +974,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error making request: ", err)
 				}
+				assertNonNilID(t, lesson.Lesson.ID, "updated linked lesson next pointer")
 
 				if lesson.Lesson.NextLessonID.Valid != true || lesson.Lesson.NextLessonID.UUID != lessonIds[i+1] {
 					t.Fatalf("Expected lesson next lesson ID %s, got %s", lessonIds[i+1].String(), lesson.Lesson.NextLessonID.UUID.String())
@@ -913,6 +990,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "unlinked first lesson response")
 
 			if lesson.Lesson.NextLessonID.Valid != false {
 				t.Fatalf("Expected lesson next lesson ID to be null, got %v", lesson.Lesson.NextLessonID)
@@ -935,6 +1013,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "lesson fetched after deleting section starter")
 
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
@@ -973,6 +1052,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if lesson.Lesson.ID != lessonIds[i+2] {
 					t.Fatalf("Expected lesson ID %s, got %s", lessonIds[i+2].String(), lesson.Lesson.ID.String())
 				}
+
+				assertNonNilID(t, lesson.Lesson.ID, "problem in average user list")
 			}
 		})
 
@@ -1025,6 +1106,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "created problem test")
 
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
@@ -1048,6 +1130,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "fetched problem test by id")
 
 			if test.ID != testID {
 				t.Fatalf("Expected test ID %s, got %s", testID.String(), test.ID.String())
@@ -1065,6 +1148,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "updated problem test input")
 
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
@@ -1085,6 +1169,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "updated problem test expected output")
 
 			if test.ExpectedOutput != "10 20\n" {
 				t.Fatalf("Expected output %s, got %s", "10 20\n", test.ExpectedOutput)
@@ -1105,6 +1190,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, test.ID, "created linked problem test")
 
 				if !test.TxtInput.Valid {
 					t.Fatal("Expected input text to be valid")
@@ -1134,6 +1220,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, test.ID, "fetched linked problem test")
 
 				if test.PreviousTestID.Valid != true || test.PreviousTestID.UUID != testIds[i] {
 					t.Fatalf("Expected previous test ID %s, got %s", testIds[i].String(), test.PreviousTestID.UUID.String())
@@ -1163,6 +1250,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "fetched problem by id")
 
 			if problem.Problem.Title != "Sample Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Sample Problem", problem.Problem.Title)
@@ -1170,8 +1258,9 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem.Problem.FirstTest.Valid != true || problem.Problem.FirstTest.UUID != testID {
 				t.Fatalf("Expected problem first test ID %s, got %s", testID.String(), problem.Problem.FirstTest.UUID.String())
 			}
-
 			problemID = problem.Problem.ID
+
+			assertNonNilID(t, problem.Problem.ID, "created problem")
 		})
 
 		t.Run("TestDeleteProblemAsAverageUser", func(t *testing.T) {
@@ -1197,6 +1286,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected problem suggested %t, got %t", true, problem.Problem.Suggested)
 			}
 			suggestedProblemID = problem.Problem.ID
+
+			assertNonNilID(t, problem.Problem.ID, "created teacher problem")
 		})
 
 		t.Run("TestUpdateSuggestedProblemAsAverageUser", func(t *testing.T) {
@@ -1210,18 +1301,17 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestUpdateSuggestedProblemAsTeacher", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Teacher Problem", "description":"This is an updated teacher test problem", "source":"ONI2026"}`)
 			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
-				t.Fatal("Error decoding response: ", err)
+				t.Fatal("Error making request: ", err)
 			}
 
 			if problem.Problem.Title != "Updated Teacher Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Updated Teacher Problem", problem.Problem.Title)
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "updated suggested problem as teacher")
 		})
 
 		t.Run("TestApproveSuggestedProblemWithoutAuth", func(t *testing.T) {
@@ -1245,6 +1335,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem.Problem.Suggested != false {
 				t.Fatalf("Problem is suggested, expected to not be suggested")
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "approved suggested problem")
 		})
 
 		t.Run("TestGetProblemByID", func(t *testing.T) {
@@ -1276,6 +1368,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			found := false
 			for _, problem := range problems {
+				assertNonNilID(t, problem.Problem.ID, "problem in average user list")
 				if problem.Problem.ID == problemID {
 					found = true
 					break
@@ -1284,36 +1377,36 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if !found {
 				t.Fatalf("Expected to find problem with ID %s", problemID.String())
 			}
+
+			assertNonNilID(t, problemID, "problem in average user list")
 		})
 
 		t.Run("TestUpdateProblemDetails", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Sample Problem","description":"This is an updated test problem"}`)
 			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "updated problem tags")
 
 			if problem.Problem.Title != "Updated Sample Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Updated Sample Problem", problem.Problem.Title)
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "updated problem details")
 		})
 
 		t.Run("TestUpdateProblemTags", func(t *testing.T) {
 			jsonData := []byte(`{"difficulty":5,"module":3,"section":4}`)
 			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "tags").WithAuthToken(adminToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "updated problem first test")
 
 			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.SectionType != 4 {
 				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.SectionType)
@@ -1357,6 +1450,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "created solution")
 			if sol.ProblemID != problemID {
 				t.Fatalf("Expected solution problem ID %s, got %s", problemID.String(), sol.ProblemID.String())
 			}
@@ -1380,6 +1474,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "updated solution tests")
 			if !sol.TestsPassed.Valid || sol.TestsPassed.Int32 != 3 {
 				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 3, sol.TestsPassed.Int32)
 			}
@@ -1398,6 +1493,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "fetched solution by id as admin")
 			if sol.Language != "python" {
 				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
 			}
@@ -1416,6 +1512,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "fetched solution by id as user")
 			if sol.Language != "python" {
 				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
 			}
@@ -1479,6 +1576,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "created correct solution")
 
 			jsonData = []byte(`{"tests_passed":26, "total_tests":26}`)
 			resp, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
@@ -1490,6 +1588,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if updatedSol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, updatedSol.ID, "updated correct solution test counts")
 			if !updatedSol.TestsPassed.Valid || updatedSol.TestsPassed.Int32 != 26 {
 				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 26, updatedSol.TestsPassed.Int32)
 			}
