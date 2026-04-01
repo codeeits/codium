@@ -483,6 +483,7 @@ func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.
 		if errors.Is(err, sql.ErrNoRows) {
 			// Interaction not initialized yet, add bookmark
 			res, err = cfg.Db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+				ID:         uuid.New(),
 				ProblemID:  problemID,
 				UserID:     userID,
 				CreatedAt:  time.Now(),
