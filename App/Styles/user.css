@@ -1,5 +1,14 @@
-.content-area .main-content {
-    min-width: 600px;
+.main-layout,
+.content-area,
+.content-area > div {
+    min-width: 0;
+}
+
+.content-area {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-lg);
+    width: 100%;
 }
 
 .content-area > div {
@@ -8,6 +17,83 @@
     gap: var(--gap-lg);
 }
 
-main, .content-area {
-    gap: var(--gap-lg);
+.content-area .main-content {
+    flex: 1 1 880px;
+    max-width: 980px;
+    min-width: 0;
+}
+
+.content-area .side-content {
+    flex: 0 0 360px;
+    width: 360px;
+    min-width: 320px;
+    max-width: 360px;
+}
+
+.main-content .section,
+#bookmarksCards,
+#continueCard,
+#bookmarkTemplate,
+.main-content .content-card,
+.main-content .content-card-body,
+.main-content .content-card-text {
+    width: 100%;
+    min-width: 0;
+}
+
+.main-content .content-card {
+    overflow: hidden;
+}
+
+.main-content .content-card-image {
+    width: 280px;
+    min-width: 280px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+}
+
+@media (max-width: 1400px) {
+    .content-area {
+        flex-direction: column;
+    }
+
+    .content-area .main-content,
+    .content-area .side-content {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        flex-basis: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .main-content .content-card {
+        flex-direction: column;
+    }
+
+    .main-content .content-card-image {
+        width: 100%;
+        min-width: 0;
+        height: 180px;
+    }
+}
+
+@media (max-width: 970px) {
+
+    .profile-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .profile-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
 }

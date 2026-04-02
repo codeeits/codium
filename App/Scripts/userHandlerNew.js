@@ -139,6 +139,7 @@ function bindProfileActions() {
     }
 
     if (elements.editProfileBtn) {
+        /*
         elements.editProfileBtn.addEventListener('click', () => {
             engine.openModal({
                 type: 'edit-profile',
@@ -159,6 +160,20 @@ function bindProfileActions() {
             if (editUsername && state.user?.Username) {
                 editUsername.value = state.user.Username;
             }
+        });
+*/
+        elements.editProfileBtn.addEventListener('click', async () => {
+            await ModalHelpers.EditProfile.openModal({
+                engine,
+                user: state.user,
+                title: 'Edit Profile',
+                icon: 'fa-pencil',
+                onConfirm: (formElement) => {
+                    console.log('Profile edit confirmed');
+                    handleProfileEdit(formElement);
+                }
+            });
+
         });
     }
 }
@@ -300,6 +315,7 @@ function bindContinueArrows() {
 }
 
 async function loadContinueLearning() {
+    // loadContinueLearning returns, on logged in users, an array of interactions sorted by most recent, with the lesson data for each interaction, and whether it's in progress or completed. We then render the most recent interaction as the "Continue Learning" card, and allow navigation through the next 5 interactions if available.
     if (!state.userId) {
         setContinueEmptyState();
         return;

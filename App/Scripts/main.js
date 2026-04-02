@@ -322,6 +322,12 @@ function handleLangChange(e) {
 
 window.refreshAuthButton = updateAuthButton;
 
+window.addEventListener('codium:profile-updated', () => {
+    if (window.refreshAuthButton) {
+        window.refreshAuthButton();
+    }
+});
+
 // ---------------------------------------------
 // Interaction Handler (Dropdowns, Modals, etc.)
 // ---------------------------------------------

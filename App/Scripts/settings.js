@@ -323,54 +323,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function initEditProfileModal() {
         elements.editProfileBtn.addEventListener('click', async () => {
-            await engine.openModal({
-                type: 'edit-profile',
+            await ModalHelpers.EditProfile.openModal({
+                engine,
+                user: userData,
                 title: 'Edit Profile',
-                icon: 'fa-pencil', // font-awesome icon class for the modal header (optional)
+                icon: 'fa-pencil',
                 onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');
-                    handleProfileEdit(formElement); // function to handle profile edit form submission
-                },
-                onCancel: () => {
+                    handleProfileEdit(formElement);
                 }
             });
-
-            if (userData) {
-                const editEmailInput = document.getElementById('editEmail');
-                const editUsernameInput = document.getElementById('editUsername');
-
-                if (editUsernameInput && userData.Username) {
-                    editUsernameInput.value = userData.Username;
-                }
-
-                if (editEmailInput && userData.Email) {
-                    editEmailInput.value = userData.Email;
-                }
-            }
-
-            const fileInput = document.getElementById('editProfilePicture');
-            
-            if (fileInput) {
-                fileInput.addEventListener('change', (event) => {
-                    const file = event.target.files[0];
-                    
-                    if (file && file.type.startsWith('image/')) {
-                        const dropzone = fileInput.closest('.dropzone') || fileInput.parentElement;
-                        
-                        const icon = dropzone.querySelector('.input-icon');
-                        if (icon) icon.style.display = 'none';
-
-                        const oldPreview = dropzone.querySelector('.image-preview');
-                        if (oldPreview) oldPreview.remove();
-
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(file);
-                        img.className = 'image-preview';
-                                                
-                        dropzone.appendChild(img);
-                    }
-                });
-            }
 
         });
     }
