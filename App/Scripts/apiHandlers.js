@@ -521,9 +521,17 @@ class ApiService {
 
         const response = await this.get(`/api/lessons/${lessonId}/users/${userId}`, true);
         const data = typeof response === 'string' ? JSON.parse(response) : response;
-        const startTime = new Date(data.StartedAt.Time);
-        const finishTime = new Date(data.CompletedAt.Time);
-        const durationMs = finishTime - startTime;
+        const startRaw = data?.StartedAt?.Time || data?.StartedAt;
+        const finishRaw = data?.CompletedAt?.Time || data?.CompletedAt;
+
+        const startTime = new Date(startRaw);
+        const finishTime = new Date(finishRaw);
+
+        if (!Number.isFinite(startTime.getTime()) || !Number.isFinite(finishTime.getTime())) {
+            return "0 minute(s) and 0 second(s)";
+        }
+
+        const durationMs = Math.max(0, finishTime.getTime() - startTime.getTime());
         const minutes = Math.floor(durationMs / 60000);
         const seconds = Math.floor((durationMs % 60000) / 1000);
         const dataFormatted = `${minutes} minute(s) and ${seconds} second(s)`;

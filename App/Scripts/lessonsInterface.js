@@ -621,7 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (isAuthenticated) {
-            window.apiService.finishLesson(state.lessonId).catch(error => {
+            await window.apiService.finishLesson(state.lessonId).catch(error => {
                 if (debugMode) console.error("Failed to mark lesson as finished:", error);
             });
             const d = await window.apiService.getCompletionTime(state.lessonId);
@@ -658,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (isAuthenticated) {
-            window.apiService.finishLesson(state.lessonId).catch(error => {
+            await window.apiService.finishLesson(state.lessonId).catch(error => {
                 if (debugMode) console.error("Failed to mark lesson as finished:", error);
             });
             const d = await window.apiService.getCompletionTime(state.lessonId);
