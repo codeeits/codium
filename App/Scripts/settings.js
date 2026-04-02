@@ -322,9 +322,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initEditProfileModal() {
-        elements.editProfileBtn.addEventListener('click', () => {
-            engine.openModal({
+        elements.editProfileBtn.addEventListener('click', async () => {
+            await engine.openModal({
                 type: 'edit-profile',
+                title: 'Edit Profile',
                 icon: 'fa-pencil', // font-awesome icon class for the modal header (optional)
                 onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');

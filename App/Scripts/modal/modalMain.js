@@ -54,6 +54,8 @@ export class ModalEngine {
      * @param {Function} [config.onCancel] - Optional callback for closing the modal
      */
 
+    /* constructor to be removed */
+    /*
     constructor() {
         this.templates = {
             'info': {
@@ -128,22 +130,92 @@ export class ModalEngine {
             }
         }
     }
+    */
 
-    openModal(config) {
+    constructor(templateUrl = new URL('./modalTemplates.html', import.meta.url).href) {
+        this.templatesDoc = null;
+        this.initPromise = this.loadTemplates(templateUrl);
+    }
+
+    async loadTemplates(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const htmlText = await response.text();
+
+            const parser = new DOMParser();
+            this.templatesDoc = parser.parseFromString(htmlText, 'text/html');
+        } catch (error) {
+            console.error('Failed to load modal templates:', error);
+        }
+    }
+
+    async openModal(config) {
 
         let finalConfig = { ...config };
 
+        await this.initPromise;
+
+        if (!this.templatesDoc) {
+            console.error('Modal templates not loaded!');
+            return;
+        }
+
+        /*
         if (config.type && this.templates[config.type]) {
             const template = this.templates[config.type];
             finalConfig.title = config.title || template.title;
             finalConfig.body = config.body || template.body;
             finalConfig.footer = config.footer || template.footer || '';
         }
+        */
         
-
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         
+        const baseTemplate = this.templatesDoc.getElementById('modal-base-template');
+        if (!baseTemplate) {
+            console.error('Modal base template not found!');
+            return;
+        }
+
+        const baseContent = baseTemplate.content.cloneNode(true);
+        const modalElement = baseContent.querySelector('.modal');
+
+        /* this part does what the commented out code did */
+
+        const titleEl = modalElement.querySelector('.modal-title');
+        const iconEl = modalElement.querySelector('.modal-icon');
+        const bodyContainer = modalElement.querySelector('.modal-body');
+        const footerEl = modalElement.querySelector('.modal-footer');
+
+        titleEl.textContent = finalConfig.title || 'Notice';
+        iconEl.classList.add(finalConfig.icon || 'fa-info-circle');
+
+        if (finalConfig.type) {
+            
+            const specificTemplate = this.templatesDoc.getElementById(`modal-tpl-${finalConfig.type}`);
+            if (specificTemplate) {
+                const specificContent = specificTemplate.content.cloneNode(true);
+                bodyContainer.appendChild(specificContent);
+            } else {
+                console.warn(`No specific template found for type "${finalConfig.type}".`);
+            }
+        } else if (finalConfig.body instanceof HTMLElement) {
+            bodyContainer.appendChild(finalConfig.body);
+        } else if (typeof finalConfig.body === 'string') {
+            bodyContainer.innerHTML = finalConfig.body;
+        }
+
+        if (finalConfig.footer) {
+            footerEl.innerHTML = finalConfig.footer;
+        }
+
+        overlay.appendChild(modalElement);
+
+        /*
         overlay.innerHTML = `
             <div class="modal">
                 <div class="modal-header">
@@ -155,18 +227,7 @@ export class ModalEngine {
                 <div class="modal-footer">${finalConfig.footer}</div>
             </div>
         `;
-
-        const bodyContainer = overlay.querySelector('.modal-body');
-        if (typeof finalConfig.body === 'string') {
-            bodyContainer.innerHTML = finalConfig.body;
-        } else if (finalConfig.body instanceof HTMLElement) {
-            bodyContainer.appendChild(finalConfig.body);
-        }
-
-        if (finalConfig.text) {
-            const textElement = overlay.querySelector('#modal-dynamic-text');
-            if (textElement) textElement.textContent = finalConfig.text;
-        }
+        */
 
         document.body.appendChild(overlay);
 
