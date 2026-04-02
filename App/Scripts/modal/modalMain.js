@@ -184,8 +184,6 @@ export class ModalEngine {
         const baseContent = baseTemplate.content.cloneNode(true);
         const modalElement = baseContent.querySelector('.modal');
 
-        /* this part does what the commented out code did */
-
         const titleEl = modalElement.querySelector('.modal-title');
         const iconEl = modalElement.querySelector('.modal-icon');
         const bodyContainer = modalElement.querySelector('.modal-body');
