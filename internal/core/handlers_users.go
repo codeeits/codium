@@ -289,6 +289,13 @@ func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, s
 
 	backupSecret := gotp.RandomSecret(16)
 
+	backupHOTP := gotp.NewDefaultHOTP(backupSecret)
+
+	var backupCodes = make([]string, 0)
+	for i := 0; i < 10; i++ {
+		backupCodes = append(backupCodes, backupHOTP.At(i))
+	}
+
 	encryptedBackupSecret, err := auth.MakeGeneralJWT([]byte(backupSecret), cfg.Secret)
 	if err != nil {
 		cfg.Logger.Printf("Failed to create JWT: %v", err)
@@ -305,13 +312,6 @@ func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, s
 		cfg.Logger.Printf("Failed to update user backup code secret: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
-	}
-
-	backupHOTP := gotp.NewDefaultHOTP(backupSecret)
-
-	var backupCodes = make([]string, 0)
-	for i := 0; i < 10; i++ {
-		backupCodes = append(backupCodes, backupHOTP.At(i))
 	}
 
 	type output struct {

@@ -937,6 +937,10 @@ func PrintUserToJson(p any) (string, error) {
 	}
 
 	user.PasswordHash = "" // Remove password hash for security
+
+	// Remove user totp secrets for security reasons while keeping validated status for frontend verification
+	user.Backupcodesecret = sql.NullString{String: "", Valid: user.Backupcodesecret.Valid}
+	user.TotpSecret = sql.NullString{String: "", Valid: user.TotpSecret.Valid}
 	jsonData, err := json.Marshal(user)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal user: %v", err)
