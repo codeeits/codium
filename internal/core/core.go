@@ -1051,33 +1051,6 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 	return tags, mask
 }
 
-func BuildUserPermissions(canManageUsers bool, canManageProblems bool, canManageLessons bool, canViewOtherSolutions bool, canSuggestProblems bool, isAdmin bool, canSuggestLessons bool) UserPermissions {
-	var permissions UserPermissions = 0
-	if canManageUsers {
-		permissions |= PermissionCanManageUsers
-	}
-	if canManageProblems {
-		permissions |= PermissionCanManageProblems
-	}
-	if canManageLessons {
-		permissions |= PermissionCanManageLessons
-	}
-	if canViewOtherSolutions {
-		permissions |= PermissionCanViewOtherSolutions
-	}
-	if canSuggestProblems {
-		permissions |= PermissionCanSuggestProblems
-	}
-	if isAdmin {
-		permissions |= PermissionAdmin
-	}
-	if canSuggestLessons {
-		permissions |= PermissionCanSuggestLessons
-	}
-
-	return permissions
-}
-
 func UserHasPermission(user database.User, permission UserPermissions) bool {
 	return (UserPermissions(user.Permissions) & permission) == permission
 }
