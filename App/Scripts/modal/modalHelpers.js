@@ -136,6 +136,74 @@ export class ModalHelpers {
         }
     };
 
+    static LoginPopup = {
+
+        openModal: async ({ engine, onConfirm, title = 'Login', icon = 'fa-id-badge' }) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                throw new Error('A valid modal engine instance is required.');
+            }
+
+            await engine.openModal({
+                type: 'login',
+                title,
+                icon,
+                onConfirm: (formElement) => {
+                    if (typeof onConfirm === 'function') {
+                        onConfirm(formElement);
+                    }
+                },
+                onCancel: () => {}
+            });
+
+        },
+
+        validateForm: (data) => {
+            /* data syntax example: 
+                data = {
+                    email: '',
+                    password: ''
+                }
+            */
+
+            const { email, password } = data;
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) return { valid: false, error: 'Invalid email format' };
+
+            // Password validation
+            if (!password || password.length < 6) return { valid: false, error: 'Password must be at least 6 characters long' };
+
+            return { 
+                valid: true, 
+            };
+        },
+        
+        performLogin: async (data) => {
+
+            const validation = ModalHelpers.LoginPopup.validateForm(data);
+
+            if (!validation.valid) {
+                throw new Error(validation.error);
+            }
+
+            const loginResult = await window.apiService.login(data.email, data.password);
+            
+            if (loginResult.success) {
+                window.dispatchEvent(new CustomEvent('codium:login-success', {
+                    detail: {
+                        username: loginResult.username,
+                        email: loginResult.email,
+                        profilePicID: loginResult.profilePicID
+                    }
+                }));
+            }
+
+            return loginResult;
+        }
+
+    };
+
 }
 
 /* USAGE: */

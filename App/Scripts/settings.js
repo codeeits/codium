@@ -228,14 +228,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const iso = e.detail.iso;
             console.log('Language Selected via Global Controller:', iso);
             
-            setLanguage(iso);
+            if (window.setLanguage) {
+                window.setLanguage(iso);
+            }
         });
 
         setupEasterEgg();
     }
 
     function enableHighContrastMode() {
-        if (PreferencesManager.getProperty('highContrast')) {
+        if (window.PreferencesManager?.getProperty('highContrast')) {
             document.body.classList.add('high-contrast');
             elements.highContrastModeToggle.checked = true;
         }
@@ -243,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (document.body.classList.contains('colorblind')) {
                 elements.colorblindModeToggle.checked = false;
                 document.body.classList.remove('colorblind');
-                PreferencesManager.setProperty('colorblind', false);
+                window.PreferencesManager?.setProperty('colorblind', false);
             }
             highContrastMode(); // external function defined in main.js that toggles the class on body
         });
@@ -251,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function enableColorblindMode() {
         // Check preferences for colorblind mode preference
-        if (PreferencesManager.getProperty('colorblind')) {
+        if (window.PreferencesManager?.getProperty('colorblind')) {
             document.body.classList.add('colorblind');
             elements.colorblindModeToggle.checked = true;
         }
@@ -260,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (document.body.classList.contains('high-contrast')) {
                 elements.highContrastModeToggle.checked = false;
                 document.body.classList.remove('high-contrast');
-                PreferencesManager.setProperty('highContrast', false);
+                window.PreferencesManager?.setProperty('highContrast', false);
             }
             colorblindMode(); // external function defined in main.js that toggles the class on body
         });
@@ -408,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const defaultSizeId = 'font-size-medium';
-        const currentSizeId = PreferencesManager.getProperty('fontSize') || defaultSizeId;
+        const currentSizeId = window.PreferencesManager?.getProperty('fontSize') || defaultSizeId;
 
         const oldButtons = container.querySelectorAll('button');
         
@@ -419,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
             newBtn.addEventListener('click', () => {
                 const newSizeId = newBtn.id;
                 
-                PreferencesManager.setProperty('fontSize', newSizeId);
+                window.PreferencesManager?.setProperty('fontSize', newSizeId);
                 
                 updateUI(newSizeId);
                 
@@ -437,11 +439,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function slideHue() {
         const hueValue = elements.hueSlider.value;
         document.documentElement.style.setProperty('--rotation', hueValue);
-        PreferencesManager.setProperty('hueRotation', hueValue);
+        window.PreferencesManager?.setProperty('hueRotation', hueValue);
     }
 
     function initHueSlider() {
-        const savedHue = PreferencesManager.getProperty('hueRotation') || 0;
+        const savedHue = window.PreferencesManager?.getProperty('hueRotation') || 0;
         elements.hueSlider.value = savedHue;
         document.documentElement.style.setProperty('--rotation', savedHue);
 
@@ -452,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function requestData() {
         elements.requestDataBtn.addEventListener('click', async () => {
-            const prefs = PreferencesManager.get();
+            const prefs = window.PreferencesManager?.get() || {};
             const gdprData = await window.apiService.getUserDataGDPR();
 
             const fileBlob = new Blob([JSON.stringify(gdprData, null, 2)], { type: 'application/json' });
@@ -674,7 +676,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- innit mate ---
     async function initApp() {
-        window.apiService.isAuthenticated(true);
+        if (!window.apiService.isAuthenticated()) {
+            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+
         try {
             const currentUser = await window.apiService.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
@@ -696,7 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error('Failed to get current user:', err);
-            window.apiService.logout(false);
+            window.handleApiError(err, 'Failed to initialize settings page.');
         }
     }
 
