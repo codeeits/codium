@@ -5,6 +5,9 @@ O melodie caracteristica pentru acest este Lou Bega - Mambo No. 5 (A Little Bit 
 aprecieri doamnei stan pentru suportul acordat
 */
 
+import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+import { ModalHelpers } from "./modal/modalHelpers.js";
+
 // ----------------------------------
 // Preferences Management
 // ----------------------------------
@@ -48,6 +51,9 @@ const PreferencesManager = {
         this.set(current);
     }
 };
+
+// Shared across module scripts (e.g. settings.js)
+window.PreferencesManager = PreferencesManager;
 
 // ----------------------------------
 // Visual Settings & Theme Management
@@ -152,6 +158,9 @@ function setLanguage(langCode) {
     loadLanguage(langCode);
 }
 
+// Expose language setter for pages that are separate ES modules.
+window.setLanguage = setLanguage;
+
 // ----------------------------------------
 // Async Component Loading (Menu & Sidebar)
 // ----------------------------------------
@@ -230,7 +239,8 @@ async function loadSidebar() {
 
 async function updateAuthButton() {
     const els = {
-        login: document.getElementById('login-button'),
+        loginOld: document.getElementById('login-button'),
+        loginNew: document.getElementById('login-button-new'),
         userBtn: document.getElementById('user-button'),
         logout: document.getElementById('logout-button'),
         userName: document.getElementById('user-name'),
@@ -282,7 +292,8 @@ async function updateAuthButton() {
     // Auth State Logic
     if (auth.token && auth.username) {
         // Logged In
-        if (els.login) els.login.classList.add('hidden');
+        if (els.loginOld) els.loginOld.classList.add('hidden');
+        if (els.loginNew) els.loginNew.classList.add('hidden');
         if (els.userInfo) els.userInfo.classList.remove('hidden');
         if (els.lessons) els.lessons.classList.remove('hidden');
         
@@ -302,13 +313,22 @@ async function updateAuthButton() {
         }
     } else {
         // Logged Out
-        if (els.login) {
-            els.login.classList.remove('hidden');
-            els.login.onclick = () => {
-                loadLanguage(localStorage.getItem('lang') || 'ro');
+        if (els.loginOld) {
+            els.loginOld.classList.remove('hidden');
+            els.loginOld.onclick = (event) => {
+                event.preventDefault();
                 window.location.href = '/app/login.html';
             };
         }
+
+        if (els.loginNew) {
+            els.loginNew.classList.remove('hidden');
+            els.loginNew.onclick = (event) => {
+                event.preventDefault();
+                loadLanguage(localStorage.getItem('lang') || 'ro');
+            };
+        }
+
         if (els.userBtn) els.userBtn.classList.add('hidden');
         if (els.userInfo) els.userInfo.classList.add('hidden');
         if (els.logout) els.logout.classList.add('hidden');
@@ -364,6 +384,7 @@ const InteractionHandler = {
             InteractionHandler.handleSelection(item);
             return;
         }
+    
 
         // Click Outside Logic
         InteractionHandler.closeAllDropdowns();
@@ -422,6 +443,53 @@ const InteractionHandler = {
         });
     }
 };
+
+// -----------------------------------------
+// Modal loader (for login button in new ui)
+// -----------------------------------------
+
+const engine  = new ModalEngine();
+
+let loginModalBound = false;
+function openLoginModal() {
+    if (loginModalBound) return;
+
+    document.addEventListener('click', async (event) => {
+        const loginButton = event.target.closest('#login-button-new');
+        if (!loginButton) return;
+
+        event.preventDefault();
+
+        await ModalHelpers.LoginPopup.openModal({
+            engine,
+            onConfirm: async (formElement) => {
+                console.log('Login form submitted:', formElement);
+                handleLogin(formElement);
+            }
+        });
+    });
+
+    loginModalBound = true;
+}
+
+async function handleLogin(formElement) {
+    const formData = new FormData(formElement);
+    const data = {
+        email: formData.get('email'),
+        password: formData.get('password')
+    };
+
+    console.log('Form Data:', data);
+
+    ModalHelpers.LoginPopup.performLogin(data).then(() => {
+        toastsLoader.showToast('Login successful!', 'success');
+        updateAuthButton();
+    }).catch(err => {
+        console.error('Login failed:', err);
+        toastsLoader.showToast(`Login failed: ${err.message}`, 'error');
+    });
+
+}
 
 // ----------------------------------
 // Scroll Restoration Logic
@@ -511,6 +579,8 @@ async function initApp() {
         loadTopMenu(),
         loadSidebar()
     ]);
+
+    openLoginModal();
 
     document.addEventListener('codium:request-translation', (e) => {
         if (e.detail && e.detail.element) {

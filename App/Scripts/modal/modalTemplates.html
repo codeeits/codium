@@ -71,3 +71,26 @@
         </div>
     </form>
 </template>
+
+<template id="modal-tpl-login">
+    <form action="" id="loginForm">
+        <div class="modal-field">
+            <label for="inputEmail" class="input-label" data-i18n="login.email">E-mail:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="email" name="email" id="inputEmail" placeholder="e-mail" data-i18n-placeholder="login.email" minlength="3" maxlength="254" autocomplete="email">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="inputPassword" class="input-label" data-i18n="login.password">Password:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="password" id="inputPassword" placeholder="password" data-i18n-placeholder="login.password" minlength="6" autocomplete="current-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.save">Login</button>
+        </div>
+    </form>
+</template>
