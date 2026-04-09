@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/landing.css">
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script src="/app/Scripts/apiHandlers.js"></script>
+
+    <meta name="menu-variant" content="new-landing">
+</head>
+<body class="landing-page">
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <main class="content-area">
+            <section class="landing-hero">
+                <div class="hero-content">
+                    <h1 class="landing-title">
+                        Învață <span class="title-accent-python">Python</span>. Interactiv,<br>
+                        <span class="title-accent-simple">simplu</span> și la <span class="title-accent-focus">obiect</span>.
+                    </h1>
+                    <p class="landing-description">
+                        Platforma ta completă de programare, construită și aliniată 100% cu noua programă a Ministerului Educației,
+                        actualizată anul acesta. Învață <span class="landing-highlight">exact</span> ce contează pentru școală,
+                        teste și bacalaureat.
+                    </p>
+                    <div class="cta-btns">
+                        <button type="button" class="cta-btn btn secondary">Vezi curicula</button>
+                        <button class="cta-btn btn primary" onclick="window.location.href='/user2.html'">
+                            Începe să programezi <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-decoration-background section-viewport-background">
+                    <div class="binary-layer binary-layer-plain" aria-hidden="true">
+                        <div class="binary-stream binary-stream-plain" id="binary-stream-plain"></div>
+                    </div>
+                    <div class="binary-layer binary-layer-masked" aria-hidden="true">
+                        <div class="binary-stream binary-stream-masked" id="binary-stream-masked"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function initBinaryHero() {
+            const plainStream = document.getElementById('binary-stream-plain');
+            const maskedStream = document.getElementById('binary-stream-masked');
+            if (!plainStream || !maskedStream) {
+                return;
+            }
+
+            const rowA = '101000110011000011001100011100101011100100101101100011000111110111111110001010010100111010001010100000';
+            const rowB = '101010010001101110010100010010110011011110011111101111010100100011011100101000100101100110111100111111';
+            const rows = 76;
+            const lineRepeat = 6;
+            const plainFragment = document.createDocumentFragment();
+            const maskedFragment = document.createDocumentFragment();
+            const plainLineElements = [];
+            const maskedLineElements = [];
+            const lineMatrices = [];
+
+            function expandPattern(pattern) {
+                return pattern.repeat(lineRepeat);
+            }
+
+            for (let i = 0; i < rows; i += 1) {
+                const plainLine = document.createElement('p');
+                const maskedLine = document.createElement('p');
+                const expanded = expandPattern(i % 2 === 0 ? rowA : rowB);
+                plainLine.className = 'binary-line';
+                maskedLine.className = 'binary-line';
+                plainLine.textContent = expanded;
+                maskedLine.textContent = expanded;
+                plainLineElements.push(plainLine);
+                maskedLineElements.push(maskedLine);
+                lineMatrices.push(expanded.split(''));
+                plainFragment.appendChild(plainLine);
+                maskedFragment.appendChild(maskedLine);
+            }
+
+            plainStream.appendChild(plainFragment);
+            maskedStream.appendChild(maskedFragment);
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return;
+            }
+
+            let shouldAnimate = !document.hidden;
+            const tickIntervalMs = 140;
+            const linesPerTick = 3;
+            const flipsPerLine = 6;
+
+            function mutateLineBits(lineIndex) {
+                const bits = lineMatrices[lineIndex];
+                const length = bits.length;
+
+                for (let i = 0; i < flipsPerLine; i += 1) {
+                    const position = Math.floor(Math.random() * length);
+                    bits[position] = bits[position] === '1' ? '0' : '1';
+                }
+            }
+
+            function applyTick() {
+                if (!shouldAnimate) {
+                    return;
+                }
+
+                const touched = new Set();
+                for (let i = 0; i < linesPerTick; i += 1) {
+                    const lineIndex = Math.floor(Math.random() * rows);
+                    mutateLineBits(lineIndex);
+                    touched.add(lineIndex);
+                }
+
+                touched.forEach((lineIndex) => {
+                    const content = lineMatrices[lineIndex].join('');
+                    plainLineElements[lineIndex].textContent = content;
+                    maskedLineElements[lineIndex].textContent = content;
+                });
+            }
+
+            const ticker = window.setInterval(applyTick, tickIntervalMs);
+
+            document.addEventListener('visibilitychange', () => {
+                shouldAnimate = !document.hidden;
+            });
+
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    const [entry] = entries;
+                    shouldAnimate = !!entry && entry.isIntersecting && !document.hidden;
+                }, { threshold: 0.05 });
+
+                observer.observe(plainStream);
+
+                window.addEventListener('beforeunload', () => {
+                    observer.disconnect();
+                    window.clearInterval(ticker);
+                });
+
+                return;
+            }
+
+            window.addEventListener('beforeunload', () => {
+                window.clearInterval(ticker);
+            });
+        }());
+    </script>
+</body>
+</html>
