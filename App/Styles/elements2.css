@@ -1693,6 +1693,14 @@ blockquote {
     align-items: center;
     justify-content: space-between;
     gap: var(--gap-sm);
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-font-weight);
+    font-family: 'Raleway', sans-serif;
+    cursor: pointer;
+    padding: 0;
 }
 
 .dropdown-toggle i {
@@ -1724,6 +1732,41 @@ blockquote {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+/* Top bar-specific dropdown fixes.
+   The generic .top-bar div rule makes all divs flex; reset dropdown menus explicitly. */
+.top-bar .dropdown {
+    display: inline-block;
+}
+
+.top-bar .dropdown-toggle {
+    line-height: 1;
+}
+
+.top-bar .dropdown-menu {
+    display: block;
+    align-items: stretch;
+    gap: 0;
+    min-width: max-content;
+}
+
+.top-bar .dropdown-item {
+    width: 100%;
+}
+
+@media (hover: hover) {
+    .top-bar .dropdown:hover .dropdown-menu,
+    .top-bar .dropdown:focus-within .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .top-bar .dropdown:hover .dropdown-toggle i,
+    .top-bar .dropdown:focus-within .dropdown-toggle i {
+        transform: rotate(180deg);
+    }
 }
 
 .dropdown-menu.right {
