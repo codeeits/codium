@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/xlzd/gotp"
 )
 
 /*
@@ -220,8 +221,103 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser *database.User) {
+func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	cfg.Logger.Printf("Received CreateTOTP request by userID: %v", sendingUser.ID)
+	secret := gotp.RandomSecret(16)
+	totp := gotp.NewDefaultTOTP(secret)
 
+	encryptedSecret, err := auth.MakeGeneralJWT([]byte(secret), cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Failed to create JWT: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.Db.UpdateUserTotpSecret(r.Context(), database.UpdateUserTotpSecretParams{
+		ID:         sendingUser.ID,
+		TotpSecret: sql.NullString{String: encryptedSecret, Valid: true},
+		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update user totp secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	type output struct {
+		Uri string `json:"uri"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, output{totp.ProvisioningUri(sendingUser.Email, "Codium")}, GenericPrinter)
+}
+
+func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	encryptedSecret, err := cfg.Db.GetUserTotpSecret(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if !encryptedSecret.Valid {
+		cfg.Logger.Printf("No totp secret found for user: %v", sendingUser.ID)
+		http.Error(w, "No totp has been generated", http.StatusUnauthorized)
+		return
+	}
+
+	secret, err := auth.ValidateGeneralJWT(encryptedSecret.String, cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Failed to validate user totp secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	type params struct {
+		OTP string `json:"otp"`
+	}
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.Logger.Printf("Invalid request body: %v", err)
+	}
+
+	totp := gotp.NewDefaultTOTP(string(secret))
+	if !totp.VerifyTime(p.OTP, time.Now()) {
+		cfg.Logger.Printf("Invalid otp received as verification: %v", p.OTP)
+		http.Error(w, "Invalid otp", http.StatusUnauthorized)
+		return
+	}
+
+	backupSecret := gotp.RandomSecret(16)
+
+	encryptedBackupSecret, err := auth.MakeGeneralJWT([]byte(backupSecret), cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Failed to create JWT: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.Db.UpdateUserBackupCodeSecret(r.Context(), database.UpdateUserBackupCodeSecretParams{
+		ID:               sendingUser.ID,
+		Backupcodesecret: sql.NullString{String: string(encryptedBackupSecret), Valid: true},
+		UpdatedAt:        sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update user backup code secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	backupHOTP := gotp.NewDefaultHOTP(backupSecret)
+
+	var backupCodes = make([]string, 0)
+	for i := 0; i < 10; i++ {
+		backupCodes = append(backupCodes, backupHOTP.At(i))
+	}
+
+	type output struct {
+		BackupCodes []string `json:"backupCodes"`
+	}
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, output{backupCodes}, GenericPrinter)
 }
 
 /*

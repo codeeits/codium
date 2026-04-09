@@ -127,6 +127,8 @@ func main() {
 		mux.Handle("GET /api/users/{searchArg}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserHandler)))
 		mux.Handle("GET /api/users/gdpr", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetAllUserDataHandler)))
 		mux.Handle("GET /api/email/{userID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.ValidateEmailHandler)))
+		mux.Handle("POST /api/users/totp", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.CreateTOTPHandler)))
+		mux.Handle("POST /api/users/totp/validate", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.ValidateTOTPHandler)))
 
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetFileHandler)))
