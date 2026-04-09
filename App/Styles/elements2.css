@@ -278,6 +278,12 @@ option, select {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: var(--text-colour);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+option:hover, select:hover {
+    border: 1px solid var(--primary);
 }
 
 table {
@@ -970,6 +976,10 @@ main, .content-area {
 
 .header-feed-card .feed-card-hashtags > a:hover, .problem-hashtags > a:hover {
     color: var(--primary);
+}
+
+footer a:hover {
+    text-decoration: underline;
 }
 
 .header-feed-card-right {
