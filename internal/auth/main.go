@@ -26,7 +26,7 @@ func CheckPasswordHash(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+func MakeUUIDJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Issuer:    "Codium",
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -40,7 +40,7 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 	return res, nil
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
+func ValidateUUIDJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(tokenSecret), nil
 	})
@@ -56,6 +56,33 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return uuid.Parse(subject)
+}
+
+func MakeGeneralJWT(bytes []byte, tokenSecret string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
+		Issuer:   "Codium",
+		IssuedAt: jwt.NewNumericDate(time.Now()),
+		Subject:  string(bytes),
+	})
+	res, err := token.SignedString([]byte(tokenSecret))
+	if err != nil {
+		return "", err
+	}
+	return res, nil
+}
+
+func ValidateGeneralJWT(tokenString, tokenSecret string) ([]byte, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(tokenSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return nil, errors.New("invalid token")
+	}
+	return []byte(claims.Subject), nil
 }
 
 func GetBearerToken(headers http.Header) (string, error) {
