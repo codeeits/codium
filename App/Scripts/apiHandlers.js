@@ -15,6 +15,7 @@ class ApiService {
         this.baseURL = '';
         this.authToken = null;
         this.refreshToken = null;
+        this.refreshInFlight = null;
         this.loadTokens();
     }
 
@@ -66,6 +67,66 @@ class ApiService {
         return isAuth;
     }
 
+    isDevEnvironment() {
+        const host = window.location.hostname;
+        return host === 'localhost' || host === '127.0.0.1';
+    }
+
+    debugRefresh(message, toastType = 'info') {
+        if (!this.isDevEnvironment()) return;
+
+        console.info(`[Auth Refresh] ${message}`);
+
+        const toast = window.toastsLoader;
+        if (toast && typeof toast.showToast === 'function') {
+            toast.showToast(message, toastType, 1800);
+        }
+    }
+
+    async refreshAuthToken() {
+        if (!this.refreshToken) {
+            throw new ApiError(401, 'Missing refresh token', '/api/refresh');
+        }
+
+        if (this.refreshInFlight) {
+            return this.refreshInFlight;
+        }
+
+        this.refreshInFlight = (async () => {
+            const response = await fetch(`${this.baseURL}/api/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refresh_token: this.refreshToken })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new ApiError(response.status, errorText || 'Failed to refresh token', '/api/refresh');
+            }
+
+            const data = await response.json();
+            if (!data?.auth_token) {
+                throw new ApiError(500, 'Invalid refresh response: missing auth_token', '/api/refresh');
+            }
+
+            this.saveTokens(data.auth_token, this.refreshToken);
+            this.debugRefresh('Session refreshed successfully.');
+            return data.auth_token;
+        })();
+
+        try {
+            return await this.refreshInFlight;
+        } catch (error) {
+            this.debugRefresh('Session refresh failed. Please log in again.', 'warning');
+            this.clearTokens();
+            throw error;
+        } finally {
+            this.refreshInFlight = null;
+        }
+    }
+
     // ===========================================
     // Requests!
     // ===========================================
@@ -83,8 +144,21 @@ class ApiService {
 
         try {
 
-            const response = await fetch(`${this.baseURL}${url}`, config);
-            
+            let response = await fetch(`${this.baseURL}${url}`, config);
+
+            const shouldTryRefresh = response.status === 401 && options.requiresAuth === true && options.retryOnAuthFailure !== false;
+            if (shouldTryRefresh) {
+                await this.refreshAuthToken();
+                const retryConfig = {
+                    ...config,
+                    headers: {
+                        ...config.headers,
+                        'Authorization': `Bearer ${this.authToken}`
+                    }
+                };
+                response = await fetch(`${this.baseURL}${url}`, retryConfig);
+            }
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new ApiError(response.status, errorText, url);
@@ -118,7 +192,8 @@ class ApiService {
         const headers = requiresAuth ? this.getAuthHeaders() : {};
         return this.makeRequest(url, {
             method: 'GET',
-            headers
+            headers,
+            requiresAuth
         });
     }
 
@@ -127,7 +202,8 @@ class ApiService {
         return this.makeRequest(url, {
             method: 'POST',
             headers,
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            requiresAuth
         });
     }
 
@@ -135,14 +211,16 @@ class ApiService {
         return this.makeRequest(url, {
             method: 'PUT',
             headers: this.getAuthHeaders(),
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            requiresAuth
         });
     }
 
     async delete(url, requiresAuth = true) {
         return this.makeRequest(url, {
             method: 'DELETE',
-            headers: this.getAuthHeaders()
+            headers: this.getAuthHeaders(),
+            requiresAuth
         });
     }
 
@@ -159,13 +237,24 @@ class ApiService {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(`${this.baseURL}/api/upload?location=${location}`, {
+        let response = await fetch(`${this.baseURL}/api/upload?location=${location}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${this.authToken}`
             },
             body: formData
         });
+
+        if (response.status === 401) {
+            await this.refreshAuthToken();
+            response = await fetch(`${this.baseURL}/api/upload?location=${location}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                },
+                body: formData
+            });
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -1034,20 +1123,42 @@ class ApiService {
     }
 
     async getProfilePicture(userId = null) {
-        if (!userId) {
-            const profilePicId = localStorage.getItem('profilePicID');
-            if (profilePicId) {
-                return this.getFileUrl(profilePicId);
+        // Cross-browser sync: rely on server truth first, then update local cache.
+        try {
+            let userData = null;
+
+            if (userId) {
+                const user = await this.getUserById(userId);
+                userData = typeof user === 'string' ? JSON.parse(user) : user;
+            } else {
+                const currentUser = await this.getCurrentUser();
+                userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            }
+
+            const remotePicId = userData?.ProfilePicID || null;
+
+            if (remotePicId) {
+                if (!userId) {
+                    localStorage.setItem('profilePicID', remotePicId);
+                }
+                return this.getFileUrl(remotePicId);
+            }
+
+            if (!userId) {
+                localStorage.removeItem('profilePicID');
             }
             return null;
+        } catch (error) {
+            // Fallback to local cache only when backend lookup fails.
+            if (!userId) {
+                const cachedPicId = localStorage.getItem('profilePicID');
+                if (cachedPicId) {
+                    return this.getFileUrl(cachedPicId);
+                }
+            }
+            console.warn('Failed to resolve profile picture from API:', error);
+            return null;
         }
-        
-        const user = await this.getUserById(userId);
-        const userData = typeof user === 'string' ? JSON.parse(user) : user;
-        if (userData.ProfilePicID) {
-            return this.getFileUrl(userData.ProfilePicID);
-        }
-        return null;
     }
 
     // ===========================================
@@ -1534,9 +1645,11 @@ if (typeof module !== 'undefined' && module.exports) {
 let toastsLoader;
 if(document.body) {
     toastsLoader = new ToastsLoader();
+    window.toastsLoader = toastsLoader;
 } else {
     document.addEventListener('DOMContentLoaded', () => {
         toastsLoader = new ToastsLoader();
+        window.toastsLoader = toastsLoader;
     });
 }
 

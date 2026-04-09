@@ -691,7 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setupInteractionButtons();
             await renderSidebar();
             
-            applyTranslations(); // Re-apply translations to update the module name
+            window.applyTranslations?.(); // Re-apply translations to update the module name
         }
     }
 

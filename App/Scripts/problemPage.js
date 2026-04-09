@@ -461,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEventListeners();
         await fetchProblemData();
         renderProblemUI();
-        applyTranslations();
+        window.applyTranslations?.();
     }
 
     initApp();

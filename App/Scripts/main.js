@@ -152,6 +152,10 @@ function applyTranslations(root = document) {
     });
 }
 
+// Expose translation helpers for pages loaded as separate module scripts.
+window.applyTranslations = applyTranslations;
+window.loadLanguage = loadLanguage;
+
 function setLanguage(langCode) {
     localStorage.setItem('lang', langCode);
     window.dispatchEvent(new CustomEvent('codium:lang-changed', { detail: { iso: langCode } }));
@@ -160,6 +164,16 @@ function setLanguage(langCode) {
 
 // Expose language setter for pages that are separate ES modules.
 window.setLanguage = setLanguage;
+
+const UI_VERSION_KEY = 'uiVersion';
+const UI_VERSION_OLD = '1.0.0';
+const UI_VERSION_NEW = '2.1.0';
+
+window.CodiumUI = {
+    UI_VERSION_KEY,
+    UI_VERSION_OLD,
+    UI_VERSION_NEW
+};
 
 // ----------------------------------------
 // Async Component Loading (Menu & Sidebar)
@@ -238,6 +252,12 @@ async function loadSidebar() {
 // --------------------------------------------
 
 async function updateAuthButton() {
+    const menuVariant = document.querySelector('meta[name="menu-variant"]')?.content || 'default';
+    const useNewUIRoutes = menuVariant === 'new';
+    const lessonsPath = useNewUIRoutes ? '/app/Lectii/lessons2.html' : '/app/Lectii/lessons.html';
+    const problemsPath = useNewUIRoutes ? '/app/Probleme/index2.html' : '/app/Probleme/index.html';
+    const userPath = useNewUIRoutes ? '/app/user2.html' : '/app/user.html';
+
     const els = {
         loginOld: document.getElementById('login-button'),
         loginNew: document.getElementById('login-button-new'),
@@ -267,16 +287,16 @@ async function updateAuthButton() {
         }
     };
 
-    bindNav(els.lessons, '/app/Lectii/lessons.html', 'Lessons');
-    bindNav(els.problems, '/app/Probleme/index.html', 'Problems');
+    bindNav(els.lessons, lessonsPath, 'Lessons');
+    bindNav(els.problems, problemsPath, 'Problems');
     bindNav(els.contact, '/app/contact.html', 'Contact');
 
     if (els.back) {
-        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = 'lessons.html';
+        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = lessonsPath;
     }
 
     if (els.hardExit) {
-        els.hardExit.onclick = () => window.location.href = 'lessons.html';
+        els.hardExit.onclick = () => window.location.href = lessonsPath;
     }
 
     // Language Selector Logic
@@ -299,7 +319,7 @@ async function updateAuthButton() {
         
         if (els.userBtn) {
             els.userBtn.classList.remove('hidden');
-            els.userBtn.onclick = () => window.location.href = '/app/user.html';
+            els.userBtn.onclick = () => window.location.href = userPath;
         }
 
         if (els.logout) {
@@ -589,10 +609,16 @@ async function initApp() {
     });
 
     window.addEventListener('storage', (e) => {
-        if (['authToken', 'username'].includes(e.key)) updateAuthButton();
+        if (['authToken', 'username', 'profilePicID'].includes(e.key)) updateAuthButton();
     });
     
     window.addEventListener('focus', updateAuthButton);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateAuthButton();
+        }
+    });
 
     await loadLanguage(localStorage.getItem('lang') || 'ro');
 }

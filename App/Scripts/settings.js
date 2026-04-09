@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // -- FETCH DATA --
 
-    async function fetchUserData(user = null) {
+    async function fetchUserData() {
 
         try {
             const response = await window.apiService.getCurrentUser();
@@ -71,6 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         console.error('Error fetching profile picture URL:', error);
                         userData.profilePicUrl = 'https://placehold.co/80/png'; // fallback image
                     }
+                } else {
+                    userData.profilePicUrl = 'https://placehold.co/80/png';
                 }
                 console.log('User data fetched successfully:', response);
                 renderProfileCard();
@@ -271,12 +273,78 @@ document.addEventListener("DOMContentLoaded", () => {
     function initUiDropdown() {
         const dropdown = elements.uiSelect;
 
-        let currentVersion = '2.1.0'; // This should ideally come from user preferences or a config file
+        const uiConfig = window.CodiumUI || {
+            UI_VERSION_KEY: 'uiVersion',
+            UI_VERSION_OLD: '1.0.0',
+            UI_VERSION_NEW: '2.1.0'
+        };
+
+        const routeByPath = {
+            '/app/user.html': { old: '/app/user.html', modern: '/app/user2.html' },
+            '/app/user2.html': { old: '/app/user.html', modern: '/app/user2.html' },
+            '/app/Lectii/lessons.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
+            '/app/Lectii/lessons2.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
+            '/app/Probleme/index.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
+            '/app/Probleme/index2.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
+            '/app/Lectii/manage-lessons.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' },
+            '/app/Lectii/manage-lessons2.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' }
+        };
+
+        const getCurrentVersion = () => {
+            const saved = localStorage.getItem(uiConfig.UI_VERSION_KEY);
+            if (saved === uiConfig.UI_VERSION_OLD || saved === uiConfig.UI_VERSION_NEW) {
+                return saved;
+            }
+            const variant = document.querySelector('meta[name="menu-variant"]')?.content;
+            return variant === 'new' ? uiConfig.UI_VERSION_NEW : uiConfig.UI_VERSION_OLD;
+        };
+
+        let currentVersion = getCurrentVersion();
+
+        const applyUiDropdownState = (version) => {
+            const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+            const items = dropdown.querySelectorAll('.dropdown-item');
+
+            toggleBtn.innerHTML = `${version === uiConfig.UI_VERSION_OLD ? 'V.1.0.0' : 'V.2.1.0'} <i class="fa-solid fa-chevron-down"></i>`;
+            items.forEach(i => {
+                if (i.dataset.version === version) {
+                    i.classList.add('active');
+                } else {
+                    i.classList.remove('active');
+                }
+            });
+        };
+
+        const switchUiVersion = (selectedVersion) => {
+            localStorage.setItem(uiConfig.UI_VERSION_KEY, selectedVersion);
+            currentVersion = selectedVersion;
+
+            const targetMode = selectedVersion === uiConfig.UI_VERSION_OLD ? 'old' : 'modern';
+            const currentPath = window.location.pathname;
+            const mappedRoute = routeByPath[currentPath]?.[targetMode];
+            const fallbackRoute = selectedVersion === uiConfig.UI_VERSION_OLD ? '/app/user.html' : '/app/user2.html';
+            const targetRoute = mappedRoute || fallbackRoute;
+
+            applyUiDropdownState(selectedVersion);
+
+            if (targetRoute !== currentPath) {
+                window.location.href = targetRoute;
+                return;
+            }
+
+            toastsLoader.showToast(`UI version set to ${selectedVersion}.`, 'success', 2200);
+        };
+
+        applyUiDropdownState(currentVersion);
 
         dropdown.addEventListener('dropdown-selected', (e) => {
             const selectedVersion = e.detail?.element?.dataset?.version || e.detail?.value;
 
-            if (selectedVersion === '1.0.0') {
+            if (!selectedVersion || selectedVersion === currentVersion) {
+                return;
+            }
+
+            if (selectedVersion === uiConfig.UI_VERSION_OLD) {
                 engine.openModal({
                     title: 'Legacy Version Warning',
                     body: `
@@ -289,37 +357,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     footer: '',
                     onConfirm: () => {
                         console.log('UI Version Switched to:', selectedVersion);
-                        currentVersion = selectedVersion;
-                        
                         toastsLoader.showToast('UI version 1.0.0 is a legacy version that is no longer maintained. It may contain bugs and missing features. Use at your own risk!', 'warning', 5000);
-                        toastsLoader.showToast(`Selected UI version: ${selectedVersion}. Not implemented yet.`, 'info', 2500);
-                        
+                        switchUiVersion(selectedVersion);
                     },
                     onCancel: () => {
                         console.log('User cancelled UI switch.');
                         toastsLoader.showToast('UI switch cancelled. You are still on version ' + currentVersion, 'info', 2500);
-
-                        // Reset dropdown selection to current version
-                        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-                        const items = dropdown.querySelectorAll('.dropdown-item');
-
-                        toggleBtn.innerHTML = `${currentVersion} <i class="fa-solid fa-chevron-down"></i>`;
-
-                        items.forEach(i => {
-                            if (i.dataset.version === currentVersion) {
-                                i.classList.add('active');
-                            } else {
-                                i.classList.remove('active');
-                            }
-                        });
+                        applyUiDropdownState(currentVersion);
                     }
                 });
             } else {
                 console.log('UI Version Switched to:', selectedVersion);
-                currentVersion = selectedVersion;
-                
-                toastsLoader.showToast(`Selected UI version: ${selectedVersion}. Not implemented yet.`, 'info', 2500);
-        }
+                switchUiVersion(selectedVersion);
+            }
         });
     }
 
@@ -649,6 +699,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function setupProfileCardSync() {
+        const syncProfileCard = () => {
+            if (!window.apiService.isAuthenticated()) return;
+            fetchUserData();
+        };
+
+        window.addEventListener('focus', syncProfileCard);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                syncProfileCard();
+            }
+        });
+
+        window.addEventListener('storage', (e) => {
+            if (['authToken', 'username', 'userEmail', 'profilePicID'].includes(e.key)) {
+                syncProfileCard();
+            }
+        });
+
+        setInterval(syncProfileCard, 45000);
+    }
+
     // --- HELPER - for custom event to change selected language in dropdown ---
 
     window.addEventListener('codium:lang-changed', (e) => {
@@ -682,11 +755,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const currentUser = await window.apiService.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            
             await fetchLanguages(); 
             await fetchUserData();
+            setupProfileCardSync();
             
             renderLanguageOptions();
             initDropdownLogic(); // Replaces initDropdown
