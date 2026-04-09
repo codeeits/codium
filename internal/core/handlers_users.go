@@ -68,7 +68,7 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
-	token, err := auth.MakeJWT(loginTarget.ID, cfg.Secret, time.Hour*24*7) // 7 days
+	token, err := auth.MakeUUIDJWT(loginTarget.ID, cfg.Secret, time.Hour*24*7) // 7 days
 	if err != nil {
 		cfg.Logger.Printf("Failed to create JWT: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -166,7 +166,7 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.MakeJWT(storedToken.UserID, cfg.Secret, time.Hour*24*7) // 7 days
+	token, err := auth.MakeUUIDJWT(storedToken.UserID, cfg.Secret, time.Hour*24*7) // 7 days
 	if err != nil {
 		cfg.Logger.Printf("Failed to create JWT: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -218,6 +218,10 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser *database.User) {
+
 }
 
 /*
@@ -406,7 +410,7 @@ func (cfg *ApiCfg) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		case "jwt":
 			jwtToken := r.PathValue("searchArg")
-			uid, err := auth.ValidateJWT(jwtToken, cfg.Secret)
+			uid, err := auth.ValidateUUIDJWT(jwtToken, cfg.Secret)
 			if err != nil {
 				cfg.Logger.Printf("Invalid token: %v", err)
 				http.Error(w, "Invalid token", http.StatusBadRequest)

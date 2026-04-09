@@ -225,7 +225,7 @@ func (cfg *ApiCfg) ResetAll() error {
 		return err
 	}
 
-	cfg.AdminCfg.Token, err = auth.MakeJWT(defaultAdmin.ID, cfg.Secret, time.Hour*24*30)
+	cfg.AdminCfg.Token, err = auth.MakeUUIDJWT(defaultAdmin.ID, cfg.Secret, time.Hour*24*30)
 	if err != nil {
 		cfg.Logger.Printf("Failed to create default admin JWT token: %v", err)
 	}
@@ -834,7 +834,7 @@ func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
 		return database.User{}, err
 	}
 
-	targetId, err := auth.ValidateJWT(token, cfg.Secret)
+	targetId, err := auth.ValidateUUIDJWT(token, cfg.Secret)
 	if err != nil {
 		cfg.Logger.Printf("Invalid token: %v", err)
 		return database.User{}, err

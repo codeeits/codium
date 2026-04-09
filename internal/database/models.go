@@ -110,18 +110,19 @@ type SolutionsTest struct {
 }
 
 type User struct {
-	ID             uuid.UUID
-	Username       string
-	Email          string
-	PasswordHash   string
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
-	ProfilePicID   uuid.NullUUID
-	EmailValidated bool
-	CuredEmail     sql.NullString
-	Permissions    int16
-	Title          string
-	TotpSecret     sql.NullString
+	ID               uuid.UUID
+	Username         string
+	Email            string
+	PasswordHash     string
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	ProfilePicID     uuid.NullUUID
+	EmailValidated   bool
+	CuredEmail       sql.NullString
+	Permissions      int16
+	Title            string
+	TotpSecret       sql.NullString
+	Backupcodesecret sql.NullString
 }
 
 type UsersProblem struct {

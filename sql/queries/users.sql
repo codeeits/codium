@@ -84,3 +84,12 @@ RETURNING *;
 
 -- name: GetUserTotpSecret :one
 SELECT totp_secret FROM users WHERE id = $1;
+
+-- name: UpdateUserBackupCodeSecret :one
+UPDATE users
+SET backupCodeSecret = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: GetUserBackupCodeSecret :one
+SELECT backupCodeSecret FROM users WHERE id = $1;
