@@ -101,7 +101,7 @@ func main() {
 	// Serve static files from the "App" directory at the "/app/" URL path
 	{
 		mux := http.NewServeMux()
-		mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("./App/"))))
+		mux.Handle("/app/", cfg.CacheBusterMiddleware(http.StripPrefix("/app/", http.FileServer(http.Dir("./App/")))))
 
 		mux.Handle("PUT /api/users", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateUserDisambiguationHandler))
 		mux.Handle("PUT /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.UpdateLessonDisambiguationHandler))
@@ -111,9 +111,9 @@ func main() {
 
 		mux.Handle("POST /admin/reset", cfg.AuthenticatedEndpointMiddleware(cfg.ResetHandler))
 		mux.Handle("POST /admin/users/account_status", cfg.AuthenticatedEndpointMiddleware(cfg.SetUserAccountStatusHandler))
-		mux.Handle("GET /admin/lessons/suggested", cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedLessonsHandler))
+		mux.Handle("GET /admin/lessons/suggested", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedLessonsHandler)))
 		mux.Handle("POST /admin/lessons/suggested/{lessonID}/approve", cfg.AuthenticatedEndpointMiddleware(cfg.ApproveLessonHandler))
-		mux.Handle("GET /admin/problems/suggested", cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedProblemsHandler))
+		mux.Handle("GET /admin/problems/suggested", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetSuggestedProblemsHandler)))
 		mux.Handle("POST /admin/problems/suggested/{problemID}/approve", cfg.AuthenticatedEndpointMiddleware(cfg.ApproveProblemHandler))
 
 		// Deprecated endpoint for user creation
@@ -123,55 +123,55 @@ func main() {
 		mux.Handle("DELETE /api/users/{userID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteUserHandler))
 		mux.Handle("POST /api/login", http.HandlerFunc(cfg.LoginHandler))
 		mux.Handle("POST /api/refresh", http.HandlerFunc(cfg.RefreshHandler))
-		mux.Handle("GET /api/users", http.HandlerFunc(cfg.GetUsersHandler))
-		mux.Handle("GET /api/users/{searchArg}", http.HandlerFunc(cfg.GetUserHandler))
-		mux.Handle("GET /api/users/gdpr", cfg.AuthenticatedEndpointMiddleware(cfg.GetAllUserDataHandler))
-		mux.Handle("GET /api/email/{userID}", http.HandlerFunc(cfg.ValidateEmailHandler))
+		mux.Handle("GET /api/users", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUsersHandler)))
+		mux.Handle("GET /api/users/{searchArg}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserHandler)))
+		mux.Handle("GET /api/users/gdpr", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetAllUserDataHandler)))
+		mux.Handle("GET /api/email/{userID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.ValidateEmailHandler)))
 
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
-		mux.Handle("GET /api/files/{fileID}", http.HandlerFunc(cfg.GetFileHandler))
+		mux.Handle("GET /api/files/{fileID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetFileHandler)))
 
 		mux.Handle("POST /api/lessons", cfg.AuthenticatedEndpointMiddleware(cfg.CreateLessonHandler))
 		mux.Handle("DELETE /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteLessonHandler))
-		mux.Handle("GET /api/lessons", http.HandlerFunc(cfg.GetLessonDisambiguationHandler))
+		mux.Handle("GET /api/lessons", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetLessonDisambiguationHandler)))
 
 		mux.Handle("POST /api/lessons/{lessonID}/favorite", cfg.AuthenticatedEndpointMiddleware(cfg.FavoriteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/bookmark", cfg.AuthenticatedEndpointMiddleware(cfg.BookmarkLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/complete", cfg.AuthenticatedEndpointMiddleware(cfg.CompleteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/start", cfg.AuthenticatedEndpointMiddleware(cfg.StartLessonHandler))
-		mux.Handle("GET /api/lessons/{lessonID}/users/{userID}", http.HandlerFunc(cfg.GetLessonUserByLessonAndUserHandler))
+		mux.Handle("GET /api/lessons/{lessonID}/users/{userID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetLessonUserByLessonAndUserHandler)))
 		// Deprecated endpoint for bookmarks
-		mux.Handle("GET /api/users/{userID}/bookmarks", http.HandlerFunc(cfg.GetUserBookmarksHandler))
+		mux.Handle("GET /api/users/{userID}/bookmarks", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserBookmarksHandler)))
 
-		mux.Handle("GET /api/users/{userID}/bookmarked_lessons", http.HandlerFunc(cfg.GetUserBookmarksHandler))
-		mux.Handle("GET /api/lessons/{lessonID}/faves", http.HandlerFunc(cfg.GetFavoritesForLessonHandler))
-		mux.Handle("GET /api/users/{userID}/started_lessons", http.HandlerFunc(cfg.GetUserStartedLessonsHandler))
-		mux.Handle("GET /api/users/{userID}/completed_lessons", http.HandlerFunc(cfg.GetUserCompletedLessonsHandler))
-		mux.Handle("GET /api/users/{userID}/interactions", http.HandlerFunc(cfg.GetUserInteractionsHandler))
+		mux.Handle("GET /api/users/{userID}/bookmarked_lessons", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserBookmarksHandler)))
+		mux.Handle("GET /api/lessons/{lessonID}/faves", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetFavoritesForLessonHandler)))
+		mux.Handle("GET /api/users/{userID}/started_lessons", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserStartedLessonsHandler)))
+		mux.Handle("GET /api/users/{userID}/completed_lessons", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserCompletedLessonsHandler)))
+		mux.Handle("GET /api/users/{userID}/interactions", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserInteractionsHandler)))
 
 		mux.Handle("POST /api/problems", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemHandler))
-		mux.Handle("GET /api/problems", http.HandlerFunc(cfg.GetProblemsDisambiguationHandler))
+		mux.Handle("GET /api/problems", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetProblemsDisambiguationHandler)))
 		mux.Handle("DELETE /api/problems/{problemID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemHandler))
 
 		mux.Handle("POST /api/problems/{problemID}/like", cfg.AuthenticatedEndpointMiddleware(cfg.LikeProblemHandler))
 		mux.Handle("POST /api/problems/{problemID}/bookmark", cfg.AuthenticatedEndpointMiddleware(cfg.BookmarkProblemHandler))
-		mux.Handle("GET /api/problems/{problemID}/users/{userID}", http.HandlerFunc(cfg.GetUserProblemByUserAndProblemHandler))
-		mux.Handle("GET /api/users/{userID}/bookmarked_problems", http.HandlerFunc(cfg.GetBookmarkedProblemsHandler))
-		mux.Handle("GET /api/users/{userID}/solved_problems", http.HandlerFunc(cfg.GetSolvedProblemsHandler))
-		mux.Handle("GET /api/problems/{problemID}/likes", http.HandlerFunc(cfg.GetLikedProblemsHandler))
+		mux.Handle("GET /api/problems/{problemID}/users/{userID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetUserProblemByUserAndProblemHandler)))
+		mux.Handle("GET /api/users/{userID}/bookmarked_problems", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetBookmarkedProblemsHandler)))
+		mux.Handle("GET /api/users/{userID}/solved_problems", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetSolvedProblemsHandler)))
+		mux.Handle("GET /api/problems/{problemID}/likes", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetLikedProblemsHandler)))
 
 		mux.Handle("POST /api/tests", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemTestHandler))
 		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
-		mux.Handle("GET /api/tests/{testID}", http.HandlerFunc(cfg.GetProblemTestByIDHandler))
+		mux.Handle("GET /api/tests/{testID}", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.GetProblemTestByIDHandler)))
 
 		mux.Handle("POST /api/solutions", cfg.AuthenticatedEndpointMiddleware(cfg.CreateSolutionHandler))
 		mux.Handle("DELETE /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteSolutionHandler))
-		mux.Handle("GET /api/solutions", cfg.AuthenticatedEndpointMiddleware(cfg.GetSolutionsDisambiguationHandler))
+		mux.Handle("GET /api/solutions", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetSolutionsDisambiguationHandler)))
 
-		mux.Handle("GET /api/users/{userID}/started_lessons/count", http.HandlerFunc(cfg.CountUserStartedLessonsHandler))
-		mux.Handle("GET /api/users/{userID}/completed_lessons/count", http.HandlerFunc(cfg.CountUserCompletedLessonsHandler))
-		mux.Handle("GET /api/users/{userID}/bookmarks/count", http.HandlerFunc(cfg.CountUserBookmarkedLessonsHandler))
-		mux.Handle("GET /api/solutions/count", cfg.AuthenticatedEndpointMiddleware(cfg.CountSolutionsDisambiguationHandler))
+		mux.Handle("GET /api/users/{userID}/started_lessons/count", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.CountUserStartedLessonsHandler)))
+		mux.Handle("GET /api/users/{userID}/completed_lessons/count", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.CountUserCompletedLessonsHandler)))
+		mux.Handle("GET /api/users/{userID}/bookmarks/count", cfg.CacheBusterMiddleware(http.HandlerFunc(cfg.CountUserBookmarkedLessonsHandler)))
+		mux.Handle("GET /api/solutions/count", cfg.CacheBusterMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.CountSolutionsDisambiguationHandler)))
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))
