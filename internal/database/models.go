@@ -121,6 +121,7 @@ type User struct {
 	CuredEmail     sql.NullString
 	Permissions    int16
 	Title          string
+	TotpSecret     sql.NullString
 }
 
 type UsersProblem struct {

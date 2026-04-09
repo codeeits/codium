@@ -75,3 +75,12 @@ UPDATE users
 SET title = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: UpdateUserTotpSecret :one
+UPDATE users
+SET totp_secret = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: GetUserTotpSecret :one
+SELECT totp_secret FROM users WHERE id = $1;
