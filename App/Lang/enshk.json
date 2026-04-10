@@ -4,6 +4,31 @@
     "_comment": "Verily, a translation file for the noble tongue of olde. Huzzah!",
     "app_name": "Code Upon The Stage/",
     "welcome": "",
+    "landing": {
+        "meta": {
+            "title": "The Grand Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Learneth",
+                "python": "Python",
+                "interactive": ". Most interactive,",
+                "simple": "simple",
+                "and-at": "and most",
+                "focus": "to the point",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Thy complete platform of coding, forged and aligned one hundred percent with the new curriculum of the Ministry of Learning, refreshed this very year. Learn",
+                "highlight": "precisely",
+                "part-2": "what mattereth for school, trials, and final reckonings."
+            },
+            "buttons": {
+                "curriculum": "Behold the curriculum",
+                "start": "Begin thy coding"
+            }
+        }
+    },
     "login": {
         "title": "",
         "email": "Thy electronic missive",

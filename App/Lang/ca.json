@@ -2,6 +2,31 @@
     "language": "Català",
     "app_name": "codium/",
     "welcome": "Aprènde/ Programa/ Competeix/",
+    "landing": {
+        "meta": {
+            "title": "Inici - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Aprèn",
+                "python": "Python",
+                "interactive": ". Interactiu,",
+                "simple": "simple",
+                "and-at": "i al",
+                "focus": "gra",
+                "end": "."
+            },
+            "description": {
+                "part-1": "La teva plataforma completa de programació, construïda i alineada al 100% amb el nou currículum del Ministeri d'Educació, actualitzat enguany. Aprèn",
+                "highlight": "exactament",
+                "part-2": "el que importa per a l'escola, les proves i el batxillerat."
+            },
+            "buttons": {
+                "curriculum": "Veure currículum",
+                "start": "Comença a programar"
+            }
+        }
+    },
     "login": {
         "title": "inicia sessió",
         "email": "e-mail",

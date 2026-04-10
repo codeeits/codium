@@ -345,6 +345,12 @@ table td:not(:first-child) {
     color: var(--text-colour-primary-button) !important;
 }
 
+*:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--border-radius-sm);
+}
+
 /* ====================== */
 /* ======END==RESET====== */
 /* ====================== */
@@ -1693,14 +1699,6 @@ blockquote {
     align-items: center;
     justify-content: space-between;
     gap: var(--gap-sm);
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-size: var(--body-font-size);
-    font-weight: var(--body-font-weight);
-    font-family: 'Raleway', sans-serif;
-    cursor: pointer;
-    padding: 0;
 }
 
 .dropdown-toggle i {
@@ -1742,6 +1740,8 @@ blockquote {
 
 .top-bar .dropdown-toggle {
     line-height: 1;
+    background: unset;
+    border: unset;
 }
 
 .top-bar .dropdown-menu {

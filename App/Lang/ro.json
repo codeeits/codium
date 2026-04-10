@@ -2,6 +2,31 @@
     "language": "Română",
     "app_name": "codium/",
     "welcome": "Învăță/ Programează/ Concurează/",
+    "landing": {
+        "meta": {
+            "title": "Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Învață",
+                "python": "Python",
+                "interactive": ". Interactiv,",
+                "simple": "simplu",
+                "and-at": "și la",
+                "focus": "obiect",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Platforma ta completă de programare, construită și aliniată 100% cu noua programă a Ministerului Educației, actualizată anul acesta. Învață",
+                "highlight": "exact",
+                "part-2": "ce contează pentru școală, teste și bacalaureat."
+            },
+            "buttons": {
+                "curriculum": "Vezi curicula",
+                "start": "Începe să programezi"
+            }
+        }
+    },
     "login": {
         "title": "autentificare",
         "email": "e-mail",

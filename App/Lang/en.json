@@ -2,6 +2,31 @@
     "language": "English",
     "app_name": "codium/",
     "welcome": "Learn/ Code/ Compete/",
+    "landing": {
+        "meta": {
+            "title": "Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Learn",
+                "python": "Python",
+                "interactive": ". Interactive,",
+                "simple": "simple",
+                "and-at": "and",
+                "focus": "focused",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Your complete coding platform, built and aligned 100% with the new Ministry of Education curriculum updated this year. Learn",
+                "highlight": "exactly",
+                "part-2": "what matters for school, tests, and final exams."
+            },
+            "buttons": {
+                "curriculum": "View curriculum",
+                "start": "Start coding"
+            }
+        }
+    },
     "login": {
         "title": "log-in",
         "email": "e-mail",
