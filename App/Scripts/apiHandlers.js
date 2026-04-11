@@ -1266,7 +1266,7 @@ class ApiService {
         };
     }
 
-    async runCode(code, inputFile = null, stdin = '') {
+    async runCodeCpp(code, inputFile = null, stdin = '') {
         const JUDGE0_API = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
         
         const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
@@ -1377,6 +1377,114 @@ class ApiService {
         return {
             success: isSuccess,
             console: consoleOutput || '',
+            file: fileOutput,
+            error: result.stderr || null
+        };
+    }
+
+    // python
+    async runCode(code, inputFile = null, stdin = '') {
+        const JUDGE0_API = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
+        
+        const FILE_OUTPUT_MARKER = '___FILE_OUTPUT_START___';
+        const FILE_OUTPUT_END_MARKER = '___FILE_OUTPUT_END___';
+
+        let processedCode = code;
+        
+        let injectedCode = 'import os\nimport atexit\n\n';
+
+        if (inputFile && inputFile.name && inputFile.content) {
+            const escaped = inputFile.content
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '');
+
+            injectedCode += `
+try:
+    with open("${inputFile.name}", "w", encoding="utf-8") as __f_in:
+        __f_in.write("${escaped}")
+except Exception:
+    pass
+`;
+        }
+
+        // Python code to read 'output.txt' when the script exits
+        injectedCode += `
+def __read_output_file():
+    try:
+        if os.path.exists("output.txt"):
+            print("${FILE_OUTPUT_MARKER}", end="")
+            with open("output.txt", "r", encoding="utf-8") as __f_out:
+                print(__f_out.read(), end="")
+            print("${FILE_OUTPUT_END_MARKER}", end="")
+    except Exception:
+        pass
+
+atexit.register(__read_output_file)
+
+# --- USER CODE START ---
+    `;
+
+        processedCode = injectedCode + processedCode;
+
+        // Fetch Call for Judge0
+        const res = await fetch(JUDGE0_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language_id: 71, // ID 71 = Python (3.8.1)
+                source_code: processedCode,
+                stdin: stdin
+            })
+        });
+
+        const result = await res.json();
+
+        // Judge0 returns a "message" field if there is an API-level error (e.g. rate limit)
+        if (result.message) {
+            return { success: false, error: "API Error: " + result.message, console: '', file: '' };
+        }
+
+        // Status ID 6 = "Compilation Error" (Python might throw this for SyntaxErrors)
+        if (result.status?.id === 6) {
+            return { 
+                success: false, 
+                error: result.compile_output || "Compilation/Syntax failed", 
+                console: '', 
+                file: '' 
+            };
+        }
+
+        let stdout = result.stdout || '';
+        let fileOutput = '';
+
+        // --- OUTPUT EXTRACTION LOGIC ---
+        const startIdx = stdout.indexOf(FILE_OUTPUT_MARKER);
+        const endIdx = stdout.indexOf(FILE_OUTPUT_END_MARKER);
+        
+        if (startIdx !== -1 && endIdx !== -1) {
+            fileOutput = stdout.slice(startIdx + FILE_OUTPUT_MARKER.length, endIdx);
+            // Clean stdout by removing the markers and file content
+            stdout = stdout.slice(0, startIdx) + stdout.slice(endIdx + FILE_OUTPUT_END_MARKER.length);
+        }
+
+        let consoleOutput = '';
+        
+        if (result.compile_output) { 
+            consoleOutput += 'Warnings/Errors:\n' + result.compile_output + '\n';
+        }
+        
+        if (stdout) consoleOutput += stdout;
+        
+        if (result.stderr) consoleOutput += (consoleOutput ? '\n' : '') + 'Stderr:\n' + result.stderr;
+
+        // Status ID 3 is "Accepted"
+        const isSuccess = result.status?.id === 3;
+
+        return {
+            success: isSuccess,
+            console: consoleOutput.trim() || '',
             file: fileOutput,
             error: result.stderr || null
         };

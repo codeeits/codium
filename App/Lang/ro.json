@@ -181,6 +181,10 @@
             "dificuly": "Dificultate",
             "newest": "Cele mai noi",
             "oldest": "Cele mai vechi"
+        },
+        "badge-types": {
+            "lesson": "lecție",
+            "problem": "problemă"
         }
     },
 

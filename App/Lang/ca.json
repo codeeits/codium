@@ -181,6 +181,10 @@
             "dificuly": "Dificultat",
             "newest": "Més nous",
             "oldest": "Més antics"
+        },
+        "badge-types": {
+            "lesson": "lliçó",
+            "problem": "problema"
         }
     },
 

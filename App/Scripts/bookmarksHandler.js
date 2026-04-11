@@ -21,6 +21,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilter = 'all';
     let currentSort = 'default';
 
+    function normalizeClassBadge(flagTranslation) {
+        const rawValue = String(flagTranslation?.class || flagTranslation?.verification_type || '').trim();
+        if (!rawValue) {
+            return 'Unknown';
+        }
+
+        const explicitNumber = rawValue.match(/\b(9|10|11|12)\b/);
+        if (explicitNumber) {
+            return explicitNumber[1];
+        }
+
+        const romanMap = {
+            IX: '9',
+            X: '10',
+            XI: '11',
+            XII: '12'
+        };
+
+        const romanMatch = rawValue.toUpperCase().match(/\b(XII|XI|IX|X)\b/);
+        if (romanMatch) {
+            return romanMap[romanMatch[1]];
+        }
+
+        return rawValue;
+    }
+
+    function getBookmarkTypeLabel(type) {
+        return type === 'problem' ? 'problem' : 'lesson';
+    }
+
     // --- FETCH DATA ---
     async function fetchBookmarks() {
         try {
@@ -168,7 +198,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (description) description.textContent = bookmarkedElementData.lesson?.Description.String || bookmarkedElementData.short_desc || 'No description available.';
 
             const badge = bookmarkCard.querySelector('.bookmarks-class-badge');
-            if (badge) badge.textContent = `${bookmarkedElementData.flag_translation?.class || bookmarkedElementData.flag_translation?.verification_type || 'Unknown'} / nada de momento`; 
+            if (badge) {
+                const classLabel = normalizeClassBadge(bookmarkedElementData.flag_translation);
+                const typeLabel = getBookmarkTypeLabel(bookmarkedElementData.type);
+                const typeKey = `bookmarks-page.badge-types.${bookmarkedElementData.type === 'problem' ? 'problem' : 'lesson'}`;
+
+                badge.textContent = `${classLabel} / `;
+                const translatedType = document.createElement('span');
+                translatedType.setAttribute('data-i18n', typeKey);
+                translatedType.textContent = typeLabel;
+                badge.appendChild(translatedType);
+
+                if (typeof window.applyTranslations === 'function') {
+                    window.applyTranslations(badge);
+                }
+            }
 
             const icon = bookmarkCard.querySelector('.bookmark-icon');
             if (icon) {

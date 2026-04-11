@@ -181,6 +181,10 @@
             "dificuly": "Difficulty",
             "newest": "Newest",
             "oldest": "Oldest"
+        },
+        "badge-types": {
+            "lesson": "lesson",
+            "problem": "problem"
         }
     },
 
