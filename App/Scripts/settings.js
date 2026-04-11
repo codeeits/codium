@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         privacyCard: document.getElementById('privacyCard'),
         profileVisibilityToggle: document.getElementById('profile-visibility'),
         requestDataBtn: document.getElementById('request-data'),
+        eraseMeBtn: document.getElementById('erase-data'),
 
         // appearance card
         appearanceCard: document.getElementById('appearanceCard'),
@@ -699,6 +700,37 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function deleteAccount() {
+        elements.eraseMeBtn.addEventListener('click', () => {
+            engine.openModal({
+                title: 'Delete Account',
+                body: `
+                        <p class="modal-message">Are you sure you want to delete your account? This action is IRREVERSIBLE and cannot be undone. All your data will be permanently deleted. If you want to request your data, please do so first.</p>
+                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Delete Account</button>
+                        </div>
+                    `,
+                icon: 'fa-trash',
+                onConfirm: async () => {
+                    try {
+                        await window.apiService.deleteAccount();
+                        toastsLoader.showToast('Account deleted successfully. Redirecting...', 'success', 3000);
+                        setTimeout(() => {
+                            window.apiService.logout();
+                        }, 3000);
+                    } catch (error) {
+                        console.error('Error deleting account:', error);
+                        toastsLoader.showToast(`Error deleting account: ${error.message}`, 'error', 5000);
+                    }
+                },
+                onCancel: () => {
+                    toastsLoader.showToast('Account deletion cancelled.', 'info', 2500);
+                }
+            });
+        });
+    }
+
     function setupProfileCardSync() {
         const syncProfileCard = () => {
             if (!window.apiService.isAuthenticated()) return;
@@ -770,6 +802,7 @@ document.addEventListener("DOMContentLoaded", () => {
             enableColorblindMode();
             setFontSize();
             requestData();
+            deleteAccount();
 
         } catch (err) {
             console.error('Failed to get current user:', err);

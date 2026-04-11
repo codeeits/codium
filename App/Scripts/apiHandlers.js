@@ -385,6 +385,36 @@ class ApiService {
         return this.post('/admin/users/account_status', { userID: userId, title }, true);
     }
 
+    // danger area
+
+    async deleteAccount(userId = null) {
+        try {
+            if (userId == null) {
+                const currentUser = await this.getCurrentUser();
+                
+                if (!currentUser) {
+                    throw new Error("No current user found to delete.");
+                }
+
+                let userData = currentUser;
+                if (typeof currentUser === 'string') {
+                    userData = JSON.parse(currentUser);
+                }
+                
+                userId = userData?.ID;
+                
+                if (!userId) {
+                    throw new Error("User object does not contain a valid ID.");
+                }
+            }
+            
+            return await this.delete(`/api/users/${userId}`, true);
+            
+        } catch (error) {
+            console.error("Failed to delete account:", error);
+            throw error; 
+        }
+    }
     // ===========================================
     // Lesson Management Endpoints
     // ===========================================
