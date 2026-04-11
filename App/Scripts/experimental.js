@@ -38,16 +38,9 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'new ui'
             },
             {
-                title: 'New lesson admin',
+                title: 'New lesson management',
                 description: 'Management view for suggested lessons and review workflows.',
                 href: '/app/Lectii/manage-lessons2.html',
-                icon: 'fa-gears',
-                tag: 'admin'
-            },
-            {
-                title: 'New problem admin',
-                description: 'Management view for suggested problems and moderation actions.',
-                href: '/app/Probleme/manage-problems2.html',
                 icon: 'fa-gears',
                 tag: 'admin'
             },
@@ -102,6 +95,13 @@ const EXPERIMENTAL_SECTIONS = [
                 href: '/app/Scripts/testExcel.html',
                 icon: 'fa-table',
                 tag: 'test'
+            },
+            {
+                title: 'Admin panel',
+                description: 'Manage users, approve content. Currently limited to a few functions.',
+                href: '/app/admin.html',
+                icon: 'fa-gears',
+                tag: 'admin'
             },
             {
                 title: 'Manage lessons (v1)',
