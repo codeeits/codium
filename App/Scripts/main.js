@@ -175,9 +175,9 @@ window.CodiumUI = {
     UI_VERSION_NEW
 };
 
-// ----------------------------------------
-// Async Component Loading (Menu & Sidebar)
-// ----------------------------------------
+// ------------------------------------------------
+// Async Component Loading (Menu, Sidebar & Footer)
+// ------------------------------------------------
 
 async function loadTopMenu() {
     try {
@@ -244,6 +244,31 @@ async function loadSidebar() {
         }
     } catch (error) {
         console.error('Error loading sidebar:', error);
+    }
+}
+
+async function loadFooter() {
+    try {
+        const variant = document.querySelector('meta[name="footer-variant"]')?.content || 'default';
+        const response = await fetch('/app/elements.html');
+        const html = await response.text();
+        
+        const tempFooter = document.createElement('footer');
+        tempFooter.innerHTML = html;
+        
+        const footer = tempFooter.querySelector(`#footer-${variant}`) || tempFooter.querySelector('#footer-default');
+        
+        if (footer) {
+            const clone = footer.cloneNode(true);
+            clone.id = 'footer';
+            clone.classList.remove('footer-variant');
+            clone.classList.add(variant);
+            // insert before the footer-container and if exists, delete the old one to prevent duplicates
+            const existingFooter = document.getElementById('footer-container');
+            if(existingFooter) existingFooter.replaceWith(clone); else document.body.appendChild(clone);
+        }
+    } catch (error) {
+        console.error('Error loading footer:', error);
     }
 }
 
@@ -597,7 +622,8 @@ async function initApp() {
 
     await Promise.all([
         loadTopMenu(),
-        loadSidebar()
+        loadSidebar(),
+        loadFooter()
     ]);
 
     openLoginModal();

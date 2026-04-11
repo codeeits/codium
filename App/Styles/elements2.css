@@ -984,6 +984,33 @@ main, .content-area {
     color: var(--primary);
 }
 
+.footer.default {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+    padding: calc(var(--gap-lg) * 2);
+}
+
+.footer.default .footer-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+
+.footer-column h3 {
+    margin-bottom: var(--gap-sm);
+}
+
+.footer-content .footer-description {
+    max-width: 300px;
+}
 footer a:hover {
     text-decoration: underline;
 }
