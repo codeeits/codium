@@ -21,11 +21,12 @@
             "description": {
                 "part-1": "Platforma ta completă de coding, construită și aliniată 100% cu noua programă a Ministerului Educației, update-uită anul acesta. Învață",
                 "highlight": "exact",
-                "part-2": "ce contează pentru school, teste și bac."
+                "part-2": "ce contează pentru school, teste și bac. Sau nu, idk, se caută joburi și la McDonald's. Și la Lidl, dar acolo nu se cere să știi să codezi."
             },
             "buttons": {
-                "curriculum": "Vezi curriculum",
-                "start": "Mă mănâncă degetele să codez"
+                "curriculum": "Vezi curriculum (aka programa școlară)",
+                "start": "Mă mănâncă degetele să codez",
+                "start_now": "Nu mă mai pot abține, vreau să codez acum"
             }
         }
     },
@@ -56,6 +57,10 @@
         "teory": "Teorie",
         "probleme": "Problems",
         "contact": "Contactează-usi",
+        "curriculum": "Așa zisa curriculum",
+        "for_who": "Pentru who?",
+        "for_teachers": "Pentru teachers",
+        "for_students": "Pentru students",
         "coin": "cuie"
     },
     "sidebar": {

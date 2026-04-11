@@ -23,7 +23,8 @@
             },
             "buttons": {
                 "curriculum": "Vezi curicula",
-                "start": "Începe să programezi"
+                "start": "Începe să programezi",
+                "start_now": "Începe acum"
             }
         }
     },
@@ -168,6 +169,10 @@
         "teory": "Teorie",
         "probleme": "Probleme",
         "contact": "Contact",
+        "curriculum": "Curriculum",
+        "for_who": "Pentru cine?",
+        "for_teachers": "Pentru profesori",
+        "for_students": "Pentru elevi",
         "coin": "biscuiței"
     },
     "sidebar": {

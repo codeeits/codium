@@ -23,7 +23,8 @@
             },
             "buttons": {
                 "curriculum": "View curriculum",
-                "start": "Start coding"
+                "start": "Start coding",
+                "start_now": "Start now"
             }
         }
     },
@@ -168,6 +169,10 @@
         "teory": "Theory",
         "probleme": "Problems",
         "contact": "Contact",
+        "curriculum": "Curriculum",
+        "for_who": "For who?",
+        "for_teachers": "For teachers",
+        "for_students": "For students",
         "coin": "cookies"
     },
     "sidebar": {

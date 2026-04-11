@@ -23,7 +23,8 @@
             },
             "buttons": {
                 "curriculum": "Veure currículum",
-                "start": "Comença a programar"
+                "start": "Comença a programar",
+                "start_now": "Comença ara"
             }
         }
     },
@@ -168,6 +169,10 @@
         "teory": "Teoria",
         "probleme": "Problemes",
         "contact": "Contacte",
+        "curriculum": "Currículum",
+        "for_who": "Per a qui?",
+        "for_teachers": "Per a professors",
+        "for_students": "Per a estudiants",
         "coin": "galetes"
     },
     "sidebar": {
