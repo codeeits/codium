@@ -660,6 +660,7 @@ class ApiService {
         if (next != null) {
             return await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: next }, true);
         }
+        return null;
     }
 
     async updateLessonSectionStarter(lessonId, sectionNumber) {

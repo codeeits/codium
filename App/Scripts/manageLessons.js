@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             
             // Clear all next relationships first (this also clears linked prev pointers server-side).
             for (const lessonId of lessonIds) {
-                await window.apiService.updateLessonOrder(lessonId, null, "00000000-0000-0000-0000-000000000000");
+                await window.apiService.updateLessonOrder(lessonId, null, null);
             }
             
             const firstLessonId = lessonIds[0];
@@ -456,7 +456,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             if (currentLessonNameSpan) {
                 currentLessonNameSpan.textContent = result.lesson.Title;
             }
-            console.log(window.apiService.getFile(result.lesson.ContentID));
             
             window.apiService.getFile(result.lesson.ContentID).then(lessonData => {
                 if (lessonIdClicked !== lessonId) {
