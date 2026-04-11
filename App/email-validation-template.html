@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codium Email Validation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fundal: #1b0524;
+      --contrast: #100217;
+      --border2-solid: #321e3a;
+      --primary: #b07bc9;
+      --text-colour: #ffffff;
+      --text-colour-primary-button: #ffffff;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --card-shadow: 0 0 5px rgba(255, 255, 255, 0.25);
+      --primary-shadow: 0 0 7.5px rgba(176, 123, 201, 0.3);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #1b0524 0%, #100217 100%);
+      color: var(--text-colour);
+      font-family: "Raleway", sans-serif;
+    }
+
+    .email-shell {
+      max-width: 640px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background-color: var(--contrast);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+    }
+
+    .content-card {
+      width: 100%;
+    }
+
+    .content-card-body {
+      display: block;
+      padding: 24px;
+    }
+
+    .content-card-category {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .content-card-title {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.1;
+      color: var(--text-colour);
+    }
+
+    .content-card-description {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--text-colour);
+      opacity: 0.95;
+    }
+
+    .content-card-footer {
+      margin-top: 24px;
+    }
+
+    .difficulty {
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      display: inline-block;
+    }
+
+    .difficulty-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-colour);
+      opacity: 0.9;
+    }
+
+    .btn {
+      display: inline-block;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid var(--primary);
+      padding: 12px 18px;
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      color: var(--text-colour-primary-button);
+      box-shadow: var(--primary-shadow);
+    }
+
+    .btn.full-width {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .fallback {
+      margin: 16px 4px 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-colour);
+      opacity: 0.9;
+      word-break: break-word;
+    }
+
+    .fallback a {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main class="email-shell">
+    <section class="card content-card">
+      <div class="content-card-body">
+        <span class="content-card-category">Codium Account</span>
+        <h1 class="content-card-title">Email Validation</h1>
+        <p class="content-card-description">
+          Please verify your email address to activate all platform features.
+          Click the button below to confirm your account.
+        </p>
+
+        <div class="content-card-footer">
+          <div class="difficulty">
+            <span class="difficulty-text">Security step: required</span>
+          </div>
+          <a class="btn primary full-width" href="{{VERIFY_URL}}" target="_blank" rel="noopener noreferrer">Verify Email</a>
+        </div>
+      </div>
+    </section>
+
+    <p class="fallback">
+      If the button does not open, use this link:<br>
+      <a href="{{VERIFY_URL}}" target="_blank" rel="noopener noreferrer">{{VERIFY_URL}}</a>
+    </p>
+  </main>
+</body>
+</html>
