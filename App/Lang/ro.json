@@ -90,6 +90,61 @@
         }
     },
 
+    "privacy-page": {
+        "meta": {
+            "title": "Politica de confidențialitate - Codium",
+            "heading": "Politica de confidențialitate pentru Codium"
+        },
+        "header": {
+            "effective-date": "Data intrării în vigoare:",
+            "download-pdf": "Imprimează"
+        },
+        "intro": "La Codium, ne angajăm să îți protejăm confidențialitatea. Această Politică de confidențialitate explică modul în care colectăm, utilizăm, divulgăm și protejăm informațiile tale atunci când vizitezi platforma noastră.",
+        "section-1-title": "1. Informațiile pe care le colectăm",
+        "section-1-desc": "Colectăm informații pe care ni le furnizezi direct și date colectate automat când folosești Serviciul:",
+        "section-1": {
+            "personal-info": "Informații personale: Când te înregistrezi, colectăm adresa de e-mail, numele de utilizator, parola (stocată în siguranță ca hash) și, opțional, o poză de profil.",
+            "usage-data": "Date de utilizare și progres: Urmărim interacțiunea ta cu Serviciul, inclusiv lecțiile finalizate, soluțiile la probleme de cod, rezultatele testelor, bookmark-urile și permisiunile/rolurile utilizatorului (de exemplu statutul de admin).",
+            "technical-data": "Date tehnice: Colectăm automat informații tehnice standard, precum adresa IP, tipul browserului, informații despre dispozitiv și interacțiunile cu paginile noastre web."
+        },
+        "section-2-title": "2. Cum folosim informațiile tale",
+        "section-2-desc": "Folosim informațiile colectate în următoarele scopuri:",
+        "section-2": {
+            "use-1": "Pentru a oferi, opera și menține platforma Codium (de exemplu autentificarea, rularea trimiterilor de cod, urmărirea progresului).",
+            "use-2": "Pentru a îmbunătăți conținutul educațional și infrastructura compilerului.",
+            "use-3": "Pentru a comunica cu tine, inclusiv trimiterea e-mailurilor de verificare a contului, resetări de parolă și actualizări importante ale serviciului.",
+            "use-4": "Pentru a asigura securitatea platformei și pentru a preveni activitatea frauduloasă sau malițioasă (de exemplu detectarea boților)."
+        },
+        "section-3": "3. Cookie-uri și tehnologii de urmărire",
+        "section-3-desc": "Codium utilizează cookie-uri și tehnologii similare de urmărire (precum JSON Web Tokens/Refresh Tokens) pentru a menține sesiunea, a reține preferințele și a te păstra autentificat în siguranță în contul tău. Poți controla preferințele de cookie din setările browserului, însă dezactivarea lor poate afecta folosirea funcțiilor care necesită autentificare.",
+        "section-4-title": "4. Partajarea și divulgarea datelor",
+        "section-4-desc": "Nu vindem, nu schimbăm și nu închiriem informațiile tale personale către terți. Putem partaja informațiile tale doar în următoarele situații:",
+        "section-4": {
+            "share-1": "Furnizori de servicii: Cu servicii terțe de încredere care ne ajută să operăm platforma (de exemplu servicii de e-mail pentru validare, furnizori cloud), sub acorduri stricte de confidențialitate.",
+            "share-2": "Conformitate legală: Dacă este necesar prin lege, citație sau alte proceduri legale, ori pentru a proteja drepturile, proprietatea sau siguranța Codium, a utilizatorilor noștri sau a altora."
+        },
+        "section-5": "5. Securitatea datelor",
+        "section-5-desc": "Implementăm măsuri standard de securitate pentru a proteja informațiile tale personale, inclusiv criptarea parolelor și securizarea accesului la baza de date. Totuși, nicio transmisie electronică pe internet sau tehnologie de stocare a informațiilor nu poate fi garantată 100% sigură.",
+        "section-6-title": "6. Drepturile tale asupra datelor",
+        "section-6-desc": "În funcție de locația ta, poți avea dreptul să:",
+        "section-6": {
+            "right-1": "Accesezi datele personale pe care le deținem despre tine.",
+            "right-2": "Soliciți corectarea datelor inexacte.",
+            "right-3": "Soliciți ștergerea contului și a datelor asociate (inclusiv soluțiile tale de cod și progresul).",
+            "right-4": "Renunți la comunicările non-esențiale."
+        },
+        "section-6-footer": "Pentru exercitarea acestor drepturi, contactează-ne folosind informațiile de mai jos.",
+        "section-7": "7. Confidențialitatea copiilor",
+        "section-7-desc": "Codium nu este destinat în mod intenționat copiilor sub 13 ani. Nu colectăm în mod conștient informații personale de la copii sub 13 ani. Dacă aflăm că am colectat astfel de date, vom lua măsuri pentru a le șterge.",
+        "section-8": "8. Modificări ale acestei politici de confidențialitate",
+        "section-8-desc": "Putem actualiza această Politică de confidențialitate periodic. Orice modificare va fi publicată pe această pagină cu o \"Dată a intrării în vigoare\" actualizată. Te încurajăm să revizuiești periodic această politică.",
+        "section-9": "9. Contactează-ne",
+        "section-9-desc": "Dacă ai întrebări sau nelămuriri despre această Politică de confidențialitate sau practicile noastre privind datele, contactează-ne la: privacy@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat"
+        }
+    },
+
     "login": {
         "title": "autentificare",
         "email": "e-mail",

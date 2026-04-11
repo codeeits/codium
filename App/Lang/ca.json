@@ -90,6 +90,61 @@
         }
     },
 
+    "privacy-page": {
+        "meta": {
+            "title": "Política de Privadesa - Codium",
+            "heading": "Política de Privadesa de Codium"
+        },
+        "header": {
+            "effective-date": "Data d'entrada en vigor:",
+            "download-pdf": "Imprimeix"
+        },
+        "intro": "A Codium, estem compromesos a protegir la vostra privadesa. Aquesta Política de Privadesa explica com recopilem, utilitzem, divulguem i salvaguardem la vostra informació quan visiteu la nostra plataforma.",
+        "section-1-title": "1. Informació que recopilem",
+        "section-1-desc": "Recopilem informació que ens proporcioneu directament i dades recopilades automàticament quan utilitzeu el nostre Servei:",
+        "section-1": {
+            "personal-info": "Informació personal: Quan us registreu, recopilem la vostra adreça electrònica, nom d'usuari, contrasenya (emmagatzemada de manera segura com a hash) i, opcionalment, una foto de perfil.",
+            "usage-data": "Dades d'ús i progrés: Fem un seguiment de la vostra interacció amb el Servei, incloses les lliçons completades, les solucions als problemes de codi, els resultats de les proves, les adreces d'interès i els permisos/rols d'usuari (p. ex., estat d'administrador).",
+            "technical-data": "Dades tècniques: Recopilem automàticament informació tècnica estàndard, com ara la vostra adreça IP, tipus de navegador, informació del dispositiu i interaccions amb les nostres pàgines web."
+        },
+        "section-2-title": "2. Com utilitzem la vostra informació",
+        "section-2-desc": "Utilitzem la informació recopilada per a les finalitats següents:",
+        "section-2": {
+            "use-1": "Per proporcionar, operar i mantenir la plataforma Codium (p. ex., autenticar el vostre inici de sessió, executar els vostres enviaments de codi, fer un seguiment del vostre progrés).",
+            "use-2": "Per millorar el nostre contingut educatiu i la infraestructura del compilador.",
+            "use-3": "Per comunicar-nos amb vosaltres, inclòs l'enviament de correus electrònics de verificació de comptes, restabliments de contrasenyes i actualitzacions importants del servei.",
+            "use-4": "Per garantir la seguretat de la nostra plataforma i prevenir activitats fraudulentes o malicioses (p. ex., detecció de bots)."
+        },
+        "section-3": "3. Galetes i tecnologies de seguiment",
+        "section-3-desc": "Codium utilitza galetes i tecnologies de seguiment similars (com ara JSON Web Tokens/Refresh Tokens) per mantenir la vostra sessió, recordar les vostres preferències i mantenir-vos connectats de manera segura al vostre compte. Podeu controlar les preferències de galetes mitjançant la configuració del vostre navegador, però desactivar-les pot afectar la vostra capacitat d'utilitzar funcions autenticades.",
+        "section-4-title": "4. Intercanvi i divulgació de dades",
+        "section-4-desc": "No venem, intercanviem ni lloguem la vostra informació personal a tercers. Podem compartir la vostra informació només en les situacions següents:",
+        "section-4": {
+            "share-1": "Proveïdors de serveis: Amb serveis de tercers de confiança que ens ajuden a operar la nostra plataforma (p. ex., serveis de lliurament de correu electrònic per a correus de validació, proveïdors d'allotjament al núvol), sota estrictes acords de confidencialitat.",
+            "share-2": "Compliment legal: Si ho exigeix la llei, una citació o altres processos legals, o per protegir els drets, la propietat o la seguretat de Codium, els nostres usuaris o altres persones."
+        },
+        "section-5": "5. Seguretat de les dades",
+        "section-5-desc": "Implementem mesures de seguretat estàndard per protegir la vostra informació personal, inclòs l'encriptatge de contrasenyes i la protecció de l'accés a les bases de dades. Tanmateix, cap transmissió electrònica per Internet ni cap tecnologia d'emmagatzematge d'informació pot garantir-se que sigui 100% segura.",
+        "section-6-title": "6. Els vostres drets de dades",
+        "section-6-desc": "Depenent de la vostra ubicació, podeu tenir dret a:",
+        "section-6": {
+            "right-1": "Accedir a les dades personals que tenim sobre vosaltres.",
+            "right-2": "Sol·licitar la correcció de dades inexactes.",
+            "right-3": "Sol·licitar la supressió del vostre compte i de les dades associades (incloses les vostres solucions de codi i el vostre progrés).",
+            "right-4": "Donar-se de baixa de comunicacions no essencials."
+        },
+        "section-6-footer": "Per exercir aquests drets, poseu-vos en contacte amb nosaltres mitjançant la informació següent.",
+        "section-7": "7. Privadesa dels infants",
+        "section-7-desc": "Codium no està dirigit intencionadament a menors de 13 anys. No recopilem intencionadament informació personal de menors de 13 anys. Si ens adonem que hem recopilat aquestes dades, prendrem mesures per eliminar-les.",
+        "section-8": "8. Canvis en aquesta Política de Privadesa",
+        "section-8-desc": "Podem actualitzar aquesta Política de Privadesa de tant en tant. Qualsevol canvi es publicarà en aquesta pàgina amb una \"Data d'entrada en vigor\" actualitzada. Us animem a revisar aquesta política periòdicament.",
+        "section-9": "9. Contacteu amb nosaltres",
+        "section-9-desc": "Si teniu qualsevol pregunta o inquietud sobre aquesta Política de Privadesa o les nostres pràctiques de dades, poseu-vos en contacte amb nosaltres a: privacy@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat"
+        }
+    },
+
     "login": {
         "title": "inicia sessió",
         "email": "e-mail",
