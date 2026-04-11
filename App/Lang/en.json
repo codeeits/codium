@@ -54,7 +54,7 @@
         },
         "header": {
             "last-updated": "Last updated:",
-            "download-pdf": "Download PDF"
+            "download-pdf": "Print"
         },
         "intro": "Welcome to Codium! These Terms of Service (\"Terms\") govern your use of the Codium website, platform, and related services (collectively, the \"Service\"). By accessing or using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service.",
         "section-1": "1. Description of Service",
@@ -86,7 +86,7 @@
         "section-9": "9. Contact Us",
         "section-9-desc": "If you have any questions about these Terms, please contact us at legal@codium.lol.",
         "pdf": {
-            "generated-on": "Generated on"
+            "generated-on": "Generated"
         }
     },
 
