@@ -694,7 +694,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
-            const response = textToPDF(contentBody, "header", false, footerData, translatedLogoP);
+            const response = await textToPDF(contentBody, "header", false, footerData, translatedLogoP);
             console.log(response);
         });
     }
