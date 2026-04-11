@@ -1006,6 +1006,11 @@ main, .content-area {
 
 .footer-column h3 {
     margin-bottom: var(--gap-sm);
+    color: var(--primary);
+}
+
+.footer-column h1 {
+    color: var(--primary);
 }
 
 .footer-content .footer-description {

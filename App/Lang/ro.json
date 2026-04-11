@@ -28,6 +28,26 @@
             }
         }
     },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. Toate drepturile rezervate.",
+            "text-2": "Proiectat și dezvoltat de o echipă de elevi de liceu pasionați de programare și educație."
+        },
+        "legal": "Legal",
+        "terms": "Termeni și condiții",
+        "privacy": "Politica de confidențialitate",
+        "cookies": "Nu folosim cookie-uri sau alte tehnologii de urmărire.",
+        "external": "Extern",
+        "github": "Repository GitHub",
+        "instagram": "Instagram",
+        "home": "Acasă",
+        "aboutUs": "Despre noi",
+        "faq": "Întrebări frecvente",
+        "contact": "Contact",
+        "bornIn": "Creat în România 🇷🇴."
+    },
+
     "login": {
         "title": "autentificare",
         "email": "e-mail",

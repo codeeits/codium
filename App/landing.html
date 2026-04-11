@@ -72,7 +72,7 @@
 
             const rowA = '101000110011000011001100011100101011100100101101100011000111110111111110001010010100111010001010100000';
             const rowB = '101010010001101110010100010010110011011110011111101111010100100011011100101000100101100110111100111111';
-            const rowHeight = window.innerWidth <= 900 ? 18 : 21;
+            const rowHeight = window.innerWidth <= 900 ? 18 : 28;
             const rows = Math.max(40, Math.ceil(window.innerHeight / rowHeight) + 22);
             const lineRepeat = 6;
             const plainFragment = document.createDocumentFragment();
@@ -261,6 +261,8 @@
             }
 
             function resizeCanvas() {
+                const prevWidth = width;
+                const prevHeight = height;
                 const rect = heroSection.getBoundingClientRect();
                 width = Math.max(1, Math.floor(rect.width));
                 height = Math.max(1, Math.floor(rect.height));
@@ -273,7 +275,28 @@
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
                 const targetCount = Math.min(Math.max(Math.floor(width / 40), 20), 56);
-                particles = Array.from({ length: targetCount }, createParticle);
+                if (particles.length === 0) {
+                    particles = Array.from({ length: targetCount }, createParticle);
+                    return;
+                }
+
+                const scaleX = prevWidth > 0 ? width / prevWidth : 1;
+                const scaleY = prevHeight > 0 ? height / prevHeight : 1;
+
+                for (let i = 0; i < particles.length; i += 1) {
+                    const p = particles[i];
+                    p.x = Math.min(width, Math.max(0, p.x * scaleX));
+                    p.y = Math.min(height, Math.max(0, p.y * scaleY));
+                }
+
+                if (particles.length < targetCount) {
+                    const toAdd = targetCount - particles.length;
+                    for (let i = 0; i < toAdd; i += 1) {
+                        particles.push(createParticle());
+                    }
+                } else if (particles.length > targetCount) {
+                    particles.length = targetCount;
+                }
             }
 
             function draw(ts) {

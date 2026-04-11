@@ -28,6 +28,26 @@
             }
         }
     },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. All rights reserved.",
+            "text-2": "Designed and developed by a team of high school students passionate about programming and education."
+        },
+        "legal": "Legal",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "cookies": "We do not use cookies or any tracking technologies.",
+        "external": "External",
+        "github": "GitHub repository",
+        "instagram": "Instagram",
+        "home": "Home",
+        "aboutUs": "About Us",
+        "faq": "FAQ",
+        "contact": "Contact",
+        "bornIn": "Born in Romania 🇷🇴."
+    },
+
     "login": {
         "title": "log-in",
         "email": "e-mail",

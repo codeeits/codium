@@ -265,7 +265,7 @@ async function loadFooter() {
             clone.classList.add(variant);
             // insert before the footer-container and if exists, delete the old one to prevent duplicates
             const existingFooter = document.getElementById('footer-container');
-            if(existingFooter) existingFooter.replaceWith(clone); else document.body.appendChild(clone);
+            if(existingFooter) existingFooter.replaceWith(clone);
         }
     } catch (error) {
         console.error('Error loading footer:', error);

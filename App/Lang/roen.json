@@ -30,6 +30,26 @@
             }
         }
     },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. Toate rights-urile sunt reserved.",
+            "text-2": "Designuit și developat de un team de liceeni super pasionați de coding și educație."
+        },
+        "legal": "Legal stuff",
+        "terms": "Termenii de service",
+        "privacy": "Privacy Policy",
+        "cookies": "Nu dăm drop la cookies și nu folosim tracking tools.",
+        "external": "Pe extern",
+        "github": "Repo-ul de GitHub",
+        "instagram": "Insta",
+        "home": "Home",
+        "aboutUs": "About noi",
+        "faq": "FAQ-uri",
+        "contact": "Dă-ne un ping",
+        "bornIn": "Born and raised în România 🇷🇴."
+    },
+
     "login": {
         "title": "",
         "email": "e-mail",

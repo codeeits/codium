@@ -25,10 +25,31 @@
             },
             "buttons": {
                 "curriculum": "Behold the curriculum",
-                "start": "Begin thy coding"
+                "start": "Begin thy coding",
+                "start_now": "Begin forthwith"
             }
         }
     },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. All rights thereby preserv'd.",
+            "text-2": "Fashion'd and wrought by a fellowship of young scholars, possessing a most fervent zeal for the art of code and the sharing of knowledge."
+        },
+        "legal": "Matters of the Law",
+        "terms": "Covenants of Thine Usage",
+        "privacy": "Doctrine of Secrecy",
+        "cookies": "We partake not in the baking of cookies, nor do we employ dark arts to trace thy steps.",
+        "external": "Yonder Realms",
+        "github": "The GitHub Treasury",
+        "instagram": "The Gram of Insta",
+        "home": "The Hearth",
+        "aboutUs": "Our Tale",
+        "faq": "Inquiries Oft Render'd",
+        "contact": "Send Tidings",
+        "bornIn": "Brought forth into this world in Romania 🇷🇴."
+    },
+    
     "login": {
         "title": "",
         "email": "Thy electronic missive",
