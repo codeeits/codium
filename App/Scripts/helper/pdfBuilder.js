@@ -46,7 +46,8 @@ async function getTemplateMarkup(templateType = 'default') {
  */
 function getTranslationValue(key) {
     if (!key) return "";
-    return key.split('.').reduce((obj, part) => obj?.[part], currentTranslations) || key;
+    const translations = window.currentTranslations || {};
+    return key.split('.').reduce((obj, part) => obj?.[part], translations) || key;
 }
 
 function translateHTMLSnippet(htmlSnippet) {
@@ -54,7 +55,7 @@ function translateHTMLSnippet(htmlSnippet) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlSnippet;
     
-    applyTranslations(tempDiv);
+    window.applyTranslations?.(tempDiv);
 
     return tempDiv.innerHTML;
 }

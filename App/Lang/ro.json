@@ -48,6 +48,48 @@
         "bornIn": "Creat în România 🇷🇴."
     },
 
+    "tos-page": {
+        "meta": {
+            "title": "Termeni și condiții - Codium"
+        },
+        "header": {
+            "last-updated": "Ultima actualizare:",
+            "download-pdf": "Descarcă PDF"
+        },
+        "intro": "Bine ai venit la Codium! Acești Termeni și condiții (\"Termenii\") reglementează utilizarea site-ului, platformei și serviciilor asociate Codium (denumite împreună \"Serviciul\"). Prin accesarea sau utilizarea Serviciului, ești de acord să respecți acești Termeni. Dacă nu ești de acord cu ei, te rugăm să nu folosești Serviciul.",
+        "section-1": "1. Descrierea serviciului",
+        "section-1-desc": "Codium este o platformă educațională concepută pentru a oferi lecții de programare, vizualizări de algoritmi, provocări de cod (\"Probleme\") și un mediu de compilare și testare a codului direct în browser.",
+        "section-2-title": "2. Conturi de utilizator",
+        "section-2": {
+            "registration": "Înregistrare: Pentru a accesa anumite funcționalități (de exemplu salvarea progresului, trimiterea soluțiilor, bookmark-uri), trebuie să îți creezi un cont. Ești de acord să oferi informații corecte și complete (cum ar fi o adresă de e-mail validă).",
+            "security": "Securitate: Ești responsabil pentru păstrarea confidențialității datelor de autentificare ale contului tău, inclusiv parolele și autentificarea în doi pași (TOTP/coduri de rezervă), dacă este activată. Ești responsabil pentru toate activitățile realizate din contul tău.",
+            "termination": "Reziliere: Ne rezervăm dreptul de a suspenda sau închide contul tău în orice moment, fără notificare, pentru un comportament pe care îl considerăm că încalcă acești Termeni sau care este dăunător altor utilizatori, nouă sau terților, ori din orice alt motiv."
+        },
+        "section-3-title": "3. Utilizare acceptabilă",
+        "section-3-desc": "Ești de acord să nu folosești Serviciul pentru:",
+        "section-3": {
+            "prohibited-1": "A încărca, trimite sau executa cod malițios, viruși sau orice software menit să perturbe, să deterioreze ori să obțină acces neautorizat la compilerul, serverele sau bazele de date Codium.",
+            "prohibited-2": "A încerca să ocolești măsuri de securitate, limite de rată sau limite de execuție impuse compilerului.",
+            "prohibited-3": "A copia, indexa sau descărca în masă lecții, probleme sau alte conținuturi protejate fără permisiunea noastră scrisă explicită.",
+            "prohibited-4": "A hărțui alți utilizatori sau a trimite conținut nepotrivit, ofensator ori ilegal în funcționalitățile comunității sau în sugestiile de probleme."
+        },
+        "section-4": "4. Conținut generat de utilizatori",
+        "section-4-desc": "Păstrezi toate drepturile asupra oricărui conținut pe care îl trimiți, îl încarci sau îl creezi în timp ce folosești Serviciul (\"Conținut generat de utilizatori\"). Totuși, prin trimiterea acestui conținut, ne acorzi un drept neexclusiv, gratuit, perpetuu, irevocabil și complet sublicențiabil de a folosi, reproduce, modifica, adapta, publica, traduce, crea opere derivate, distribui și afișa conținutul respectiv în legătură cu Serviciul. Ești singurul responsabil pentru conținutul pe care îl creezi și îl trimiți și ești de acord să nu trimiți conținut care încalcă drepturile unor terți sau legile aplicabile. Ne rezervăm dreptul de a elimina sau modifica orice conținut generat de utilizatori pe care îl considerăm, la discreția noastră, ca încălcând acești Termeni sau fiind altfel nepotrivit.",
+        "section-5": "5. Proprietate intelectuală",
+        "section-5-desc": "Tot conținutul creat de Codium, incluzând fără a se limita la lecții, designul platformei, algoritmi, text, grafică și logo-uri, aparține Codium sau licențiatorilor săi și este protejat de legislația privind drepturile de autor și proprietatea intelectuală. Nu poți distribui, reproduce sau crea lucrări derivate din conținutul nostru fără permisiune.",
+        "section-6": "6. Exonerare de garanții",
+        "section-6-desc": "Serviciul este oferit \"AȘA CUM ESTE\" și \"AȘA CUM ESTE DISPONIBIL\". Codium nu oferă garanții, explicite sau implicite, privind fiabilitatea, acuratețea sau disponibilitatea platformei, a compilerului ori a conținutului educațional. Nu garantăm că Serviciul va fi fără erori sau neîntrerupt și nu suntem responsabili pentru problemele apărute din utilizarea Serviciului, inclusiv, dar fără a se limita la, pierderea datelor, rezultate incorecte de execuție a codului sau alte daune.",
+        "section-7": "7. Limitarea răspunderii",
+        "section-7-desc": "În măsura maximă permisă de lege, Codium nu va fi răspunzător pentru daune indirecte, accidentale, speciale sau pe cale de consecință rezultate din utilizarea sau imposibilitatea utilizării Serviciului, inclusiv, dar fără a se limita la, pierderea datelor, pierderea progresului sau indisponibilitatea serverelor. În nicio situație răspunderea totală a Codium față de tine pentru toate daunele nu va depăși suma plătită de tine, dacă există una, pentru accesarea Serviciului.",
+        "section-8": "8. Modificări ale Termenilor",
+        "section-8-desc": "Ne rezervăm dreptul de a modifica acești Termeni în orice moment. Dacă facem modificări importante, vom anunța acest lucru prin Serviciu sau prin alte mijloace. Continuarea utilizării Serviciului după orice modificare înseamnă acceptarea noilor Termeni. Te încurajăm să revizuiești periodic acești Termeni pentru actualizări.",
+        "section-9": "9. Contactează-ne",
+        "section-9-desc": "Dacă ai întrebări despre acești Termeni, te rugăm să ne contactezi la legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat "
+        }
+    },
+
     "login": {
         "title": "autentificare",
         "email": "e-mail",

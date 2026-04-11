@@ -111,11 +111,13 @@ ThemeManager.applyStoredSettings();
 // ----------------------------------
 
 let currentTranslations = {};
+window.currentTranslations = currentTranslations;
 
 async function loadLanguage(langCode = 'ro') {
     try {
         const response = await fetch(`/app/Lang/${langCode}.json`);
         currentTranslations = await response.json();
+        window.currentTranslations = currentTranslations;
         applyTranslations(document);
         
         // Update selector if exists

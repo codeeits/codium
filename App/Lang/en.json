@@ -48,6 +48,48 @@
         "bornIn": "Born in Romania 🇷🇴."
     },
 
+    "tos-page": {
+        "meta": {
+            "title": "Terms of Service - Codium"
+        },
+        "header": {
+            "last-updated": "Last updated:",
+            "download-pdf": "Download PDF"
+        },
+        "intro": "Welcome to Codium! These Terms of Service (\"Terms\") govern your use of the Codium website, platform, and related services (collectively, the \"Service\"). By accessing or using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service.",
+        "section-1": "1. Description of Service",
+        "section-1-desc": "Codium is an educational platform designed to provide coding lessons, algorithms visualization, coding challenges (\"Problems\"), and an in-browser code compilation and testing environment.",
+        "section-2-title": "2. User Accounts",
+        "section-2": {
+            "registration": "Registration: To access certain features (e.g., saving progress, submitting solutions, bookmarking), you must create an account. You agree to provide accurate and complete information (such as a valid email address).",
+            "security": "Security: You are responsible for maintaining the confidentiality of your account credentials, including passwords and Two-Factor Authentication (TOTP/Backup codes) if enabled. You are responsible for all activities that occur under your account.",
+            "termination": "Termination: We reserve the right to suspend or terminate your account at any time, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties, or for any other reason."
+        },
+        "section-3-title": "3. Acceptable Use",
+        "section-3-desc": "You agree not to use the Service to:",
+        "section-3": {
+            "prohibited-1": "Submit, upload, or execute malicious code, viruses, or any software intended to disrupt, damage, or gain unauthorized access to the Codium compiler, servers, or databases.",
+            "prohibited-2": "Attempt to bypass any security measures, rate limits, or execution limits set on the code compiler.",
+            "prohibited-3": "Scrape, crawl, or mass-download lessons, problems, or other proprietary content without our explicit written permission.",
+            "prohibited-4": "Harass other users or submit inappropriate, offensive, or illegal content in community features or problem suggestions."
+        },
+        "section-4": "4. User-Generated Content",
+        "section-4-desc": "You retain all rights to any content you submit, upload, or create while using the Service (\"User-Generated Content\"). However, by submitting User-Generated Content, you grant us a non-exclusive, royalty-free, perpetual, irrevocable, and fully sublicensable right to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, and display such content in connection with the Service. You are solely responsible for the User-Generated Content you create and submit, and you agree not to submit content that infringes on any third-party rights or violates any laws. We reserve the right to remove or modify any User-Generated Content that we determine, in our sole discretion, violates these Terms or is otherwise objectionable.",
+        "section-5": "5. Intellectual Property",
+        "section-5-desc": "All Codium-created content, including but not limited to lessons, platform design, algorithms, text, graphics, and logos, are the property of Codium or its licensors and are protected by copyright and intellectual property laws. You may not distribute, reproduce, or create derivative works from our content without permission.",
+        "section-6": "6. Disclaimer of Warranties",
+        "section-6-desc": "The Service is provided on an \"AS IS\" and \"AS AVAILABLE\" basis. Codium makes no warranties, expressed or implied, regarding the reliability, accuracy, or availability of the platform, the compiler, or the educational content. We do not guarantee that the Service will be error-free or uninterrupted, and we are not responsible for any issues arising from your use of the Service, including but not limited to loss of data, incorrect code execution results, or any other damages.",
+        "section-7": "7. Limitation of Liability",
+        "section-7-desc": "To the maximum extent permitted by law, Codium shall not be liable for any indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service, including but not limited to lost data, lost progress, or server downtime. In no event shall Codium's total liability to you for all damages exceed the amount paid by you, if any, for accessing the Service.",
+        "section-8": "8. Changes to Terms",
+        "section-8-desc": "We reserve the right to modify these Terms at any time. If we make material changes, we will provide notice through the Service or by other means. Your continued use of the Service after any changes constitutes your acceptance of the new Terms. We encourage you to review these Terms periodically for any updates.",
+        "section-9": "9. Contact Us",
+        "section-9-desc": "If you have any questions about these Terms, please contact us at legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generated on"
+        }
+    },
+
     "login": {
         "title": "log-in",
         "email": "e-mail",

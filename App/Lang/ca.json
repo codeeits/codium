@@ -48,6 +48,48 @@
         "bornIn": "Construït a Romania 🇷🇴."
     },
 
+    "tos-page": {
+        "meta": {
+            "title": "Condicions del servei - Codium"
+        },
+        "header": {
+            "last-updated": "Darrera actualització:",
+            "download-pdf": "Descarrega PDF"
+        },
+        "intro": "Benvingut a Codium! Aquestes Condicions del servei (\"Condicions\") regeixen l'ús del lloc web, la plataforma i els serveis relacionats de Codium (conjuntament, el \"Servei\"). En accedir o utilitzar el Servei, acceptes quedar vinculat per aquestes Condicions. Si no hi estàs d'acord, no facis servir el Servei.",
+        "section-1": "1. Descripció del servei",
+        "section-1-desc": "Codium és una plataforma educativa pensada per oferir lliçons de programació, visualització d'algoritmes, reptes de codi (\"Problemes\") i un entorn de compilació i proves de codi dins del navegador.",
+        "section-2-title": "2. Comptes d'usuari",
+        "section-2": {
+            "registration": "Registre: Per accedir a certes funcions (per exemple, desar el progrés, enviar solucions, afegir marcadors), has de crear un compte. Acceptes proporcionar informació precisa i completa (com ara una adreça electrònica vàlida).",
+            "security": "Seguretat: Ets responsable de mantenir la confidencialitat de les credencials del teu compte, incloent-hi les contrasenyes i l'autenticació en dos passos (TOTP/codis de còpia de seguretat), si està activada. Ets responsable de totes les activitats que es facin amb el teu compte.",
+            "termination": "Cancel·lació: Ens reservem el dret de suspendre o cancel·lar el teu compte en qualsevol moment, sense avís previ, per conductes que considerem que infringeixen aquestes Condicions o que són perjudicials per a altres usuaris, per a nosaltres o per a tercers, o per qualsevol altre motiu."
+        },
+        "section-3-title": "3. Ús acceptable",
+        "section-3-desc": "Acceptes no fer servir el Servei per a:",
+        "section-3": {
+            "prohibited-1": "Enviar, pujar o executar codi maliciós, virus o qualsevol programari destinat a interrompre, danyar o obtenir accés no autoritzat al compilador, servidors o bases de dades de Codium.",
+            "prohibited-2": "Intentar saltar-se mesures de seguretat, límits de peticions o límits d'execució establerts al compilador.",
+            "prohibited-3": "Raspar, rastrejar o descarregar en massa lliçons, problemes o altre contingut propietari sense el nostre permís escrit explícit.",
+            "prohibited-4": "Assetjar altres usuaris o enviar contingut inadequat, ofensiu o il·legal en les funcions de comunitat o en suggeriments de problemes."
+        },
+        "section-4": "4. Contingut generat per l'usuari",
+        "section-4-desc": "Conserves tots els drets sobre qualsevol contingut que enviïs, pugis o creïs mentre fas servir el Servei (\"Contingut generat per l'usuari\"). Tanmateix, en enviar Contingut generat per l'usuari, ens concedeixes un dret no exclusiu, lliure de royalties, perpetu, irrevocable i totalment sublicenciable d'usar, reproduir, modificar, adaptar, publicar, traduir, crear obres derivades, distribuir i mostrar aquest contingut en relació amb el Servei. Ets l'únic responsable del Contingut generat per l'usuari que creïs i enviïs, i acceptes no enviar contingut que infringeixi drets de tercers o vulneri cap llei. Ens reservem el dret d'eliminar o modificar qualsevol Contingut generat per l'usuari que, al nostre criteri, infringeixi aquestes Condicions o sigui inapropiat.",
+        "section-5": "5. Propietat intel·lectual",
+        "section-5-desc": "Tot el contingut creat per Codium, incloent-hi, entre d'altres, lliçons, disseny de la plataforma, algoritmes, text, gràfics i logotips, és propietat de Codium o dels seus llicenciants i està protegit per les lleis de drets d'autor i propietat intel·lectual. No pots distribuir, reproduir ni crear obres derivades del nostre contingut sense permís.",
+        "section-6": "6. Exempció de garanties",
+        "section-6-desc": "El Servei es proporciona \"TAL COM ESTÀ\" i \"SEGONS DISPONIBILITAT\". Codium no ofereix cap garantia, expressa o implícita, sobre la fiabilitat, exactitud o disponibilitat de la plataforma, del compilador o del contingut educatiu. No garantim que el Servei estigui lliure d'errors o sigui ininterromput, i no som responsables dels problemes derivats del teu ús del Servei, incloent-hi, entre d'altres, la pèrdua de dades, resultats incorrectes d'execució de codi o qualsevol altre dany.",
+        "section-7": "7. Limitació de responsabilitat",
+        "section-7-desc": "En la màxima mesura permesa per la llei, Codium no serà responsable de cap dany indirecte, incidental, especial o conseqüent derivat de l'ús o la impossibilitat d'usar el Servei, incloent-hi, entre d'altres, pèrdua de dades, pèrdua de progrés o temps d'inactivitat del servidor. En cap cas la responsabilitat total de Codium envers tu per tots els danys superarà l'import que hagis pagat, si n'hi ha, per accedir al Servei.",
+        "section-8": "8. Canvis a les Condicions",
+        "section-8-desc": "Ens reservem el dret de modificar aquestes Condicions en qualsevol moment. Si fem canvis importants, ho comunicarem a través del Servei o per altres mitjans. El teu ús continuat del Servei després de qualsevol canvi constitueix l'acceptació de les noves Condicions. Et recomanem revisar periòdicament aquestes Condicions per veure'n les actualitzacions.",
+        "section-9": "9. Contacta amb nosaltres",
+        "section-9-desc": "Si tens cap pregunta sobre aquestes Condicions, posa't en contacte amb nosaltres a legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat el"
+        }
+    },
+
     "login": {
         "title": "inicia sessió",
         "email": "e-mail",
