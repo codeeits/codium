@@ -12,6 +12,7 @@ Type O Negative - I Don't Wanna Be Me
 */
 
 import { UserService } from "./services/userService.js";
+import { LessonService } from "./services/lessonService.js";
 
 class ApiService {
     constructor() {
@@ -21,12 +22,13 @@ class ApiService {
         this.refreshInFlight = null;
 
         this.users = new UserService(this);
+        this.lessons = new LessonService(this);
 
         this.loadTokens();
     }
 
-    warnDeprecated(methodName) {
-        console.warn(`BRIDGED METHOD: use users.${methodName} instead.`);
+    warnDeprecated(methodName, alternative = "users") {
+        console.trace(`BRIDGED METHOD: use ${alternative}.${methodName} instead.`);
     }
 
     // ===========================================
@@ -360,317 +362,129 @@ class ApiService {
     // ===========================================
 
     async createLesson(lessonData) {
-        return this.post('/api/lessons', lessonData, true);
+        this.warnDeprecated('createLesson()', 'lessons');
+        return this.lessons.createLesson(lessonData);
     }
 
     async getLessons(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        const url = queryString ? `/api/lessons?${queryString}` : '/api/lessons';
-        return this.get(url, false);
+        this.warnDeprecated('getLessons()', 'lessons');
+        return this.lessons.getLessons(params);
     }
 
     async getLessonById(lessonId) {
-        return this.get(`/api/lessons?search_type=id&lesson_id=${lessonId}`, false);
+        this.warnDeprecated('getLessonById()', 'lessons');
+        return this.lessons.getLessonById(lessonId);
     }
 
     async getLessonsByFlags(classNum = null, section = null, module = null) {
-        const params = new URLSearchParams({ search_type: 'flags' });
-        if (classNum !== null) params.append('class', classNum);
-        if (section !== null) params.append('section', section);
-        if (module !== null) params.append('module', module);
-        return this.get(`/api/lessons?${params.toString()}`, false);
+        this.warnDeprecated('getLessonsByFlags()', 'lessons');
+        return this.lessons.getLessonsByFlags(classNum, section, module);
     }
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {
-        console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module, debug });
-
-        const response = await this.getLessonsByFlags(classNum, section, module);
-        const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
-        console.log(`[DEBUG] lessonsData:`, lessonsData);
-
-        if (!Array.isArray(lessonsData) || lessonsData.length === 0) {
-            console.warn("[WARN] No lessons found for given flags.");
-            return [];
-        }
-
-        let lessons = [];
-        let startLesson = null;
-        let nextId = null;
-
-        // attempt to find a section starter (if not in debug mode)
-
-        if (!debug) {
-            const sectionStarter = lessonsData.find(lesson => {
-                const starter = lesson.lesson.SectionStarter;
-                let valid = false;
-
-                if (typeof starter === 'boolean') {
-                    valid = starter === true;
-                } else if (starter && typeof starter === 'object') {
-                    valid = starter.Valid && starter.Int32 === section;
-                }
-
-                console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
-                    sectionStarter: starter,
-                    valid,
-                    targetSection: section
-                });
-
-                return valid;
-            });
-
-            if (sectionStarter) {
-                console.log(`[DEBUG] Found section starter:`, sectionStarter);
-                startLesson = sectionStarter;
-            } else {
-                console.log(`[DEBUG] No section starter found for section ${section}, falling back to first lesson in chain.`);
-            }
-        }
-
-        // fallback (also used when debug === true)
-        if (!startLesson) {
-            startLesson = lessonsData.find(lesson =>
-                !lesson.lesson.PrevLessonID || lesson.lesson.PrevLessonID === ""
-            );
-            console.log(`[DEBUG] Fallback - found first lesson:`, startLesson);
-        }
-
-        // if still no valid starting point, just return lessons sorted by creation time
-        if (!startLesson) {
-            console.log(`[DEBUG] No valid chain start found, sorting by CreatedAt`);
-            return lessonsData.sort((a, b) => {
-                const dateA = new Date(a.lesson.CreatedAt.Time);
-                const dateB = new Date(b.lesson.CreatedAt.Time);
-                return dateA - dateB;
-            });
-        }
-
-        // build chain
-        const visitedIds = new Set();
-        lessons.push(startLesson);
-        visitedIds.add(startLesson.lesson.ID);
-        nextId = startLesson.lesson.NextLessonID;
-
-        while (nextId) {
-            // avoid circular reference exists
-            if (lessons.some(l => l.lesson.ID === nextId)) {
-                console.warn(`[WARN] Circular reference detected at lesson ${nextId}.`);
-                break;
-            }
-
-            const nextLesson = lessonsData.find(l => l.lesson.ID === nextId);
-            if (nextLesson) {
-                lessons.push(nextLesson);
-                visitedIds.add(nextLesson.lesson.ID);
-                nextId = nextLesson.lesson.NextLessonID;
-            } else {
-                nextId = null; // chain ends
-            }
-        }
-
-        // Keep disconnected lessons visible so they can be repaired from the UI.
-        const disconnectedLessons = lessonsData.filter(l => !visitedIds.has(l.lesson.ID));
-        if (disconnectedLessons.length > 0) {
-            disconnectedLessons.sort((a, b) => {
-                const dateA = new Date(a.lesson.CreatedAt.Time);
-                const dateB = new Date(b.lesson.CreatedAt.Time);
-                return dateA - dateB;
-            });
-            lessons.push(...disconnectedLessons);
-            console.warn(`[WARN] Appended ${disconnectedLessons.length} disconnected lesson(s) to preserve visibility.`);
-        }
-
-        console.log(`[DEBUG] Final sorted lessons:`, lessons);
-        return lessons;
+        this.warnDeprecated('getLessonsSortedByPrevNext()', 'lessons');
+        return this.lessons.getLessonsSortedByPrevNext(classNum, section, module, debug);
     }
 
     async getSectionsForClass(classNum){
-        console.warn("getSectionsForClass is DEPRECATED. Use getSections instead.");
-        const result = await this.getSections(classNum, null);
-        for (let i = 0; i < result.length; i++) {
-            result[i] = result[i].section;
-        }
-        return result;
+        this.warnDeprecated('getSectionsForClass()', 'lessons');
+        return this.lessons.getSectionsForClass(classNum);
     }
 
     async getSections(classNum = null, module = null) {
-        const response = await this.getLessonsByFlags(classNum, null, module);
-        const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
-        const sectionsMap = new Map();
-
-        lessonsData.forEach(lesson => {
-            const key = `${lesson.flag_translation.class}-${lesson.flag_translation.section}`;
-            sectionsMap.set(key, {
-                section: lesson.flag_translation.section,
-                class: lesson.flag_translation.class,
-                module: lesson.flag_translation.module
-            });
-
-        })
-        
-        const result = Array.from(sectionsMap.values());
-        // Sort by class first, then by section
-        result.sort((a, b) => {
-            if (a.class !== b.class) return a.class - b.class;
-            return a.section - b.section;
-        });
-        return result;
+        this.warnDeprecated('getSections()', 'lessons');
+        return this.lessons.getSections(classNum, module);
     }
 
     async modifyBookmark(lessonId) {
-        return this.post(`/api/lessons/${lessonId}/bookmark`, {}, true);
+        this.warnDeprecated('modifyBookmark()', 'lessons');
+        return this.lessons.modifyBookmark(lessonId);
     }
 
     async modifyFavorite(lessonId) {
-        return this.post(`/api/lessons/${lessonId}/favorite`, {}, true);
+        this.warnDeprecated('modifyFavorite()', 'lessons');
+        return this.lessons.modifyFavorite(lessonId);
     }
 
     async getBookmarks(userId) {
-        return this.get(`/api/users/${userId}/bookmarks`);
+        this.warnDeprecated('getBookmarks()', 'lessons');
+        return this.lessons.getBookmarks(userId);
     }
 
     async getBookmarkStatus(lessonId, userId = null) {
-        if (!userId) {
-            const currentUser = await this.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
-        }
-        
-        const bookmarks = await this.getBookmarks(userId);
-        console.log('Bookmarks:', bookmarks);
-        const isBookmarked = bookmarks.some(bookmark => bookmark.LessonID === lessonId);
-        return isBookmarked;
+        this.warnDeprecated('getBookmarkStatus()', 'lessons');
+        return this.lessons.getBookmarkStatus(lessonId, userId);
     }
 
     async getFavoritesNumber(lessonId) {
-        return this.get(`/api/lessons/${lessonId}/faves`);
+        this.warnDeprecated('getFavoritesNumber()', 'lessons');
+        return this.lessons.getFavoritesNumber(lessonId);
     }
 
     async getFavoriteStatus(lessonId, userId = null) {
-        if (!userId) {
-            const currentUser = await this.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
-        }
-        
-        try {
-            const response = await this.get(`/api/lessons/${lessonId}/users/${userId}`, true);
-            const data = typeof response === 'string' ? JSON.parse(response) : response;
-            return data.Favorited;
-        } catch (error) {
-            console.error('Failed to get favorite status:', error);
-            return false;
-        }
+        this.warnDeprecated('getFavoriteStatus()', 'lessons');
+        return this.lessons.getFavoriteStatus(lessonId, userId);
     }
 
     async finishLesson(lessonId) {
-        return this.post(`/api/lessons/${lessonId}/complete`, {}, true);
+        this.warnDeprecated('finishLesson()', 'lessons');
+        return this.lessons.finishLesson(lessonId);
     }
 
     async startLesson(lessonId) {
-        return this.post(`/api/lessons/${lessonId}/start`, {}, true);
+        this.warnDeprecated('startLesson()', 'lessons');
+        return this.lessons.startLesson(lessonId);
     }
 
     async getCompletionTime(lessonId, userId = null) {
-        if (!userId) {
-            const currentUser = await this.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
-        }
-
-        const response = await this.get(`/api/lessons/${lessonId}/users/${userId}`, true);
-        const data = typeof response === 'string' ? JSON.parse(response) : response;
-        const startRaw = data?.StartedAt?.Time || data?.StartedAt;
-        const finishRaw = data?.CompletedAt?.Time || data?.CompletedAt;
-
-        const startTime = new Date(startRaw);
-        const finishTime = new Date(finishRaw);
-
-        if (!Number.isFinite(startTime.getTime()) || !Number.isFinite(finishTime.getTime())) {
-            return "0 minute(s) and 0 second(s)";
-        }
-
-        const durationMs = Math.max(0, finishTime.getTime() - startTime.getTime());
-        const minutes = Math.floor(durationMs / 60000);
-        const seconds = Math.floor((durationMs % 60000) / 1000);
-        const dataFormatted = `${minutes} minute(s) and ${seconds} second(s)`;
-        return dataFormatted;
+        this.warnDeprecated('getCompletionTime()', 'lessons');
+        return this.lessons.getCompletionTime(lessonId, userId);
     }
 
     async getInteractions(userId = null, max_results = 3) {
-
-        if (!userId) {
-            const currentUser = await this.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
-        }
-
-        let response = await this.get(`/api/users/${userId}/interactions`);
-        // sort by UpdatedAt descending
-        response.sort((a, b) => {
-            const dateA = new Date(a.UpdatedAt.Time);
-            const dateB = new Date(b.UpdatedAt.Time);
-            return dateB - dateA;
-        });
-        response = response.slice(0, max_results);
-        console.log("User interactions:", response);
-        return response;
-
+        this.warnDeprecated('getInteractions()', 'lessons');
+        return this.lessons.getInteractions(userId, max_results);
     }
 
     async updateLessonOrder(lessonId, prev = null, next = null) {
-        // Validate lesson ID
-        if (!lessonId || lessonId.trim() === '') {
-            throw new Error('Invalid lesson ID: lesson ID cannot be empty');
-        }
-
-        if (prev != null) {
-            return await this.put(`/api/lessons/${lessonId}?target_field=prev`, { prev: prev }, true);
-        }
-        if (next != null) {
-            return await this.put(`/api/lessons/${lessonId}?target_field=next`, { next: next }, true);
-        }
-        return null;
+        this.warnDeprecated('updateLessonOrder()', 'lessons');
+        return this.lessons.updateLessonOrder(lessonId, prev, next);
     }
 
     async updateLessonSectionStarter(lessonId, sectionNumber) {
-        return this.put(`/api/lessons/${lessonId}?target_field=section_starter`, { section: sectionNumber }, true);
+        this.warnDeprecated('updateLessonSectionStarter()', 'lessons');
+        return this.lessons.updateLessonSectionStarter(lessonId, sectionNumber);
     }
 
     async updateLessonContent(lessonId, file) {
-        // First upload the file
-        const fileResponse = await this.uploadFile(file, 'lessons');
-        // here we could also delete the old file :D
-        return this.put(`/api/lessons/${lessonId}?target_field=content`, { content_id: fileResponse.file_id }, true);
+        this.warnDeprecated('updateLessonContent()', 'lessons');
+        return this.lessons.updateLessonContent(lessonId, file);
+        // y barcelona me hace vomitar :D
     }
 
     async uploadLesson(lessonData, file) {
-        // First upload the file
-        const fileResponse = await this.uploadFile(file, 'lessons');
-        
-        const lessonPayload = {
-            ...lessonData,
-            content_id: fileResponse.file_id
-        };
-        
-        return this.createLesson(lessonPayload);
+        this.warnDeprecated('uploadLesson()', 'lessons');
+        return this.lessons.uploadLesson(lessonData, file);
     }
 
     // Update existing lesson
 
     async updateLessonField(lessonId, targetField, data) {
         // field can be: flags (class, section, module), details (title, description)
-        return this.put(`/api/lessons/${lessonId}?target_field=${targetField}`, data, true);
+        this.warnDeprecated('updateLessonField()', 'lessons');
+        return this.lessons.updateLessonField(lessonId, targetField, data);
     }
 
     // suggestions endpoints
 
     async getPendingLessons() {
-        return this.get('/admin/lessons/suggested', true);
+        this.warnDeprecated('getPendingLessons()', 'lessons');
+        return this.lessons.getPendingLessons();
     }
 
     async approveLesson(lessonId) {
-        return this.post(`/admin/lessons/suggested/${lessonId}/approve`, {}, true);
+        this.warnDeprecated('approveLesson()', 'lessons');
+        return this.lessons.approveLesson(lessonId);
     }
 
     // ===========================================
