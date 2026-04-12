@@ -20,7 +20,7 @@ function getDifficultyLabel(difficulty) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    const debugMode = true; 
+    const debugMode = false; 
     const baseurl = window.location.href;
     const isAuthenticated = window.apiService.isAuthenticated();
 
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!elements.bookmarkBtn) return;
         
         if (getStatusOnly) {
-            window.apiService.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
+            window.apiService.problems.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
                 if (isBookmarked) {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
@@ -126,9 +126,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        window.apiService.modifyBookmarkProblem(state.problemId).then(() => {
+        window.apiService.problems.modifyBookmarkProblem(state.problemId).then(() => {
             // Re-run handler logic to update UI (recursively simple)
-            window.apiService.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
+            window.apiService.problems.getProblemBookmarkStatus(state.problemId).then(isBookmarked => {
                 if (isBookmarked) {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const data = await window.apiService.getProblemById(state.problemId);
+            const data = await window.apiService.problems.getProblemById(state.problemId);
             state.problemData = data;
 
             if (!data || !data.problem) throw new Error("Problem not found");
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Fetch Author Details
             if (state.meta.authorId) {
                 try {
-                    const authorData = await window.apiService.getUserById(state.meta.authorId);
+                    const authorData = await window.apiService.users.getUserById(state.meta.authorId);
                     state.meta.author = authorData.Username || "67";
                 } catch (e) {
                     if (debugMode) console.warn("Failed to fetch author", e);
@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Fetch Test Counts
             if (p.FirstTest) {
                 try {
-                    const testChain = await window.apiService.getTestChainForFirstTest(p.FirstTest, null);
+                    const testChain = await window.apiService.problems.getTestChainForFirstTest(p.FirstTest, null);
                     if (elements.testsCount) elements.testsCount.textContent = testChain.length;
                 } catch (e) {
                     if (elements.testsCount) elements.testsCount.textContent = "?";
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadSolutionStats() {
         try {
-            const countData = await window.apiService.countSolutionsForProblem(state.problemId);
+            const countData = await window.apiService.problems.countSolutionsForProblem(state.problemId);
             if (countData) {
                 if (elements.solutionsCount) elements.solutionsCount.textContent = countData.count_total || 0;
                 if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = countData.count_correct || 0;
@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadMySolutions() {
         try {
-            const solutions = await window.apiService.getSolutionsByProblem(state.problemId);
+            const solutions = await window.apiService.problems.getSolutionsByProblem(state.problemId);
             state.solutions = solutions || [];
             renderMySolutions();
         } catch (e) {
@@ -429,12 +429,12 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Se trimite...';
 
         try {
-            const runResult = await window.apiService.runCodeAgainstProblemTests(state.problemId, code);
+            const runResult = await window.apiService.problems.runCodeAgainstProblemTests(state.problemId, code);
             
             const solutionData = { code: code, language: 'cpp' };
-            const solution = await window.apiService.createSolution(state.problemId, solutionData);
+            const solution = await window.apiService.problems.createSolution(state.problemId, solutionData);
             
-            await window.apiService.updateSolution(solution.ID, 'tests', {
+            await window.apiService.problems.updateSolution(solution.ID, 'tests', {
                 tests_passed: runResult.score,
                 total_tests: runResult.total
             });

@@ -55,16 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchBookmarks() {
         try {
             const [lessonResult, problemResult] = await Promise.allSettled([
-                window.apiService.getBookmarks(userId),
-                window.apiService.getBookmarkedProblems(userId)
+                window.apiService.lessons.getBookmarks(userId),
+                window.apiService.problems.getBookmarkedProblems(userId)
             ])
 
             const rawLessons = lessonResult.status === 'fulfilled' ? lessonResult.value : [];
             const rawProblems = problemResult.status === 'fulfilled' ? problemResult.value : [];
 
             if (debugMode) {
-                console.log('Fetched Bookmarks - Lessons:', rawLessons);
-                console.log('Fetched Bookmarks - Problems:', rawProblems);
+                //console.log('Fetched Bookmarks - Lessons:', rawLessons);
+                //console.log('Fetched Bookmarks - Problems:', rawProblems);
             }
 
             const uniqueMap = new Map();
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     // case 1: lesson bookmark
                     if (bookmark.LessonID && bookmark.LessonID !== 0) {
-                        const fullData = await window.apiService.getLessonById(bookmark.LessonID);
+                        const fullData = await window.apiService.lessons.getLessonById(bookmark.LessonID);
                         return {
                             ...bookmark,
                             lesson: fullData.lesson,
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // case 2: problem bookmark
                     else if (bookmark.ProblemID && bookmark.ProblemID !== 0) {
-                        const fullData = await window.apiService.getProblemById(bookmark.ProblemID);
+                        const fullData = await window.apiService.problems.getProblemById(bookmark.ProblemID);
                         return {
                             ...bookmark,
                             short_desc: extractCustomBlock(fullData.problem.Description, 'short-desc', false).match || fullData.problem.Description,
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bookmarksGridContainer.innerHTML = '';
 
         let processedData = [...bookmarksData];
-        console.log('Rendering bookmarks with filter:', currentFilter, 'and sort:', currentSort);
+        //console.log('Rendering bookmarks with filter:', currentFilter, 'and sort:', currentSort);
 
         // 1. FILTER
         if (currentFilter === 'problem') {
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. SORT
         processedData.sort((a, b) => {
             // Safety check
-            console.log(a, b);
+            // console.log(a, b);
             const titleA = a.TitleProcessed || "";
             const titleB = b.TitleProcessed || "";
 
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initApp() {
         window.apiService.isAuthenticated(true);
         try {
-            const currentUser = await window.apiService.getCurrentUser();
+            const currentUser = await window.apiService.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
             

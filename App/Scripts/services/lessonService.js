@@ -37,11 +37,11 @@ export class LessonService {
     }
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {
-        console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module, debug });
+        //console.log(`[DEBUG] getLessonsSortedByPrevNext called with:`, { classNum, section, module, debug });
 
         const response = await this.getLessonsByFlags(classNum, section, module);
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
-        console.log(`[DEBUG] lessonsData:`, lessonsData);
+        //console.log(`[DEBUG] lessonsData:`, lessonsData);
 
         if (!Array.isArray(lessonsData) || lessonsData.length === 0) {
             console.warn("[WARN] No lessons found for given flags.");
@@ -65,17 +65,17 @@ export class LessonService {
                     valid = starter.Valid && starter.Int32 === section;
                 }
 
-                console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
+                /*console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
                     sectionStarter: starter,
                     valid,
                     targetSection: section
-                });
+                });*/
 
                 return valid;
             });
 
             if (sectionStarter) {
-                console.log(`[DEBUG] Found section starter:`, sectionStarter);
+                //console.log(`[DEBUG] Found section starter:`, sectionStarter);
                 startLesson = sectionStarter;
             } else {
                 console.log(`[DEBUG] No section starter found for section ${section}, falling back to first lesson in chain.`);
@@ -135,7 +135,7 @@ export class LessonService {
             console.warn(`[WARN] Appended ${disconnectedLessons.length} disconnected lesson(s) to preserve visibility.`);
         }
 
-        console.log(`[DEBUG] Final sorted lessons:`, lessons);
+        //console.log(`[DEBUG] Final sorted lessons:`, lessons);
         return lessons;
     }
 
@@ -186,13 +186,13 @@ export class LessonService {
 
     async getBookmarkStatus(lessonId, userId = null) {
         if (!userId) {
-            const currentUser = await this.api.getCurrentUser();
+            const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
         }
         
         const bookmarks = await this.getBookmarks(userId);
-        console.log('Bookmarks:', bookmarks);
+        //console.log('Bookmarks:', bookmarks);
         const isBookmarked = bookmarks.some(bookmark => bookmark.LessonID === lessonId);
         return isBookmarked;
     }
@@ -203,7 +203,7 @@ export class LessonService {
 
     async getFavoriteStatus(lessonId, userId = null) {
         if (!userId) {
-            const currentUser = await this.api.getCurrentUser();
+            const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
         }
@@ -268,7 +268,7 @@ export class LessonService {
             return dateB - dateA;
         });
         response = response.slice(0, max_results);
-        console.log("User interactions:", response);
+        //console.log("User interactions:", response);
         return response;
 
     }

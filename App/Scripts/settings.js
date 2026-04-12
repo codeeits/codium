@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     userData.profilePicUrl = 'https://placehold.co/80/png';
                 }
-                console.log('User data fetched successfully:', response);
+                //console.log('User data fetched successfully:', response);
                 renderProfileCard();
             }
         } catch (error) {
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (langResponse.ok) {
                             const langData = await langResponse.json();
                             if (langData.hidden) {
-                                console.log(`Adding hidden parameter: ${isoName}`);
+                                //console.log(`Adding hidden parameter: ${isoName}`);
                                 return {
                                     iso: isoName,
                                     displayName: langData.language || isoName,
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             languages = (await Promise.all(languagePromises)).filter(l => l !== null);
             
-            console.log('Available languages:', languages);
+            //console.log('Available languages:', languages);
             
         } catch (err) {
             console.error('Fetch operation failed:', err);
@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         languages.forEach(lang => {
             if (lang.hidden) {
-                console.log(`Skipping hidden language in dropdown: ${lang.iso}`);
+                //console.log(`Skipping hidden language in dropdown: ${lang.iso}`);
                 return;
             }
             const item = document.createElement('div');
@@ -441,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = elements.fontSizeSelect; 
         
         const updateUI = (activeId) => {
-            console.log(`Updating font size UI. Active ID: ${activeId}`);
+            //console.log(`Updating font size UI. Active ID: ${activeId}`);
             const currentButtons = container.querySelectorAll('button');
 
             currentButtons.forEach(btn => {

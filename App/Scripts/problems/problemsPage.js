@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FETCH DATA ---
     async function fetchProblems(classFilter = null, difficultyFilter = null) {
         try {
-            const response = await window.apiService.getProblems(); // no implementation for filtering yet
+            const response = await window.apiService.problems.getProblems(); // no implementation for filtering yet
             if (response) {
                 problemsData = response;
             }
@@ -200,9 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             const hashtagsContainer = card.querySelector('.feed-card-hashtags');
-            console.log(hashtagsContainer, problem.problem.Source);
+            //console.log(hashtagsContainer, problem.problem.Source);
             if (hashtagsContainer && problem.problem.Source) {
-                console.log("Extracting hashtags from source:", problem.problem.Source);
+                //console.log("Extracting hashtags from source:", problem.problem.Source);
                 getHashtagsFromContent(problem.problem.Source.String, hashtagsContainer);
             }
 

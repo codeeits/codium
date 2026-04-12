@@ -222,7 +222,7 @@ async function ensureAccess() {
     }
 
     try {
-        const isAdmin = await window.apiService.isCurrentAdmin();
+        const isAdmin = await window.apiService.users.isCurrentAdmin();
         if (!isAdmin) {
             window.location.href = '/app/index.html';
             return false;

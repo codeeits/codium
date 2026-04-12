@@ -526,7 +526,7 @@ class ApiService {
     }
 
     async getTestChainForFirstTest(firstTestId = null, problemId = null) {
-        this.warnDeprecated('getTestChainForFirstTest()', 'tests');
+        this.warnDeprecated('getTestChainForFirstTest()', 'problems');
         return this.problems.getTestChainForFirstTest(firstTestId, problemId);
     }
 

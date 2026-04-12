@@ -30,7 +30,7 @@ function toRoman(n) {
 // 2 down 1 up
 document.addEventListener("DOMContentLoaded", () => {
 
-    const debugMode = true; // SET THIS TO ENABLE LOGS!
+    const debugMode = false; // SET THIS TO ENABLE LOGS!
     const baseurl = window.location.href;
     const isAuthenticated = window.apiService.isAuthenticated();
 
@@ -120,12 +120,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // 1. Get Lesson Metadata
-            const rawData = await window.apiService.getLessonById(state.lessonId);
+            const rawData = await window.apiService.lessons.getLessonById(state.lessonId);
             state.contentRaw = rawData;
 
             // Start lesson tracking
             if (isAuthenticated) {
-                window.apiService.startLesson(state.lessonId).catch(error => {
+                window.apiService.lessons.startLesson(state.lessonId).catch(error => {
                     if (debugMode) console.error("Failed to mark lesson as started:", error);
                 });
             }
@@ -149,14 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 3. Get Author
             try {
-                const userData = await window.apiService.getUserById(state.meta.userId);
+                const userData = await window.apiService.users.getUserById(state.meta.userId);
                 state.meta.author = userData.Username || "Unknown author";
             } catch (error) {
                 if (debugMode) console.error("[DEBUG] Failed to fetch author data:", error);
             }
 
             // 4. Get Favorites Count
-            window.apiService.getFavoritesNumber(state.lessonId).then(count => {
+            window.apiService.lessons.getFavoritesNumber(state.lessonId).then(count => {
                 if (elements.favoritesCount) elements.favoritesCount.textContent = count.num_favorites;
             }).catch(error => {
                 if (debugMode) console.error("[DEBUG] Failed to fetch favorites count:", error);
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 5. Get File Content
             const fileId = rawData.lesson.ContentID;
-            state.markdownContent = await window.apiService.getFile(fileId);
+            state.markdownContent = await window.apiService.fileManager.getFile(fileId);
             if (debugMode) console.log("[DEBUG] Fetched lesson content successfully.");
 
         } catch (error) {
@@ -350,12 +350,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (debugMode) console.log("[DEBUG] Starting sidebar rendering...");
-        console.log("[DEBUG] Rendering sidebar for class:", state.meta.class);
+        //console.log("[DEBUG] Rendering sidebar for class:", state.meta.class);
         elements.sidebarTitle.textContent = `Clasa a ${toRoman(state.meta.class)}-a`;
         elements.sidebarTitle.dataset.i18n = `classe.${state.meta.class}`;
 
         try {
-            const sectionArray = await window.apiService.getSectionsForClass(state.meta.class);
+            const sectionArray = await window.apiService.lessons.getSectionsForClass(state.meta.class);
             if (debugMode) console.log("[DEBUG] Sections array:", sectionArray);
             
             // if elements.sidebar is the new section container, we only render the current section
@@ -384,11 +384,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 module: state.meta.module
             });
 
-            const lessonsListResult = await window.apiService.getLessonsSortedByPrevNext(state.meta.class, sectionNumber, state.meta.module, debugMode);
+            const lessonsListResult = await window.apiService.lessons.getLessonsSortedByPrevNext(state.meta.class, sectionNumber, state.meta.module, debugMode);
             if (debugMode) console.log(`[DEBUG] Lessons for section ${sectionNumber}:`, lessonsListResult);
             
             // Also debug the raw lessons data for this section
-            const rawLessons = await window.apiService.getLessonsByFlags(state.meta.class, sectionNumber, state.meta.module);
+            const rawLessons = await window.apiService.lessons.getLessonsByFlags(state.meta.class, sectionNumber, state.meta.module);
             if (debugMode) console.log(`[DEBUG] Raw lessons for section ${sectionNumber}:`, rawLessons);
 
             return lessonsListResult || [];
@@ -529,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
             elements.favoriteBtn.parentElement.style.display = "flex";
             elements.favoriteBtn.addEventListener("click", favoriteToggle);
             // Initial check
-            window.apiService.getFavoriteStatus(state.lessonId).then(isFavorited => {
+            window.apiService.lessons.getFavoriteStatus(state.lessonId).then(isFavorited => {
                 elements.favoriteBtn.innerHTML = isFavorited 
                     ? "<i class='fas fa-heart'></i>" 
                     : "<i class='fas fa-heart'></i>";
@@ -542,7 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elements.bookmarkBtn) {
             elements.bookmarkBtn.addEventListener("click", bookmarkToggle);
             // Initial check
-            window.apiService.getBookmarkStatus(state.lessonId).then(isBookmarked => {
+            window.apiService.lessons.getBookmarkStatus(state.lessonId).then(isBookmarked => {
                 if (isBookmarked) {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
@@ -564,9 +564,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Button Actions
     function bookmarkToggle() {
         if (!elements.bookmarkBtn) return;
-        window.apiService.modifyBookmark(state.lessonId).then(() => {
+        window.apiService.lessons.modifyBookmark(state.lessonId).then(() => {
             // Re-run handler logic to update UI (recursively simple)
-            window.apiService.getBookmarkStatus(state.lessonId).then(isBookmarked => {
+            window.apiService.lessons.getBookmarkStatus(state.lessonId).then(isBookmarked => {
                 if (isBookmarked) {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
@@ -586,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function favoriteToggle() {
-        window.apiService.modifyFavorite(state.lessonId).then(result => {
+        window.apiService.lessons.modifyFavorite(state.lessonId).then(result => {
             if (debugMode) console.log("[DEBUG]", result);
             const isFavorited = result.Favorited;
             
@@ -603,7 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Update favorites count
-            window.apiService.getFavoritesNumber(state.lessonId).then(count => {
+            window.apiService.lessons.getFavoritesNumber(state.lessonId).then(count => {
                 elements.favoritesCount.textContent = count.num_favorites;
             }).catch(error => {
                 if (debugMode) console.error("[DEBUG] Failed to update favorites count:", error);

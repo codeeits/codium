@@ -215,7 +215,7 @@ async function handleProfileEdit(formElement) {
 
 async function loadUserProfile() {
     try {
-        const currentUserRaw = await window.apiService.getCurrentUser();
+        const currentUserRaw = await window.apiService.users.getCurrentUser();
         const user = parseData(currentUserRaw);
 
         state.user = user;
@@ -231,7 +231,7 @@ async function loadUserProfile() {
 
         if (elements.userAvatar) {
             if (user.ProfilePicID) {
-                elements.userAvatar.src = window.apiService.getFileUrl(user.ProfilePicID);
+                elements.userAvatar.src = window.apiService.fileManager.getFileUrl(user.ProfilePicID);
             } else {
                 elements.userAvatar.src = 'https://placehold.co/80/png';
             }
@@ -322,7 +322,7 @@ async function loadContinueLearning() {
     }
 
     try {
-        const interactionsRaw = await window.apiService.getInteractions(state.userId, 6);
+        const interactionsRaw = await window.apiService.lessons.getInteractions(state.userId, 6);
         const interactions = parseData(interactionsRaw) || [];
 
         if (!Array.isArray(interactions) || interactions.length === 0) {
@@ -346,7 +346,7 @@ async function loadContinueLearning() {
         });
 
         const lessonResults = await Promise.allSettled(
-            uniqueLessonIds.slice(0, 10).map((lessonId) => window.apiService.getLessonById(lessonId))
+            uniqueLessonIds.slice(0, 10).map((lessonId) => window.apiService.lessons.getLessonById(lessonId))
         );
 
         const lessonMap = new Map();
@@ -501,7 +501,7 @@ async function loadBookmarks() {
     }
 
     try {
-        const bookmarksRaw = await window.apiService.getBookmarks(state.userId);
+        const bookmarksRaw = await window.apiService.lessons.getBookmarks(state.userId);
         const bookmarks = parseData(bookmarksRaw) || [];
         const normalizedBookmarks = Array.isArray(bookmarks)
             ? bookmarks
@@ -525,7 +525,7 @@ async function loadBookmarks() {
 
         const lessonPromises = uniqueLessonIds
             .slice(0, 5)
-            .map((lessonId) => window.apiService.getLessonById(lessonId));
+            .map((lessonId) => window.apiService.lessons.getLessonById(lessonId));
 
         const lessonResults = await Promise.allSettled(lessonPromises);
         const lessons = lessonResults

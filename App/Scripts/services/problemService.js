@@ -91,7 +91,7 @@ export class ProblemService {
         const problemResponse = await this.getProblemById(problemId);
         const firstTestId = stdin ? problemResponse.problem.FirstTest : null;
         const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
-        console.log('Problem Data:', problemData);
+        //console.log('Problem Data:', problemData);
 
         let currentTestId = firstTestId;
         let currentTestResponse = null;
@@ -103,7 +103,7 @@ export class ProblemService {
         let score = 0;
         let tests = await this.getTestChainForFirstTest(currentTestId);
 
-        console.warn('Test Chain:', tests);
+        // console.warn('Test Chain:', tests);
 
         while (currentTestId) {
             currentTestResponse = await this.getTestById(currentTestId);
@@ -114,9 +114,9 @@ export class ProblemService {
                 testStdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
             }
 
-            console.log(`Running code against Test ID: ${currentTestId}`);
-            let apiResult = await this.api.runCode(code, inputFile, testStdin);
-            console.log('API Result:', apiResult);
+            //console.log(`Running code against Test ID: ${currentTestId}`);
+            let apiResult = await this.api.compiler.runCode(code, inputFile, testStdin);
+            //console.log('API Result:', apiResult);
 
             if (apiResult.console.trim() === testData.ExpectedOutput.trim()) {
                 score += 1;
@@ -128,7 +128,7 @@ export class ProblemService {
             currentTestId = testData.NextTestID;
         }
 
-        console.log(`Final Score: ${score} out of ${tests.length}`);
+        //console.log(`Final Score: ${score} out of ${tests.length}`);
         return { score, total: tests.length };
 
         /*
@@ -206,7 +206,7 @@ export class ProblemService {
         }
         
         const bookmarks = await this.getBookmarkedProblems(userId);
-        console.log('Bookmarked Problems:', bookmarks);
+        //console.log('Bookmarked Problems:', bookmarks);
         const isBookmarked = bookmarks.some(bookmark => bookmark.ProblemID === problemId);
         return isBookmarked;
     }
