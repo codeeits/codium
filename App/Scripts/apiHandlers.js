@@ -15,6 +15,7 @@ import { UserService } from "./services/userService.js";
 import { LessonService } from "./services/lessonService.js";
 import { ProblemService } from "./services/problemService.js";
 import { CompilerService } from "./services/compilerService.js";
+import { FileService } from "./services/fileService.js";
 
 class ApiService {
     constructor() {
@@ -27,6 +28,7 @@ class ApiService {
         this.lessons = new LessonService(this);
         this.problems = new ProblemService(this);
         this.compiler = new CompilerService(this);
+        this.fileManager = new FileService(this);
 
         this.loadTokens();
     }
@@ -241,43 +243,12 @@ class ApiService {
     }
 
     // ===========================================
-    // File Upload Methods
+    // File Upload Methods (Bridged)
     // ===========================================
 
     async uploadFile(file, location = 'images') {
-
-        if (!this.authToken) {
-            throw new Error('Authentication required for file upload');
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        let response = await fetch(`${this.baseURL}/api/upload?location=${location}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${this.authToken}`
-            },
-            body: formData
-        });
-
-        if (response.status === 401) {
-            await this.refreshAuthToken();
-            response = await fetch(`${this.baseURL}/api/upload?location=${location}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`
-                },
-                body: formData
-            });
-        }
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new ApiError(response.status, errorText, `/api/upload?location=${location}`);
-        }
-
-        return await response.json();
+        warnDeprecated('uploadFile()', 'fileManager.uploadFile()');
+        return this.fileManager.uploadFile(file, location);
     }
 
     // ===========================================
@@ -605,54 +576,22 @@ class ApiService {
     }
 
     // ===========================================
-    // File Management Endpoints
+    // File Management Endpoints (Bridged)
     // ===========================================
 
     async getFile(fileId) {
-        return this.get(`/api/files/${fileId}`, false);
+        this.warnDeprecated('getFile()', 'fileManager');
+        return this.fileManager.getFile(fileId);
     }
 
     getFileUrl(fileId) {
-        return `${this.baseURL}/api/files/${fileId}`;
+        this.warnDeprecated('getFileUrl()', 'fileManager');
+        return this.fileManager.getFileUrl(fileId);
     }
 
     async getProfilePicture(userId = null) {
-        // Cross-browser sync: rely on server truth first, then update local cache.
-        try {
-            let userData = null;
-
-            if (userId) {
-                const user = await this.getUserById(userId);
-                userData = typeof user === 'string' ? JSON.parse(user) : user;
-            } else {
-                const currentUser = await this.getCurrentUser();
-                userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            }
-
-            const remotePicId = userData?.ProfilePicID || null;
-
-            if (remotePicId) {
-                if (!userId) {
-                    localStorage.setItem('profilePicID', remotePicId);
-                }
-                return this.getFileUrl(remotePicId);
-            }
-
-            if (!userId) {
-                localStorage.removeItem('profilePicID');
-            }
-            return null;
-        } catch (error) {
-            // Fallback to local cache only when backend lookup fails.
-            if (!userId) {
-                const cachedPicId = localStorage.getItem('profilePicID');
-                if (cachedPicId) {
-                    return this.getFileUrl(cachedPicId);
-                }
-            }
-            console.warn('Failed to resolve profile picture from API:', error);
-            return null;
-        }
+        this.warnDeprecated('getProfilePicture()', 'fileManager');
+        return this.fileManager.getProfilePicture(userId);
     }
 
     // ===========================================

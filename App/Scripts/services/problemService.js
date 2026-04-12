@@ -464,6 +464,6 @@ export class ProblemService {
     }
 
     async uploadProblemImage(file) {
-        return this.api.uploadFile(file);
+        return this.api.fileManager.uploadFile(file);
     }
 }
