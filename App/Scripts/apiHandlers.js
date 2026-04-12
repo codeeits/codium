@@ -765,7 +765,8 @@ class ApiService {
     }
 
     getUserDataGDPR() {
-        return this.get('/api/users/gdpr', true);
+        this.warnDeprecated('getUserDataGDPR()', 'users');
+        return this.users.getUserDataGDPR();
     }
         
 }

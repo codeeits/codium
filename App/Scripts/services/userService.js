@@ -113,6 +113,10 @@ export class UserService {
         return this.updateUserField('image_id', fileId, true);
     }
 
+    async getUserDataGDPR() {
+        return this.api.get('/api/users/gdpr', true);
+    }
+
     // permissions management (admin only)
 
     async updateUserPermissions(userId, title) {
