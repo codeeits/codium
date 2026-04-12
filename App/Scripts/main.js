@@ -238,7 +238,7 @@ async function loadSidebar() {
             });
 
             // Admin checks
-            const isAdmin = await window.apiService.isCurrentAdmin();
+            const isAdmin = await window.apiService.users.isCurrentAdmin();
             console.log('Admin status:', isAdmin);
             if (!isAdmin) {
                 container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
@@ -356,7 +356,7 @@ async function updateAuthButton() {
 
         if (els.userName) els.userName.textContent = auth.username;
         if (els.avatar && window.apiService) {
-            els.avatar.src = await window.apiService.getProfilePicture();
+            els.avatar.src = await window.apiService.fileManager.getProfilePicture();
         }
     } else {
         // Logged Out

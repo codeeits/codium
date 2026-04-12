@@ -17,6 +17,9 @@ import { ProblemService } from "./services/problemService.js";
 import { CompilerService } from "./services/compilerService.js";
 import { FileService } from "./services/fileService.js";
 
+import { ToastsLoader } from "./ui/toastsLoader.js";
+import { ApiError } from "./core/apiError.js";
+
 class ApiService {
     constructor() {
         this.baseURL = '';
@@ -30,12 +33,46 @@ class ApiService {
         this.compiler = new CompilerService(this);
         this.fileManager = new FileService(this);
 
+        this.toasts = new ToastsLoader();
+
         this.loadTokens();
     }
 
     warnDeprecated(methodName, alternative = "users") {
         console.trace(`BRIDGED METHOD: use ${alternative}.${methodName} instead.`);
     }
+    
+    // ===========================================
+    // UI & Error Bridges for legacy code
+    // ===========================================
+
+    showToast(message, type = 'info', duration = 3000) {
+        this.toasts.showToast(message, type, duration);
+    }
+    
+    handleError(error, defaultMessage = 'An error occurred') {
+        console.error('API Error:', error);
+        
+        if (error instanceof ApiError) {
+            if (error.isUnauthorized()) {
+                this.showToast('Invalid credentials or session expired. Please log in again.', 'danger', 3000);
+                return;
+            }
+            if (error.isNetworkError()) {
+                this.showToast('Network error. Please check your connection and try again.', 'warning', 3000);
+                return;
+            }
+            if (error.isServerError()) {
+                this.showToast('Server error. Please try again later.', 'danger', 3000);
+                return;
+            }
+            
+            this.showToast(error.message || defaultMessage, 'info', 3000);
+        } else {
+            this.showToast(defaultMessage, 'info', 3000);
+        }
+    }
+    
 
     // ===========================================
     // AUTH si tokens
@@ -94,11 +131,8 @@ class ApiService {
         if (!this.isDevEnvironment()) return;
 
         console.info(`[Auth Refresh] ${message}`);
-
-        const toast = window.toastsLoader;
-        if (toast && typeof toast.showToast === 'function') {
-            toast.showToast(message, toastType, 1800);
-        }
+        
+        this.showToast(message, toastType, 1800);
     }
 
     async refreshAuthToken() {
@@ -247,7 +281,7 @@ class ApiService {
     // ===========================================
 
     async uploadFile(file, location = 'images') {
-        warnDeprecated('uploadFile()', 'fileManager.uploadFile()');
+        this.warnDeprecated('uploadFile()', 'fileManager.uploadFile()');
         return this.fileManager.uploadFile(file, location);
     }
 
@@ -709,112 +743,6 @@ class ApiService {
     }
         
 }
-// ===========================================
-// Toasts Loader
-// ===========================================
-
-class ToastsLoader {
-    constructor() {
-        this.toastsContainer = null;
-        this.init();
-    }
-
-    init() {
-        if(document.body) {
-            this.createContainer();
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.createContainer();
-            });
-        }
-    }
-
-    createContainer() {
-        if(!this.toastsContainer) {
-            this.toastsContainer = document.createElement('div');
-            this.toastsContainer.className = 'toast-container';
-            document.body.appendChild(this.toastsContainer);
-        }
-    }
-
-    showToast(message, type = 'info', duration = 3000) {
-        const validTypes = ['info', 'danger', 'confirm', 'warning'];
-        if (!validTypes.includes(type)) {
-            console.warn(`Invalid toast type: ${type}. Defaulting to 'info'.`);
-            type = 'info';
-        }
-        if (!message || typeof message !== 'string') {
-            console.warn('Invalid toast message');
-            return;
-        }
-        if (!this.toastsContainer) {
-            console.warn('Toasts container not ready yet');
-            return;
-        }
-        if (duration <= 0) {
-            duration = 3000;
-        }
-        
-        const toast = document.createElement('div');
-        toast.className = `card-t toast toast-${type}`;
-        if(type === validTypes[0]) { // info
-            toast.innerHTML = `<i class="fas fa-info-circle"></i><p>${message}</p>`;
-        } else if(type === validTypes[1]) { // danger
-            toast.innerHTML = `<i class="fas fa-exclamation-triangle"></i><p>${message}</p>`;
-        } else if(type === validTypes[2]) { // confirm
-            toast.innerHTML = `<i class="fas fa-check-circle"></i><p>${message}</p>`;
-        } else if(type === validTypes[3]) { // warning
-            toast.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>${message}</p>`;
-        }
-        this.toastsContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            toast.addEventListener('animationend', () => {
-                toast.remove();
-            });
-        }, duration);
-        //toast.remove();
-
-    }
-}
-
-// ===========================================
-// Error Handling
-// ===========================================
-
-class ApiError extends Error {
-    constructor(status, message, url) {
-        super(message);
-        this.name = 'ApiError';
-        this.status = status;
-        this.url = url;
-    }
-
-    isNetworkError() {
-        return this.status === 0;
-    }
-
-    isServerError() {
-        return this.status >= 500;
-    }
-
-    isClientError() {
-        return this.status >= 400 && this.status < 500;
-    }
-
-    isUnauthorized() {
-        return this.status === 401;
-    }
-
-    isForbidden() {
-        return this.status === 403;
-    }
-
-    isNotFound() {
-        return this.status === 404;
-    }
-}
 
 // ===========================================
 // Global Instance & Utilities
@@ -822,34 +750,16 @@ class ApiError extends Error {
 
 window.apiService = new ApiService();
 
-window.handleApiError = function(error, defaultMessage = 'An error occurred') {
-    console.error('API Error:', error);
-    toastsLoader.showToast('An error occurred while processing your request.', 'info', 3000);
-    //alert(error);
-    if (error instanceof ApiError) {
-        if (error.isUnauthorized()) {
-            toastsLoader.showToast('Invalid credentials or session expired. Please log in again.', 'danger', 3000);
-            //window.apiService.logout();
-            //window.location.href = 'login.html';
-            return;
-        }
-        
-        if (error.isNetworkError()) {
-            toastsLoader.showToast('Network error. Please check your connection and try again.', 'warning', 3000);
-            return;
-        }
-        
-        if (error.isServerError()) {
-            toastsLoader.showToast('Server error. Please try again later.', 'danger', 3000);
-            return;
-        }
-        
-        // Show the actual error message for client errors
-        toastsLoader.showToast(error.message || defaultMessage, 'info', 3000);
-    } else {
-        toastsLoader.showToast(defaultMessage, 'info', 3000);
-    }
+window.handleApiError = (error, defaultMessage) => {
+    window.apiService.handleError(error, defaultMessage);
+}
+
+window.toastsLoader = window.apiService.toasts;
+window.showToast = (message, type = 'info', duration = 3000) => {
+    window.apiService.warnDeprecated('showToast()', 'toastsLoader');
+    window.toastsLoader.showToast(message, type, duration);
 };
+
 
 // Quick auth check utility
 window.requireAuth = function(redirectTo = 'login.html') {
@@ -864,15 +774,3 @@ window.requireAuth = function(redirectTo = 'login.html') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ApiService, ApiError };
 }
-
-let toastsLoader;
-if(document.body) {
-    toastsLoader = new ToastsLoader();
-    window.toastsLoader = toastsLoader;
-} else {
-    document.addEventListener('DOMContentLoaded', () => {
-        toastsLoader = new ToastsLoader();
-        window.toastsLoader = toastsLoader;
-    });
-}
-

@@ -2,7 +2,7 @@
 Settings page
 */
 
-import {textToPDF} from './helper/pdfBuilder.js';
+import { textToPDF } from './helper/pdfBuilder.js';
 import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
 import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
 
@@ -55,10 +55,10 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchUserData() {
 
         try {
-            const response = await window.apiService.getCurrentUser();
+            const response = await window.apiService.users.getCurrentUser();
             if (response) {
                 userData = response;
-                const bookmarkResponse = await window.apiService.getBookmarks(userData.ID);
+                const bookmarkResponse = await window.apiService.lessons.getBookmarks(userData.ID);
                 if (bookmarkResponse) {
                     userData.bookmarks = bookmarkResponse;
                 } else {
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (userData.ProfilePicID) {
                     try {
-                        const imgUrl = await window.apiService.getFileUrl(userData.ProfilePicID);
+                        const imgUrl = await window.apiService.fileManager.getFileUrl(userData.ProfilePicID);
                         userData.profilePicUrl = imgUrl;
                     } catch (error) {
                         console.error('Error fetching profile picture URL:', error);
@@ -86,7 +86,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchUserPreferences(user = null) {
         try {
-            const response = await window.apiService.getUserPreferences(); // not imlemented yet
+            if (!window.apiService?.users || typeof window.apiService.users.getUserPreferences !== 'function') {
+                return;
+            }
+
+            const response = await window.apiService.users.getUserPreferences(); // not imlemented yet
             if (response) {
                 console.log('User preferences fetched successfully:', response);
             }
@@ -395,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
             engine.openModal({
                 type: 'danger-confirmation',
                 onConfirm: () => {
-                    window.apiService.logout();
+                    window.apiService.users.logout();
                 },
                 onCancel: () => {
                     toastsLoader.showToast('Logout cancelled.', 'info', 2500);
@@ -506,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function requestData() {
         elements.requestDataBtn.addEventListener('click', async () => {
             const prefs = window.PreferencesManager?.get() || {};
-            const gdprData = await window.apiService.getUserDataGDPR();
+            const gdprData = await window.apiService.users.getUserDataGDPR();
 
             const fileBlob = new Blob([JSON.stringify(gdprData, null, 2)], { type: 'application/json' });
             const fileUrl = URL.createObjectURL(fileBlob);
@@ -714,10 +718,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 icon: 'fa-trash',
                 onConfirm: async () => {
                     try {
-                        await window.apiService.deleteAccount();
+                        await window.apiService.users.deleteAccount();
                         toastsLoader.showToast('Account deleted successfully. Redirecting...', 'success', 3000);
                         setTimeout(() => {
-                            window.apiService.logout();
+                            window.apiService.users.logout();
                         }, 3000);
                     } catch (error) {
                         console.error('Error deleting account:', error);
