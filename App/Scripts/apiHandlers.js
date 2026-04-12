@@ -6,9 +6,12 @@
 
 Pentru caching mai bun si gestionare mai eficientă.
 (pentru my sanity mai tarziu)
+tbh this file got way more bloated than I expected, need to start splitting it up.
 
 Type O Negative - I Don't Wanna Be Me
 */
+
+import { UserService } from "./services/userService.js";
 
 class ApiService {
     constructor() {
@@ -16,7 +19,14 @@ class ApiService {
         this.authToken = null;
         this.refreshToken = null;
         this.refreshInFlight = null;
+
+        this.users = new UserService(this);
+
         this.loadTokens();
+    }
+
+    warnDeprecated(methodName) {
+        console.warn(`BRIDGED METHOD: use users.${methodName} instead.`);
     }
 
     // ===========================================
@@ -265,52 +275,22 @@ class ApiService {
     }
 
     // ===========================================
-    // auth endpoints
+    // auth endpoints (Bridged)
     // ===========================================
 
     async login(email, password) {
-        let response = await this.post('/api/login', {
-            email: email.trim(),
-            password: password
-        });
-
-        // Parse JSON string if needed
-        if (typeof response === 'string') {
-            response = JSON.parse(response);
-        }
-
-        if (response.auth_token) {
-            this.saveTokens(response.auth_token, response.refresh_token);
-            
-            if (response.user) {
-                localStorage.setItem('username', response.user.Username);
-                localStorage.setItem('userEmail', response.user.Email);
-                localStorage.setItem('isAdmin', response.user.Permissions === 61);
-                localStorage.setItem('userID', response.user.ID);
-                if (response.user.ProfilePicID) {
-                    localStorage.setItem('profilePicID', response.user.ProfilePicID);
-                }
-            }
-        }
-
-        return response;
+        this.warnDeprecated('login()');
+        return this.users.login(email, password);
     }
 
     async signup(userData) {
-        return this.post('/api/create_user', userData);
+        this.warnDeprecated('signup()');
+        return this.users.signup(userData);
     }
 
     async logout(confirmMessage = false, redirect = true) {
-        if (confirmMessage ? confirm('Are you sure you want to log out?') : true) {
-            this.clearTokens();
-            if (redirect) {
-                window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
-            }
-            // Trigger auth button update if available
-            if (window.refreshAuthButton) {
-                window.refreshAuthButton();
-            }
-        }
+        this.warnDeprecated('logout()');
+        return this.users.logout(confirmMessage, redirect);
     }
 
     // ===========================================
@@ -318,102 +298,62 @@ class ApiService {
     // ===========================================
 
     async getCurrentUser() {
-        const userId = localStorage.getItem('userID');
-        if (!userId) {
-            return null;
-        }
-        return this.get(`/api/users/${userId}`, true);
+        this.warnDeprecated('getCurrentUser()');
+        return this.users.getCurrentUser();
     }
 
     async isCurrentAdmin() {
-        const currentUser = await this.getCurrentUser();
-        if (!currentUser) {
-            return false;
-        }
-        const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-        return userData.Permissions === 61;
+        this.warnDeprecated('isCurrentAdmin()');
+        return this.users.isCurrentAdmin();
     }
 
     async getUserById(userId) {
-        return this.get(`/api/users/${userId}`);
+        this.warnDeprecated('getUserById()');
+        return this.users.getUserById(userId);
     }
 
     async getCurrentUserUsername() {
-        const userID = localStorage.getItem('userID');
-        if (!userID) {
-            throw new Error('No user ID found');
-        }
-        let userData = await this.get(`/api/users/${userID}`, true);
-        userData = typeof userData === 'string' ? JSON.parse(userData) : userData;
-        return userData.Username;
+        this.warnDeprecated('getCurrentUserUsername()');
+        return this.users.getCurrentUserUsername();
     }
 
     async updateUserField(field, value, pic = false) {
-        const data = {};
-        data[field] = value;
-        return this.put(`/api/users?target_field=${pic ? 'pfp' : field}`, data);
+        this.warnDeprecated('updateUserField()');
+        return this.users.updateUserField(field, value, pic);
     }
 
     async updatePassword(oldPassword, newPassword) {
-        const data = {
-            old_password: oldPassword,
-            new_password: newPassword
-        };
-        return this.put(`/api/users?target_field=password`, data);
+        this.warnDeprecated('updatePassword()');
+        return this.users.updatePassword(oldPassword, newPassword);
     }
 
     async updateEmail(newEmail) {
-        return this.updateUserField('email', newEmail);
+        this.warnDeprecated('updateEmail()');
+        return this.users.updateEmail(newEmail);
     }
 
     async updateUsername(newUsername) {
-        localStorage.setItem('username', newUsername);
-        return this.updateUserField('username', newUsername);
+        this.warnDeprecated('updateUsername()');
+        return this.users.updateUsername(newUsername);
     }
 
     async updateProfilePicture(fileId) {
-        return this.updateUserField('image_id', fileId, true);
+        this.warnDeprecated('updateProfilePicture()');
+        return this.users.updateProfilePicture(fileId);
     }
 
     // permissions management (admin only)
 
     async updateUserPermissions(userId, title) {
-        const approvedTitles = ['admin', 'basic', 'teacher', 'moderator'];
-        if (!approvedTitles.includes(title)) {
-            throw new Error(`Invalid title. Approved titles are: ${approvedTitles.join(', ')}`);
-        }
-        return this.post('/admin/users/account_status', { userID: userId, title }, true);
+        this.warnDeprecated('updateUserPermissions()');
+        return this.users.updateUserPermissions(userId, title);
     }
 
     // danger area
 
     async deleteAccount(userId = null) {
-        try {
-            if (userId == null) {
-                const currentUser = await this.getCurrentUser();
-                
-                if (!currentUser) {
-                    throw new Error("No current user found to delete.");
-                }
-
-                let userData = currentUser;
-                if (typeof currentUser === 'string') {
-                    userData = JSON.parse(currentUser);
-                }
-                
-                userId = userData?.ID;
-                
-                if (!userId) {
-                    throw new Error("User object does not contain a valid ID.");
-                }
-            }
-            
-            return await this.delete(`/api/users/${userId}`, true);
-            
-        } catch (error) {
-            console.error("Failed to delete account:", error);
-            throw error; 
-        }
+        this.warnDeprecated('deleteAccount()');
+        return this.users.deleteAccount(userId);
     }
     // ===========================================
     // Lesson Management Endpoints
