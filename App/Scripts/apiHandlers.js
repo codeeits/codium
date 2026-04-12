@@ -13,6 +13,7 @@ Type O Negative - I Don't Wanna Be Me
 
 import { UserService } from "./services/userService.js";
 import { LessonService } from "./services/lessonService.js";
+import { ProblemService } from "./services/problemService.js";
 
 class ApiService {
     constructor() {
@@ -23,6 +24,7 @@ class ApiService {
 
         this.users = new UserService(this);
         this.lessons = new LessonService(this);
+        this.problems = new ProblemService(this);
 
         this.loadTokens();
     }
@@ -296,7 +298,7 @@ class ApiService {
     }
 
     // ===========================================
-    // management user endpoints
+    // management user endpoints (Bridged)
     // ===========================================
 
     async getCurrentUser() {
@@ -358,7 +360,7 @@ class ApiService {
         return this.users.deleteAccount(userId);
     }
     // ===========================================
-    // Lesson Management Endpoints
+    // Lesson Management Endpoints (Bridged)
     // ===========================================
 
     async createLesson(lessonData) {
@@ -488,411 +490,116 @@ class ApiService {
     }
 
     // ===========================================
-    // Problems Management Endpoints
+    // Problems Management Endpoints (Bridged)
     // ===========================================
 
     async createProblem(problemData) {
-        // title, description, source, first_test_id, thumbnail_id, [TAGS] difficulty, module, solve_type, result_type, verification_type, section
-        console.log('Creating problem with data:', problemData);
-        return this.post('/api/problems', problemData, true);
+        this.warnDeprecated('createProblem()', 'problems');
+        return this.problems.createProblem(problemData);
     }
 
     async updateProblem(problemId, targetField, data) {
-        // targetField: tags, details, test, thumbnail
-        return this.put(`/api/problems/${problemId}?target_field=${targetField}`, data, true);
+        this.warnDeprecated('updateProblem()', 'problems');
+        return this.problems.updateProblem(problemId, targetField, data);
     }
 
     async getProblems() {
-        return this.get('/api/problems', false);
+        this.warnDeprecated('getProblems()', 'problems');
+        return this.problems.getProblems();
     }
 
     async getProblemById(problemId) {
-        return this.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
+        this.warnDeprecated('getProblemById()', 'problems');
+        return this.problems.getProblemById(problemId);
     }
 
     async getTestById(testId) {
-        return this.get(`/api/tests/${testId}`, false);
+        this.warnDeprecated('getTestById()', 'tests');
+        return this.problems.getTestById(testId);
     }
 
     async getTestChainForFirstTest(firstTestId = null, problemId = null) {
-        if (!firstTestId && !problemId) {
-            throw new Error('No first test ID provided');
-        }
-
-        if (firstTestId == null && problemId) {
-            console.log('jere');
-            const problemResponse = await this.getProblemById(problemId);
-            const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
-            firstTestId = problemData.problem.FirstTest;
-            console.log('Derived First Test ID:', firstTestId);
-        }
-
-        let tests = [];
-        let currentTestId = firstTestId;
-        let response = await this.getTestById(currentTestId);
-        //console.log('Initial Test Response:', response);
-
-        while (currentTestId) {
-            tests.push(currentTestId);
-            currentTestId = response.NextTestID;
-            if (currentTestId) {
-                const nextTestResponse = await this.getTestById(currentTestId);
-                //console.log('Next Test Response:', nextTestResponse);
-                response = nextTestResponse;
-            }
-        }
-        return tests;
+        this.warnDeprecated('getTestChainForFirstTest()', 'tests');
+        return this.problems.getTestChainForFirstTest(firstTestId, problemId);
     }
 
     async runCodeAgainstTest(testId, code, inputFile = null, stdin = true) {
-        console.warn('DEPRECATED: use runCodeAgainstProblemTests instead.');
-        const testResponse = await this.getTestById(testId);
-        const testData = typeof testResponse === 'string' ? JSON.parse(testResponse) : testResponse;
-
-        if (stdin === true) {
-            stdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
-        }
-
-        return this.runCode(code, inputFile, stdin);
-
-        //298662bc-7e90-4568-8ec7-325a76f0eded
+        this.warnDeprecated('runCodeAgainstTest()', 'problems');
+        return this.problems.runCodeAgainstTest(testId, code, inputFile, stdin);
     }
 
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
-
-        if (this.isAuthenticated() === false) {
-            throw new Error('Authentication required to run code against problem tests');
-        }
-        const problemResponse = await this.getProblemById(problemId);
-        const firstTestId = stdin ? problemResponse.problem.FirstTest : null;
-        const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
-        console.log('Problem Data:', problemData);
-
-        let currentTestId = firstTestId;
-        let currentTestResponse = null;
-
-        if (!problemData || !problemData.problem.FirstTest) {
-            throw new Error('No tests found for the specified problem');
-        }
-
-        let score = 0;
-        let tests = await this.getTestChainForFirstTest(currentTestId);
-
-        console.warn('Test Chain:', tests);
-
-        while (currentTestId) {
-            currentTestResponse = await this.getTestById(currentTestId);
-            const testData = typeof currentTestResponse === 'string' ? JSON.parse(currentTestResponse) : currentTestResponse;
-
-            let testStdin = '';
-            if (stdin === true) {
-                testStdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
-            }
-
-            console.log(`Running code against Test ID: ${currentTestId}`);
-            let apiResult = await this.runCode(code, inputFile, testStdin);
-            console.log('API Result:', apiResult);
-
-            if (apiResult.console.trim() === testData.ExpectedOutput.trim()) {
-                score += 1;
-            }
-
-            if (apiResult.console.trim() !== testData.ExpectedOutput.trim()) {
-                score += 0;
-            }
-            currentTestId = testData.NextTestID;
-        }
-
-        console.log(`Final Score: ${score} out of ${tests.length}`);
-        return { score, total: tests.length };
-
-        /*
-        if (stdin === true) {
-            const firstTestId = problemData.problem.FirstTest;
-            console.log('First Test ID:', firstTestId);
-            const firstTestData = typeof firstTestResponse === 'string' ? JSON.parse(firstTestResponse) : firstTestResponse;
-            stdin = firstTestData.TxtInput.Valid ? firstTestData.TxtInput.String : '';
-        }
-
-        console.log('Problem Data:', problemData);
-        const apiResult = await this.runCode(code, null, stdin);
-        console.log('API Result:', apiResult);
-        if (apiResult.console === firstTestResponse.ExpectedOutput) {
-            return "Success: Output matches expected result." + apiResult.console;
-        }
-        */
+        this.warnDeprecated('runCodeAgainstProblemTests()', 'problems');
+        return this.problems.runCodeAgainstProblemTests(problemId, code, inputFile, stdin);
     }
 
     async createSolution(problemId, solutionData) {
-        // problemId, code, language, problem_id
-        return this.post(`/api/solutions`, { problem_id: problemId, ...solutionData }, true);
+        this.warnDeprecated('createSolution()', 'problems');
+        return this.problems.createSolution(problemId, solutionData);
     }
 
     async updateSolution(solutionId, targetField, data) {
-        // targetField: tests
-        if (targetField === 'tests') {
-            // tests_passed, total_tests
-            return this.put(`/api/solutions/${solutionId}?target_field=tests`, data, true);
-        }
-
-        throw new Error('Unsupported target field for solution update');
-
+        this.warnDeprecated('updateSolution()', 'problems');
+        return this.problems.updateSolution(solutionId, targetField, data);
     }
 
     async getSolutionById(solutionId) {
         // if admin or owner
-        return this.get(`/api/solutions?search_type=id&solution_id=${solutionId}`, true);
+        this.warnDeprecated('getSolutionById()', 'problems');
+        return this.problems.getSolutionById(solutionId);
     }
 
     async getSolutionsByUser(userId) {
-        return this.get(`/api/solutions?search_type=user&user_id=${userId}`, true);
+        this.warnDeprecated('getSolutionsByUser()', 'problems');
+        return this.problems.getSolutionsByUser(userId);
     }
 
     async getSolutionsByProblem(problemId) {
         // owned or admin
-        return this.get(`/api/solutions?search_type=problem&problem_id=${problemId}`, true);
+        this.warnDeprecated('getSolutionsByProblem()', 'problems');
+        return this.problems.getSolutionsByProblem(problemId);
     }
 
     async countSolutionsForProblem(problemId) {
-        return this.get(`/api/solutions/count?search_type=problem&problem_id=${problemId}`, true);
+        this.warnDeprecated('countSolutionsForProblem()', 'problems');
+        return this.problems.countSolutionsForProblem(problemId);
     }
 
     async countSolutionsForUser(userId) {
-        return this.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
+        this.warnDeprecated('countSolutionsForUser()', 'problems');
+        return this.problems.countSolutionsForUser(userId);
     }
 
     async modifyBookmarkProblem(problemId) {
-        return this.post(`/api/problems/${problemId}/bookmark`, {}, true);
+        this.warnDeprecated('modifyBookmarkProblem()', 'problems');
+        return this.problems.modifyBookmarkProblem(problemId);
     }
 
     async getBookmarkedProblems(userId) {
-        return this.get(`/api/users/${userId}/bookmarked_problems`, true);
+        this.warnDeprecated('getBookmarkedProblems()', 'problems');
+        return this.problems.getBookmarkedProblems(userId);
     }
 
     async getProblemBookmarkStatus(problemId, userId = null) {
-        if (!userId) {
-            const currentUser = await this.getCurrentUser();
-            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
-        }
-        
-        const bookmarks = await this.getBookmarkedProblems(userId);
-        console.log('Bookmarked Problems:', bookmarks);
-        const isBookmarked = bookmarks.some(bookmark => bookmark.ProblemID === problemId);
-        return isBookmarked;
+        this.warnDeprecated('getProblemBookmarkStatus()', 'problems');
+        return this.problems.getProblemBookmarkStatus(problemId, userId);
     }
 
     // suggestions endpoints
 
     async getPendingProblems() {
-        return this.get('/admin/problems/suggested', true);
+        this.warnDeprecated('getPendingProblems()', 'problems');
+        return this.problems.getPendingProblems();
     }
 
     async approveProblem(problemId) {
-        return this.post(`/admin/problems/suggested/${problemId}/approve`, {}, true);
+        this.warnDeprecated('approveProblem()', 'problems');
+        return this.problems.approveProblem(problemId);
     }
-
-    // bulk uploading from json, both problems and tests at the same time
-    /* FORMAT:
-    {
-        "problema": [ // required, at least one problem, can be an array of multiple problems
-            {
-            "Titlu": "", // string
-            "Sursa": "", // optional, can be comma separated if multiple sources (e.g. "Sursa1, Sursa2")
-            "Descriere": "", // can be formatted as markdown but is stored as a string
-            "Grup TestID": "", // numeric
-            "Tags": "{}" // optional, can be missing
-            }
-        ],
-        "test": [ // required, at least one test, can be an array of multiple tests, must have at least one test with Grup TestID matching the problem's Grup TestID
-            {
-            "Grup TestID": "", // numeric, must match the problem's Grup TestID to be associated with that problem
-            "Input": "", // string - convert from number if necessary
-            "Expected Output": "" // string - convert from number if necessary
-            }
-        ]
-    }
-    */
 
     async bulkUploadProblems(problemsData) {
-        if (!problemsData || typeof problemsData !== 'object') {
-            throw new Error('Invalid payload. Expected an object containing "problema" and "test" arrays.');
-        }
-
-        const normalizeHeader = (value) => String(value || '').toLowerCase().replace(/[\s_\-]/g, '');
-
-        const getField = (obj, aliases) => {
-            const aliasSet = new Set(aliases.map(normalizeHeader));
-            for (const [key, value] of Object.entries(obj || {})) {
-                if (aliasSet.has(normalizeHeader(key))) {
-                    return value;
-                }
-            }
-            return null;
-        };
-
-        const toIntOrNull = (value) => {
-            if (value === null || value === undefined || value === '') {
-                return null;
-            }
-            const parsed = parseInt(value, 10);
-            return Number.isNaN(parsed) ? null : parsed;
-        };
-
-        const problems = Array.isArray(problemsData.problema) ? problemsData.problema : [];
-        const tests = Array.isArray(problemsData.test) ? problemsData.test : [];
-
-        if (problems.length === 0 || tests.length === 0) {
-            throw new Error('Both "problema" and "test" arrays are required and must contain at least one item.');
-        }
-
-        const createdProblems = [];
-
-        for (const problem of problems) {
-            const parseTagsObject = (value) => {
-                if (!value) return null;
-                if (typeof value === 'object') return value;
-                if (typeof value !== 'string') return null;
-
-                const cleaned = value.trim()
-                    .replace(/^'/, '')
-                    .replace(/""/g, '"');
-
-                try {
-                    return JSON.parse(cleaned);
-                } catch (_err) {
-                    return null;
-                }
-            };
-
-            const parsedTags = parseTagsObject(getField(problem, ['Tags', 'tags']));
-            if (getField(problem, ['Tags', 'tags']) && !parsedTags) {
-                console.warn('Invalid Tags JSON for problem, ignoring tags fallback.');
-            }
-
-            // "temporary" convention in this project, class info is stored in verification_type (don't ask why, it is a looong story)
-
-            const readTagInt = (aliases) => {
-                if (parsedTags && typeof parsedTags === 'object') {
-                    const fromTags = toIntOrNull(getField(parsedTags, aliases));
-                    if (fromTags !== null) return fromTags;
-                }
-                return toIntOrNull(getField(problem, aliases));
-            };
-
-            const difficulty = readTagInt(['difficulty']);
-            const module = readTagInt(['module']);
-            const solveType = readTagInt(['solve_type', 'solve type']);
-            const resultType = readTagInt(['result_type', 'result type']);
-            const section = readTagInt(['section']);
-            const verificationType = readTagInt([
-                'verification_type',
-                'verification type',
-                'preventive',
-                'preventiv',
-                'class',
-                'clasa'
-            ]);
-
-            const problemPayload = {
-                title: problem.Titlu,
-                description: problem.Descriere,
-                source: problem.Sursa || '',
-                first_test_id: null,
-            };
-
-            if (difficulty !== null) problemPayload.difficulty = difficulty;
-            if (module !== null) problemPayload.module = module;
-            if (solveType !== null) problemPayload.solve_type = solveType;
-            if (resultType !== null) problemPayload.result_type = resultType;
-            if (section !== null) problemPayload.section = section;
-            if (verificationType !== null) problemPayload.verification_type = verificationType;
-
-            const createdProblemResponse = await this.createProblem(problemPayload);
-            const createdProblem = typeof createdProblemResponse === 'string'
-                ? JSON.parse(createdProblemResponse)
-                : createdProblemResponse;
-            const createdProblemId = createdProblem?.problem?.ID || createdProblem?.ID;
-
-            if (!createdProblemId) {
-                throw new Error('Problem creation succeeded but no problem ID was returned by the API. (not my fault if the API is broken, but still gotta catch this case)');
-            }
-
-            createdProblems.push({
-                id: createdProblemId,
-                grupTestId: String(problem['Grup TestID'] ?? ''),
-                firstTestSet: false,
-            });
-        }
-
-        let testsCreated = 0;
-        let testsSkipped = 0;
-
-        // Group tests by Grup TestID so each problem receives a linked test chain
-
-        const testsByGroup = new Map();
-        for (const test of tests) {
-            const groupId = String(test['Grup TestID'] ?? '');
-            if (!testsByGroup.has(groupId)) {
-                testsByGroup.set(groupId, []);
-            }
-            testsByGroup.get(groupId).push(test);
-        }
-
-        for (const problem of createdProblems) {
-            const groupTests = testsByGroup.get(problem.grupTestId) || [];
-
-            if (groupTests.length === 0) {
-                console.warn(`No tests found for problem group ${problem.grupTestId}, skipping this problem's tests.`);
-                continue;
-            }
-
-            let previousTestId = null;
-
-            for (const test of groupTests) {
-                const inputText = String(test.Input ?? '').trim();
-                const expectedOutput = String(test['Expected Output'] ?? '').trim();
-
-                if (!inputText || !expectedOutput) {
-                    console.warn(`Skipping invalid test in group ${problem.grupTestId}: missing Input or Expected Output.`);
-                    testsSkipped += 1;
-                    continue;
-                }
-
-                const testPayload = {
-                    input_text: inputText,
-                    expected_output: expectedOutput,
-                };
-
-                if (previousTestId) {
-                    testPayload.previous_test_id = previousTestId;
-                }
-
-                const createdTestResponse = await this.post('/api/tests', testPayload, true);
-                const createdTest = typeof createdTestResponse === 'string'
-                    ? JSON.parse(createdTestResponse)
-                    : createdTestResponse;
-                const createdTestId = createdTest?.test?.ID || createdTest?.ID;
-
-                if (!createdTestId) {
-                    throw new Error('Test creation succeeded but no test ID was returned by the API. details: ' + JSON.stringify(createdTestResponse));
-                }
-
-                if (!problem.firstTestSet) {
-                    await this.updateProblem(problem.id, 'test', { first_test_id: createdTestId });
-                    problem.firstTestSet = true;
-                }
-
-                previousTestId = createdTestId;
-                testsCreated += 1;
-            }
-        }
-
-        return {
-            problems_created: createdProblems.length,
-            tests_created: testsCreated,
-            tests_skipped: testsSkipped,
-        };
+        this.warnDeprecated('bulkUploadProblems()', 'problems');
+        return this.problems.bulkUploadProblems(problemsData);
     }
 
     // ===========================================
