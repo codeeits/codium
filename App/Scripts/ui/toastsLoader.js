@@ -62,9 +62,14 @@ export class ToastsLoader {
 
         setTimeout(() => {
             toast.classList.add('fade-out');
-            toast.addEventListener('animationend', () => {
+
+            const removeToast = () => {
                 toast.remove();
-            });
+            };
+
+            toast.addEventListener('animationend', removeToast, { once: true });
+
+            setTimeout(removeToast, duration + 500);
         }, duration);
         //toast.remove(); --- IGNORE ---
     }

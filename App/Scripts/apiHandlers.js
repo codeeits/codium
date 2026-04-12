@@ -5,8 +5,6 @@
 (__)(__)(__)  (____)(_) (_)(__)(__)(_)\_)(____/(____)(____)(_)\_)(___/()\____) (___/
 
 Pentru caching mai bun si gestionare mai eficientă.
-(pentru my sanity mai tarziu)
-tbh this file got way more bloated than I expected, need to start splitting it up.
 
 Type O Negative - I Don't Wanna Be Me
 */
@@ -366,6 +364,7 @@ class ApiService {
         this.warnDeprecated('deleteAccount()');
         return this.users.deleteAccount(userId);
     }
+    
     // ===========================================
     // Lesson Management Endpoints (Bridged)
     // ===========================================
