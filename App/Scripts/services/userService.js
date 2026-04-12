@@ -9,7 +9,7 @@ Handle all user related API calls here, such as login, registration, profile upd
 
 */
 
-class UserService {
+export class UserService {
     constructor(apiClient) {
         this.api = apiClient;
     }
