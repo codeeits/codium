@@ -17,6 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
         sortBy: 'Alfabetic'
     };
 
+    function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+        if (!element || typeof onActivate !== 'function') {
+            return;
+        }
+
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', role);
+        element.style.cursor = 'pointer';
+
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                onActivate(event);
+            }
+        });
+
+        element.addEventListener('click', onActivate);
+    }
+
     // --- FETCH DATA ---
     async function fetchLessons(classFilter = null) {
         try {
@@ -56,15 +75,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const titleB = b.lesson?.Title || "";
 
             switch (currentFilters.sortBy) {
+                case 'alphabetical':
                 case 'Alfabetic':
                     return titleA.localeCompare(titleB);
                 
+                case 'newest':
                 case 'Cele mai noi':
                     return new Date(b.lesson.CreatedAt.Time) - new Date(a.lesson.CreatedAt.Time); 
 
+                case 'oldest':
                 case 'Cele mai vechi':
                     return new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time);
 
+                case 'difficulty':
                 case 'Dificultate':
                     // chestia asta nu face nimic momentan, dar daca o sa avem dificultate in baza de date putem sorta dupa ea
                     const map = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
@@ -111,9 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 diffText.dataset.i18n = `difficulty.${lesson.difficulty.toLowerCase()}`;
             }
 
-            card.addEventListener('click', () => {
+            const openLesson = () => {
                 window.location.href = `/app/Lectii/lessonindiv.html?id=${lesson.lesson.ID}`;
-            });
+            };
+
+            makeElementKeyboardActivatable(card, openLesson, 'link');
 
             lessonsContainer.appendChild(card);
         });
@@ -207,36 +232,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropdown = filters.sortDropdown;
         if (!dropdown) return;
 
-        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-        const items = dropdown.querySelectorAll('.dropdown-item');
+        const activeItem = dropdown.querySelector('.dropdown-item.active');
+        if (activeItem) {
+            currentFilters.sortBy = activeItem.dataset.value || activeItem.textContent.trim();
+        }
 
-        toggleBtn.onclick = null;
-
-        // Toggle Open/Close
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            dropdown.classList.toggle('open');
-        });
-
-        items.forEach(item => {
-            item.addEventListener('click', () => {
-                const selectedText = item.textContent.trim();
-                currentFilters.sortBy = selectedText;
-
-                toggleBtn.innerHTML = `${selectedText} <i class="fa-solid fa-chevron-down"></i>`;
-
-                items.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-
-                dropdown.classList.remove('open');
-                renderLessons();
-            });
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target)) {
-                dropdown.classList.remove('open');
+        // Use the global dropdown controller from main.js (InteractionHandler).
+        dropdown.addEventListener('dropdown-selected', (event) => {
+            const selectedValue = event.detail?.value || event.detail?.element?.textContent?.trim();
+            if (!selectedValue) {
+                return;
             }
+
+            currentFilters.sortBy = selectedValue;
+            renderLessons();
         });
     }
 

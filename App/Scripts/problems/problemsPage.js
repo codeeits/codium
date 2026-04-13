@@ -35,6 +35,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentView = 'grid'; // or 'feed'
     let feedScrollInitialized = false;
 
+    function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+        if (!element || typeof onActivate !== 'function') {
+            return;
+        }
+
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', role);
+        element.style.cursor = 'pointer';
+
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                onActivate(event);
+            }
+        });
+
+        element.addEventListener('click', onActivate);
+    }
+
     // --- FETCH DATA ---
     async function fetchProblems(classFilter = null, difficultyFilter = null) {
         try {
@@ -146,9 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const diffText = card.querySelector('.difficulty-text');
             if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;
 
-            card.addEventListener('click', () => {
+            const openProblem = () => {
                 window.location.href = `/app/Probleme/problem2.html?id=${problem.problem.ID}`;
-            });
+            };
+
+            makeElementKeyboardActivatable(card, openProblem, 'link');
 
             problemsGridContainer.appendChild(card);
         });

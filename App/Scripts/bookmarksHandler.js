@@ -51,6 +51,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return type === 'problem' ? 'problem' : 'lesson';
     }
 
+    function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+        if (!element || typeof onActivate !== 'function') {
+            return;
+        }
+
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', role);
+        element.style.cursor = 'pointer';
+
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                onActivate(event);
+            }
+        });
+
+        element.addEventListener('click', onActivate);
+    }
+
     // --- FETCH DATA ---
     async function fetchBookmarks() {
         try {
@@ -214,19 +233,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const icon = bookmarkCard.querySelector('.bookmark-icon');
-            if (icon) {
-                icon.style.cursor = 'pointer';
-                icon.addEventListener('click', (event) => handleBookmarkClick(event, bookmarkedElementData.lesson?.ID || bookmarkedElementData.problem?.ID, bookmarkedElementData.type));
-            }
-
-            bookmarkCard.addEventListener('click', () => {
+            const openBookmark = () => {
                 if (bookmarkedElementData.type === 'lesson') {
                     window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
                 } else if (bookmarkedElementData.type === 'problem') {
                     window.location.href = `/app/probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
                 }
-            });
+            };
+
+            makeElementKeyboardActivatable(bookmarkCard, openBookmark, 'link');
+
+            const icon = bookmarkCard.querySelector('.bookmark-icon');
+            if (icon) {
+                icon.setAttribute('aria-label', 'Remove bookmark');
+                makeElementKeyboardActivatable(
+                    icon,
+                    (event) => handleBookmarkClick(event, bookmarkedElementData.lesson?.ID || bookmarkedElementData.problem?.ID, bookmarkedElementData.type),
+                    'button'
+                );
+            }
 
             bookmarksGridContainer.appendChild(bookmarkCard);
         });

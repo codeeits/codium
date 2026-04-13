@@ -51,6 +51,24 @@ function getLessonUrl(lessonId) {
     return `/app/Lectii/lessonindiv.html?id=${encodeURIComponent(lessonId)}`;
 }
 
+function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+    if (!element || typeof onActivate !== 'function') {
+        return;
+    }
+
+    element.setAttribute('tabindex', '0');
+    element.setAttribute('role', role);
+    element.style.cursor = 'pointer';
+
+    element.onclick = onActivate;
+    element.onkeydown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+            event.preventDefault();
+            onActivate(event);
+        }
+    };
+}
+
 function setContinueEmptyState() {
     if (!elements.continueTitle || !elements.continueDescription || !elements.continueButton) {
         return;
@@ -281,9 +299,9 @@ function renderContinueItem(index) {
     }
 
     if (elements.continueCard) {
-        elements.continueCard.onclick = () => {
+        makeElementKeyboardActivatable(elements.continueCard, () => {
             window.location.href = getLessonUrl(lesson.ID);
-        };
+        }, 'link');
     }
 
     if (elements.continueButton) {
@@ -443,7 +461,7 @@ function createBookmarkCard(lessonData) {
         };
     }
 
-    card.onclick = openLesson;
+    makeElementKeyboardActivatable(card, openLesson, 'link');
 
     return card;
 }

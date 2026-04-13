@@ -24,6 +24,14 @@ class ApiService {
         this.authToken = null;
         this.refreshToken = null;
         this.refreshInFlight = null;
+        this.errorToastTypes = {
+            unauthorized: 'danger',
+            network: 'warning',
+            server: 'danger',
+            client: 'info',
+            generic: 'danger',
+            default: 'info'
+        };
 
         this.users = new UserService(this);
         this.lessons = new LessonService(this);
@@ -47,27 +55,67 @@ class ApiService {
     showToast(message, type = 'info', duration = 3000) {
         this.toasts.showToast(message, type, duration);
     }
+
+    getErrorToastTypes() {
+        return { ...this.errorToastTypes };
+    }
+
+    setErrorToastTypes(overrides = {}) {
+        const validTypes = ['info', 'danger', 'confirm', 'warning'];
+        const validKeys = Object.keys(this.errorToastTypes);
+
+        if (!overrides || typeof overrides !== 'object') {
+            return this.getErrorToastTypes();
+        }
+
+        for (const [key, toastType] of Object.entries(overrides)) {
+            if (!validKeys.includes(key)) {
+                console.warn(`Unknown error toast mapping key: ${key}`);
+                continue;
+            }
+
+            if (!validTypes.includes(toastType)) {
+                console.warn(`Invalid toast type for ${key}: ${toastType}`);
+                continue;
+            }
+
+            this.errorToastTypes[key] = toastType;
+        }
+
+        return this.getErrorToastTypes();
+    }
     
     handleError(error, defaultMessage = 'An error occurred') {
-        console.error('API Error:', error);
+        if (error instanceof ApiError) {
+            console.error(`API Error [${error.status}] (${error.endpoint}): ${error.message}`);
+        } else {
+            console.error('API Error:', error);
+        }
         
         if (error instanceof ApiError) {
             if (error.isUnauthorized()) {
-                this.showToast('Invalid credentials or session expired. Please log in again.', 'danger', 3000);
+                this.showToast('Invalid credentials or session expired. Please log in again.', this.errorToastTypes.unauthorized, 3000);
                 return;
             }
             if (error.isNetworkError()) {
-                this.showToast('Network error. Please check your connection and try again.', 'warning', 3000);
+                this.showToast('Network error. Please check your connection and try again.', this.errorToastTypes.network, 3000);
                 return;
             }
             if (error.isServerError()) {
-                this.showToast('Server error. Please try again later.', 'danger', 3000);
+                this.showToast('Server error. Please try again later.', this.errorToastTypes.server, 3000);
                 return;
             }
-            
-            this.showToast(error.message || defaultMessage, 'info', 3000);
+
+            const apiErrorToastType = error.isClientError()
+                ? this.errorToastTypes.client
+                : this.errorToastTypes.default;
+            this.showToast(error.message || defaultMessage, apiErrorToastType, 3000);
         } else {
-            this.showToast(defaultMessage, 'info', 3000);
+            // Surface native Error messages (client-side validation, runtime guards) when available.
+            const genericMessage = (error && typeof error.message === 'string' && error.message.trim())
+                ? error.message.trim()
+                : defaultMessage;
+            this.showToast(genericMessage, this.errorToastTypes.generic, 3000);
         }
     }
     
@@ -748,10 +796,17 @@ class ApiService {
 // ===========================================
 
 window.apiService = new ApiService();
+window.ApiError = ApiError;
 
 window.handleApiError = (error, defaultMessage) => {
     window.apiService.handleError(error, defaultMessage);
 }
+window.getApiErrorToastTypes = () => {
+    return window.apiService.getErrorToastTypes();
+};
+window.setApiErrorToastTypes = (overrides) => {
+    return window.apiService.setErrorToastTypes(overrides);
+};
 
 window.toastsLoader = window.apiService.toasts;
 window.showToast = (message, type = 'info', duration = 3000) => {

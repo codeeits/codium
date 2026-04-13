@@ -181,7 +181,7 @@
 
         // Admin check
         try {
-            const isAdmin = await api.isCurrentAdmin();
+            const isAdmin = await api.users.isCurrentAdmin();
             if (!isAdmin) {
                 toastsLoader.showToast('Access denied. Admin privileges required.', 'danger', 5000);
                 window.location.href = '/app/index.html';
@@ -248,7 +248,7 @@
                 return userData.ID;
             }
 
-            throw new Error('Please provide a username or user ID.');
+            throw new window.ApiError(400, 'Please provide a username or user ID.', '/app/admin:resolveUserId');
         }
 
         // ============================
@@ -261,7 +261,7 @@
                     return;
                 }
                 const userId = await resolveUserId('perm-username', 'perm-userid');
-                await api.updateUserPermissions(userId, selectedTitle);
+                await api.users.updateUserPermissions(userId, selectedTitle);
                 console.log(`Permissions for user ${userId} set to ${selectedTitle}`);
                 toastsLoader.showToast(`User permissions set to "${selectedTitle}" successfully.`, 'confirm', 3000);
             } catch (err) {
@@ -276,7 +276,7 @@
             try {
                 const userId = await resolveUserId('del-username', 'del-userid');
                 if (!confirm(`Are you sure you want to delete user ${userId}? This action cannot be undone.`)) return;
-                await api.delete(`/api/users/${userId}`, true);
+                await api.users.deleteAccount(userId);
                 toastsLoader.showToast('Account deleted successfully.', 'confirm', 3000);
             } catch (err) {
                 window.handleApiError(err, 'Failed to delete account.');
@@ -294,7 +294,7 @@
             const listBody = document.getElementById('lessons-list-body');
             listBody.innerHTML = '';
             try {
-                const response = await api.getPendingLessons();
+                const response = await api.lessons.getPendingLessons();
                 suggestedLessons = typeof response === 'string' ? JSON.parse(response) : response;
                 if (!suggestedLessons || suggestedLessons.length === 0) {
                     listBody.innerHTML = '<div class="ll-body-item"><span class="no-style llbi-title">No pending lessons</span></div>';
@@ -332,7 +332,7 @@
             `;
             // Load content
             try {
-                const content = await api.getFile(lesson.lesson.ContentID);
+                const content = await api.fileManager.getFile(lesson.lesson.ContentID);
                 selectedLesson._rawContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
                 renderLessonContent();
             } catch (err) {
@@ -374,7 +374,7 @@
 
         async function approveLesson(lessonId) {
             try {
-                await api.approveLesson(lessonId);
+                await api.lessons.approveLesson(lessonId);
                 toastsLoader.showToast('Lesson approved!', 'confirm', 3000);
                 loadSuggestedLessons();
                 clearLessonPreview();
@@ -413,7 +413,7 @@
             const listBody = document.getElementById('problems-list-body');
             listBody.innerHTML = '';
             try {
-                const response = await api.getPendingProblems();
+                const response = await api.problems.getPendingProblems();
                 suggestedProblems = typeof response === 'string' ? JSON.parse(response) : response;
                 if (!suggestedProblems || suggestedProblems.length === 0) {
                     listBody.innerHTML = '<div class="ll-body-item"><span class="no-style llbi-title">No pending problems</span></div>';
@@ -481,7 +481,7 @@
 
         async function approveProblem(problemId) {
             try {
-                await api.approveProblem(problemId);
+                await api.problems.approveProblem(problemId);
                 toastsLoader.showToast('Problem approved!', 'confirm', 3000);
                 loadSuggestedProblems();
                 clearProblemPreview();

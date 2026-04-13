@@ -11,6 +11,25 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let userId = null;
 
+    function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+        if (!element || typeof onActivate !== 'function') {
+            return;
+        }
+
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', role);
+        element.style.cursor = 'pointer';
+
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                onActivate(event);
+            }
+        });
+
+        element.addEventListener('click', onActivate);
+    }
+
     // DOM elements
 
     const userName = document.getElementById('userName');
@@ -256,9 +275,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookmarkClone.querySelector('.Module').textContent = ` ${lessonData.flag_translation.module}`;
             bookmarkClone.querySelector('.Class').textContent = ` ${lessonData.flag_translation.class}`;
             bookmarkClone.querySelector('.Section').textContent = ` ${lessonData.flag_translation.section}`;
-            bookmarkClone.onclick = function() {
+            const openBookmarkLesson = function() {
                 window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
+            makeElementKeyboardActivatable(bookmarkClone, openBookmarkLesson, 'link');
             bookmarksContainer.appendChild(bookmarkClone);
             console.log('Lesson data for bookmark:', lessonData);
         }
@@ -311,9 +331,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('Activity date:', date);
             activityClone.querySelector('.clasaLectiei').innerHTML = ` ${lessonData.flag_translation.class}`;
             activityClone.querySelector('.completedAtTime').textContent = date.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            activityClone.onclick = function() {
+            const openRecentLesson = function() {
                 window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
+            makeElementKeyboardActivatable(activityClone, openRecentLesson, 'link');
             recentContainer.appendChild(activityClone);
             applyTranslationsToElement(activityClone);
 

@@ -10,6 +10,25 @@ document.addEventListener("DOMContentLoaded", async function() {
     const problemsToLoad = 5;
     let problemsList = {};
 
+    function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
+        if (!element || typeof onActivate !== 'function') {
+            return;
+        }
+
+        element.setAttribute('tabindex', '0');
+        element.setAttribute('role', role);
+        element.style.cursor = 'pointer';
+
+        element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                onActivate(event);
+            }
+        });
+
+        element.addEventListener('click', onActivate);
+    }
+
     problemsList = await window.apiService.getProblems();
     //console.log(problemsList);
 
@@ -47,10 +66,11 @@ document.addEventListener("DOMContentLoaded", async function() {
             problemClone.querySelector('.problem-author-name').textContent = "Unknown Author";
         }
 
-        problemClone.style.cursor = 'pointer';
-        problemClone.addEventListener('click', function() {
+        const openProblem = function() {
             window.location.href = `/app/Probleme/problem.html?id=${element.problem.ID}`;
-        });
+        };
+
+        makeElementKeyboardActivatable(problemClone, openProblem, 'link');
 
         // Append
         problemClone.style.removeProperty('display');
