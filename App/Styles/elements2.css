@@ -108,6 +108,11 @@ body {
     --h1-font-size:     calc(var(--base-h1-size) * var(--font-scale));
     --button-font-size: calc(var(--base-button-size) * var(--font-scale));
 
+    /* landing page overrides */
+
+    --h1-landing-size: calc(var(--base-h1-size) * 2 * var(--font-scale));
+    --h2-landing-size: calc(var(--base-h2-size) * 2 * var(--font-scale));
+
     background-color: var(--fundal);
     color:            var(--text-colour);
     font-family:      'Raleway', sans-serif;
