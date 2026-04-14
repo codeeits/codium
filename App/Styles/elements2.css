@@ -348,7 +348,6 @@ table td:not(:first-child) {
 *:focus {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
-    border-radius: var(--border-radius-sm);
 }
 
 /* ====================== */

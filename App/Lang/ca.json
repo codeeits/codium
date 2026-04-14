@@ -90,6 +90,12 @@
         }
     },
 
+    "contact-page": {
+        "meta": {
+            "title": "Contacte - Codium"
+        }
+    },
+
     "privacy-page": {
         "meta": {
             "title": "Política de Privadesa - Codium",
