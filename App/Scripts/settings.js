@@ -735,17 +735,30 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function enableTwoFactorAuth() {
+    function initTwoFactorAuth() {
         elements.tfa.addEventListener('click', () => {
             ModalHelpers.totpSetup.openModal({
                 engine,
-                onConfirm: () => {
-                    console.log('Two-factor authentication enabled');
+                onConfirm: (modalElement) => {
+                    console.log('Starting verification of TOTP code');
+                    handleTwoFactor(modalElement);
                 },
                 onOpen: async (modalElement) => {
                     await ModalHelpers.totpSetup.initialization(modalElement);
                 }
             });
+        });
+    }
+
+    function handleTwoFactor(modalElement) {
+        const totpInput = modalElement?.querySelector('#totpCodeInput');
+        const totpCode = totpInput?.value?.trim() || '';
+        
+        ModalHelpers.totpSetup.performTotpSetup({ totpCode }).then(() => {
+            toastsLoader.showToast('Two-factor authentication setup successfully!', 'confirm', 3000);
+        }).catch(error => {
+            console.error('Error setting up two-factor authentication:', error);
+            toastsLoader.showToast(`Error setting up two-factor authentication: ${error.message}`, 'danger', 5000);
         });
     }
 
@@ -814,7 +827,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
             initLogoutButton(); // Logout button logic
-            enableTwoFactorAuth(); // Two-factor authentication setup logic
+            initTwoFactorAuth(); // Two-factor authentication setup logic
 
             initHueSlider(); 
             enableHighContrastMode();

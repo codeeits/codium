@@ -235,14 +235,14 @@ export class ModalHelpers {
 
         },
 
-        validateForm: () => {
+        validateForm: (data) => {
             /* data syntax example: 
                 data = {
                     totpCode: '123456'
                 }
             */
 
-            const { totpCode } = 'sssss'; // to be implemented - get the TOTP code from the form input
+            const { totpCode } = data;
 
             // TOTP code validation (6 digits)
             const totpRegex = /^\d{6}$/;
@@ -274,8 +274,21 @@ export class ModalHelpers {
             });
         },
 
-        performTotpSetup: async () => {
-            /* to be implemented */
+        performTotpSetup: async (data) => {
+            const validation = ModalHelpers.totpSetup.validateForm(data);
+            
+            if (!validation.valid) {
+                throw new Error(validation.error);
+            }
+
+            const result = await window.apiService.users.validateTOTPToken(data.totpCode);
+
+            if (result.success) {
+                window.dispatchEvent(new CustomEvent('codium:totp-setup-success'));
+                console.log('TOTP setup successful!');
+            }
+
+            return result;
         }
     }
 

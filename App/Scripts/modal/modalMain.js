@@ -460,7 +460,7 @@ export class ModalEngine {
         const confirmBtn = overlay.querySelector('#modal-confirm-button');
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
-                if (finalConfig.onConfirm) finalConfig.onConfirm();
+                if (finalConfig.onConfirm) finalConfig.onConfirm(modalElement);
                 destroyModal();
             });
         }
