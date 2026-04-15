@@ -76,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     userData.profilePicUrl = 'https://placehold.co/80/png';
                 }
+
+                userData.has2FA = !!userData.Backupcodesecret?.Valid;
+
                 //console.log('User data fetched successfully:', response);
                 renderProfileCard();
             }
@@ -154,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // -- RENDER UI --
-
+    
     function renderProfileCard() {
         if (!userData) {
             console.warn('No user data available to render profile card.');
@@ -201,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- ACTIONS ---
-
+    
     function setupEasterEgg() {
         const dropdown = elements.languageSelect;
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
@@ -214,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
+    
     function triggerEasterEgg() {
         alert('Felicitări! Ai descoperit limba secretă: Romengleză! Acum poți vorbi ca un adevărat codianist!');
         
@@ -228,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         itemsContainer.appendChild(romengOption);
     }
-
+    
     function initDropdownLogic() {
         const dropdown = elements.languageSelect;
 
@@ -275,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
             colorblindMode(); // external function defined in main.js that toggles the class on body
         });
     }
-
+    
     function initUiDropdown() {
         const dropdown = elements.uiSelect;
 
@@ -394,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
     }
-
+    
     function initLogoutButton() {
         elements.logoutBtn.addEventListener('click', () => {
             engine.openModal({
@@ -436,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     }
-
+    
     function setFontSize() {
         const container = elements.fontSizeSelect; 
         
@@ -496,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.documentElement.style.setProperty('--rotation', hueValue);
         window.PreferencesManager?.setProperty('hueRotation', hueValue);
     }
-
+    
     function initHueSlider() {
         const savedHue = window.PreferencesManager?.getProperty('hueRotation') || 0;
         elements.hueSlider.value = savedHue;
@@ -506,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
             slideHue();
         });
     }
-
+    
     function requestData() {
         elements.requestDataBtn.addEventListener('click', async () => {
             const prefs = window.PreferencesManager?.get() || {};
@@ -703,7 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(response);
         });
     }
-
+    
     function deleteAccount() {
         elements.eraseMeBtn.addEventListener('click', () => {
             engine.openModal({
@@ -735,7 +738,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function initTwoFactorAuth() {
+    function removeTwoFactorButtonParent() {
+        const parent = elements.tfa?.parentElement;
+        if (parent && parent.parentElement) {
+            parent.remove();
+        }
+    }
+    
+    async function initTwoFactorAuth() {
+        const currentUser = userData || await window.apiService.users.getCurrentUser().catch(() => null);
+        const is2FA = !!currentUser?.Backupcodesecret?.Valid;
+
+        if (is2FA) {
+            removeTwoFactorButtonParent();
+            console.log('User already has 2FA enabled, skipping 2FA setup button initialization.');
+            return;
+        }
+
         elements.tfa.addEventListener('click', () => {
             ModalHelpers.totpSetup.openModal({
                 engine,
@@ -810,6 +829,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    window.addEventListener('codium:totp-setup-success', (e) => {
+        console.log('Received TOTP setup success event:', e.detail);
+        removeTwoFactorButtonParent();
+        fetchUserData();
+    });
+
     // --- innit mate ---
     async function initApp() {
         if (!window.apiService.isAuthenticated()) {
@@ -827,7 +852,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
             initLogoutButton(); // Logout button logic
-            initTwoFactorAuth(); // Two-factor authentication setup logic
+            await initTwoFactorAuth(); // 2FA setup modal logic, only if user doesn't have 2FA enabled
 
             initHueSlider(); 
             enableHighContrastMode();

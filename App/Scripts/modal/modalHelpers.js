@@ -193,6 +193,15 @@ export class ModalHelpers {
             }
 
             const loginResult = await window.apiService.login(data.email, data.password);
+
+            if (loginResult?.requiresTotp && loginResult?.validationToken) {
+                const otp = prompt('Enter your 2FA code (or backup code):');
+                if (!otp || !otp.trim()) {
+                    throw new Error('2FA code is required to complete login.');
+                }
+
+                return await window.apiService.users.authenticateWithTOTP(loginResult.validationToken, otp.trim());
+            }
             
             if (loginResult.success) {
                 window.dispatchEvent(new CustomEvent('codium:login-success', {
@@ -211,10 +220,14 @@ export class ModalHelpers {
 
     static totpSetup = {
 
+        activeEngine: null,
+
         openModal: async ({ engine, onConfirm, onOpen, title = 'Set up Two-Factor Authentication', icon = 'fa-shield-alt' }) => {
             if (!engine || typeof engine.openModal !== 'function') {
                 throw new Error('A valid modal engine instance is required.');
             }
+
+            ModalHelpers.totpSetup.activeEngine = engine;
 
             await engine.openModal({
                 type: 'totp-setup',
@@ -283,11 +296,48 @@ export class ModalHelpers {
 
             const result = await window.apiService.users.validateTOTPToken(data.totpCode);
 
-            if (result.success) {
-                window.dispatchEvent(new CustomEvent('codium:totp-setup-success'));
+            const backupCodes = Array.isArray(result?.backupCodes)
+                ? result.backupCodes
+                : Array.isArray(result?.BackupCodes)
+                    ? result.BackupCodes
+                    : [];
+
+            // Backend returns HTTP 200 with backup codes when setup succeeds.
+            const isSuccess = (typeof result?.success === 'boolean') ? result.success : true;
+
+            if (isSuccess) {
+                window.dispatchEvent(new CustomEvent('codium:totp-setup-success', {
+                    detail: { backupCodes }
+                }));
                 console.log('TOTP setup successful!');
+
+                if (backupCodes.length > 0) {
+                    const engine = ModalHelpers.totpSetup.activeEngine;
+                    const codesHtml = backupCodes.map(code => `<code style="display:block; font-size: 1rem; line-height: 1.8;">${code}</code>`).join('');
+                    const body = `
+                        <p class="modal-message">Save these backup codes in a secure place. Each code can be used once. You won't see these codes EVER again. So be careful!</p>
+                        <div style="margin-top: var(--gap-md); padding: var(--gap-md); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-surface, #f8fafc);">
+                            ${codesHtml}
+                        </div>
+                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+                            <button type="button" class="btn primary flex-1" id="modal-confirm-button">I saved them</button>
+                        </div>
+                    `;
+
+                    if (engine && typeof engine.openModal === 'function') {
+                        await engine.openModal({
+                            title: 'Backup Codes',
+                            icon: 'fa-key',
+                            body
+                        });
+                    } else {
+                        alert(`Backup codes:\n\n${backupCodes.join('\n')}`);
+                    }
+                }
             }
 
+            console.log('TOTP setup result:', result);
+            
             return result;
         }
     }

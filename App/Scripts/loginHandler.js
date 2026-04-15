@@ -82,6 +82,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const result = await window.apiService.login(email, password);
+
+            if (result?.requiresTotp && result?.validationToken) {
+                const otp = prompt('Enter your 2FA code (or backup code):');
+                if (!otp || !otp.trim()) {
+                    toastsLoader.showToast('2FA code is required to complete login.', 'warning');
+                    return;
+                }
+
+                await window.apiService.users.authenticateWithTOTP(result.validationToken, otp.trim());
+            }
             
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;

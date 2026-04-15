@@ -9,16 +9,39 @@ Handle all user related API calls here, such as login, registration, profile upd
 
 */
 
+import { ApiError } from '../core/apiError.js';
+
 export class UserService {
     constructor(apiClient) {
         this.api = apiClient;
     }
 
     async login(email, password) {
-        let response = await this.api.post('/api/login', {
-            email: email.trim(),
-            password: password
-        });
+        let response;
+        try {
+            response = await this.api.post('/api/login', {
+                email: email.trim(),
+                password: password
+            });
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 418) {
+                let payload = null;
+                try {
+                    payload = JSON.parse(error.message || '{}');
+                } catch {
+                    payload = null;
+                }
+
+                if (payload?.validationToken || payload?.ValidationToken) {
+                    return {
+                        requiresTotp: true,
+                        message: payload.message || payload.Message || 'TOTP verification required',
+                        validationToken: payload.validationToken || payload.ValidationToken
+                    };
+                }
+            }
+            throw error;
+        }
 
         if (typeof response === 'string') response = JSON.parse(response);
 
@@ -128,10 +151,27 @@ export class UserService {
     }
 
     async authenticateWithTOTP(token, otp) {
-        return this.api.post('/api/users/totp/authenticate', { 
+        let response = await this.api.post('/api/users/totp/authenticate', {
             validation_token: token,
             otp
-         }, true);
+         }, false);
+
+        if (typeof response === 'string') response = JSON.parse(response);
+
+        if (response.auth_token) {
+            this.api.saveTokens(response.auth_token, response.refresh_token);
+            if (response.user) {
+                localStorage.setItem('username', response.user.Username);
+                localStorage.setItem('userEmail', response.user.Email);
+                localStorage.setItem('isAdmin', response.user.Permissions === 61);
+                localStorage.setItem('userID', response.user.ID);
+                if (response.user.ProfilePicID) {
+                    localStorage.setItem('profilePicID', response.user.ProfilePicID);
+                }
+            }
+        }
+
+        return response;
     }
 
     // permissions management (admin only)

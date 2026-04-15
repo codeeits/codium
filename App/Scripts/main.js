@@ -615,7 +615,7 @@ function setupDevToolsTrap() {
 async function initApp() {
     console.log('Initializing Application...');
 
-    setupDevToolsTrap();
+    //setupDevToolsTrap();
 
     InteractionHandler.init();
     setupScrollRestoration();
