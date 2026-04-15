@@ -104,6 +104,13 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'admin'
             },
             {
+                title: 'Upload lesson (v1)',
+                description: 'Admin interface for uploading new lessons. Currently in use until next major iteration is ready.',
+                href: '/app/Lectii/lesson-upload.html',
+                icon: 'fa-file-upload',
+                tag: 'admin'
+            },
+            {
                 title: 'Manage lessons (v1)',
                 description: 'Admin interface for reordering, editing, and managing lessons. Currently in use.',
                 href: '/app/Lectii/manage-lessons.html',

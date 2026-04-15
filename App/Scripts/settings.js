@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         profileVisibilityToggle: document.getElementById('profile-visibility'),
         requestDataBtn: document.getElementById('request-data'),
         eraseMeBtn: document.getElementById('erase-data'),
+        tfa: document.getElementById('two-factor-auth'),
 
         // appearance card
         appearanceCard: document.getElementById('appearanceCard'),
@@ -436,7 +437,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-
     function setFontSize() {
         const container = elements.fontSizeSelect; 
         
@@ -735,6 +735,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function enableTwoFactorAuth() {
+        elements.tfa.addEventListener('click', () => {
+            ModalHelpers.totpSetup.openModal({
+                engine,
+                onConfirm: () => {
+                    console.log('Two-factor authentication enabled');
+                },
+                onOpen: async (modalElement) => {
+                    await ModalHelpers.totpSetup.initialization(modalElement);
+                }
+            });
+        });
+    }
+
     function setupProfileCardSync() {
         const syncProfileCard = () => {
             if (!window.apiService.isAuthenticated()) return;
@@ -800,6 +814,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
             initLogoutButton(); // Logout button logic
+            enableTwoFactorAuth(); // Two-factor authentication setup logic
 
             initHueSlider(); 
             enableHighContrastMode();

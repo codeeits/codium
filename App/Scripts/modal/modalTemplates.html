@@ -94,3 +94,22 @@
         </div>
     </form>
 </template>
+
+<template id="modal-tpl-totp-setup">
+    <p class="modal-message">Set up Time-based One-Time Password (TOTP) for enhanced security.</p>
+    <p class="modal-message">Scan the QR code below with your authenticator app, then enter the generated code to verify.</p>
+    <div class="totp-setup-container" style="display: flex; flex-direction: column; align-items: center; gap: var(--gap-lg); margin-top: var(--gap-lg);">
+        <img id="totpQrCode" src="" alt="TOTP QR Code" style="width: 200px; height: 200px; border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); padding: var(--gap-md); background: white;">
+        <p class="modal-message">Or use the following uri (if your app doesn't support QR codes): </p>
+        <p id="totpUri" class="modal-message" style="word-break: break-all; text-align: center;"></p>
+        
+        <div class="text-container input-field" style="width: 100%; max-width: 300px;">
+            <input class="input-text" type="text" name="totpCode" id="totpCodeInput" placeholder="Enter TOTP code" data-i18n-placeholder="modal.totp_setup.code_placeholder" minlength="6" maxlength="6" autocomplete="one-time-code">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+        </div>
+        <div class="modal-actions" style="width: 100%; max-width: 300px; display: flex; gap: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="button" class="btn primary flex-1" id="modal-confirm-button" data-i18n="buttons.verify">Verify</button>
+        </div>
+    </div>
+</template>

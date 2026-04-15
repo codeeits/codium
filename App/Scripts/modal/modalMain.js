@@ -360,6 +360,10 @@ export class ModalEngine {
 
         overlay.appendChild(modalElement);
 
+        if (typeof finalConfig.onOpen === 'function') {
+            await finalConfig.onOpen(modalElement, overlay);
+        }
+
         /*
         overlay.innerHTML = `
             <div class="modal">

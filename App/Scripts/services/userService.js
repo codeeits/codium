@@ -117,6 +117,23 @@ export class UserService {
         return this.api.get('/api/users/gdpr', true);
     }
 
+    // totp management
+
+    async initiateTOTPSetup() {
+        return this.api.post('/api/users/totp', {}, true);
+    }
+
+    async validateTOTPToken(otp) {
+        return this.api.post('/api/users/totp/validate', { otp }, true);
+    }
+
+    async authenticateWithTOTP(token, otp) {
+        return this.api.post('/api/users/totp/authenticate', { 
+            validation_token: token,
+            otp
+         }, true);
+    }
+
     // permissions management (admin only)
 
     async updateUserPermissions(userId, title) {

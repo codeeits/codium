@@ -1,5 +1,10 @@
 // A class helper for providing modal presets (e. g. edit profile, delete confirmation, etc.) and handling common modal logic.
 
+import { buildQrSvgDataUri } from '../helper/helper.js';
+
+// Uses qrJS/main.js for QR code generation in the TOTP setup modal.
+
+
 export class ModalHelpers {
     /**
      * @param {Object} config
@@ -203,6 +208,76 @@ export class ModalHelpers {
         }
 
     };
+
+    static totpSetup = {
+
+        openModal: async ({ engine, onConfirm, onOpen, title = 'Set up Two-Factor Authentication', icon = 'fa-shield-alt' }) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                throw new Error('A valid modal engine instance is required.');
+            }
+
+            await engine.openModal({
+                type: 'totp-setup',
+                title,
+                icon,
+                onConfirm: (formElement) => {
+                    if (typeof onConfirm === 'function') {
+                        onConfirm(formElement);
+                    }
+                },
+                onCancel: () => {},
+                onOpen: (modalElement) => {
+                    if (typeof onOpen === 'function') {
+                        onOpen(modalElement);
+                    }
+                }
+            });
+
+        },
+
+        validateForm: () => {
+            /* data syntax example: 
+                data = {
+                    totpCode: '123456'
+                }
+            */
+
+            const { totpCode } = 'sssss'; // to be implemented - get the TOTP code from the form input
+
+            // TOTP code validation (6 digits)
+            const totpRegex = /^\d{6}$/;
+            if (!totpCode || !totpRegex.test(totpCode)) return { valid: false, error: 'Invalid TOTP code format' };
+
+            return { 
+                valid: true, 
+            };
+        },
+
+        initialization: async (modal) => {
+            const { uri } = await window.apiService.users.initiateTOTPSetup();
+
+            const linkCode = modal?.querySelector('#totpUri');
+            if (linkCode) {
+                linkCode.textContent = uri;
+            }
+
+            const qrImage = modal?.querySelector('#totpQrCode');
+            if (!qrImage || !uri) {
+                return;
+            }
+
+            qrImage.src = await buildQrSvgDataUri(uri, {
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff'
+            });
+        },
+
+        performTotpSetup: async () => {
+            /* to be implemented */
+        }
+    }
 
 }
 
