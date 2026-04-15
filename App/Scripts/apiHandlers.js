@@ -94,6 +94,10 @@ class ApiService {
         
         if (error instanceof ApiError) {
             if (error.isUnauthorized()) {
+                if (error.endpoint === '/api/users/totp/authenticate') {
+                    this.showToast('Invalid OTP', 'danger', 3000);
+                    return;
+                }
                 this.showToast('Invalid credentials or session expired. Please log in again.', this.errorToastTypes.unauthorized, 3000);
                 return;
             }
