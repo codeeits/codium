@@ -235,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const openBookmark = () => {
                 if (bookmarkedElementData.type === 'lesson') {
-                    window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
+                    window.location.href = `/app/Lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
                 } else if (bookmarkedElementData.type === 'problem') {
-                    window.location.href = `/app/probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
+                    window.location.href = `/app/Probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
                 }
             };
 

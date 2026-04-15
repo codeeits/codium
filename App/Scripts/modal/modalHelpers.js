@@ -315,12 +315,12 @@ export class ModalHelpers {
                     const engine = ModalHelpers.totpSetup.activeEngine;
                     const codesHtml = backupCodes.map(code => `<code style="display:block; font-size: 1rem; line-height: 1.8;">${code}</code>`).join('');
                     const body = `
-                        <p class="modal-message">Save these backup codes in a secure place. Each code can be used once. You won't see these codes EVER again. So be careful!</p>
+                        <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-4">Save these backup codes in a secure place. Each code can be used once. You won't see these codes EVER again. So be careful!</p>
                         <div style="margin-top: var(--gap-md); padding: var(--gap-md); border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); background: var(--color-surface, #f8fafc);">
                             ${codesHtml}
                         </div>
                         <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn primary flex-1" id="modal-confirm-button">I saved them</button>
+                            <button type="button" class="btn primary flex-1" id="modal-confirm-button" data-i18n="buttons.i_saved_them">I saved them</button>
                         </div>
                     `;
 

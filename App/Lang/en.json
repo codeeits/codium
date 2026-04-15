@@ -174,7 +174,15 @@
             "title": "Privacy",
             "options": {
                 "make-profile-private": "Make my profile private",
-                "download-my-data": "Download my data"
+                "download-my-data": "Download my data",
+                "delete-my-data": "Delete my data",
+                "two-factor-authentication": "2fa (TOTP/Backup codes)"
+            },
+            "2fa-notes": {
+                "note-1": "Set up Time-based One-Time Password (TOTP) for enhanced security.",
+                "note-2": "Use an authenticator app (e.g., Google Authenticator, Authy) to scan the QR code and generate 2FA codes.",
+                "note-3": "Or use the following uri (if your app doesn't support QR codes):",
+                "note-4": "Save these backup codes in a secure place. Each code can be used once. You won't see these codes EVER again. So be careful!"
             }
         },
         "appearance-section": {
@@ -324,6 +332,9 @@
             "current_password": "actual password",
             "new_password": "new password",
             "note": "Leave fields empty if you don't want to change them"
+        },
+        "2fa_modal": {
+            "enter_code": "Enter TOTP code"
         }
     },
     "flags": {
@@ -341,6 +352,8 @@
     "buttons": {
         "save": "save",
         "cancel": "cancel",
+        "verify": "Verify",
+        "i_saved_them": "I saved them",
         "submit": "Submit",
         "edit": "edit profile",
         "delete": "delete",
@@ -352,7 +365,9 @@
         "comment": "settings specific buttons",
         "log-out": "Log out",
         "support-button": "Contact support",
-        "download-data": "Download my data",
+        "download-data": "Download",
+        "delete-data": "Erase me",
+        "enable": "Enable",
         "font-size-labels": {
             "small": "Small",
             "medium": "Medium",
