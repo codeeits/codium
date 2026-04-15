@@ -971,7 +971,6 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Update email
-
 	res, err := cfg.Db.UpdateUserEmail(r.Context(), database.UpdateUserEmailParams{
 		ID:        targetUser.ID,
 		Email:     p.NewEmail,
@@ -979,6 +978,18 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to update user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	curedEmail := strings.Replace(strings.ToLower(res.Email), ".", "", -1) // Normalize email by removing dots
+	_, err = cfg.Db.UpdateUserCuredEmail(r.Context(), database.UpdateUserCuredEmailParams{
+		ID:         targetUser.ID,
+		CuredEmail: sql.NullString{String: curedEmail, Valid: true},
+		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update user cured email: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

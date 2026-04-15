@@ -358,6 +358,40 @@ func (q *Queries) UpdateUserBackupCodeSecret(ctx context.Context, arg UpdateUser
 	return i, err
 }
 
+const updateUserCuredEmail = `-- name: UpdateUserCuredEmail :one
+UPDATE users
+SET cured_email = $2, updated_at = $3
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, profile_pic_id, email_validated, cured_email, permissions, title, totp_secret, backupcodesecret
+`
+
+type UpdateUserCuredEmailParams struct {
+	ID         uuid.UUID
+	CuredEmail sql.NullString
+	UpdatedAt  sql.NullTime
+}
+
+func (q *Queries) UpdateUserCuredEmail(ctx context.Context, arg UpdateUserCuredEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserCuredEmail, arg.ID, arg.CuredEmail, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ProfilePicID,
+		&i.EmailValidated,
+		&i.CuredEmail,
+		&i.Permissions,
+		&i.Title,
+		&i.TotpSecret,
+		&i.Backupcodesecret,
+	)
+	return i, err
+}
+
 const updateUserEmail = `-- name: UpdateUserEmail :one
 UPDATE users
 SET email = $2, updated_at = $3
