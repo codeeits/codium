@@ -19,6 +19,62 @@ import (
 /*
 ===========================================
 
+	Helper Functions
+
+===========================================
+*/
+
+func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.Request, loginTargetID uuid.UUID, jwt string) {
+	// Create a refresh token
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		cfg.Logger.Printf("Failed to create refresh token: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	loginTarget, err := cfg.Db.GetUserByID(r.Context(), loginTargetID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.Db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    loginTarget.ID,
+		ExpiresAt: time.Now().Add(24 * time.Hour * 30), // 30 days
+		RevokedAt: sql.NullTime{Valid: false},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to store refresh token: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	userJson, err := PrintUserToJson(loginTarget)
+	if err != nil {
+		cfg.Logger.Printf("Failed to marshal user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	jwt = strings.TrimSpace(jwt)
+	refreshToken = strings.TrimSpace(refreshToken)
+	_, err = w.Write([]byte(fmt.Sprintf(`{"user":%v, "auth_token": "%v", "refresh_token": "%v"}`, userJson, jwt, refreshToken)))
+	if err != nil {
+		cfg.Logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+		return
+	}
+}
+
+/*
+===========================================
+
 	Authentication Handlers
 
 ===========================================
@@ -69,6 +125,7 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
+
 	token, err := auth.MakeUUIDJWT(loginTarget.ID, cfg.Secret, time.Hour*24*7) // 7 days
 	if err != nil {
 		cfg.Logger.Printf("Failed to create JWT: %v", err)
@@ -76,44 +133,132 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a refresh token
-	refreshToken, err := auth.MakeRefreshToken()
+	// Check if a TOTP secret exists for the user, if so require TOTP verification before issuing tokens
+	encryptedSecret, err := cfg.Db.GetUserBackupCodeSecret(r.Context(), loginTarget.ID)
 	if err != nil {
-		cfg.Logger.Printf("Failed to create refresh token: %v", err)
+		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	_, err = cfg.Db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
-		Token:     refreshToken,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		UserID:    loginTarget.ID,
-		ExpiresAt: time.Now().Add(24 * time.Hour * 30), // 30 days
-		RevokedAt: sql.NullTime{Valid: false},
-	})
+	if encryptedSecret.Valid {
+		cfg.Logger.Printf("TOTP secret found for user ID: %v, requiring TOTP verification", loginTarget.ID)
+
+		// Encode the jwt in a jwt that will be decoded in the TOTP verification handler
+		totpToken, err := auth.MakeGeneralJWT([]byte(token), cfg.Secret)
+		if err != nil {
+			cfg.Logger.Printf("Failed to create JWT: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusTeapot)
+		err = json.NewEncoder(w).Encode(struct {
+			Message         string `json:"message"`
+			ValidationToken string `json:"validationToken"`
+		}{
+			Message:         "TOTP verification required",
+			ValidationToken: totpToken,
+		})
+		if err != nil {
+			cfg.Logger.Printf("Failed to encode response: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	cfg.WriteAuthentificationResponse(w, r, loginTarget.ID, token)
+}
+
+func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
+	type params struct {
+		ValidationToken string `json:"validation_token"`
+		OTP             string `json:"otp"`
+	}
+	p, err := DecodeParamsFromBody(r, params{})
 	if err != nil {
-		cfg.Logger.Printf("Failed to store refresh token: %v", err)
+		cfg.Logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	cfg.Logger.Print("Received TOTP validation request")
+
+	if p.ValidationToken == "" || p.OTP == "" {
+		cfg.Logger.Printf("Missing required fields: validation_token or otp")
+		http.Error(w, "Missing required fields: validation_token or otp", http.StatusBadRequest)
+		return
+	}
+
+	jwtToken, err := auth.ValidateGeneralJWT(p.ValidationToken, cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Invalid validation token: %v", err)
+		http.Error(w, "Invalid validation token", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := auth.ValidateUUIDJWT(string(jwtToken), cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Invalid JWT in validation token: %v", err)
+		http.Error(w, "Invalid validation token", http.StatusBadRequest)
+		return
+	}
+
+	encryptedSecret, err := cfg.Db.GetUserTotpSecret(r.Context(), userID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	userJson, err := PrintUserToJson(loginTarget)
+	encryptedBackupSecret, err := cfg.Db.GetUserBackupCodeSecret(r.Context(), userID)
 	if err != nil {
-		cfg.Logger.Printf("Failed to marshal user: %v", err)
+		cfg.Logger.Printf("Failed to get user backup code secret: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	token = strings.TrimSpace(token)
-	refreshToken = strings.TrimSpace(refreshToken)
-	_, err = w.Write([]byte(fmt.Sprintf(`{"user":%v, "auth_token": "%v", "refresh_token": "%v"}`, userJson, token, refreshToken)))
-	if err != nil {
-		cfg.Logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+
+	if !encryptedBackupSecret.Valid {
+		cfg.Logger.Printf("User doesn't have 2FA enabled but are requesting OTP validation: %v", userID)
+		http.Error(w, "User doesn't have 2FA enabled", http.StatusBadRequest)
 		return
 	}
+
+	backupSecret, err := auth.ValidateGeneralJWT(encryptedBackupSecret.String, cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Invalid backup code secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	for i := 0; i < 10; i++ {
+		backupHOTP := gotp.NewDefaultHOTP(string(backupSecret))
+		if backupHOTP.Verify(p.OTP, i) {
+			cfg.Logger.Printf("Successfully validated OTP for user: %v", userID)
+			cfg.WriteAuthentificationResponse(w, r, userID, string(jwtToken))
+			return
+		}
+	}
+
+	cfg.Logger.Printf("OTP is not a backup code for user: %v", userID)
+
+	totpSecret, err := auth.ValidateGeneralJWT(encryptedSecret.String, cfg.Secret)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if gotp.NewDefaultTOTP(string(totpSecret)).VerifyTime(p.OTP, time.Now()) == false {
+		cfg.Logger.Printf("Invalid OTP for user: %v", userID)
+		http.Error(w, "Invalid OTP", http.StatusUnauthorized)
+		return
+	}
+
+	cfg.Logger.Printf("Successfully validated OTP for user: %v", userID)
+	cfg.WriteAuthentificationResponse(w, r, userID, string(jwtToken))
 }
 
 func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
