@@ -90,12 +90,6 @@
         }
     },
 
-    "contact-page": {
-        "meta": {
-            "title": "Contacte - Codium"
-        }
-    },
-
     "privacy-page": {
         "meta": {
             "title": "Política de Privadesa - Codium",
@@ -180,7 +174,15 @@
             "title": "Privacitat",
             "options": {
                 "make-profile-private": "Fes que el meu compte sigui privat",
-                "download-my-data": "Descarrega les meves dades (RGPD)"
+                "download-my-data": "Descarrega les meves dades (RGPD)",
+                "delete-my-data": "Destrueix les meves dades",
+                "two-factor-authentication": "Autenticació de dos factors (TOTP/backup codes)"
+            },
+            "2fa-notes": {
+                "note-1": "Configureu un codi d'autenticació basat en el temps (TOTP) per augmentar la seguretat.",
+                "note-2": "Podeu utilitzar una aplicació d'autenticació (per exemple, Google Authenticator o Authy) per escanejar el codi QR i generar codis 2FA.",
+                "note-3": "O bé feu servir l'URI següent (si la vostra aplicació no admet codis QR):",
+                "note-4": "Guardeu aquests codis de seguretat en un lloc segur. Cada codi es pot utilitzar una vegada. No tornaràs a veure aquests codis MAI més. Així que vés amb compte!"
             }
         },
         "appearance-section": {
@@ -330,6 +332,9 @@
             "current_password": "contrasenya actual",
             "new_password": "contrasenya nova",
             "note": "Deixa els camps buits si no vols canviar-los"
+        },
+        "2fa_modal": {
+            "enter_code": "Introduïu el codi generat"
         }
     },
     "flags": {
@@ -347,6 +352,8 @@
     "buttons": {
         "save": "desa",
         "cancel": "anula",
+        "verify": "Verifica",
+        "i_saved_them": "Sí, els he guardat",
         "submit": "Envia",
         "edit": "edita el perfil",
         "delete": "elimina",
@@ -359,6 +366,8 @@
         "log-out": "Tanca la sessió",
         "support-button": "Contacta’ns",
         "download-data": "Descarrega",
+        "delete-data": "Borra'm",
+        "enable": "Activa",
         "font-size-labels": {
             "small": "Petit",
             "medium": "Mitjà",

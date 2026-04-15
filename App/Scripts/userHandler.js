@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookmarkClone.querySelector('.Class').textContent = ` ${lessonData.flag_translation.class}`;
             bookmarkClone.querySelector('.Section').textContent = ` ${lessonData.flag_translation.section}`;
             const openBookmarkLesson = function() {
-                window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
+                window.location.href = `/app/Lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
             makeElementKeyboardActivatable(bookmarkClone, openBookmarkLesson, 'link');
             bookmarksContainer.appendChild(bookmarkClone);
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             activityClone.querySelector('.clasaLectiei').innerHTML = ` ${lessonData.flag_translation.class}`;
             activityClone.querySelector('.completedAtTime').textContent = date.toLocaleString('ro-RO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             const openRecentLesson = function() {
-                window.location.href = `/app/lectii/lesson.html?id=${lessonData.lesson.ID}`;
+                window.location.href = `/app/Lectii/lesson.html?id=${lessonData.lesson.ID}`;
             };
             makeElementKeyboardActivatable(activityClone, openRecentLesson, 'link');
             recentContainer.appendChild(activityClone);
