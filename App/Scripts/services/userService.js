@@ -112,6 +112,20 @@ export class UserService {
     }
 
     async updateUserField(field, value, pic = false) {
+        const user = this.api.getCachedCurrentUser();
+        if (user) {
+            const fieldMap = {
+                'username': 'Username',
+                'email': 'Email',
+                'image_id': 'ProfilePicID'
+            };
+
+            const userProperty = fieldMap[field];
+            if (userProperty) {
+                user[userProperty] = value; 
+            }
+        }
+
         const data = {};
         data[field] = value;
         return this.api.put(`/api/users?target_field=${pic ? 'pfp' : field}`, data);
@@ -129,12 +143,7 @@ export class UserService {
         return this.updateUserField('email', newEmail);
     }
 
-    async updateUsername(newUsername) {
-        const user = this.api.getCachedCurrentUser();
-        if (user) {
-            user.Username = newUsername; 
-        }
-        
+    async updateUsername(newUsername) {    
         return this.updateUserField('username', newUsername);
     }
 
