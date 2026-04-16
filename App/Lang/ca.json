@@ -32,7 +32,7 @@
     "footer": {
         "description": {
             "text-1": "© 2026 Codium. Tots els drets reservats.",
-            "text-2": ""
+            "text-2": " "
         },
         "legal": "Legal",
         "terms": "Condicions del servei",
@@ -203,10 +203,10 @@
             }
         },
         "footer": {
-            "copyright": "",
-            "opensource": "",
-            "contribute": "",
-            "made_with_love": ""
+            "copyright": " ",
+            "opensource": " ",
+            "contribute": " ",
+            "made_with_love": " "
         }
     },
 
