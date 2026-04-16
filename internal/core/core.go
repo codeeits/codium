@@ -1061,11 +1061,16 @@ func UserHasPermission(user database.User, permission UserPermissions) bool {
 
 func (cfg *ApiCfg) CacheBusterMiddleware(handler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if cfg.WebsiteState == "development" {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-			w.Header().Set("Pragma", "no-cache")
-			w.Header().Set("Expires", "0")
-		}
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		/*
+			if cfg.WebsiteState == "development" {
+				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+				w.Header().Set("Pragma", "no-cache")
+				w.Header().Set("Expires", "0")
+			}
+		*/
 		handler.ServeHTTP(w, r)
 	}
 }
