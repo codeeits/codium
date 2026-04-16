@@ -224,7 +224,7 @@ async function ensureAccess() {
         return false;
     }
 
-    if (!window.apiService.isAuthenticated(true)) {
+    if (!(await window.apiService.checkAuthentication(true))) {
         return false;
     }
 

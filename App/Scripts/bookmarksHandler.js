@@ -376,7 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INIT ---
     async function initApp() {
-        window.apiService.isAuthenticated(true);
+        if (!(await window.apiService.checkAuthentication(true))) {
+            return;
+        }
         try {
             const currentUser = await window.apiService.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;

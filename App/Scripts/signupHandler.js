@@ -7,13 +7,13 @@
 same thing as loginHandler.js but for signup functionality
 */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
 
     const form = document.getElementById('signupForm');
     const submitButton = form.querySelector('input[type="submit"]');
 
     // Redirect daca e auth
-    if (window.apiService.isAuthenticated()) {
+    if (await window.apiService.checkAuthentication(false)) {
         window.location.href = 'user.html';
         return;
     }

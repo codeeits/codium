@@ -28,11 +28,11 @@ function toRoman(n) {
 }
 
 // 2 down 1 up
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = false; // SET THIS TO ENABLE LOGS!
     const baseurl = window.location.href;
-    const isAuthenticated = window.apiService.isAuthenticated();
+    const isAuthenticated = await window.apiService.checkAuthentication(false);
 
     // --- DOM ELEMENTS ---
     const elements = {

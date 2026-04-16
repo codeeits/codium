@@ -565,7 +565,9 @@ async function loadBookmarks() {
 }
 
 async function initApp() {
-    window.apiService.isAuthenticated(true);
+    if (!(await window.apiService.checkAuthentication(true))) {
+        return;
+    }
 
     bindContinueArrows();
     bindBookmarkArrows();

@@ -782,9 +782,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupProfileCardSync() {
-        const syncProfileCard = () => {
-            if (!window.apiService.isAuthenticated()) return;
-            fetchUserData();
+        const syncProfileCard = async () => {
+            const isAuth = await window.apiService.checkAuthentication(false);
+            if (!isAuth) return;
+            await fetchUserData();
         };
 
         window.addEventListener('focus', syncProfileCard);
@@ -796,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.addEventListener('storage', (e) => {
-            if (['authToken', 'username', 'userEmail', 'profilePicID'].includes(e.key)) {
+            if (['username', 'userEmail', 'profilePicID'].includes(e.key)) {
                 syncProfileCard();
             }
         });
@@ -837,8 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- innit mate ---
     async function initApp() {
-        if (!window.apiService.isAuthenticated()) {
-            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        if (!(await window.apiService.checkAuthentication(true))) {
             return;
         }
 

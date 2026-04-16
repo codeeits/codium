@@ -18,11 +18,11 @@ function getDifficultyLabel(difficulty) {
     return labels[difficulty] || `Dificultate ${difficulty}`;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = false; 
     const baseurl = window.location.href;
-    const isAuthenticated = window.apiService.isAuthenticated();
+    const isAuthenticated = await window.apiService.checkAuthentication(false);
 
     // --- DOM ELEMENTS ---
     const elements = {

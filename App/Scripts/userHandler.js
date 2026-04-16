@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CHECK AUTHENTICATION
     // ------------------------------
 
-    window.apiService.isAuthenticated(true);
+    if (!(await window.apiService.checkAuthentication(true))) {
+        return;
+    }
     
     const currentUser = await window.apiService.getCurrentUser() .catch(err => {
         console.error('Failed to get current user:', err);

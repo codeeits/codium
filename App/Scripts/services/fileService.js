@@ -15,31 +15,20 @@ export class FileService {
     }
 
     async uploadFile(file, location = 'images') {
-
-        if (!this.api.authToken) {
-            throw new Error('Authentication required for file upload');
-        }
-
         const formData = new FormData();
         formData.append('file', file);
 
-        let response = await fetch(`${this.api.baseURL}/api/upload?location=${location}`, {
+        const config = {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${this.api.authToken}`
-            },
+            credentials: 'include',
             body: formData
-        });
+        };
+
+        let response = await fetch(`${this.api.baseURL}/api/upload?location=${location}`, config);
 
         if (response.status === 401) {
             await this.api.refreshAuthToken();
-            response = await fetch(`${this.api.baseURL}/api/upload?location=${location}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.api.authToken}`
-                },
-                body: formData
-            });
+            response = await fetch(`${this.api.baseURL}/api/upload?location=${location}`, config);
         }
 
         if (!response.ok) {
@@ -51,25 +40,16 @@ export class FileService {
     }
 
     async deleteFile(fileId) {
-        if (!this.api.authToken) {
-            throw new Error('Authentication required for file deletion');
-        }
-
-        let response = await fetch(`${this.api.baseURL}/api/files/${fileId}`, {
+        const config = {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${this.api.authToken}`
-            }
-        });
+            credentials: 'include'
+        };
+
+        let response = await fetch(`${this.api.baseURL}/api/files/${fileId}`, config);
 
         if (response.status === 401) {
             await this.api.refreshAuthToken();
-            response = await fetch(`${this.api.baseURL}/api/files/${fileId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${this.api.authToken}`
-                }
-            });
+            response = await fetch(`${this.api.baseURL}/api/files/${fileId}`, config);
         }
 
         if (!response.ok) {
@@ -89,7 +69,6 @@ export class FileService {
     }
 
     async getProfilePicture(userId = null) {
-        // Cross-browser sync: rely on server truth first, then update local cache.
         try {
             let userData = null;
 
@@ -97,30 +76,13 @@ export class FileService {
                 const user = await this.api.users.getUserById(userId);
                 userData = typeof user === 'string' ? JSON.parse(user) : user;
             } else {
-                const currentUser = await this.api.users.getCurrentUser();
-                userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+                userData = await this.api.users.getCurrentUser();
             }
 
             const remotePicId = userData?.ProfilePicID || null;
-
-            if (remotePicId) {
-                if (!userId) {
-                    localStorage.setItem('profilePicID', remotePicId);
-                }
-                return this.getFileUrl(remotePicId);
-            }
-
-            if (!userId) {
-                localStorage.removeItem('profilePicID');
-            }
-            return null;
+            return remotePicId ? this.getFileUrl(remotePicId) : null;
+            
         } catch (error) {
-            if (!userId) {
-                const cachedPicId = localStorage.getItem('profilePicID');
-                if (cachedPicId) {
-                    return this.getFileUrl(cachedPicId);
-                }
-            }
             console.warn('Failed to resolve profile picture from API:', error);
             return null;
         }
