@@ -349,6 +349,10 @@ async function updateAuthButton() {
             els.userBtn.onclick = () => window.location.href = userPath;
         }
 
+        if (els.userInfo) {
+            els.userInfo.onclick = () => window.location.href = userPath;
+        }
+
         if (els.logout) {
             els.logout.classList.remove('hidden');
             els.logout.onclick = () => window.apiService?.logout(true);
@@ -378,6 +382,7 @@ async function updateAuthButton() {
 
         if (els.userBtn) els.userBtn.classList.add('hidden');
         if (els.userInfo) els.userInfo.classList.add('hidden');
+        if (els.userInfo) els.userInfo.onclick = null;
         if (els.logout) els.logout.classList.add('hidden');
     }
 }
