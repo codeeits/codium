@@ -27,8 +27,28 @@ export async function excelToJson(file) {
         const workbook = XLSX.read(data); 
         const payload = {};
 
+        const normalizeExcelText = (value) => {
+            if (typeof value === 'string') {
+                return value
+                    .replace(/\\r\\n/g, '\n')
+                    .replace(/\\n/g, '\n');
+            }
+
+            if (Array.isArray(value)) {
+                return value.map(normalizeExcelText);
+            }
+
+            if (value && typeof value === 'object') {
+                return Object.fromEntries(
+                    Object.entries(value).map(([key, entryValue]) => [key, normalizeExcelText(entryValue)])
+                );
+            }
+
+            return value;
+        };
+
         workbook.SheetNames.forEach(sheetName => {
-            payload[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            payload[sheetName] = normalizeExcelText(XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]));
         });
 
         return payload;
