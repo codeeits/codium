@@ -32,7 +32,7 @@
     "footer": {
         "description": {
             "text-1": "© 2026 Codium. Toate drepturile rezervate.",
-            "text-2": "Proiectat și dezvoltat de o echipă de elevi de liceu pasionați de programare și educație."
+            "text-2": ""
         },
         "legal": "Legal",
         "terms": "Termeni și condiții",
@@ -203,10 +203,10 @@
             }
         },
         "footer": {
-            "copyright": "© 2026 Codium. Toate drepturile rezervate.",
-            "opensource": "Codium este un proiect open source.",
-            "contribute": "Contribuie pe GitHub",
-            "made_with_love": "realizat cu ♥ de andrew & codeeits ^_^"
+            "copyright": "",
+            "opensource": "",
+            "contribute": "",
+            "made_with_love": ""
         }
     },
 

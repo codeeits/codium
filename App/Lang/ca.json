@@ -32,7 +32,7 @@
     "footer": {
         "description": {
             "text-1": "© 2026 Codium. Tots els drets reservats.",
-            "text-2": "Dissenyat i desenvolupat per un equip d'estudiants de secundària apassionats per la programació i l'educació."
+            "text-2": ""
         },
         "legal": "Legal",
         "terms": "Condicions del servei",
@@ -203,10 +203,10 @@
             }
         },
         "footer": {
-            "copyright": "© 2026 Codium. Tots els drets reservats.",
-            "opensource": "Codium és un projecte de codi obert.",
-            "contribute": "Contribueix al GitHub",
-            "made_with_love": "realitzat amb ♥ per andrew & codeeits ^_^"
+            "copyright": "",
+            "opensource": "",
+            "contribute": "",
+            "made_with_love": ""
         }
     },
 
