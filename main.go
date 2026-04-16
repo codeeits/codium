@@ -130,6 +130,7 @@ func main() {
 		mux.Handle("POST /api/users/totp", cfg.HeaderSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.CreateTOTPHandler)))
 		mux.Handle("POST /api/users/totp/validate", cfg.HeaderSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.ValidateTOTPHandler)))
 		mux.Handle("POST /api/users/totp/authenticate", http.HandlerFunc(cfg.AuthOTPHandler))
+		mux.Handle("POST /api/users/logout", http.HandlerFunc(cfg.LogoutHandler))
 
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", cfg.HeaderSettingsMiddleware(http.HandlerFunc(cfg.GetFileHandler)))
