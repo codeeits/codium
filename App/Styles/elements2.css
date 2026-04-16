@@ -97,8 +97,8 @@ body {
     --danger-border:              oklch(from var(--base-danger-border) l c calc(h + var(--rotation)));
     --text-cream:                 oklch(from var(--base-text-cream) l c calc(h + var(--rotation)));
     --border-subtle:              oklch(from var(--base-border-subtle) l c calc(h + var(--rotation)));
-    --card-shadow:                var(--base-card-shadow);
-    --primary-shadow:             var(--base-primary-shadow);
+    --card-shadow:                oklch(from var(--base-card-shadow) l c calc(h + var(--rotation)));
+    --primary-shadow:             oklch(from var(--base-primary-shadow) l c calc(h + var(--rotation)));
 
     --small-font-size:  calc(var(--base-small-size) * var(--font-scale));
     --body-font-size:   calc(var(--base-body-size) * var(--font-scale));
@@ -119,6 +119,27 @@ body {
     display:          flex;
     flex-direction:   column;
     padding:          0 var(--padding-left-right);
+}
+
+body.light-mode {
+    --fundal:                     oklch(from var(--base-fundal) 0.96 0.01 calc(h + var(--rotation))); 
+    --contrast:                   #FFFFFF;
+    --border2-solid:              oklch(from var(--base-border2-solid) 0.85 0.02 calc(h + var(--rotation)));
+    --border-subtle:              rgba(0, 0, 0, 0.12);
+    --text-colour:                oklch(from var(--base-text-colour) 0.20 0.02 calc(h + var(--rotation)));
+    --text-cream:                 oklch(from var(--base-text-cream) 0.35 0.02 calc(h + var(--rotation)));
+    --disabled-text:              oklch(from var(--base-disabled-text) 0.60 0.02 calc(h + var(--rotation)));
+    --text-colour-primary-button: #FFFFFF;
+    --primary:                    oklch(from var(--base-primary) 0.55 0.18 calc(h + var(--rotation)));
+    --confirm:                    oklch(from var(--base-confirm) 0.50 0.12 calc(h + var(--rotation)));
+    --warning:                    oklch(from var(--base-warning) 0.55 0.15 calc(h + var(--rotation)));
+    --danger:                     oklch(from var(--base-danger) 0.45 0.5 calc(h + var(--rotation)));
+    --confirm-border:             oklch(from var(--base-confirm-border) 0.40 0.12 calc(h + var(--rotation)));
+    --warning-border:             oklch(from var(--base-warning-border) 0.45 0.15 calc(h + var(--rotation)));
+    --danger-border:              oklch(from var(--base-danger-border) 0.35 0.12 calc(h + var(--rotation)));
+
+    --card-shadow:                0px 2px 10px 0px rgba(0, 0, 0, 0.08);
+    --primary-shadow:             0px 2px 8px 0px oklch(from var(--primary) l c h / 0.3);
 }
 
 body.high-contrast {
@@ -327,19 +348,19 @@ table td:not(:first-child) {
 .small-text {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
-    color: var(--text-colour);
+    color: inherit;
 }
 
 .medium-text {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
-    color: var(--text-colour);
+    color: inherit;
 }
 
 .large-text {
     font-size: var(--h2-font-size);
     font-weight: var(--h2-font-weight);
-    color: var(--text-colour);
+    color: inherit;
 }
 
 .high-contrast span.large-text:hover {
@@ -702,6 +723,7 @@ main, .content-area {
 .btn.confirm {
     background-color: var(--confirm);
     transition: background-color 0.3s ease-in-out;
+    color: var(--text-colour-primary-button);
 }
 
 .btn.confirm:hover {
@@ -711,6 +733,7 @@ main, .content-area {
 .btn.danger {
     background-color: var(--danger);
     transition: background-color 0.3s ease-in-out;
+    color: var(--text-colour-primary-button);
 }
 
 .btn.danger:hover {
@@ -784,6 +807,7 @@ main, .content-area {
 
 .switch input:checked + .slider::before {
     transform: translateX(15px);
+    background-color: var(--text-colour-primary-button);
 }
 
 .high-contrast .switch input:checked + .slider::before {
@@ -1502,6 +1526,10 @@ blockquote {
     background-color: var(--confirm);
     border-color: var(--confirm-border);
     box-shadow: 0px 0px 7.5px 0px rgba(101, 157, 72, 0.3);
+}
+
+body.light-mode .toast-confirm * {
+    color: var(--text-colour-primary-button);
 }
 
 .toast-warning {

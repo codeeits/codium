@@ -17,6 +17,7 @@ const PreferencesManager = {
     defaults: {
         hueRotation: 0,
         fontSize: 'font-size-medium',
+        lightMode: false,
         highContrast: false,
         colorblind: false
     },
@@ -63,25 +64,48 @@ const ThemeManager = {
     toggleHighContrast: () => {
         document.body.classList.toggle('high-contrast');
         document.body.classList.remove('colorblind');
+        document.body.classList.remove('light-mode');
         PreferencesManager.setProperty('highContrast', document.body.classList.contains('high-contrast'));
+        PreferencesManager.setProperty('colorblind', false);
+        PreferencesManager.setProperty('lightMode', false);
     },
 
     toggleColorblind: () => {
         document.body.classList.toggle('colorblind');
         document.body.classList.remove('high-contrast');
+        document.body.classList.remove('light-mode');
         PreferencesManager.setProperty('colorblind', document.body.classList.contains('colorblind'));
+        PreferencesManager.setProperty('highContrast', false);
+        PreferencesManager.setProperty('lightMode', false);
+    },
+
+    toggleLightMode: () => {
+        document.body.classList.toggle('light-mode');
+        document.body.classList.remove('high-contrast');
+        document.body.classList.remove('colorblind');
+        PreferencesManager.setProperty('lightMode', document.body.classList.contains('light-mode'));
+        PreferencesManager.setProperty('highContrast', false);
+        PreferencesManager.setProperty('colorblind', false);
     },
 
     applyStoredSettings: () => {
-        // High Contrast
-        if (PreferencesManager.getProperty('highContrast') || 
-           (window.matchMedia('(prefers-contrast: more)').matches || window.matchMedia('(forced-colors: active)').matches)) {
-            document.body.classList.add('high-contrast');
-        }
+        const prefersHighContrast = window.matchMedia('(prefers-contrast: more)').matches || window.matchMedia('(forced-colors: active)').matches;
+        const hasStoredHighContrast = PreferencesManager.getProperty('highContrast');
+        const hasStoredColorblind = PreferencesManager.getProperty('colorblind');
+        const hasStoredLightMode = PreferencesManager.getProperty('lightMode');
 
-        // Colorblind
-        if (PreferencesManager.getProperty('colorblind')) {
+        // Prevent conflicting theme classes and keep one active mode at a time.
+        document.body.classList.remove('high-contrast', 'colorblind', 'light-mode');
+
+        // High Contrast
+        if (hasStoredHighContrast || prefersHighContrast) {
+            document.body.classList.add('high-contrast');
+        } else if (hasStoredColorblind) {
+            // Colorblind
             document.body.classList.add('colorblind');
+        } else if (hasStoredLightMode) {
+            // Light mode
+            document.body.classList.add('light-mode');
         }
 
         // Hue Rotation
@@ -101,6 +125,7 @@ const ThemeManager = {
 
 window.highContrastMode = ThemeManager.toggleHighContrast;
 window.colorblindMode = ThemeManager.toggleColorblind;
+window.lightMode = ThemeManager.toggleLightMode;
 window.applyStoredFontSize = ThemeManager.applyStoredSettings;
 
 // prevent FOUC by applying theme settings as early as possible
