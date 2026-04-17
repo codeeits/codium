@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // other settings
         otherSettingsCard: document.getElementById('otherStuffCard'),
         languageSelect: document.getElementById('language-selector-dropdown'),
-        uiSelect: document.getElementById('ui-selector-dropdown'),
         supportBtn: document.getElementById('support-form'),
     };
 

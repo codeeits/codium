@@ -133,7 +133,7 @@ body.light-mode {
     --primary:                    oklch(from var(--base-primary) 0.55 0.18 calc(h + var(--rotation)));
     --confirm:                    oklch(from var(--base-confirm) 0.50 0.12 calc(h + var(--rotation)));
     --warning:                    oklch(from var(--base-warning) 0.55 0.15 calc(h + var(--rotation)));
-    --danger:                     oklch(from var(--base-danger) 0.45 0.5 calc(h + var(--rotation)));
+    --danger:                     oklch(from var(--base-danger) 0.54 0.46 calc(h + 12 + var(--rotation)));
     --confirm-border:             oklch(from var(--base-confirm-border) 0.40 0.12 calc(h + var(--rotation)));
     --warning-border:             oklch(from var(--base-warning-border) 0.45 0.15 calc(h + var(--rotation)));
     --danger-border:              oklch(from var(--base-danger-border) 0.35 0.12 calc(h + var(--rotation)));

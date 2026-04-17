@@ -5,7 +5,7 @@ const EXPERIMENTAL_SECTIONS = [
             {
                 title: 'New user dashboard',
                 description: 'Sidebar-based account page with newer profile and progress layout.',
-                href: '/app/user2.html',
+                href: '/app/user.html',
                 icon: 'fa-user',
                 tag: 'new ui'
             },
