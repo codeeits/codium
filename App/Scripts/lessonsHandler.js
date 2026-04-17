@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // ------------------------------
     
-    const currentUser = await window.apiService.getCurrentUser();
+    const currentUser = await window.apiService.users.getCurrentUser();
     /*
     if (currentUser === null) {
         // Not logged in
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         try {
 
             // GET LAST LESSON IN SECTION TO SET PREVIOUS LESSON ID
-            let lastLesson = await window.apiService.getLessonsByFlags(
+            let lastLesson = await window.apiService.lessons.getLessonsByFlags(
                 formData.class, 
                 formData.section, 
                 formData.module
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             console.log(`Last lesson in section:`, lastLesson);
 
             // UPLOAD THE LESSON
-            responseData = await window.apiService.uploadLesson(formData, fileS);
+            responseData = await window.apiService.lessons.uploadLesson(formData, fileS);
             
             console.log("Lesson uploaded successfully.");
             console.log(responseData);
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             
             // Check if this is the first lesson in the section and assign section_starter if needed
             try {
-                const existingLessons = await window.apiService.getLessonsByFlags(
+                const existingLessons = await window.apiService.lessons.getLessonsByFlags(
                     formData.class, 
                     formData.section, 
                     formData.module
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 console.log(`Existing lessons in section ${formData.section}:`, lessonsData);
                 if (lessonsData.length === 1) {
                     console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
-                    await window.apiService.updateLessonSectionStarter(responseData.lesson.ID, formData.section);
+                    await window.apiService.lessons.updateLessonSectionStarter(responseData.lesson.ID, formData.section);
                     toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
                 } else {
                     // assign PreviousLessonID to current lesson
@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     nextLess: nextLess
                 });
                 
-                await window.apiService.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
+                await window.apiService.lessons.updateLessonOrder(responseData.lesson.ID, prevLess, nextLess);
                 toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
             }
         } catch (error) {

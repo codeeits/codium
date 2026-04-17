@@ -132,6 +132,23 @@
     </form>
 </template>
 
+<template id="modal-tpl-totp-auth">
+    <form action="" id="totpAuthForm">
+        <p class="modal-message">Enter the code from your authenticator app or one of your backup codes.</p>
+        <div class="modal-field" style="margin-top: var(--gap-md);">
+            <label for="totpAuthCode" class="input-label">2FA code</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" name="totpCode" id="totpAuthCode" placeholder="123456" minlength="6" maxlength="64" autocomplete="one-time-code" autofocus>
+                <i class="fa-solid fa-shield-halved input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="modal-confirm-button">Verify</button>
+        </div>
+    </form>
+</template>
+
 <template id="modal-tpl-totp-setup">
     <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-1">Set up Time-based One-Time Password (TOTP) for enhanced security.</p>
     <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-2">Scan the QR code below with your authenticator app, then enter the generated code to verify.</p>

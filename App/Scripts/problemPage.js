@@ -269,7 +269,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Thumbnail
         if (state.meta.thumbnailId && elements.thumbnail) {
-            elements.thumbnail.src = window.apiService.getFileUrl(state.meta.thumbnailId);
+            elements.thumbnail.src = window.apiService.fileManager.getFileUrl(state.meta.thumbnailId);
             elements.thumbnail.style.display = "block";
         }
 

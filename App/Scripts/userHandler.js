@@ -47,9 +47,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
-    const currentUser = await window.apiService.getCurrentUser() .catch(err => {
+    const currentUser = await window.apiService.users.getCurrentUser() .catch(err => {
         console.error('Failed to get current user:', err);
-        window.apiService.logout(false);
+        window.apiService.users.logout(false);
     });
     const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
     userId = userData.ID;
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ------------------------------
 
     logoutBtn.addEventListener('click', function() {
-        window.apiService.logout(true);
+        window.apiService.users.logout(true);
     });
 
     // ------------------------------
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     addLessonBtn.addEventListener('click', async function() {
         try {
-            const isAdmin = await window.apiService.isCurrentAdmin(); 
+            const isAdmin = await window.apiService.users.isCurrentAdmin(); 
             
             if (isAdmin) {
                 window.location.href = 'lesson-upload.html';
@@ -89,14 +89,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function loadUserProfile() {
         
         try {
-            let userData = await window.apiService.getCurrentUser();
+            let userData = await window.apiService.users.getCurrentUser();
             console.log(userData);
             // display the data
             console.log(userData.Username);
             userName.textContent = userData.Username;
             userEmail.textContent = userData.Email;
             if (userData.ProfilePicID) {
-                const imgUrl = await window.apiService.getFileUrl(userData.ProfilePicID);
+                const imgUrl = await window.apiService.fileManager.getFileUrl(userData.ProfilePicID);
                 avatarImg.src = imgUrl;
             } else {
                 avatarImg.style.display = 'none';
@@ -226,10 +226,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // image upload
         if (formData.profilePicture) {
-            const uploadResult = await window.apiService.uploadFile(formData.profilePicture);
+            const uploadResult = await window.apiService.fileManager.uploadFile(formData.profilePicture);
             imgID = uploadResult.file_id;
             console.log('Uploaded image ID:', imgID);
-            await window.apiService.updateProfilePicture(imgID);
+            await window.apiService.users.updateProfilePicture(imgID);
         }
         
         for (const key in formData) {
@@ -237,12 +237,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (key === 'profilePicture') continue; // already handled
                 
                 if (key === 'email') {
-                    await window.apiService.updateEmail(formData[key]);
+                    await window.apiService.users.updateEmail(formData[key]);
                 } else if (key === 'username') {
-                    await window.apiService.updateUsername(formData[key]);
+                    await window.apiService.users.updateUsername(formData[key]);
                 } else if (key === 'newPassword' && formData.oldPassword) {
                     try {
-                        await window.apiService.updatePassword(formData.oldPassword, formData.newPassword);
+                        await window.apiService.users.updatePassword(formData.oldPassword, formData.newPassword);
                         console.log('Password update successful');
                     } catch (error) {
                         console.error('Password update failed:', error);
@@ -266,14 +266,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let bookmarks = [];
 
-    bookmarks = await window.apiService.getBookmarks(userId);
+    bookmarks = await window.apiService.users.getBookmarks(userId);
 
     if (bookmarks.length === 0) {
         bookmarksContainer.innerHTML = '<p>No bookmarks yet.</p>';
     } else {
         bookmarksContainer.innerHTML = '';
         for(const bookmarkEle of bookmarks) {
-            const lessonData = await window.apiService.getLessonById(bookmarkEle.LessonID);
+            const lessonData = await window.apiService.users.getLessonById(bookmarkEle.LessonID);
             const bookmarkClone = bookmarkTemplate.cloneNode(true);
             bookmarkClone.style.display = 'flex';
             bookmarkClone.id = `bookmark-${lessonData.lesson.ID}`;
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let recentActivities = [];
 
-    recentActivities = await window.apiService.getInteractions(userId, 6);
+    recentActivities = await window.apiService.lessons.getInteractions(userId, 6);
 
     if (recentActivities.length === 0) {
         recentContainer.innerHTML = '<p>No recent activity.</p>';
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         for(const activity of recentActivities) {
 
-            const lessonData = await window.apiService.getLessonById(activity.LessonID);
+            const lessonData = await window.apiService.lessons.getLessonById(activity.LessonID);
             const activityClone = recentTemplate.cloneNode(true);
             activityClone.style.display = 'flex';
             activityClone.id = `activity-${activity.ID}`;

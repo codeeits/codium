@@ -367,7 +367,7 @@ async function updateAuthButton() {
 
         if (els.logout) {
             els.logout.classList.remove('hidden');
-            els.logout.onclick = () => window.apiService?.logout(true);
+            els.logout.onclick = () => window.apiService?.users.logout(true);
         }
 
         if (els.userName) els.userName.textContent = displayUsername || 'User';
@@ -547,7 +547,7 @@ async function handleLogin(formElement) {
 
     console.log('Form Data:', data);
 
-    ModalHelpers.LoginPopup.performLogin(data).then(() => {
+    ModalHelpers.LoginPopup.performLogin(data, { engine }).then(() => {
         toastsLoader.showToast('Login successful!', 'confirm');
         updateAuthButton();
     }).catch(err => {

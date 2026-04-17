@@ -70,7 +70,7 @@
             console.log("Payload ready to send:", apiPayload);
 
             try {
-                if (!window.apiService || typeof window.apiService.bulkUploadProblems !== 'function') {
+                if (!window.apiService || typeof window.apiService.problems.bulkUploadProblems !== 'function') {
                     throw new Error('API service is not available on this page.');
                 }
 
@@ -85,7 +85,7 @@
                     test: findSheet('test')
                 };
 
-                const result = await window.apiService.bulkUploadProblems(normalizedPayload);
+                const result = await window.apiService.problems.bulkUploadProblems(normalizedPayload);
                 console.log('Bulk upload result:', result);
                 
                 alert("Success! Bulk upload completed. Check your browser console.");

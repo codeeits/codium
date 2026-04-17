@@ -71,13 +71,6 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'template'
             },
             {
-                title: 'Login template',
-                description: 'Standalone login template sample used by the modal engine.',
-                href: '/app/templates.html',
-                icon: 'fa-id-card',
-                tag: 'template'
-            },
-            {
                 title: 'PDF builder template',
                 description: 'HTML shell for the PDF builder helper.',
                 href: '/app/Scripts/helper/pdfTemplate.html',
@@ -132,31 +125,10 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'legacy'
             },
             {
-                title: 'Legacy login flow (draft)',
-                description: 'Login page before v1. Kept for fun.',
-                href: '/app/o-login.html',
-                icon: 'fa-right-to-bracket',
-                tag: 'legacy'
-            },
-            {
                 title: 'Legacy signup flow (v1)',
                 description: 'Old signup page, useful when checking backwards compatibility.',
                 href: '/app/signup.html',
                 icon: 'fa-user-plus',
-                tag: 'legacy'
-            },
-            {
-                title: 'Legacy signup flow (draft)',
-                description: 'Signup page before v1. Kept for fun.',
-                href: '/app/o-signup.html',
-                icon: 'fa-user-plus',
-                tag: 'legacy'
-            },
-            {
-                title: 'Legacy user profile (v1)',
-                description: 'Old user profile page with the original layout and features.',
-                href: '/app/user.html',
-                icon: 'fa-address-card',
                 tag: 'legacy'
             }
         ]

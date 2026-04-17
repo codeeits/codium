@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         element.addEventListener('click', onActivate);
     }
 
-    problemsList = await window.apiService.getProblems();
+    problemsList = await window.apiService.problems.getProblems();
     //console.log(problemsList);
 
     problemsList.forEach(async element => {
@@ -43,14 +43,14 @@ document.addEventListener("DOMContentLoaded", async function() {
         problemClone.querySelector('.problem-tag').textContent = `#${element.problem.Title.toLowerCase().replace(/\s+/g, '')}`;
         
         if (element.problem.ThumbnailFileID != null){
-            const url = window.apiService.getFileUrl(element.problem.ThumbnailFileID);
+            const url = window.apiService.fileManager.getFileUrl(element.problem.ThumbnailFileID);
             problemClone.querySelector('.problem-image').src = url;
         } else {
             problemClone.querySelector('.problem-image').remove();
         }
 
         if (element.problem.AuthorID != null){
-            const authorData = await window.apiService.getUserById(element.problem.AuthorID);
+            const authorData = await window.apiService.fileManager.getUserById(element.problem.AuthorID);
             problemClone.querySelector('.problem-author-name').textContent = authorData.Username;
     
             if (authorData.ProfilePicID != null) {
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 avatarWrapper.innerHTML = ''; // Clear placeholder
                 const img = document.createElement('img');
                 img.classList.add('author-avatar-img');
-                img.src = window.apiService.getFileUrl(authorData.ProfilePicID);
+                img.src = window.apiService.fileManager.getFileUrl(authorData.ProfilePicID);
                 img.alt = "Author Avatar";
                 avatarWrapper.appendChild(img);
             }

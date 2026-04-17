@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 password: password
             };
             
-            const result = await window.apiService.signup(userData);
+            const result = await window.apiService.users.signup(userData);
 
             handleSignupSuccess();
 

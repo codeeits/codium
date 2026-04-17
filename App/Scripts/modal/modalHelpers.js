@@ -116,17 +116,17 @@ export class ModalHelpers {
             }
 
             if (data.profilePicture) {
-                const uploadResult = await window.apiService.uploadFile(data.profilePicture);
-                await window.apiService.updateProfilePicture(uploadResult.file_id);
+                const uploadResult = await window.apiService.fileManager.uploadFile(data.profilePicture);
+                await window.apiService.users.updateProfilePicture(uploadResult.file_id);
                 // localStorage.setItem('profilePicID', uploadResult.file_id);
                                 
             }
             
-            if (data.email) await window.apiService.updateEmail(data.email);
-            if (data.username) await window.apiService.updateUsername(data.username);
+            if (data.email) await window.apiService.users.updateEmail(data.email);
+            if (data.username) await window.apiService.users.updateUsername(data.username);
             
             if (data.newPassword && data.oldPassword) {
-                await window.apiService.updatePassword(data.oldPassword, data.newPassword);
+                await window.apiService.users.updatePassword(data.oldPassword, data.newPassword);
             }
 
             const user = window.apiService.getCachedCurrentUser();
@@ -186,8 +186,56 @@ export class ModalHelpers {
                 valid: true, 
             };
         },
+
+        requestTotpCode: async ({ engine, title = 'Two-Factor Authentication', icon = 'fa-shield-halved' } = {}) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                const fallback = prompt('Enter your 2FA code (or backup code):');
+                if (!fallback || !fallback.trim()) {
+                    throw new Error('2FA code is required to complete login.');
+                }
+                return fallback.trim();
+            }
+
+            return await new Promise((resolve, reject) => {
+                let settled = false;
+
+                engine.openModal({
+                    type: 'totp-auth',
+                    title,
+                    icon,
+                    onConfirm: (formElement) => {
+                        const input = formElement?.querySelector('#totpAuthCode');
+                        const code = input?.value?.trim() || '';
+
+                        if (!code) {
+                            if (!settled) {
+                                settled = true;
+                                reject(new Error('2FA code is required to complete login.'));
+                            }
+                            return;
+                        }
+
+                        if (!settled) {
+                            settled = true;
+                            resolve(code);
+                        }
+                    },
+                    onCancel: () => {
+                        if (!settled) {
+                            settled = true;
+                            reject(new Error('2FA verification was cancelled.'));
+                        }
+                    }
+                }).catch((error) => {
+                    if (!settled) {
+                        settled = true;
+                        reject(error);
+                    }
+                });
+            });
+        },
         
-        performLogin: async (data) => {
+        performLogin: async (data, { engine } = {}) => {
 
             const validation = ModalHelpers.LoginPopup.validateForm(data);
 
@@ -195,18 +243,15 @@ export class ModalHelpers {
                 throw new Error(validation.error);
             }
 
-            const loginResult = await window.apiService.login(data.email, data.password);
+            const loginResult = await window.apiService.users.login(data.email, data.password);
+            let finalLoginResult = loginResult;
 
             if (loginResult?.requiresTotp && loginResult?.validationToken) {
-                const otp = prompt('Enter your 2FA code (or backup code):');
-                if (!otp || !otp.trim()) {
-                    throw new Error('2FA code is required to complete login.');
-                }
-
-                return await window.apiService.users.authenticateWithTOTP(loginResult.validationToken, otp.trim());
+                const otp = await ModalHelpers.LoginPopup.requestTotpCode({ engine });
+                finalLoginResult = await window.apiService.users.authenticateWithTOTP(loginResult.validationToken, otp);
             }
             
-            if (loginResult) {
+            if (finalLoginResult) {
                 const user = window.apiService.getCachedCurrentUser();
                 
                 window.dispatchEvent(new CustomEvent('codium:login-success', {
@@ -218,7 +263,7 @@ export class ModalHelpers {
                 }));
             }
 
-            return loginResult;
+            return finalLoginResult;
         }
 
     };

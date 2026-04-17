@@ -7,10 +7,14 @@
 Pentru optimizare si mentabilitate. si pentru a reduce codul duplicat.
 */
 
+import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
+
 document.addEventListener('DOMContentLoaded', async function() {
     const baseurl = window.location.href;
     const form = document.getElementById('loginForm');
     const submitButton = form.querySelector('input[type="submit"]');
+    const engine = new ModalEngine();
 
     // Redirect daca e auth
     if (await window.apiService.checkAuthentication(false)) {
@@ -46,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function handleLoginSuccess() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
-        redirectTo = baseurl.split("?redirect=")[1];
+        const redirectTo = baseurl.split("?redirect=")[1];
 
         if (redirectTo) {
             window.location.href = decodeURIComponent(redirectTo);
@@ -81,17 +85,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         setLoadingState(true);
 
         try {
-            const result = await window.apiService.login(email, password);
-
-            if (result?.requiresTotp && result?.validationToken) {
-                const otp = prompt('Enter your 2FA code (or backup code):');
-                if (!otp || !otp.trim()) {
-                    toastsLoader.showToast('2FA code is required to complete login.', 'warning');
-                    return;
-                }
-
-                await window.apiService.users.authenticateWithTOTP(result.validationToken, otp.trim());
-            }
+            await ModalHelpers.LoginPopup.performLogin({ email, password }, { engine });
             
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;

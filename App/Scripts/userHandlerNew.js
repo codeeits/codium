@@ -147,7 +147,7 @@ function bindProfileActions() {
             engine.openModal({
                 type: 'danger-confirmation',
                 onConfirm: () => {
-                    window.apiService.logout();
+                    window.apiService.users.logout();
                 },
                 onCancel: () => {
                     showToast('Logout cancelled.', 'info', 2000);

@@ -32,7 +32,7 @@
     "footer": {
         "description": {
             "text-1": "© 2026 Codium. All rights reserved.",
-            "text-2": " "
+            "text-2": "Designed and developed by a team of high school students passionate about programming and education."
         },
         "legal": "Legal",
         "terms": "Terms of Service",
@@ -203,10 +203,10 @@
             }
         },
         "footer": {
-            "copyright": " ",
-            "opensource": " ",
-            "contribute": " ",
-            "made_with_love": " "
+            "copyright": "© 2026 Codium. All rights reserved.",
+            "opensource": "Codium is an open source project.",
+            "contribute": "Contribute on GitHub",
+            "made_with_love": "made with ♥ by andrew & codeeits ^_^"
         }
     },
 
@@ -275,6 +275,7 @@
             "title": "You don't have any bookmarks yet.",
             "desc": "To get started, explore the available lessons and add them to your bookmarks."
         },
+        "remove_bookmark": "Remove bookmark",
         "buttons": {
             "all": "All",
             "lessons": "Lessons",

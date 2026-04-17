@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             
             if (type === 'lesson') {
-                await window.apiService.modifyBookmark(typeId);
+                await window.apiService.lessons.modifyBookmark(typeId);
             } else if (type === 'problem') {
-                await window.apiService.modifyBookmarkProblem(typeId);
+                await window.apiService.problems.modifyBookmark(typeId);
             }
             
             card.remove();
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Failed to get current user:', err);
-            window.apiService.logout(false);
+            window.apiService.users.logout(false);
         }
     }
 
