@@ -202,14 +202,16 @@ class ApiService {
                 this.setAuthenticatedUser(user);
                 return true;
             } catch (error) {
-                if (error instanceof ApiError && error.status === 401) {
+                if (error instanceof ApiError && (error.status === 401 || error.status === 400)) {
                     this.clearTokens();
                     if (redirect) {
                         window.location.href = `/app/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
                     }
                     return false;
                 }
-                throw error;
+                // we no throwin errors anymore 
+                console.warn('Authentication check encountered an error:', error);
+                return false;
             } finally {
                 this.authStateInFlight = null;
             }
@@ -257,7 +259,7 @@ class ApiService {
         try {
             return await this.refreshInFlight;
         } catch (error) {
-            this.debugRefresh('Session refresh failed. Please log in again.', 'warning');
+            //this.debugRefresh('Session refresh failed. Please log in again.', 'warning');
             this.clearTokens();
             throw error;
         } finally {

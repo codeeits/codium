@@ -223,6 +223,79 @@ export class ModalHelpers {
 
     };
 
+    static SignupPopup = {
+
+        openModal: async ({ engine, onConfirm, title = 'Sign-up', icon = 'fa-arrow-right-to-bracket' }) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                throw new Error('A valid modal engine instance is required.');
+            }
+
+            await engine.openModal({
+                type: 'signup',
+                title,
+                icon,
+                onConfirm: (formElement) => {
+                    if (typeof onConfirm === 'function') {
+                        onConfirm(formElement);
+                    }
+                },
+                onCancel: () => {}
+            });
+
+        },
+
+        validateForm: (data) => {
+            /* data syntax example: 
+                data = {
+                    email: '',
+                    username: '',
+                    password: ''
+                }
+            */
+
+            const { email, username, password } = data;
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) return { valid: false, error: 'Invalid email format' };
+
+            // Password validation
+            if (!password || password.length < 6) return { valid: false, error: 'Password must be at least 6 characters long' };
+
+            // Username validation
+            if (!username || 3 > username.length || 20 < username.length) return {valid: false, error: 'Username must be between 3 and 20 characters'}
+
+            return { 
+                valid: true, 
+            };
+        },
+        
+        performSignup: async (data) => {
+
+            const validation = ModalHelpers.LoginPopup.validateForm(data);
+
+            if (!validation.valid) {
+                throw new Error(validation.error);
+            }
+
+            const signupResult = await window.apiService.users.signup(data);
+            
+            if (signupResult) {
+                const user = window.apiService.getCachedCurrentUser();
+                
+                window.dispatchEvent(new CustomEvent('codium:signup-success', {
+                    detail: {
+                        username: user?.Username,
+                        email: user?.Email
+                    }
+                }));
+            }
+
+            return signupResult;
+        }
+
+    };
+
     static totpSetup = {
 
         activeEngine: null,

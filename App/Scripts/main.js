@@ -311,9 +311,14 @@ async function updateAuthButton() {
         contact: document.getElementById('contact-button'),
     };
 
-    const isAuthenticated = window.apiService
-        ? await window.apiService.checkAuthentication(false)
-        : false;
+    let isAuthenticated = false;
+    if (window.apiService) {
+        try {
+            isAuthenticated = await window.apiService.checkAuthentication(false);
+        } catch (error) {
+            isAuthenticated = false;
+        }
+    }
     let displayUsername = null;
 
     if (isAuthenticated) {
@@ -504,12 +509,14 @@ const InteractionHandler = {
 };
 
 // -----------------------------------------
-// Modal loader (for login button in new ui)
+// Modal loader (for login button and signup in new ui)
 // -----------------------------------------
 
 const engine  = new ModalEngine();
 
 let loginModalBound = false;
+let signupModalBound = false;
+
 function openLoginModal() {
     if (loginModalBound) return;
 
@@ -541,13 +548,57 @@ async function handleLogin(formElement) {
     console.log('Form Data:', data);
 
     ModalHelpers.LoginPopup.performLogin(data).then(() => {
-        toastsLoader.showToast('Login successful!', 'success');
+        toastsLoader.showToast('Login successful!', 'confirm');
         updateAuthButton();
     }).catch(err => {
         console.error('Login failed:', err);
-        toastsLoader.showToast(`Login failed: ${err.message}`, 'error');
+        toastsLoader.showToast(`Login failed: ${err.message}`, 'danger');
     });
 
+}
+
+function openSignupModal() {
+    if (signupModalBound) return;
+
+    document.addEventListener('click', async (event) => {
+        const signupButton = event.target.closest('#get-started-btn');
+        if (!signupButton) return;
+
+        event.preventDefault();
+
+        await ModalHelpers.SignupPopup.openModal({
+            engine,
+            onConfirm: async (formElement) => {
+                console.log('Signup form submitted');
+                handleSignup(formElement);
+            }
+        })
+    });
+}
+
+function handleSignup(formElement) {
+    const formData = new FormData(formElement);
+    const data = {
+        email: formData.get('email'),
+        password: formData.get('password'),
+        username: formData.get('username'),
+        confirm_password: formData.get('confirmPassword')
+    }
+
+    if (data.password !== data.confirm_password) {
+        toastsLoader.showToast('Passwords do not match', 'danger');
+        return;
+    }
+
+    console.log(data);
+
+    ModalHelpers.SignupPopup.performSignup(data).then(() => {
+        toastsLoader.showToast('Signup!', 'confirm', 5000);
+        updateAuthButton();
+    }).catch(err => {
+        console.log(err);
+        toastsLoader.showToast(`Signup failed: ${err.message}`, 'danger');
+    })
 }
 
 // ----------------------------------
@@ -641,6 +692,7 @@ async function initApp() {
     ]);
 
     openLoginModal();
+    openSignupModal();
 
     document.addEventListener('codium:request-translation', (e) => {
         if (e.detail && e.detail.element) {
