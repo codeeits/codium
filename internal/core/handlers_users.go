@@ -178,7 +178,7 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.WriteAuthentificationResponse(w, r, loginTarget.ID, token)
 }
 
-func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, _ *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
@@ -200,7 +200,12 @@ func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{}"))
+	_, err := w.Write([]byte("{}"))
+	if err != nil {
+		cfg.Logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
@@ -293,15 +298,12 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-
-	p, err := DecodeParamsFromBody(r, params{})
-	if err != nil {
-		cfg.Logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+	var refreshToken string
+	cookies := r.Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == "refresh_token" {
+			refreshToken = cookie.Value
+		}
 	}
 
 	cfg.Logger.Print("Received token refresh request")
@@ -313,16 +315,16 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.RefreshToken == "" {
+	if refreshToken == "" {
 		cfg.Logger.Printf("Missing required field: refresh_token")
 		http.Error(w, "Missing required field: refresh_token", http.StatusBadRequest)
 		return
 	}
 
-	storedToken, err := cfg.Db.GetToken(r.Context(), p.RefreshToken)
+	storedToken, err := cfg.Db.GetToken(r.Context(), refreshToken)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.Logger.Printf("Refresh token not found: %v", p.RefreshToken)
+			cfg.Logger.Printf("Refresh token not found: %v", refreshToken)
 			http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 			return
 		}
@@ -332,13 +334,13 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if storedToken.RevokedAt.Valid {
-		cfg.Logger.Printf("Refresh token has been revoked: %v", p.RefreshToken)
+		cfg.Logger.Printf("Refresh token has been revoked: %v", refreshToken)
 		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 		return
 	}
 
 	if time.Now().After(storedToken.ExpiresAt) {
-		cfg.Logger.Printf("Refresh token has expired: %v", p.RefreshToken)
+		cfg.Logger.Printf("Refresh token has expired: %v", refreshToken)
 		http.Error(w, "Refresh token has expired", http.StatusUnauthorized)
 		return
 	}
@@ -350,14 +352,7 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(fmt.Sprintf(`{"auth_token": "%v"}`, token)))
-	if err != nil {
-		cfg.Logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	cfg.WriteAuthentificationResponse(w, r, storedToken.UserID, token)
 }
 
 func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) {
