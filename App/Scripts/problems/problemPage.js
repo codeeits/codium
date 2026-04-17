@@ -7,7 +7,7 @@
 Problem Page Logic
 */
 
-import { renderExternalLibraries, tomarkdown } from './markdownRenderer.js';
+import { renderExternalLibraries, tomarkdown } from '../markdownRenderer.js';
 function getDifficultyLabel(difficulty) {
     const labels = {
         0: "Neclasificat",
