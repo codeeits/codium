@@ -85,7 +85,7 @@ export class ProblemService {
 
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
 
-        if (this.api.isAuthenticated() === false) {
+        if ((await this.api.checkAuthentication(false)) === false) {
             throw new Error('Authentication required to run code against problem tests');
         }
         const problemResponse = await this.getProblemById(problemId);

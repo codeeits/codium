@@ -45,18 +45,8 @@ export class UserService {
 
         if (typeof response === 'string') response = JSON.parse(response);
 
-        if (response.auth_token) {
-            this.api.saveTokens(response.auth_token, response.refresh_token);
-            if (response.user) {
-                localStorage.setItem('username', response.user.Username);
-                localStorage.setItem('userEmail', response.user.Email);
-                localStorage.setItem('isAdmin', response.user.Permissions === 61);
-                localStorage.setItem('userID', response.user.ID);
-
-                if (response.user.ProfilePicID) {
-                    localStorage.setItem('profilePicID', response.user.ProfilePicID);
-                }
-            }
+        if (response.user) {
+            this.api.setAuthenticatedUser(response.user);
         }
         return response;
     }
@@ -67,23 +57,37 @@ export class UserService {
 
     async logout(confirmMessage = false, redirect = true) {
         if (confirmMessage ? confirm('Are you sure you want to log out?') : true) {
-            this.api.clearTokens();
-            if (redirect) {
-                window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
-            }
-            // Trigger auth button update if available
-            if (window.refreshAuthButton) {
-                window.refreshAuthButton();
+            try {
+                await this.api.post('/api/users/logout', {});
+            } catch (error) {
+                if (!(error instanceof ApiError && (error.status === 401 || error.status === 403))) {
+                    throw error;
+                }
+            } finally {
+                this.api.clearTokens();
+
+                if (redirect) {
+                    window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
+                }
+
+                // Trigger auth button update if available
+                if (window.refreshAuthButton) {
+                    window.refreshAuthButton();
+                }
             }
         }
     }
 
     async getCurrentUser() {
-        const userId = localStorage.getItem('userID');
-        if (!userId) {
-            return null;
+        let user = this.api.getCachedCurrentUser();
+        if (user) return user;
+
+        const isAuth = await this.api.checkAuthentication();
+        if (isAuth) {
+            return this.api.getCachedCurrentUser();
         }
-        return this.api.get(`/api/users/${userId}`, true);
+        
+        return null;
     }
 
     async isCurrentAdmin() {
@@ -100,16 +104,28 @@ export class UserService {
     }
 
     async getCurrentUserUsername() {
-        const userID = localStorage.getItem('userID');
-        if (!userID) {
-            throw new Error('No user ID found');
+        const user = await this.getCurrentUser();
+        if (!user) {
+            throw new Error('No user currently authenticated');
         }
-        let userData = await this.api.get(`/api/users/${userID}`, true);
-        userData = typeof userData === 'string' ? JSON.parse(userData) : userData;
-        return userData.Username;
+        return user.Username;
     }
 
     async updateUserField(field, value, pic = false) {
+        const user = this.api.getCachedCurrentUser();
+        if (user) {
+            const fieldMap = {
+                'username': 'Username',
+                'email': 'Email',
+                'image_id': 'ProfilePicID'
+            };
+
+            const userProperty = fieldMap[field];
+            if (userProperty) {
+                user[userProperty] = value; 
+            }
+        }
+
         const data = {};
         data[field] = value;
         return this.api.put(`/api/users?target_field=${pic ? 'pfp' : field}`, data);
@@ -127,8 +143,7 @@ export class UserService {
         return this.updateUserField('email', newEmail);
     }
 
-    async updateUsername(newUsername) {
-        localStorage.setItem('username', newUsername);
+    async updateUsername(newUsername) {    
         return this.updateUserField('username', newUsername);
     }
 
@@ -158,17 +173,8 @@ export class UserService {
 
         if (typeof response === 'string') response = JSON.parse(response);
 
-        if (response.auth_token) {
-            this.api.saveTokens(response.auth_token, response.refresh_token);
-            if (response.user) {
-                localStorage.setItem('username', response.user.Username);
-                localStorage.setItem('userEmail', response.user.Email);
-                localStorage.setItem('isAdmin', response.user.Permissions === 61);
-                localStorage.setItem('userID', response.user.ID);
-                if (response.user.ProfilePicID) {
-                    localStorage.setItem('profilePicID', response.user.ProfilePicID);
-                }
-            }
+        if (response.user) {
+            this.api.setAuthenticatedUser(response.user);
         }
 
         return response;

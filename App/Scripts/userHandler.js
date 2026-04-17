@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CHECK AUTHENTICATION
     // ------------------------------
 
-    window.apiService.isAuthenticated(true);
+    if (!(await window.apiService.checkAuthentication(true))) {
+        return;
+    }
     
     const currentUser = await window.apiService.getCurrentUser() .catch(err => {
         console.error('Failed to get current user:', err);
@@ -65,17 +67,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ADD LESSON BUTTON
     // ------------------------------
 
-    addLessonBtn.addEventListener('click', function() {
-        window.apiService.getCurrentUser().then(userData => {
-            if (userData.IsAdmin) {
+    addLessonBtn.addEventListener('click', async function() {
+        try {
+            const isAdmin = await window.apiService.isCurrentAdmin(); 
+            
+            if (isAdmin) {
                 window.location.href = 'lesson-upload.html';
             } else {
                 alert('Only admins can add lessons.');
             }
-        }).catch(error => {
-            console.error('Failed to get user data:', error);
+        } catch (error) {
+            console.error('Failed to check admin status:', error);
             alert('An error occurred while checking permissions.');
-        });
+        }
     });
     
     // ------------------------------
@@ -151,8 +155,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const form = document.getElementById('editProfileForm');
 
     function initializeForm() {
-        document.getElementById('editEmail').value = localStorage.getItem('userEmail') || '';
-        document.getElementById('editUsername').value = localStorage.getItem('username') || '';
+        const user = window.apiService.getCachedCurrentUser();
+        
+        document.getElementById('editEmail').value = user?.Email || '';
+        document.getElementById('editUsername').value = user?.Username || '';
     }
 
     function deleteTextContainer() {

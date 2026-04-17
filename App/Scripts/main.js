@@ -326,10 +326,19 @@ async function updateAuthButton() {
         hardExit: document.getElementById('hard-lessons-exit-btn')
     };
 
-    const auth = {
-        token: localStorage.getItem('authToken'),
-        username: localStorage.getItem('username')
-    };
+    const isAuthenticated = window.apiService
+        ? await window.apiService.checkAuthentication(false)
+        : false;
+    let displayUsername = null;
+
+    if (isAuthenticated) {
+        try {
+            const currentUser = await window.apiService.users.getCurrentUser();
+            displayUsername = currentUser?.Username || null;
+        } catch (error) {
+            console.warn('Failed to resolve authenticated username for top menu:', error);
+        }
+    }
 
     // Navigation Event Binding Helper
     const bindNav = (el, path, title) => {
@@ -362,7 +371,7 @@ async function updateAuthButton() {
     }
 
     // Auth State Logic
-    if (auth.token && auth.username) {
+    if (isAuthenticated) {
         // Logged In
         if (els.loginOld) els.loginOld.classList.add('hidden');
         if (els.loginNew) els.loginNew.classList.add('hidden');
@@ -383,7 +392,7 @@ async function updateAuthButton() {
             els.logout.onclick = () => window.apiService?.logout(true);
         }
 
-        if (els.userName) els.userName.textContent = auth.username;
+        if (els.userName) els.userName.textContent = displayUsername || 'User';
         if (els.avatar && window.apiService) {
             els.avatar.src = await window.apiService.fileManager.getProfilePicture();
         }
@@ -667,7 +676,7 @@ async function initApp() {
     });
 
     window.addEventListener('storage', (e) => {
-        if (['authToken', 'username', 'profilePicID'].includes(e.key)) updateAuthButton();
+        if (['profilePicID'].includes(e.key)) updateAuthButton();
     });
     
     window.addEventListener('focus', updateAuthButton);

@@ -118,7 +118,8 @@ export class ModalHelpers {
             if (data.profilePicture) {
                 const uploadResult = await window.apiService.uploadFile(data.profilePicture);
                 await window.apiService.updateProfilePicture(uploadResult.file_id);
-                localStorage.setItem('profilePicID', uploadResult.file_id);
+                // localStorage.setItem('profilePicID', uploadResult.file_id);
+                                
             }
             
             if (data.email) await window.apiService.updateEmail(data.email);
@@ -128,11 +129,13 @@ export class ModalHelpers {
                 await window.apiService.updatePassword(data.oldPassword, data.newPassword);
             }
 
+            const user = window.apiService.getCachedCurrentUser();
+
             window.dispatchEvent(new CustomEvent('codium:profile-updated', {
                 detail: {
-                    username: data.username || localStorage.getItem('username'),
-                    email: data.email || localStorage.getItem('userEmail'),
-                    profilePicID: localStorage.getItem('profilePicID')
+                    username: user?.Username,
+                    email: user?.Email,
+                    profilePicID: user?.ProfilePicID
                 }
             }));
 
@@ -203,12 +206,14 @@ export class ModalHelpers {
                 return await window.apiService.users.authenticateWithTOTP(loginResult.validationToken, otp.trim());
             }
             
-            if (loginResult.success) {
+            if (loginResult) {
+                const user = window.apiService.getCachedCurrentUser();
+                
                 window.dispatchEvent(new CustomEvent('codium:login-success', {
                     detail: {
-                        username: loginResult.username,
-                        email: loginResult.email,
-                        profilePicID: loginResult.profilePicID
+                        username: user?.Username,
+                        email: user?.Email,
+                        profilePicID: user?.ProfilePicID
                     }
                 }));
             }

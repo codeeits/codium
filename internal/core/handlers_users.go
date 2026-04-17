@@ -54,22 +54,28 @@ func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// Add httpOnly to the response token
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	userJson, err := PrintUserToJson(loginTarget)
-	if err != nil {
-		cfg.Logger.Printf("Failed to marshal user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	jwt = strings.TrimSpace(jwt)
-	refreshToken = strings.TrimSpace(refreshToken)
-	_, err = w.Write([]byte(fmt.Sprintf(`{"user":%v, "auth_token": "%v", "refresh_token": "%v"}`, userJson, jwt, refreshToken)))
-	if err != nil {
-		cfg.Logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    jwt,
+		HttpOnly: true,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour * 120),
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, loginTarget, PrintUserToJson)
 }
 
 /*
@@ -170,6 +176,31 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg.WriteAuthentificationResponse(w, r, loginTarget.ID, token)
+}
+
+func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{}"))
 }
 
 func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {

@@ -828,10 +828,20 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 }
 
 func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.Logger.Printf("Unauthorized access attempt: %v", err)
-		return database.User{}, err
+	cookies := r.Cookies()
+	var token string
+	cfg.Logger.Printf("Authenticating user: %v", cookies)
+	if len(cookies) != 0 {
+		for _, cookie := range cookies {
+			if cookie.Name == "session_token" {
+				token = cookie.Value
+				break
+			}
+		}
+		if token == "" {
+			cfg.Logger.Printf("Cookie not found in sessionToken")
+			return database.User{}, fmt.Errorf("sessionToken not found in cookies")
+		}
 	}
 
 	targetId, err := auth.ValidateUUIDJWT(token, cfg.Secret)
@@ -1059,7 +1069,7 @@ func UserHasPermission(user database.User, permission UserPermissions) bool {
 	return (UserPermissions(user.Permissions) & permission) == permission
 }
 
-func (cfg *ApiCfg) CacheBusterMiddleware(handler http.Handler) http.HandlerFunc {
+func (cfg *ApiCfg) HeaderSettingsMiddleware(handler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if cfg.WebsiteState == "development" {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")

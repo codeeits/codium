@@ -7,13 +7,13 @@
 Pentru optimizare si mentabilitate. si pentru a reduce codul duplicat.
 */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const baseurl = window.location.href;
     const form = document.getElementById('loginForm');
     const submitButton = form.querySelector('input[type="submit"]');
 
     // Redirect daca e auth
-    if (window.apiService.isAuthenticated()) {
+    if (await window.apiService.checkAuthentication(false)) {
         window.location.href = 'user.html';
         return;
     }

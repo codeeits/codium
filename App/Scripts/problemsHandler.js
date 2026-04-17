@@ -725,8 +725,8 @@ Object.assign(window, {
 // AUTH CHECK ON LOAD
 // ===========================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!api.isAuthenticated()) {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!(await api.checkAuthentication(false))) {
         console.warn('Not authenticated - some operations will fail');
         document.body.insertAdjacentHTML('afterbegin', 
             '<div style="background:#a44;color:#fff;padding:10px;text-align:center;margin-bottom:10px;">⚠️ Not authenticated. Please log in first for write operations.</div>'
