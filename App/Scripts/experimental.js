@@ -12,14 +12,14 @@ const EXPERIMENTAL_SECTIONS = [
             {
                 title: 'New lessons index',
                 description: 'Updated lessons browser with the newer navigation shell.',
-                href: '/app/Lectii/lessons2.html',
+                href: '/app/Lectii/lessons.html',
                 icon: 'fa-book',
                 tag: 'new ui'
             },
             {
                 title: 'New problems index',
                 description: 'Problems listing with the newer card flow and sidebar.',
-                href: '/app/Probleme/index2.html',
+                href: '/app/Probleme/index.html',
                 icon: 'fa-code',
                 tag: 'new ui'
             },

@@ -80,7 +80,7 @@ function setContinueEmptyState() {
     elements.continueDifficulty.textContent = '-';
     elements.continueButton.textContent = 'Browse lessons';
     elements.continueButton.onclick = () => {
-        window.location.href = '/app/Lectii/lessons2.html';
+        window.location.href = '/app/Lectii/lessons.html';
     };
 
     if (elements.continuePrevBtn) {

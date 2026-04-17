@@ -279,109 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
-    function initUiDropdown() {
-        const dropdown = elements.uiSelect;
-
-        const uiConfig = window.CodiumUI || {
-            UI_VERSION_KEY: 'uiVersion',
-            UI_VERSION_OLD: '1.0.0',
-            UI_VERSION_NEW: '2.1.0'
-        };
-
-        const routeByPath = {
-            '/app/user.html': { old: '/app/user.html', modern: '/app/user2.html' },
-            '/app/user2.html': { old: '/app/user.html', modern: '/app/user2.html' },
-            '/app/Lectii/lessons.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
-            '/app/Lectii/lessons2.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
-            '/app/Probleme/index.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
-            '/app/Probleme/index2.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
-            '/app/Lectii/manage-lessons.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' },
-            '/app/Lectii/manage-lessons2.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' }
-        };
-
-        const getCurrentVersion = () => {
-            const saved = localStorage.getItem(uiConfig.UI_VERSION_KEY);
-            if (saved === uiConfig.UI_VERSION_OLD || saved === uiConfig.UI_VERSION_NEW) {
-                return saved;
-            }
-            const variant = document.querySelector('meta[name="menu-variant"]')?.content;
-            return variant === 'new' ? uiConfig.UI_VERSION_NEW : uiConfig.UI_VERSION_OLD;
-        };
-
-        let currentVersion = getCurrentVersion();
-
-        const applyUiDropdownState = (version) => {
-            const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-            const items = dropdown.querySelectorAll('.dropdown-item');
-
-            toggleBtn.innerHTML = `${version === uiConfig.UI_VERSION_OLD ? 'V.1.0.0' : 'V.2.1.0'} <i class="fa-solid fa-chevron-down"></i>`;
-            items.forEach(i => {
-                if (i.dataset.version === version) {
-                    i.classList.add('active');
-                } else {
-                    i.classList.remove('active');
-                }
-            });
-        };
-
-        const switchUiVersion = (selectedVersion) => {
-            localStorage.setItem(uiConfig.UI_VERSION_KEY, selectedVersion);
-            currentVersion = selectedVersion;
-
-            const targetMode = selectedVersion === uiConfig.UI_VERSION_OLD ? 'old' : 'modern';
-            const currentPath = window.location.pathname;
-            const mappedRoute = routeByPath[currentPath]?.[targetMode];
-            const fallbackRoute = selectedVersion === uiConfig.UI_VERSION_OLD ? '/app/user.html' : '/app/user2.html';
-            const targetRoute = mappedRoute || fallbackRoute;
-
-            applyUiDropdownState(selectedVersion);
-
-            if (targetRoute !== currentPath) {
-                window.location.href = targetRoute;
-                return;
-            }
-
-            toastsLoader.showToast(`UI version set to ${selectedVersion}.`, 'success', 2200);
-        };
-
-        applyUiDropdownState(currentVersion);
-
-        dropdown.addEventListener('dropdown-selected', (e) => {
-            const selectedVersion = e.detail?.element?.dataset?.version || e.detail?.value;
-
-            if (!selectedVersion || selectedVersion === currentVersion) {
-                return;
-            }
-
-            if (selectedVersion === uiConfig.UI_VERSION_OLD) {
-                engine.openModal({
-                    title: 'Legacy Version Warning',
-                    body: `
-                        <p class="modal-message">Are you sure you want to switch to UI version 1.0.0? This version is outdated and may have issues.</p>
-                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Switch to 1.0.0</button>
-                        </div>
-                    `,
-                    footer: '',
-                    onConfirm: () => {
-                        console.log('UI Version Switched to:', selectedVersion);
-                        toastsLoader.showToast('UI version 1.0.0 is a legacy version that is no longer maintained. It may contain bugs and missing features. Use at your own risk!', 'warning', 5000);
-                        switchUiVersion(selectedVersion);
-                    },
-                    onCancel: () => {
-                        console.log('User cancelled UI switch.');
-                        toastsLoader.showToast('UI switch cancelled. You are still on version ' + currentVersion, 'info', 2500);
-                        applyUiDropdownState(currentVersion);
-                    }
-                });
-            } else {
-                console.log('UI Version Switched to:', selectedVersion);
-                switchUiVersion(selectedVersion);
-            }
-        });
-    }
-
     function initEditProfileModal() {
         elements.editProfileBtn.addEventListener('click', async () => {
             await ModalHelpers.EditProfile.openModal({
@@ -849,7 +746,6 @@ document.addEventListener("DOMContentLoaded", () => {
             
             renderLanguageOptions();
             initDropdownLogic(); // Replaces initDropdown
-            initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
             initLogoutButton(); // Logout button logic
             await initTwoFactorAuth(); // 2FA setup modal logic, only if user doesn't have 2FA enabled

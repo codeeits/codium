@@ -666,11 +666,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
         }
 
-        if (isLegacyUI) {
-            window.location.href = `lessons.html`;
-        } else {
-            window.location.href = `lessons2.html`;
-        }
+        
+        window.location.href = `lessons.html`;
     }
 
     // --- INITIALIZATION ---

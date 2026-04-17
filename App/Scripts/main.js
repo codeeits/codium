@@ -192,16 +192,6 @@ function setLanguage(langCode) {
 // Expose language setter for pages that are separate ES modules.
 window.setLanguage = setLanguage;
 
-const UI_VERSION_KEY = 'uiVersion';
-const UI_VERSION_OLD = '1.0.0';
-const UI_VERSION_NEW = '2.1.0';
-
-window.CodiumUI = {
-    UI_VERSION_KEY,
-    UI_VERSION_OLD,
-    UI_VERSION_NEW
-};
-
 // ------------------------------------------------
 // Async Component Loading (Menu, Sidebar & Footer)
 // ------------------------------------------------
@@ -305,10 +295,6 @@ async function loadFooter() {
 
 async function updateAuthButton() {
     const menuVariant = document.querySelector('meta[name="menu-variant"]')?.content || 'default';
-    const useNewUIRoutes = menuVariant === 'new';
-    const lessonsPath = useNewUIRoutes ? '/app/Lectii/lessons2.html' : '/app/Lectii/lessons.html';
-    const problemsPath = useNewUIRoutes ? '/app/Probleme/index2.html' : '/app/Probleme/index.html';
-    const userPath = useNewUIRoutes ? '/app/user2.html' : '/app/user.html';
 
     const els = {
         loginOld: document.getElementById('login-button'),
@@ -323,7 +309,6 @@ async function updateAuthButton() {
         lang: document.getElementById('language-selector'),
         back: document.getElementById('back-btn'),
         contact: document.getElementById('contact-button'),
-        hardExit: document.getElementById('hard-lessons-exit-btn')
     };
 
     const isAuthenticated = window.apiService
@@ -340,24 +325,12 @@ async function updateAuthButton() {
         }
     }
 
-    // Navigation Event Binding Helper
-    const bindNav = (el, path, title) => {
-        if (el) {
-            el.onclick = () => window.location.href = path;
-            if (title) el.title = title;
-        }
-    };
-
-    bindNav(els.lessons, lessonsPath, 'Lessons');
-    bindNav(els.problems, problemsPath, 'Problems');
-    bindNav(els.contact, '/app/contact.html', 'Contact');
-
     if (els.back) {
-        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = lessonsPath;
+        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = '/app/Lectii/lessons.html';
     }
 
     if (els.hardExit) {
-        els.hardExit.onclick = () => window.location.href = lessonsPath;
+        els.hardExit.onclick = () => window.location.href = '/app/Lectii/lessons.html';
     }
 
     // Language Selector Logic
@@ -380,11 +353,11 @@ async function updateAuthButton() {
         
         if (els.userBtn) {
             els.userBtn.classList.remove('hidden');
-            els.userBtn.onclick = () => window.location.href = userPath;
+            els.userBtn.onclick = () => window.location.href = '/app/user.html';
         }
 
         if (els.userInfo) {
-            els.userInfo.onclick = () => window.location.href = userPath;
+            els.userInfo.onclick = () => window.location.href = '/app/user.html';
         }
 
         if (els.logout) {
