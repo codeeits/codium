@@ -1069,12 +1069,16 @@ func UserHasPermission(user database.User, permission UserPermissions) bool {
 	return (UserPermissions(user.Permissions) & permission) == permission
 }
 
-func (cfg *ApiCfg) HeaderSettingsMiddleware(handler http.Handler) http.HandlerFunc {
+func (cfg *ApiCfg) CacheSettingsMiddleware(handler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if cfg.WebsiteState == "development" {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			w.Header().Set("Pragma", "no-cache")
 			w.Header().Set("Expires", "0")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=60")
+			w.Header().Set("Pragma", "public")
+			w.Header().Set("Expires", time.Now().Add(time.Minute).Format(http.TimeFormat))
 		}
 		handler.ServeHTTP(w, r)
 	}
