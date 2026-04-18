@@ -31,6 +31,14 @@ type File struct {
 	UploadedAt sql.NullTime
 }
 
+type Leaderboard struct {
+	ID        int32
+	UserID    uuid.UUID
+	Score     int32
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Lesson struct {
 	ID             uuid.UUID
 	Title          string
