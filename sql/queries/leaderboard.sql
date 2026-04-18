@@ -1,31 +1,31 @@
--- name: createLeaderboard :one
+-- name: CreateLeaderboard :one
 INSERT INTO leaderboard (user_id, score, created_at, updated_at)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
--- name: getLeaderboard :many
+-- name: GetLeaderboard :many
 SELECT * FROM leaderboard
 ORDER BY score DESC, created_at ASC
 LIMIT $1 OFFSET $2;
 
--- name: getLeaderboardByUserID :one
+-- name: GetLeaderboardByUserID :one
 SELECT *, ROW_NUMBER() OVER (ORDER BY score DESC, created_at ASC) as PLACEMENT FROM leaderboard
 WHERE user_id = $1;
 
--- name: updateLeaderboardScore :one
+-- name: UpdateLeaderboardScore :one
 UPDATE leaderboard
 SET score = $2, updated_at = $3
 WHERE user_id = $1
 RETURNING *;
 
--- name: deleteLeaderboardByUserID :exec
+-- name: DeleteLeaderboardByUserID :exec
 DELETE FROM leaderboard
 WHERE user_id = $1;
 
--- name: getLeaderboardCount :one
+-- name: GetLeaderboardCount :one
 SELECT COUNT(*) FROM leaderboard;
 
--- name: getLeaderboardAroundUser :many
+-- name: GetLeaderboardAroundUser :many
 WITH ranked_leaderboard AS (
     SELECT *, ROW_NUMBER() OVER (ORDER BY score DESC, created_at ASC) as PLACEMENT
     FROM leaderboard

@@ -1408,8 +1408,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			assertNonNilID(t, problem.Problem.ID, "updated problem first test")
 
-			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.SectionType != 4 {
-				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.SectionType)
+			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.Section != 4 {
+				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.Section)
 			}
 		})
 
