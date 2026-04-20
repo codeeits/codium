@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,6 +104,61 @@ func (cfg *ApiCfg) GetLeaderboardByUserIDHandler(w http.ResponseWriter, r *http.
 	cfg.Logger.Printf("Received get leaderboard request for user id: %s", sendingUser.ID)
 
 	res, err := cfg.Db.GetLeaderboardByUserID(r.Context(), sendingUser.ID)
+	if err != nil {
+		cfg.Logger.Printf("failed to get leaderboard: %v", err)
+		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetLeaderboardHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if cfg.DatabaseCfg.Loaded == false {
+		cfg.Logger.Printf("database not loaded")
+		http.Error(w, "database not connected", http.StatusServiceUnavailable)
+		return
+	}
+
+	query := r.URL.Query()
+	offset, err := strconv.Atoi(query.Get("offset"))
+	if err != nil {
+		cfg.Logger.Printf("failed to parse offset: %v", err)
+		http.Error(w, "failed to parse offset", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.Db.GetLeaderboard(r.Context(), database.GetLeaderboardParams{
+		Limit:  20,
+		Offset: int32(offset),
+	})
+	if err != nil {
+		cfg.Logger.Printf("failed to get leaderboard: %v", err)
+		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
+}
+
+func (cfg *ApiCfg) GetLeaderboardAroundUserHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if cfg.DatabaseCfg.Loaded == false {
+		cfg.Logger.Printf("database not loaded")
+		http.Error(w, "database not connected", http.StatusServiceUnavailable)
+		return
+	}
+
+	/*
+		query := r.URL.Query()
+		offset, err := strconv.Atoi(query.Get("offset"))
+		if err != nil {
+			cfg.Logger.Printf("failed to parse offset: %v", err)
+			http.Error(w, "failed to parse offset", http.StatusBadRequest)
+			return
+		}
+	*/
+
+	res, err := cfg.Db.GetLeaderboardAroundUser(r.Context(), sendingUser.ID)
 	if err != nil {
 		cfg.Logger.Printf("failed to get leaderboard: %v", err)
 		http.Error(w, "service unavailable", http.StatusServiceUnavailable)

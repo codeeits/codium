@@ -172,7 +172,9 @@ func main() {
 		mux.Handle("DELETE /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteSolutionHandler))
 		mux.Handle("GET /api/solutions", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetSolutionsDisambiguationHandler)))
 
+		mux.Handle("GET /api/leaderboard/score", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetLeaderboardByUserIDHandler)))
 		mux.Handle("GET /api/leaderboard", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetLeaderboardByUserIDHandler)))
+		mux.Handle("GET /api/leaderboard/me", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetLeaderboardByUserIDHandler)))
 
 		mux.Handle("GET /api/users/{userID}/started_lessons/count", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.CountUserStartedLessonsHandler)))
 		mux.Handle("GET /api/users/{userID}/completed_lessons/count", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.CountUserCompletedLessonsHandler)))
