@@ -548,6 +548,7 @@ async function handleLogin(formElement) {
     console.log('Form Data:', data);
 
     ModalHelpers.LoginPopup.performLogin(data, { engine }).then(() => {
+        localStorage.setItem('codium_session_active', 'true');
         toastsLoader.showToast('Login successful!', 'confirm');
         updateAuthButton();
     }).catch(err => {

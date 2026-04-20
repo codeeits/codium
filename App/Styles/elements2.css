@@ -128,7 +128,7 @@ body.light-mode {
     --border-subtle:              rgba(0, 0, 0, 0.12);
     --text-colour:                oklch(from var(--base-text-colour) 0.20 0.02 calc(h + var(--rotation)));
     --text-cream:                 oklch(from var(--base-text-cream) 0.35 0.02 calc(h + var(--rotation)));
-    --disabled-text:              oklch(from var(--base-disabled-text) 0.60 0.02 calc(h + var(--rotation)));
+    --disabled-text:              oklch(from var(--base-disabled-text) 0.40 0.02 calc(h + var(--rotation)));
     --text-colour-primary-button: #FFFFFF;
     --primary:                    oklch(from var(--base-primary) 0.55 0.18 calc(h + var(--rotation)));
     --confirm:                    oklch(from var(--base-confirm) 0.50 0.12 calc(h + var(--rotation)));
@@ -140,6 +140,29 @@ body.light-mode {
 
     --card-shadow:                0px 2px 10px 0px rgba(0, 0, 0, 0.08);
     --primary-shadow:             0px 2px 8px 0px oklch(from var(--primary) l c h / 0.3);
+}
+
+/* fallback body for iOS 17 */
+
+body.fallback {
+    --fundal:                     var(--base-fundal);
+    --contrast:                   var(--base-contrast);
+    --border2-solid:              var(--base-border2-solid);
+    --primary:                    var(--base-primary);
+
+    --text-colour:                var(--base-text-colour);
+    --text-colour-primary-button: var(--base-text-colour-primary-button);
+    --disabled-text:              var(--base-disabled-text);
+    --confirm:                    var(--base-confirm);
+    --warning:                    var(--base-warning);
+    --danger:                     var(--base-danger);
+    --confirm-border:             var(--base-confirm-border);
+    --warning-border:             var(--base-warning-border);
+    --danger-border:              var(--base-danger-border);
+    --text-cream:                 var(--base-text-cream);
+    --border-subtle:              var(--base-border-subtle);
+    --card-shadow:                var(--base-card-shadow);
+    --primary-shadow:             var(--base-primary-shadow);
 }
 
 body.high-contrast {
@@ -1464,6 +1487,10 @@ blockquote {
     background-color: var(--warning);
 }
 
+.light-mode .pill.warning {
+    color: var(--text-colour-primary-button);
+}
+
 .high-contrast .pill.warning {
     border-color: var(--primary) !important;
     background-color: var(--primary) !important;
@@ -1497,6 +1524,7 @@ blockquote {
     align-items: start;
     max-width: 300px;
     gap: var(--gap-md);
+    justify-content: space-between;
     padding: var(--gap-md);
     border-radius: var(--border-radius-sm);
     border: 1px solid transparent;
@@ -1529,6 +1557,10 @@ blockquote {
 }
 
 body.light-mode .toast-confirm * {
+    color: var(--text-colour-primary-button);
+}
+
+body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode .toast-warning *, body.light-mode .toast-confirm * {
     color: var(--text-colour-primary-button);
 }
 

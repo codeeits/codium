@@ -246,35 +246,33 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEasterEgg();
     }
 
-    function enableHighContrastMode() {
-        if (window.PreferencesManager?.getProperty('highContrast')) {
-            document.body.classList.add('high-contrast');
-            elements.highContrastModeToggle.checked = true;
-        }
-        elements.highContrastModeToggle.addEventListener('change', () => {
-            if (document.body.classList.contains('colorblind')) {
-                elements.colorblindModeToggle.checked = false;
-                document.body.classList.remove('colorblind');
-                window.PreferencesManager?.setProperty('colorblind', false);
-            }
-            highContrastMode(); // external function defined in main.js that toggles the class on body
-        });
+    function syncThemeToggles() {
+        const prefs = window.PreferencesManager?.get() || {};
+        
+        // Dark Mode toggle is inverted
+        elements.darkModeToggle.checked = !prefs.lightMode;
+        
+        // High Contrast and Colorblind are standard
+        elements.highContrastModeToggle.checked = !!prefs.highContrast;
+        elements.colorblindModeToggle.checked = !!prefs.colorblind;
     }
 
-    function enableColorblindMode() {
-        // Check preferences for colorblind mode preference
-        if (window.PreferencesManager?.getProperty('colorblind')) {
-            document.body.classList.add('colorblind');
-            elements.colorblindModeToggle.checked = true;
-        }
+    function initThemeToggles() {
+        syncThemeToggles();
+
+        elements.darkModeToggle.addEventListener('change', () => {
+            if (window.lightMode) window.lightMode();
+            syncThemeToggles();
+        });
+
+        elements.highContrastModeToggle.addEventListener('change', () => {
+            if (window.highContrastMode) window.highContrastMode();
+            syncThemeToggles();
+        });
+
         elements.colorblindModeToggle.addEventListener('change', () => {
-            console.log('Colorblind mode enabled from preferences');
-            if (document.body.classList.contains('high-contrast')) {
-                elements.highContrastModeToggle.checked = false;
-                document.body.classList.remove('high-contrast');
-                window.PreferencesManager?.setProperty('highContrast', false);
-            }
-            colorblindMode(); // external function defined in main.js that toggles the class on body
+            if (window.colorblindMode) window.colorblindMode();
+            syncThemeToggles();
         });
     }
     
@@ -750,8 +748,7 @@ document.addEventListener("DOMContentLoaded", () => {
             await initTwoFactorAuth(); // 2FA setup modal logic, only if user doesn't have 2FA enabled
 
             initHueSlider(); 
-            enableHighContrastMode();
-            enableColorblindMode();
+            initThemeToggles();
             setFontSize();
             requestData();
             deleteAccount();

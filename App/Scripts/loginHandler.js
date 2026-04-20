@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         try {
             await ModalHelpers.LoginPopup.performLogin({ email, password }, { engine });
-            
+
+            localStorage.setItem('codium_session_active', 'true');
+                        
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {
