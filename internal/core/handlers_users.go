@@ -62,7 +62,7 @@ func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.
 		HttpOnly: true,
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour),
-		Secure:   false, // SET TO TRUE IN PROD
+		Secure:   cfg.WebsiteState == "production",
 		SameSite: http.SameSiteLaxMode,
 	})
 	http.SetCookie(w, &http.Cookie{
@@ -71,7 +71,7 @@ func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.
 		HttpOnly: true,
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour * 120),
-		Secure:   false, // SET TO TRUE IN PROD
+		Secure:   cfg.WebsiteState == "production",
 		SameSite: http.SameSiteLaxMode,
 	})
 
@@ -185,7 +185,7 @@ func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, _ *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   -1,
-		Secure:   false, // SET TO TRUE IN PROD
+		Secure:   cfg.WebsiteState == "production",
 		SameSite: http.SameSiteLaxMode,
 	})
 	http.SetCookie(w, &http.Cookie{
@@ -194,7 +194,7 @@ func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, _ *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 		MaxAge:   -1,
-		Secure:   false, // SET TO TRUE IN PROD
+		Secure:   cfg.WebsiteState == "production",
 		SameSite: http.SameSiteLaxMode,
 	})
 
