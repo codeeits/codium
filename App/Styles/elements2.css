@@ -131,12 +131,13 @@ body.light-mode {
     --disabled-text:              oklch(from var(--base-disabled-text) 0.40 0.02 calc(h + var(--rotation)));
     --text-colour-primary-button: #FFFFFF;
     --primary:                    oklch(from var(--base-primary) 0.55 0.18 calc(h + var(--rotation)));
-    --confirm:                    oklch(from var(--base-confirm) 0.50 0.12 calc(h + var(--rotation)));
-    --warning:                    oklch(from var(--base-warning) 0.55 0.15 calc(h + var(--rotation)));
-    --danger:                     oklch(from var(--base-danger) 0.54 0.46 calc(h + 12 + var(--rotation)));
-    --confirm-border:             oklch(from var(--base-confirm-border) 0.40 0.12 calc(h + var(--rotation)));
-    --warning-border:             oklch(from var(--base-warning-border) 0.45 0.15 calc(h + var(--rotation)));
-    --danger-border:              oklch(from var(--base-danger-border) 0.35 0.12 calc(h + var(--rotation)));
+
+    --confirm:                    oklch(from var(--base-confirm) 0.50 0.12 calc(h + 12));
+    --warning:                    oklch(from var(--base-warning) 0.55 0.15 calc(h));
+    --danger:                     oklch(from var(--base-danger) 0.54 0.46 calc(h + 12));
+    --confirm-border:             oklch(from var(--base-confirm-border) 0.40 0.12 calc(h + 12));
+    --warning-border:             oklch(from var(--base-warning-border) 0.45 0.15 calc(h));
+    --danger-border:              oklch(from var(--base-danger-border) 0.35 0.12 calc(h + 12));
 
     --card-shadow:                0px 2px 10px 0px rgba(0, 0, 0, 0.08);
     --primary-shadow:             0px 2px 8px 0px oklch(from var(--primary) l c h / 0.3);
@@ -953,7 +954,7 @@ main, .content-area {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: var(--disabled-text);
-    text-align: justify;
+    text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
