@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section 1 - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/section.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/lessons/sectionStarter.js" defer></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="lessons">
+</head>
+<body> 
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area section-page">
+            <div class="left">
+                <img src="/app/Assets/section1.png" alt="Secțiunea 1 Python" class="section-image" decoding="async">
+                <div class="left-meta">
+                    <div class="left-meta__1">
+                        <span class="section-bread">Informatică / Clasa a IX-a / </span>
+                        <h1 class="section-title">Secțiunea I. Introducere</h1>
+                        <p class="section-description">
+                            Descoperă puterea și simplitatea limbajului Python, unul dintre cele mai accesibile și versatile limbaje de programare din lume. Indiferent dacă ești la început de drum și abia scrii primele tale linii de cod, sau dacă vrei să îți consolidezi baza pentru a aborda concepte complexe de algoritmică, această secțiune te va ghida pas cu pas. Învață sintaxa de bază, structurează-ți gândirea logică, rezolvă probleme interactive și transformă-ți ideile în realitate. Începe explorarea chiar acum și pregătește-te să treci la nivelul următor!
+                        </p>
+                    </div>
+                    <div class="section-meta" aria-label="Metadate secțiune">
+                        <span class="no-style section-meta-lessons"><i class="fa-solid fa-lines-leaning"></i> 4 lecții</span>
+                        <span class="no-style separator">&#8226;</span>
+                        <span class="no-style section-meta-tests"><i class="fa-solid fa-list-check"></i> 2 teste</span>
+                        <span class="no-style separator">&#8226;</span>
+                        <span class="no-style section-meta-probleme"><i class="fa-solid fa-dumbbell"></i> 3 probleme</span>
+                        <span class="no-style separator">&#8226;</span>
+                        <span class="no-style section-meta-reward"><i class="fa-solid fa-cookie-bite"></i> +50000</span>
+                    </div>
+                    <div class="section-buttons">
+                        <button type="button" class="btn secondary section-bookmark" aria-label="Adaugă secțiunea la favorite" aria-pressed="false">
+                            <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn primary section-start-btn">Începe secțiunea <i class="fa-solid fa-trophy" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="side-content">
+                <section class="resumee card" id="section-resume" aria-label="Rezumat secțiune">
+                    <div class="resumee-lessons resumee-group" data-group="lectii">
+                        <button type="button" class="resumee-group__header" aria-expanded="true">
+                            <h2 class="resumee-element__title">Lecții</h2>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.1 De la C++ la Python</span>
+                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.2 Variabile și tipuri de date</span>
+                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.3 Structuri de control</span>
+                            <i class="fa-solid fa-hourglass-half" aria-label="În desfășurare"></i>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.4 Funcții și modularizare</span>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.5 Recapitulare</span>
+                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
+                        </div>
+
+                    </div>
+                    <div class="resumee-problems resumee-group" data-group="probleme">
+                        <button type="button" class="resumee-group__header" aria-expanded="true">
+                            <h2 class="resumee-element__title">Probleme</h2>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.1 De la C++ la Python</span>
+                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.2 Variabile și tipuri de date</span>
+                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">I.3 Structuri de control</span>
+                            <i class="fa-solid fa-hourglass-half" aria-label="În desfășurare"></i>
+                        </div>
+                    </div>
+                    <div class="resumee-teste resumee-group" data-group="teste">
+                        <button type="button" class="resumee-group__header" aria-expanded="true">
+                            <h2 class="resumee-element__title">Teste</h2>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="resumee-element__element">
+                            <span class="no-style">Pseudocod</span>
+                        </div>
+                        <div class="resumee-element__element">
+                            <span class="no-style">Recapitulare</span>
+                        </div>
+                    </div>
+                </section>
+                <section class="stats card">
+                    <h2 class="stats__title">Statistici</h2>
+                    <div class="stats-grid" aria-live="polite">
+                        <div class="stats-item">
+                            <span class="stats-label">Progres total</span>
+                            <strong class="stats-value" id="stat-progress-value">0%</strong>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">Finalizate</span>
+                            <strong class="stats-value" id="stat-completed-value">0</strong>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">În desfășurare</span>
+                            <strong class="stats-value" id="stat-progressing-value">0</strong>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">Rămase</span>
+                            <strong class="stats-value" id="stat-pending-value">0</strong>
+                        </div>
+                    </div>
+                    <div class="stats-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progres secțiune">
+                        <span class="stats-progress__fill" id="stats-progress-fill"></span>
+                    </div>
+                    <p class="stats-hint" id="stats-hint">Continuă secțiunea pentru a crește progresul.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
