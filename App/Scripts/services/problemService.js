@@ -123,7 +123,7 @@ export class ProblemService {
 
             givenAnswers.push(consoleOutput);
             if (consoleOutput === expectedOutput) {
-                score += 1;
+                score += 10; // arbitrary scoring logic not used as scoring happens in backend
             }
             currentTestId = testData.NextTestID;
         }

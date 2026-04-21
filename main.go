@@ -166,7 +166,7 @@ func main() {
 
 		mux.Handle("POST /api/tests", cfg.AuthenticatedEndpointMiddleware(cfg.CreateProblemTestHandler))
 		mux.Handle("DELETE /api/tests/{testID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteProblemTestHandler))
-		mux.Handle("GET /api/tests/{testID}", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.GetProblemTestByIDHandler)))
+		mux.Handle("GET /api/tests/{testID}", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetProblemTestByIDHandler)))
 
 		mux.Handle("POST /api/solutions", cfg.AuthenticatedEndpointMiddleware(cfg.CreateSolutionHandler))
 		mux.Handle("DELETE /api/solutions/{solutionID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteSolutionHandler))

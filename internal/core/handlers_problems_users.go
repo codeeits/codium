@@ -495,6 +495,12 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		if p.GivenAnswers[i] == test.ExpectedOutput {
 			testsPassed += 1
 		}
+
+		// Only move to the next test if there are still answers left to evaluate.
+		if i == len(p.GivenAnswers)-1 {
+			break
+		}
+
 		if test.NextTestID.Valid {
 			test, err = cfg.Db.GetCodeTestByID(r.Context(), test.NextTestID.UUID)
 			if err != nil {
