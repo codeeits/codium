@@ -572,12 +572,19 @@ table td:not(:first-child) {
 }
 
 .top-bar .logo {
-    color: inherit;
-    font-size: 1.6rem;
-    font-weight: var(--h1-font-weight);
+    height: calc(var(--top-bar-height) / 2);
 }
 
-.top-bar img {
+.codium-logo {
+    height: 1em;
+    color: var(--text-colour);
+}
+
+body.light-mode .codium-logo {
+    color: var(--primary);
+}
+
+.user-avatar-small {
     border-radius: 100%;
     width: 40px;
     height: 40px;
