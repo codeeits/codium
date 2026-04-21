@@ -244,14 +244,55 @@ func (cfg *ApiCfg) CreateSolutionHandler(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	problem, err := cfg.Db.GetProblemByID(r.Context(), p.ProblemID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Problem not found: %v", p.ProblemID)
+			http.Error(w, "Problem not found", http.StatusNotFound)
+			return
+		}
+		cfg.Logger.Printf("Failed to retrieve problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	test, err := cfg.Db.GetCodeTestByID(r.Context(), problem.FirstTest.UUID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Problem not found: %v", problem.FirstTest.UUID)
+			http.Error(w, "Problem not found", http.StatusNotFound)
+			return
+		}
+		cfg.Logger.Printf("Failed to retrieve problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var cnt = 0
+	for test.NextTestID.Valid {
+		cnt += 1
+		test, err = cfg.Db.GetCodeTestByID(r.Context(), test.NextTestID.UUID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				cfg.Logger.Printf("Problem not found: %v", test.NextTestID.UUID)
+				http.Error(w, "Problem not found", http.StatusNotFound)
+				return
+			}
+			cfg.Logger.Printf("Failed to retrieve problem: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	res, err := cfg.Db.CreateSolution(r.Context(), database.CreateSolutionParams{
-		ID:        uuid.New(),
-		ProblemID: p.ProblemID,
-		UserID:    sendingUser.ID,
-		SentCode:  p.Code,
-		Language:  p.Language,
-		CreatedAt: sql.NullTime{Valid: true, Time: time.Now()},
-		UpdatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+		ID:         uuid.New(),
+		ProblemID:  p.ProblemID,
+		UserID:     sendingUser.ID,
+		SentCode:   p.Code,
+		Language:   p.Language,
+		TotalTests: sql.NullInt32{Valid: true, Int32: int32(cnt)},
+		CreatedAt:  sql.NullTime{Valid: true, Time: time.Now()},
+		UpdatedAt:  sql.NullTime{Valid: true, Time: time.Now()},
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to create solution: %v", err)
@@ -417,8 +458,7 @@ func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.R
 
 func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
 	type params struct {
-		TestsPassed int `json:"tests_passed"`
-		TotalTests  int `json:"total_tests"`
+		GivenAnswers []string `json:"given_answers"`
 	}
 
 	// Database check is done in the disambiguation function
@@ -436,10 +476,42 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	problem, err := cfg.Db.GetProblemByID(r.Context(), solution.ProblemID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve problem for solution: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	test, err := cfg.Db.GetCodeTestByID(r.Context(), problem.FirstTest.UUID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve first test for problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var testsPassed int32 = 0
+	for i := 0; i < len(p.GivenAnswers) && test.ID != uuid.Nil; i++ {
+		if p.GivenAnswers[i] == test.ExpectedOutput {
+			testsPassed += 1
+		}
+		if test.NextTestID.Valid {
+			test, err = cfg.Db.GetCodeTestByID(r.Context(), test.NextTestID.UUID)
+			if err != nil {
+				cfg.Logger.Printf("Failed to retrieve next test for problem: %v", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			cfg.Logger.Printf("Ran out of tests to check the answers to before answers were exhausted for solution: %v", solution.ID)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	res, err := cfg.Db.UpdateSolutionTests(r.Context(), database.UpdateSolutionTestsParams{
 		ID:          solution.ID,
-		TestsPassed: sql.NullInt32{Valid: true, Int32: int32(p.TestsPassed)},
-		TotalTests:  sql.NullInt32{Valid: true, Int32: int32(p.TotalTests)},
+		TestsPassed: sql.NullInt32{Valid: true, Int32: testsPassed},
 		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
 	})
 
@@ -449,7 +521,7 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if p.TotalTests == p.TestsPassed {
+	if solution.TotalTests.Int32 == testsPassed {
 		_, err = cfg.MarkProblemUserSolved(solution.ProblemID, solution.UserID)
 		if err != nil {
 			if errors.Is(err, NoXpAddedErr) {
