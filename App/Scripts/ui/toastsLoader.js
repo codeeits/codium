@@ -23,6 +23,11 @@ export class ToastsLoader {
     }
 
     showToast(message, type = 'info', duration = 3000) {
+        // Backward compatibility: many callers still use "error".
+        if (type === 'error') {
+            type = 'danger';
+        }
+
         const validTypes = ['info', 'danger', 'confirm', 'warning'];
         if (!validTypes.includes(type)) {
             console.warn(`Invalid toast type: ${type}. Defaulting to 'info'.`);

@@ -360,6 +360,10 @@ export class ModalEngine {
 
         overlay.appendChild(modalElement);
 
+        if (typeof finalConfig.onOpen === 'function') {
+            await finalConfig.onOpen(modalElement, overlay);
+        }
+
         /*
         overlay.innerHTML = `
             <div class="modal">
@@ -456,7 +460,7 @@ export class ModalEngine {
         const confirmBtn = overlay.querySelector('#modal-confirm-button');
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
-                if (finalConfig.onConfirm) finalConfig.onConfirm();
+                if (finalConfig.onConfirm) finalConfig.onConfirm(modalElement);
                 destroyModal();
             });
         }

@@ -7,13 +7,17 @@
 Pentru optimizare si mentabilitate. si pentru a reduce codul duplicat.
 */
 
-document.addEventListener('DOMContentLoaded', function() {
+import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
+import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
+
+document.addEventListener('DOMContentLoaded', async function() {
     const baseurl = window.location.href;
     const form = document.getElementById('loginForm');
     const submitButton = form.querySelector('input[type="submit"]');
+    const engine = new ModalEngine();
 
     // Redirect daca e auth
-    if (window.apiService.isAuthenticated()) {
+    if (await window.apiService.checkAuthentication(false)) {
         window.location.href = 'user.html';
         return;
     }
@@ -46,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleLoginSuccess() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
-        redirectTo = baseurl.split("?redirect=")[1];
+        const redirectTo = baseurl.split("?redirect=")[1];
 
         if (redirectTo) {
             window.location.href = decodeURIComponent(redirectTo);
@@ -81,8 +85,10 @@ document.addEventListener('DOMContentLoaded', function() {
         setLoadingState(true);
 
         try {
-            const result = await window.apiService.login(email, password);
-            
+            await ModalHelpers.LoginPopup.performLogin({ email, password }, { engine });
+
+            localStorage.setItem('codium_session_active', 'true');
+                        
             // store remember me preference
             const rememberMe = document.getElementById('rememberMe').checked;
             if (rememberMe) {

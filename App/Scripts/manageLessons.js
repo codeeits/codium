@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // ------------------------------
     
-    const currentUserRaw = await window.apiService.getCurrentUser();
+    const currentUserRaw = await window.apiService.users.getCurrentUser();
     const userData = typeof currentUserRaw === 'string' ? JSON.parse(currentUserRaw) : currentUserRaw;
 
     if (userData === null) {
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     let sections = [];
 
-    sections = await window.apiService.getSections(null, null);
+    sections = await window.apiService.lessons.getSections(null, null);
     if(debugMode) console.info("[DEBUG] Available sections:", sections);
 
     classFilter.addEventListener("change", async function() {
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     module: parseInt(moduleValue),
                     section: parseInt(sectionValue)
                 };
-                response = await window.apiService.getLessonsSortedByPrevNext(
+                response = await window.apiService.lessons.getLessonsSortedByPrevNext(
                     filterData.class,
                     filterData.section,
                     filterData.module,
@@ -272,22 +272,22 @@ document.addEventListener("DOMContentLoaded", async function() {
             
             // Clear all next relationships first (this also clears linked prev pointers server-side).
             for (const lessonId of lessonIds) {
-                await window.apiService.updateLessonOrder(lessonId, null, null);
+                await window.apiService.lessons.updateLessonOrder(lessonId, null, null);
             }
             
             const firstLessonId = lessonIds[0];
 
             // Avoid toggling section starter blindly: endpoint toggles value, it does not set explicit true/false.
-            const firstLessonResult = await window.apiService.getLessonById(firstLessonId);
+            const firstLessonResult = await window.apiService.lessons.getLessonById(firstLessonId);
             const firstLessonData = typeof firstLessonResult === 'string' ? JSON.parse(firstLessonResult) : firstLessonResult;
             if (!isSectionStarter(firstLessonData.lesson?.SectionStarter, sectionValue)) {
-                await window.apiService.updateLessonSectionStarter(firstLessonId, parseInt(sectionValue));
+                await window.apiService.lessons.updateLessonSectionStarter(firstLessonId, parseInt(sectionValue));
             }
             
             for (let i = 1; i < lessonIds.length; i++) {
                 const currentLessonId = lessonIds[i];
                 const prevLessonId = lessonIds[i - 1];
-                await window.apiService.updateLessonOrder(currentLessonId, prevLessonId);
+                await window.apiService.lessons.updateLessonOrder(currentLessonId, prevLessonId);
                 console.log(`Updated lesson ${currentLessonId} to follow ${prevLessonId}`);
             }
 
@@ -441,7 +441,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             pendingLessonLoad = lessonId; // mark as loading
             toastsLoader.showToast('Loading lesson preview...', 'info');
 
-            const result = await window.apiService.getLessonById(lessonId);
+            const result = await window.apiService.lessons.getLessonById(lessonId);
 
             if (pendingLessonLoad !== lessonId) {
                 console.log('Lesson load superseded by another request');
@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 currentLessonNameSpan.textContent = result.lesson.Title;
             }
             
-            window.apiService.getFile(result.lesson.ContentID).then(lessonData => {
+            window.apiService.fileManager.getFile(result.lesson.ContentID).then(lessonData => {
                 if (lessonIdClicked !== lessonId) {
                     console.warn('Lesson load superseded by another request');
                     return;
@@ -549,7 +549,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         try {
             const file = new File([contentData], 'lesson.md', { type: 'text/markdown' });
-            await window.apiService.updateLessonContent(lessonIdClicked, file);
+            await window.apiService.lessons.updateLessonContent(lessonIdClicked, file);
             toastsLoader.showToast('Lesson content saved successfully!', 'confirm');
         } catch (error) {
             console.error('Failed to save lesson content:', error);
@@ -696,7 +696,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         try {
 
             // GET EXISTING LESSONS IN TARGET SECTION *BEFORE* updating (excluding the lesson being moved)
-            let existingLessonsInTarget = await window.apiService.getLessonsByFlags(
+            let existingLessonsInTarget = await window.apiService.lessons.getLessonsByFlags(
                 formData.class, 
                 formData.section, 
                 formData.module
@@ -735,12 +735,12 @@ document.addEventListener("DOMContentLoaded", async function() {
             });
 
             if (Object.keys(detailsToUpdate).length > 0) {
-                await window.apiService.updateLessonField(lessonToUpdate, 'details', detailsToUpdate);
+                await window.apiService.lessons.updateLessonField(lessonToUpdate, 'details', detailsToUpdate);
                 if (debugMode) console.log("Lesson details updated successfully.");
             }
 
             if (Object.keys(flagsToUpdate).length > 0) {
-                await window.apiService.updateLessonField(lessonToUpdate, 'flags', flagsToUpdate);
+                await window.apiService.lessons.updateLessonField(lessonToUpdate, 'flags', flagsToUpdate);
                 if (debugMode) console.log("Lesson flags updated successfully.");
             }
 
@@ -754,7 +754,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                 if (existingLessonsInTarget.length === 0) {
                     // No other lessons in target section, this becomes the section starter
                     if (debugMode) console.log(`This is the first lesson in section ${formData.section}, setting as section starter`);
-                    await window.apiService.updateLessonSectionStarter(lessonToUpdate, formData.section);
+                    await window.apiService.lessons.updateLessonSectionStarter(lessonToUpdate, formData.section);
                     toastsLoader.showToast(`Lesson set as section ${formData.section} starter`, "confirm");
                     // No prev lesson since it's the first
                     prevLess = null;
@@ -828,7 +828,7 @@ document.addEventListener("DOMContentLoaded", async function() {
                     nextLess: nextLess
                 });
                 
-                await window.apiService.updateLessonOrder(lessonToUpdate, prevLess, nextLess);
+                await window.apiService.lessons.updateLessonOrder(lessonToUpdate, prevLess, nextLess);
                 toastsLoader.showToast(`Lesson order updated successfully.`, "confirm");
             }
         } catch (error) {

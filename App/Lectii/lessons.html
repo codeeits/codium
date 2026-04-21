@@ -1,283 +1,155 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teorie - Codium</title>
-
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/app/Styles/elements.css">
-    <link rel="stylesheet" href="/app/Styles/main.css">
-
-    <!-- External Resources REQ. -->
+    <title>Lessons - Codium</title>
+    
+    <!-- External Resources -->
     <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/lessons.css">
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="/app/Scripts/main.js" defer></script>
     <script type="module" src="/app/Scripts/apiHandlers.js"></script>
-    <!--<script src="/app/Scripts/lessonsHandler.js"></script>-->
+    <script src="/app/Scripts/lessons/lessonsPage.js"></script>
 
-    <meta name="menu-variant" content="default">
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="lessons">
 </head>
 <body>
-    <div id="top-menu-container"></div>
-    
-    <div class="main-grid">
-        <div class="content-header">
-            <h1>List of all lessons</h1>
-            <button class="btn primary" id="openUploadModal">
-                <i class="fas fa-plus"></i> Upload New Lesson
-            </button>
-            <p> Sort by
-                <select id="lessonClass" name="class" class="language-dropdown" placeholder="toate clasele" required>
-                    <option value="">toate clasele</option>
-                    <option value="9">Clasa a IX-a</option>
-                    <option value="10">Clasa a X-a</option>
-                    <option value="11">Clasa a XI-a</option>
-                    <option value="12">Clasa a XII-a</option>
-                    <option value="67">Neclasificat</option>
-                </select>
-                and 
-                <select id="lessonModule" name="module" class="language-dropdown" placeholder="toate modulele" required>
-                    <option value="">toate modulele</option>
-                    <option value="1">Modul 1 (INFO)</option>
-                </select>
-            </p>
+    <!-- COPY HEADER IN NEW PAGES -->
+    <!--<header class="top-bar">
+        <div class="top-bar-left">
+            <a href="#" class="logo">codium/</a>
+            <nav class="top-nav">
+                <a href="#">Teorie</a>
+                <a href="#">Probleme</a>
+            </nav>
         </div>
-        <div id="lessons-grid" class="lessons-container">
-            <!-- Lessons will be dynamically loaded here -->
-        </div>
-    </div>
-
-    <script>
-        // Global variables for filter values
-        let classValue = '';
-        let moduleValue = '';
-
-        document.addEventListener("DOMContentLoaded", function() {
-
-            const classFilter = document.getElementById("lessonClass");
-            classValue = classFilter.value;
-            const moduleFilter = document.getElementById("lessonModule");
-            moduleValue = moduleFilter.value;
-
-            // Upload modal button
-            const uploadBtn = document.getElementById("openUploadModal");
-            const uploadModal = document.getElementById("uploadLessonModal");
-            
-            if (uploadBtn && uploadModal) {
-                uploadBtn.addEventListener("click", function() {
-                    uploadModal.style.display = "flex";
-                });
-
-                // Close modal when clicking outside
-                uploadModal.addEventListener("click", function(e) {
-                    if (e.target === uploadModal) {
-                        uploadModal.style.display = "none";
-                    }
-                });
-            }
-
-            classFilter.addEventListener("change", function() {
-                if (classValue !== this.value) {
-                    classValue = this.value;
-                    loadLessons();
-                }
-            });
-
-            moduleFilter.addEventListener("change", function() {
-                if (moduleValue !== this.value) {
-                    moduleValue = this.value;
-                    loadLessons();
-                }
-            });
-
-            loadLessons();
-        });
-
-        async function loadLessons() {
-            try {
-                let response;
-                if(classValue || moduleValue) {
-                    const filterData = {
-                        class: parseInt(classValue) || 0,
-                        module: parseInt(moduleValue) || 0,
-                    };
-                    response = await window.apiService.getLessonsByFlags(
-                        filterData.class !== 0 ? filterData.class : null,
-                        null,
-                        filterData.module !== 0 ? filterData.module : null
-                    );
-                } else {
-                    response = await window.apiService.getLessons();
-                }
-
-                if (!response) {
-                    console.error("Failed to load lessons.");
-                    return;
-                }
-                const lessons = response;
-                console.log("Loaded lessons:", lessons);
-                
-                if (lessons.length === 0) {
-                    toastsLoader.showToast('No lessons found for the selected filters.', 'warning', 1000);
-                    document.getElementById("lessons-grid").innerHTML = '<p>No lessons found for the selected filters.</p>';
-                    return;
-                }
-
-                renderLessonsGrid(lessons);
-                } catch (error) {
-                console.error("Failed to load lessons:", error);
-            }
-        }
-
-        function renderLessonsGrid(lessons) {
-            const lessonsContainer = document.getElementById("lessons-grid");
-            lessonsContainer.innerHTML = '';
-
-            lessons.forEach(lessonData => {
-                const lesson = lessonData.lesson;
-                const flags = lessonData.flag_translation;
-                
-                const lessonCard = document.createElement('div');
-                lessonCard.className = 'card content-card';
-                
-                const romanClass = toRoman(flags.class);
-                
-                lessonCard.innerHTML = `
-                    <div class="lesson-header">
-                        <span class="lesson-number">${romanClass}.${flags.module}.${flags.section}</span>
-                        <span class="lesson-class">Clasa ${flags.class}</span>
-                    </div>
-                    <h3 class="lesson-title">${lesson.Title}</h3>
-                    <p class="lesson-description">${lesson.Description.Valid ? truncateText(lesson.Description.String) : 'No description'}</p>
-                    <div class="lesson-footer">
-                        <button class="btn primary" onclick="openLesson('${lesson.ID}')">
-                            <i class="fas fa-play"></i> Începe lecția
-                        </button>
-                    </div>
-                `;
-                
-                lessonsContainer.appendChild(lessonCard);
-            });
-        }
-
-        function toRoman(n) {
-            if (n === 0) return "All";
-            if (n >= 67) return "N/A"; // Neclasificat
-            
-            const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
-            const symbols = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
-            
-            let result = "";
-            for (let i = 0; i < values.length; i++) {
-                while (n >= values[i]) {
-                    result += symbols[i];
-                    n -= values[i];
-                }
-            }
-            return result;
-        }
-
-        function truncateText(text, maxLines = 3, maxChars = 150) {
-            if (!text || text.length <= maxChars) {
-                return text;
-            }
-            
-            let truncated = text.substring(0, maxChars);
-            
-            return truncated + '...';
-        }
-
-        function openLesson(lessonId) {
-            window.location.href = `lesson.html?id=${lessonId}`;
-        }
-    </script>
-
-    <!-- Lesson Upload Modal -->
-    <div class="modal-overlay" id="uploadLessonModal" style="display: none;">
-        <div class="modal upload-m">
-            <div class="modal-header">
-                <i class="fa-solid fa-cloud-upload-alt"></i>
-                <h2>Quick Upload</h2>
+        <div class="top-bar-right">
+            <span class="lang-toggle">RO</span>
+            <i class="fa-solid fa-moon theme-toggle"></i>
+            <div class="user-info">
+                <div class="user-info-text">
+                    <span class="user-name">codeeitsbutlonger</span>
+                    <span class="user-stats">50000 biscuiței</span>
+                </div>
+                <img src="https://placehold.co/40/png" alt="User Avatar" class="user-avatar-small">
             </div>
-            <form id="lessonUploadForm" enctype="multipart/form-data">
-                <!-- Lesson Metadata -->
-                <div class="modal-field">
-                    <div class="text-container">
-                        <i class="fa-solid fa-heading"></i>
-                        <input type="text" id="lessonTitle" name="title" placeholder="Enter lesson title" required>
-                    </div>
-                </div>
-
-                <div class="modal-field">
-                    <div class="text-container">
-                        <i class="fa-solid fa-align-left"></i>
-                        <textarea id="lessonDescription" name="description" placeholder="Brief description of the lesson" rows="2" required></textarea>
-                    </div>
-                </div>
-
-                <!-- Classification Row -->
-                <div class="modal-field">
-                    <div class="text-container">
-                        <i class="fa-solid fa-school"></i>
-                        <select id="modalLessonClass" name="class" placeholder="Alege clasa:" required>
-                            <option value="">Alege clasa:</option>
-                            <option value="9">Clasa a IX-a</option>
-                            <option value="10">Clasa a X-a</option>
-                            <option value="11">Clasa a XI-a</option>
-                            <option value="12">Clasa a XII-a</option>
-                            <option value="67">Neclasificat</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="modal-field">
-                    <label for="lessonSection">Secțiunea</label>
-                    <div class="text-container">
-                        <i class="fa-solid fa-list-ol"></i>
-                        <input type="number" id="lessonSection" name="section" placeholder="1" min="1" max="255" required>
-                    </div>
-                </div>
-
-                <div class="modal-field">
-                    <label for="lessonModule">Modul [1 - Informatică (Altele disponibile în curând)]</label>
-                    <div class="text-container">
-                        <i class="fa-solid fa-puzzle-piece"></i>
-                        <input type="number" id="lessonModule" name="module" placeholder="1" min="1" max="1" required>
-                    </div>
-                </div>
-                
-                <div class="upload-row">
-                    <div class="modal-field">
-                        <label for="lessonFile">Continutul lectiei (.md sau .txt)</label>
-                        <div class="text-container file-upload-container">
-                            <i class="fa-solid fa-file-code"></i>
-                            <input type="file" id="lessonFile" name="lessonFile" accept=".md,.markdown,.txt" required>
-                        </div>
-                        <!-- File Info -->
-                        <div class="file-info" id="fileInfo">
-                            <i class="fa-solid fa-info-circle"></i>
-                            <span id="fileName"></span>
-                            <span id="fileSize"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submit Buttons -->
-                <div class="modal-buttons">
-                    <button type="button" class="btn secondary" id="clearForm">
-                        <i class="fa-solid fa-times"></i> Clear Form
-                    </button>
-                    <button type="submit" class="btn primary" id="uploadBtn">
-                        <i class="fa-solid fa-upload"></i> Upload Lesson
-                    </button>
-                </div>
-            </form>
         </div>
+    </header>-->
+    
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <h1 data-i18n="lessons-page.title">Lecții</h1>
+            <h2 class="page-description" data-i18n="lessons-page.desc">Bazele pregătirii tale teoretice</h2>
+            <div class="filters-list">
+                <div class="filters-list-left" id="class-filters">
+                    <button type="button" class="btn primary template active" id="all-lessons" data-i18n="lessons-page.all-fliter">Toate</button>
+                    <button type="button" class="btn secondary" data-i18n="lessons-page.classe.9">Clasa a IX-a</button>
+                    <button type="button" class="btn secondary" data-i18n="lessons-page.classe.10">Clasa a X-a</button>
+                    <button type="button" class="btn secondary" data-i18n="lessons-page.classe.11">Clasa a XI-a</button>
+                    <button type="button" class="btn secondary" data-i18n="lessons-page.classe.12">Clasa a XII-a</button>
+                </div>
+                    <div class="dropdown" id="sort-dropdown">
+                        <button type="button" class="btn primary dropdown-toggle">
+                            <span data-i18n="lessons-page.dropdown.alfabetic" class="no-style">Alfabetic</span> <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item active" data-value="alphabetical" data-i18n="lessons-page.dropdown.alfabetic">Alfabetic</div>
+                            <div class="dropdown-item" data-value="difficulty" data-i18n="lessons-page.dropdown.dificuly">Dificultate</div>
+                            <div class="dropdown-item" data-value="newest" data-i18n="lessons-page.dropdown.newest">Cele mai noi</div>
+                            <div class="dropdown-item" data-value="oldest" data-i18n="lessons-page.dropdown.oldest">Cele mai vechi</div>
+                        </div>
+                    </div>
+            </div>
+            <div class="separator"></div>
+            <div class="lessons-grid-container" id="lessons-container">
+                <div class="card content-card hidden" id="template-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card content-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card content-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card content-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card content-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card content-card">
+                    <img src="https://placehold.co/600x400/png" alt="Lesson Image" class="content-card-image">
+                    <div class="content-card-body">
+                        <span class="lesson-class-badge">Clasa a IX-a</span>
+                        <h3 class="content-card-title">Introducere în programare</h3>
+                        <p class="content-card-description">O lecție introductivă care acoperă conceptele de bază ale programării, inclusiv variabile, tipuri de date și structuri de control.</p>
+                        <div class="difficulty">
+                            <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                            <span class="difficulty-text">Easy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 </body>
 </html>

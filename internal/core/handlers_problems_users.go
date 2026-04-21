@@ -524,6 +524,9 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 	if solution.TotalTests.Int32 == testsPassed {
 		_, err = cfg.MarkProblemUserSolved(solution.ProblemID, solution.UserID)
 		if err != nil {
+			if errors.Is(err, NoXpAddedErr) {
+				cfg.Logger.Printf("No XP added to solution: %v", solution.ID)
+			}
 			cfg.Logger.Printf("Failed to mark problem as solved for user: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return

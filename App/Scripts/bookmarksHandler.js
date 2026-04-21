@@ -235,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const openBookmark = () => {
                 if (bookmarkedElementData.type === 'lesson') {
-                    window.location.href = `/app/lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
+                    window.location.href = `/app/Lectii/lessonindiv.html?id=${bookmarkedElementData.lesson.ID}`;
                 } else if (bookmarkedElementData.type === 'problem') {
-                    window.location.href = `/app/probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
+                    window.location.href = `/app/Probleme/problem2.html?id=${bookmarkedElementData.problem.ID}`;
                 }
             };
 
@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             
             if (type === 'lesson') {
-                await window.apiService.modifyBookmark(typeId);
+                await window.apiService.lessons.modifyBookmark(typeId);
             } else if (type === 'problem') {
-                await window.apiService.modifyBookmarkProblem(typeId);
+                await window.apiService.problems.modifyBookmark(typeId);
             }
             
             card.remove();
@@ -376,7 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INIT ---
     async function initApp() {
-        window.apiService.isAuthenticated(true);
+        if (!(await window.apiService.checkAuthentication(true))) {
+            return;
+        }
         try {
             const currentUser = await window.apiService.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
@@ -388,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Failed to get current user:', err);
-            window.apiService.logout(false);
+            window.apiService.users.logout(false);
         }
     }
 

@@ -17,6 +17,7 @@ const PreferencesManager = {
     defaults: {
         hueRotation: 0,
         fontSize: 'font-size-medium',
+        lightMode: false,
         highContrast: false,
         colorblind: false
     },
@@ -63,25 +64,48 @@ const ThemeManager = {
     toggleHighContrast: () => {
         document.body.classList.toggle('high-contrast');
         document.body.classList.remove('colorblind');
+        document.body.classList.remove('light-mode');
         PreferencesManager.setProperty('highContrast', document.body.classList.contains('high-contrast'));
+        PreferencesManager.setProperty('colorblind', false);
+        PreferencesManager.setProperty('lightMode', false);
     },
 
     toggleColorblind: () => {
         document.body.classList.toggle('colorblind');
         document.body.classList.remove('high-contrast');
+        document.body.classList.remove('light-mode');
         PreferencesManager.setProperty('colorblind', document.body.classList.contains('colorblind'));
+        PreferencesManager.setProperty('highContrast', false);
+        PreferencesManager.setProperty('lightMode', false);
+    },
+
+    toggleLightMode: () => {
+        document.body.classList.toggle('light-mode');
+        document.body.classList.remove('high-contrast');
+        document.body.classList.remove('colorblind');
+        PreferencesManager.setProperty('lightMode', document.body.classList.contains('light-mode'));
+        PreferencesManager.setProperty('highContrast', false);
+        PreferencesManager.setProperty('colorblind', false);
     },
 
     applyStoredSettings: () => {
-        // High Contrast
-        if (PreferencesManager.getProperty('highContrast') || 
-           (window.matchMedia('(prefers-contrast: more)').matches || window.matchMedia('(forced-colors: active)').matches)) {
-            document.body.classList.add('high-contrast');
-        }
+        const prefersHighContrast = window.matchMedia('(prefers-contrast: more)').matches || window.matchMedia('(forced-colors: active)').matches;
+        const hasStoredHighContrast = PreferencesManager.getProperty('highContrast');
+        const hasStoredColorblind = PreferencesManager.getProperty('colorblind');
+        const hasStoredLightMode = PreferencesManager.getProperty('lightMode');
 
-        // Colorblind
-        if (PreferencesManager.getProperty('colorblind')) {
+        // Prevent conflicting theme classes and keep one active mode at a time.
+        document.body.classList.remove('high-contrast', 'colorblind', 'light-mode');
+
+        // High Contrast
+        if (hasStoredHighContrast || prefersHighContrast) {
+            document.body.classList.add('high-contrast');
+        } else if (hasStoredColorblind) {
+            // Colorblind
             document.body.classList.add('colorblind');
+        } else if (hasStoredLightMode) {
+            // Light mode
+            document.body.classList.add('light-mode');
         }
 
         // Hue Rotation
@@ -101,6 +125,7 @@ const ThemeManager = {
 
 window.highContrastMode = ThemeManager.toggleHighContrast;
 window.colorblindMode = ThemeManager.toggleColorblind;
+window.lightMode = ThemeManager.toggleLightMode;
 window.applyStoredFontSize = ThemeManager.applyStoredSettings;
 
 // prevent FOUC by applying theme settings as early as possible
@@ -166,16 +191,6 @@ function setLanguage(langCode) {
 
 // Expose language setter for pages that are separate ES modules.
 window.setLanguage = setLanguage;
-
-const UI_VERSION_KEY = 'uiVersion';
-const UI_VERSION_OLD = '1.0.0';
-const UI_VERSION_NEW = '2.1.0';
-
-window.CodiumUI = {
-    UI_VERSION_KEY,
-    UI_VERSION_OLD,
-    UI_VERSION_NEW
-};
 
 // ------------------------------------------------
 // Async Component Loading (Menu, Sidebar & Footer)
@@ -280,10 +295,6 @@ async function loadFooter() {
 
 async function updateAuthButton() {
     const menuVariant = document.querySelector('meta[name="menu-variant"]')?.content || 'default';
-    const useNewUIRoutes = menuVariant === 'new';
-    const lessonsPath = useNewUIRoutes ? '/app/Lectii/lessons2.html' : '/app/Lectii/lessons.html';
-    const problemsPath = useNewUIRoutes ? '/app/Probleme/index2.html' : '/app/Probleme/index.html';
-    const userPath = useNewUIRoutes ? '/app/user2.html' : '/app/user.html';
 
     const els = {
         loginOld: document.getElementById('login-button'),
@@ -298,32 +309,33 @@ async function updateAuthButton() {
         lang: document.getElementById('language-selector'),
         back: document.getElementById('back-btn'),
         contact: document.getElementById('contact-button'),
-        hardExit: document.getElementById('hard-lessons-exit-btn')
     };
 
-    const auth = {
-        token: localStorage.getItem('authToken'),
-        username: localStorage.getItem('username')
-    };
-
-    // Navigation Event Binding Helper
-    const bindNav = (el, path, title) => {
-        if (el) {
-            el.onclick = () => window.location.href = path;
-            if (title) el.title = title;
+    let isAuthenticated = false;
+    if (window.apiService) {
+        try {
+            isAuthenticated = await window.apiService.checkAuthentication(false);
+        } catch (error) {
+            isAuthenticated = false;
         }
-    };
+    }
+    let displayUsername = null;
 
-    bindNav(els.lessons, lessonsPath, 'Lessons');
-    bindNav(els.problems, problemsPath, 'Problems');
-    bindNav(els.contact, '/app/contact.html', 'Contact');
+    if (isAuthenticated) {
+        try {
+            const currentUser = await window.apiService.users.getCurrentUser();
+            displayUsername = currentUser?.Username || null;
+        } catch (error) {
+            console.warn('Failed to resolve authenticated username for top menu:', error);
+        }
+    }
 
     if (els.back) {
-        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = lessonsPath;
+        els.back.onclick = () => window.history.length > 1 ? window.history.back() : window.location.href = '/app/Lectii/lessons.html';
     }
 
     if (els.hardExit) {
-        els.hardExit.onclick = () => window.location.href = lessonsPath;
+        els.hardExit.onclick = () => window.location.href = '/app/Lectii/lessons.html';
     }
 
     // Language Selector Logic
@@ -337,7 +349,7 @@ async function updateAuthButton() {
     }
 
     // Auth State Logic
-    if (auth.token && auth.username) {
+    if (isAuthenticated) {
         // Logged In
         if (els.loginOld) els.loginOld.classList.add('hidden');
         if (els.loginNew) els.loginNew.classList.add('hidden');
@@ -346,15 +358,19 @@ async function updateAuthButton() {
         
         if (els.userBtn) {
             els.userBtn.classList.remove('hidden');
-            els.userBtn.onclick = () => window.location.href = userPath;
+            els.userBtn.onclick = () => window.location.href = '/app/user.html';
+        }
+
+        if (els.userInfo) {
+            els.userInfo.onclick = () => window.location.href = '/app/user.html';
         }
 
         if (els.logout) {
             els.logout.classList.remove('hidden');
-            els.logout.onclick = () => window.apiService?.logout(true);
+            els.logout.onclick = () => window.apiService?.users.logout(true);
         }
 
-        if (els.userName) els.userName.textContent = auth.username;
+        if (els.userName) els.userName.textContent = displayUsername || 'User';
         if (els.avatar && window.apiService) {
             els.avatar.src = await window.apiService.fileManager.getProfilePicture();
         }
@@ -378,6 +394,7 @@ async function updateAuthButton() {
 
         if (els.userBtn) els.userBtn.classList.add('hidden');
         if (els.userInfo) els.userInfo.classList.add('hidden');
+        if (els.userInfo) els.userInfo.onclick = null;
         if (els.logout) els.logout.classList.add('hidden');
     }
 }
@@ -492,12 +509,14 @@ const InteractionHandler = {
 };
 
 // -----------------------------------------
-// Modal loader (for login button in new ui)
+// Modal loader (for login button and signup in new ui)
 // -----------------------------------------
 
 const engine  = new ModalEngine();
 
 let loginModalBound = false;
+let signupModalBound = false;
+
 function openLoginModal() {
     if (loginModalBound) return;
 
@@ -528,14 +547,59 @@ async function handleLogin(formElement) {
 
     console.log('Form Data:', data);
 
-    ModalHelpers.LoginPopup.performLogin(data).then(() => {
-        toastsLoader.showToast('Login successful!', 'success');
+    ModalHelpers.LoginPopup.performLogin(data, { engine }).then(() => {
+        localStorage.setItem('codium_session_active', 'true');
+        toastsLoader.showToast('Login successful!', 'confirm');
         updateAuthButton();
     }).catch(err => {
         console.error('Login failed:', err);
-        toastsLoader.showToast(`Login failed: ${err.message}`, 'error');
+        toastsLoader.showToast(`Login failed: ${err.message}`, 'danger');
     });
 
+}
+
+function openSignupModal() {
+    if (signupModalBound) return;
+
+    document.addEventListener('click', async (event) => {
+        const signupButton = event.target.closest('#get-started-btn');
+        if (!signupButton) return;
+
+        event.preventDefault();
+
+        await ModalHelpers.SignupPopup.openModal({
+            engine,
+            onConfirm: async (formElement) => {
+                console.log('Signup form submitted');
+                handleSignup(formElement);
+            }
+        })
+    });
+}
+
+function handleSignup(formElement) {
+    const formData = new FormData(formElement);
+    const data = {
+        email: formData.get('email'),
+        password: formData.get('password'),
+        username: formData.get('username'),
+        confirm_password: formData.get('confirmPassword')
+    }
+
+    if (data.password !== data.confirm_password) {
+        toastsLoader.showToast('Passwords do not match', 'danger');
+        return;
+    }
+
+    console.log(data);
+
+    ModalHelpers.SignupPopup.performSignup(data).then(() => {
+        toastsLoader.showToast('Signup!', 'confirm', 5000);
+        updateAuthButton();
+    }).catch(err => {
+        console.log(err);
+        toastsLoader.showToast(`Signup failed: ${err.message}`, 'danger');
+    })
 }
 
 // ----------------------------------
@@ -615,7 +679,7 @@ function setupDevToolsTrap() {
 async function initApp() {
     console.log('Initializing Application...');
 
-    setupDevToolsTrap();
+    //setupDevToolsTrap();
 
     InteractionHandler.init();
     setupScrollRestoration();
@@ -629,6 +693,7 @@ async function initApp() {
     ]);
 
     openLoginModal();
+    openSignupModal();
 
     document.addEventListener('codium:request-translation', (e) => {
         if (e.detail && e.detail.element) {
@@ -637,7 +702,7 @@ async function initApp() {
     });
 
     window.addEventListener('storage', (e) => {
-        if (['authToken', 'username', 'profilePicID'].includes(e.key)) updateAuthButton();
+        if (['profilePicID'].includes(e.key)) updateAuthButton();
     });
     
     window.addEventListener('focus', updateAuthButton);

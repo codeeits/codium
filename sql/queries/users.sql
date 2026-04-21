@@ -93,3 +93,9 @@ RETURNING *;
 
 -- name: GetUserBackupCodeSecret :one
 SELECT backupCodeSecret FROM users WHERE id = $1;
+
+-- name: UpdateUserCuredEmail :one
+UPDATE users
+SET cured_email = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;

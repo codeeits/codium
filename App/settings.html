@@ -67,12 +67,8 @@
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label for="profile-visibility" data-i18n="settings-page.privacy-section.options.make-profile-private">Make my account private</label>
-                        <!-- Toggle switch -->
-                        <label class="switch">
-                            <input type="checkbox" id="profile-visibility">
-                            <span class="slider round"></span>
-                        </label>
+                        <label for="two-factor-auth" data-i18n="settings-page.privacy-section.options.two-factor-authentication">Two-factor authentication</label>
+                        <button type="button" class="btn secondary" id="two-factor-auth" data-i18n="buttons.enable">Enable</button>                    
                     </div>
                     <div class="setting-item">
                         <label for="request-data" data-i18n="settings-page.privacy-section.options.download-my-data">Download your data</label>
@@ -87,10 +83,10 @@
                 <div class="card appearance-card" id="appearanceCard">
                     <h2 data-i18n="settings-page.appearance-section.title">Cuvant pentru appearance</h2>
                     <div class="setting-item">
-                        <label for="dark-mode" data-i18n="settings-page.appearance-section.options.dark-mode">Dark mode (can't be changed lol)</label>
+                        <label for="dark-mode" data-i18n="settings-page.appearance-section.options.dark-mode">Dark mode</label>
                         <!-- Toggle switch -->
                         <label class="switch">
-                            <input type="checkbox" id="dark-mode" checked disabled>
+                            <input type="checkbox" id="dark-mode" checked>
                             <span class="slider round"></span>
                         </label>
                     </div>
@@ -126,19 +122,6 @@
 
                 <div class="card other-stuff-card" id="otherStuffCard">
                     <h2 data-i18n="settings-page.other-stuff-section.title">Alte chestii</h2>
-                    <div class="setting-item">
-                        <label for="ui-selector" data-i18n="settings-page.other-stuff-section.options.ui">UI Version</label>
-                        <!-- Toggle switch -->
-                        <div class="dropdown" id="ui-selector-dropdown">
-                            <button type="button" class="btn secondary dropdown-toggle" aria-expanded="false">
-                                V.2.1.0 <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                            <div class="dropdown-menu" role="menu">
-                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-version="2.1.0">V.2.1.0</div>
-                                <div class="dropdown-item" role="menuitem" tabindex="0" data-version="1.0.0">V.1.0 (Legacy - not maintained)</div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="setting-item">
                         <label for="language-selector" data-i18n="settings-page.other-stuff-section.options.language">Limba de afișare</label>
                         <!-- Toggle switch -->
@@ -180,6 +163,8 @@
                 }
             });
         });
+
+        // uuid example: 11111111-2222-3333-4444-555555555555
 
 
         // Handle dropdown item selection

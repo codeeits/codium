@@ -174,7 +174,15 @@
             "title": "Confidențialitate",
             "options": {
                 "make-profile-private": "Fă-mi contul privat",
-                "download-my-data": "Descarcă datele tale"
+                "download-my-data": "Descarcă datele tale",
+                "delete-my-data": "Șterge datele mele",
+                "two-factor-authentication": "Autentificare în doi pași (TOTP/coduri de rezervă)"
+            },
+            "2fa-notes": {
+                "note-1": "Configurează un cod de autentificare bazat pe timp (TOTP) pentru o securitate sporită.",
+                "note-2": "Folosește o aplicație de autentificare (de exemplu, Google Authenticator, Authy) pentru a scana codul QR și a genera coduri 2FA.",
+                "note-3": "Sau folosește următorul uri (dacă aplicația ta nu suportă coduri QR):",
+                "note-4": "Salvează aceste coduri de rezervă într-un loc sigur. Fiecare cod poate fi folosit o singură dată. Nu veți mai vedea aceste coduri NICIODATĂ. Așa că fiți atenți!"
             }
         },
         "appearance-section": {
@@ -267,6 +275,7 @@
             "title": "Nu ai niciun element salvat.",
             "desc": "Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri."
         },
+        "remove_bookmark": "Elimină bookmark",
         "buttons": {
             "all": "Toate",
             "lessons": "Lecții",
@@ -324,6 +333,9 @@
             "current_password": "parolă curentă",
             "new_password": "parolă nouă",
             "note": "Lasă câmpurile goale dacă nu dorești să le schimbi"
+        },
+        "2fa_modal": {
+            "enter_code": "Introdu codul generat"
         }
     },
     "flags": {
@@ -341,6 +353,8 @@
     "buttons": {
         "save": "salvează",
         "cancel": "anulează",
+        "verify": "Verifică",
+        "i_saved_them": "Le-am salvat",
         "submit": "Trimite",
         "edit": "editează profil",
         "delete": "șterge",
@@ -353,6 +367,8 @@
         "log-out": "Deconectare",
         "support-button": "Contactează-ne",
         "download-data": "Descarcă datele",
+        "delete-data": "Șterge-mă",
+        "enable": "Activează",
         "font-size-labels": {
             "small": "Mic",
             "medium": "Mediu",

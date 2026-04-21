@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         profileVisibilityToggle: document.getElementById('profile-visibility'),
         requestDataBtn: document.getElementById('request-data'),
         eraseMeBtn: document.getElementById('erase-data'),
+        tfa: document.getElementById('two-factor-auth'),
 
         // appearance card
         appearanceCard: document.getElementById('appearanceCard'),
@@ -38,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // other settings
         otherSettingsCard: document.getElementById('otherStuffCard'),
         languageSelect: document.getElementById('language-selector-dropdown'),
-        uiSelect: document.getElementById('ui-selector-dropdown'),
         supportBtn: document.getElementById('support-form'),
     };
 
@@ -75,6 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     userData.profilePicUrl = 'https://placehold.co/80/png';
                 }
+
+                userData.has2FA = !!userData.Backupcodesecret?.Valid;
+
                 //console.log('User data fetched successfully:', response);
                 renderProfileCard();
             }
@@ -153,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // -- RENDER UI --
-
+    
     function renderProfileCard() {
         if (!userData) {
             console.warn('No user data available to render profile card.');
@@ -200,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- ACTIONS ---
-
+    
     function setupEasterEgg() {
         const dropdown = elements.languageSelect;
         const toggleBtn = dropdown.querySelector('.dropdown-toggle');
@@ -213,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
+    
     function triggerEasterEgg() {
         alert('Felicitări! Ai descoperit limba secretă: Romengleză! Acum poți vorbi ca un adevărat codianist!');
         
@@ -227,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         itemsContainer.appendChild(romengOption);
     }
-
+    
     function initDropdownLogic() {
         const dropdown = elements.languageSelect;
 
@@ -243,141 +246,36 @@ document.addEventListener("DOMContentLoaded", () => {
         setupEasterEgg();
     }
 
-    function enableHighContrastMode() {
-        if (window.PreferencesManager?.getProperty('highContrast')) {
-            document.body.classList.add('high-contrast');
-            elements.highContrastModeToggle.checked = true;
-        }
+    function syncThemeToggles() {
+        const prefs = window.PreferencesManager?.get() || {};
+        
+        // Dark Mode toggle is inverted
+        elements.darkModeToggle.checked = !prefs.lightMode;
+        
+        // High Contrast and Colorblind are standard
+        elements.highContrastModeToggle.checked = !!prefs.highContrast;
+        elements.colorblindModeToggle.checked = !!prefs.colorblind;
+    }
+
+    function initThemeToggles() {
+        syncThemeToggles();
+
+        elements.darkModeToggle.addEventListener('change', () => {
+            if (window.lightMode) window.lightMode();
+            syncThemeToggles();
+        });
+
         elements.highContrastModeToggle.addEventListener('change', () => {
-            if (document.body.classList.contains('colorblind')) {
-                elements.colorblindModeToggle.checked = false;
-                document.body.classList.remove('colorblind');
-                window.PreferencesManager?.setProperty('colorblind', false);
-            }
-            highContrastMode(); // external function defined in main.js that toggles the class on body
+            if (window.highContrastMode) window.highContrastMode();
+            syncThemeToggles();
         });
-    }
 
-    function enableColorblindMode() {
-        // Check preferences for colorblind mode preference
-        if (window.PreferencesManager?.getProperty('colorblind')) {
-            document.body.classList.add('colorblind');
-            elements.colorblindModeToggle.checked = true;
-        }
         elements.colorblindModeToggle.addEventListener('change', () => {
-            console.log('Colorblind mode enabled from preferences');
-            if (document.body.classList.contains('high-contrast')) {
-                elements.highContrastModeToggle.checked = false;
-                document.body.classList.remove('high-contrast');
-                window.PreferencesManager?.setProperty('highContrast', false);
-            }
-            colorblindMode(); // external function defined in main.js that toggles the class on body
+            if (window.colorblindMode) window.colorblindMode();
+            syncThemeToggles();
         });
     }
-
-    function initUiDropdown() {
-        const dropdown = elements.uiSelect;
-
-        const uiConfig = window.CodiumUI || {
-            UI_VERSION_KEY: 'uiVersion',
-            UI_VERSION_OLD: '1.0.0',
-            UI_VERSION_NEW: '2.1.0'
-        };
-
-        const routeByPath = {
-            '/app/user.html': { old: '/app/user.html', modern: '/app/user2.html' },
-            '/app/user2.html': { old: '/app/user.html', modern: '/app/user2.html' },
-            '/app/Lectii/lessons.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
-            '/app/Lectii/lessons2.html': { old: '/app/Lectii/lessons.html', modern: '/app/Lectii/lessons2.html' },
-            '/app/Probleme/index.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
-            '/app/Probleme/index2.html': { old: '/app/Probleme/index.html', modern: '/app/Probleme/index2.html' },
-            '/app/Lectii/manage-lessons.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' },
-            '/app/Lectii/manage-lessons2.html': { old: '/app/Lectii/manage-lessons.html', modern: '/app/Lectii/manage-lessons2.html' }
-        };
-
-        const getCurrentVersion = () => {
-            const saved = localStorage.getItem(uiConfig.UI_VERSION_KEY);
-            if (saved === uiConfig.UI_VERSION_OLD || saved === uiConfig.UI_VERSION_NEW) {
-                return saved;
-            }
-            const variant = document.querySelector('meta[name="menu-variant"]')?.content;
-            return variant === 'new' ? uiConfig.UI_VERSION_NEW : uiConfig.UI_VERSION_OLD;
-        };
-
-        let currentVersion = getCurrentVersion();
-
-        const applyUiDropdownState = (version) => {
-            const toggleBtn = dropdown.querySelector('.dropdown-toggle');
-            const items = dropdown.querySelectorAll('.dropdown-item');
-
-            toggleBtn.innerHTML = `${version === uiConfig.UI_VERSION_OLD ? 'V.1.0.0' : 'V.2.1.0'} <i class="fa-solid fa-chevron-down"></i>`;
-            items.forEach(i => {
-                if (i.dataset.version === version) {
-                    i.classList.add('active');
-                } else {
-                    i.classList.remove('active');
-                }
-            });
-        };
-
-        const switchUiVersion = (selectedVersion) => {
-            localStorage.setItem(uiConfig.UI_VERSION_KEY, selectedVersion);
-            currentVersion = selectedVersion;
-
-            const targetMode = selectedVersion === uiConfig.UI_VERSION_OLD ? 'old' : 'modern';
-            const currentPath = window.location.pathname;
-            const mappedRoute = routeByPath[currentPath]?.[targetMode];
-            const fallbackRoute = selectedVersion === uiConfig.UI_VERSION_OLD ? '/app/user.html' : '/app/user2.html';
-            const targetRoute = mappedRoute || fallbackRoute;
-
-            applyUiDropdownState(selectedVersion);
-
-            if (targetRoute !== currentPath) {
-                window.location.href = targetRoute;
-                return;
-            }
-
-            toastsLoader.showToast(`UI version set to ${selectedVersion}.`, 'success', 2200);
-        };
-
-        applyUiDropdownState(currentVersion);
-
-        dropdown.addEventListener('dropdown-selected', (e) => {
-            const selectedVersion = e.detail?.element?.dataset?.version || e.detail?.value;
-
-            if (!selectedVersion || selectedVersion === currentVersion) {
-                return;
-            }
-
-            if (selectedVersion === uiConfig.UI_VERSION_OLD) {
-                engine.openModal({
-                    title: 'Legacy Version Warning',
-                    body: `
-                        <p class="modal-message">Are you sure you want to switch to UI version 1.0.0? This version is outdated and may have issues.</p>
-                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Switch to 1.0.0</button>
-                        </div>
-                    `,
-                    footer: '',
-                    onConfirm: () => {
-                        console.log('UI Version Switched to:', selectedVersion);
-                        toastsLoader.showToast('UI version 1.0.0 is a legacy version that is no longer maintained. It may contain bugs and missing features. Use at your own risk!', 'warning', 5000);
-                        switchUiVersion(selectedVersion);
-                    },
-                    onCancel: () => {
-                        console.log('User cancelled UI switch.');
-                        toastsLoader.showToast('UI switch cancelled. You are still on version ' + currentVersion, 'info', 2500);
-                        applyUiDropdownState(currentVersion);
-                    }
-                });
-            } else {
-                console.log('UI Version Switched to:', selectedVersion);
-                switchUiVersion(selectedVersion);
-            }
-        });
-    }
-
+    
     function initEditProfileModal() {
         elements.editProfileBtn.addEventListener('click', async () => {
             await ModalHelpers.EditProfile.openModal({
@@ -393,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
     }
-
+    
     function initLogoutButton() {
         elements.logoutBtn.addEventListener('click', () => {
             engine.openModal({
@@ -435,8 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     }
-
-
+    
     function setFontSize() {
         const container = elements.fontSizeSelect; 
         
@@ -496,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.documentElement.style.setProperty('--rotation', hueValue);
         window.PreferencesManager?.setProperty('hueRotation', hueValue);
     }
-
+    
     function initHueSlider() {
         const savedHue = window.PreferencesManager?.getProperty('hueRotation') || 0;
         elements.hueSlider.value = savedHue;
@@ -506,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
             slideHue();
         });
     }
-
+    
     function requestData() {
         elements.requestDataBtn.addEventListener('click', async () => {
             const prefs = window.PreferencesManager?.get() || {};
@@ -703,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(response);
         });
     }
-
+    
     function deleteAccount() {
         elements.eraseMeBtn.addEventListener('click', () => {
             engine.openModal({
@@ -735,10 +632,54 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function removeTwoFactorButtonParent() {
+        const parent = elements.tfa?.parentElement;
+        if (parent && parent.parentElement) {
+            parent.remove();
+        }
+    }
+    
+    async function initTwoFactorAuth() {
+        const currentUser = userData || await window.apiService.users.getCurrentUser().catch(() => null);
+        const is2FA = !!currentUser?.Backupcodesecret?.Valid;
+
+        if (is2FA) {
+            removeTwoFactorButtonParent();
+            console.log('User already has 2FA enabled, skipping 2FA setup button initialization.');
+            return;
+        }
+
+        elements.tfa.addEventListener('click', () => {
+            ModalHelpers.totpSetup.openModal({
+                engine,
+                onConfirm: (modalElement) => {
+                    console.log('Starting verification of TOTP code');
+                    handleTwoFactor(modalElement);
+                },
+                onOpen: async (modalElement) => {
+                    await ModalHelpers.totpSetup.initialization(modalElement);
+                }
+            });
+        });
+    }
+
+    function handleTwoFactor(modalElement) {
+        const totpInput = modalElement?.querySelector('#totpCodeInput');
+        const totpCode = totpInput?.value?.trim() || '';
+        
+        ModalHelpers.totpSetup.performTotpSetup({ totpCode }).then(() => {
+            toastsLoader.showToast('Two-factor authentication setup successfully!', 'confirm', 3000);
+        }).catch(error => {
+            console.error('Error setting up two-factor authentication:', error);
+            toastsLoader.showToast(`Error setting up two-factor authentication: ${error.message}`, 'danger', 5000);
+        });
+    }
+
     function setupProfileCardSync() {
-        const syncProfileCard = () => {
-            if (!window.apiService.isAuthenticated()) return;
-            fetchUserData();
+        const syncProfileCard = async () => {
+            const isAuth = await window.apiService.checkAuthentication(false);
+            if (!isAuth) return;
+            await fetchUserData();
         };
 
         window.addEventListener('focus', syncProfileCard);
@@ -750,7 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.addEventListener('storage', (e) => {
-            if (['authToken', 'username', 'userEmail', 'profilePicID'].includes(e.key)) {
+            if (['username', 'userEmail', 'profilePicID'].includes(e.key)) {
                 syncProfileCard();
             }
         });
@@ -783,10 +724,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    window.addEventListener('codium:totp-setup-success', (e) => {
+        console.log('Received TOTP setup success event:', e.detail);
+        removeTwoFactorButtonParent();
+        fetchUserData();
+    });
+
     // --- innit mate ---
     async function initApp() {
-        if (!window.apiService.isAuthenticated()) {
-            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        if (!(await window.apiService.checkAuthentication(true))) {
             return;
         }
 
@@ -797,13 +743,12 @@ document.addEventListener("DOMContentLoaded", () => {
             
             renderLanguageOptions();
             initDropdownLogic(); // Replaces initDropdown
-            initUiDropdown(); // UI version selector logic
             initEditProfileModal(); // Edit profile modal logic
             initLogoutButton(); // Logout button logic
+            await initTwoFactorAuth(); // 2FA setup modal logic, only if user doesn't have 2FA enabled
 
             initHueSlider(); 
-            enableHighContrastMode();
-            enableColorblindMode();
+            initThemeToggles();
             setFontSize();
             requestData();
             deleteAccount();

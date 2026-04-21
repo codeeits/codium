@@ -85,7 +85,7 @@ export class ProblemService {
 
     async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
 
-        if (this.api.isAuthenticated() === false) {
+        if ((await this.api.checkAuthentication(false)) === false) {
             throw new Error('Authentication required to run code against problem tests');
         }
         const problemResponse = await this.getProblemById(problemId);
@@ -100,6 +100,7 @@ export class ProblemService {
             throw new Error('No tests found for the specified problem');
         }
 
+        const givenAnswers = [];
         let score = 0;
         let tests = await this.getTestChainForFirstTest(currentTestId);
 
@@ -117,19 +118,17 @@ export class ProblemService {
             //console.log(`Running code against Test ID: ${currentTestId}`);
             let apiResult = await this.api.compiler.runCode(code, inputFile, testStdin);
             //console.log('API Result:', apiResult);
+            const consoleOutput = (apiResult?.console ?? '').trim();
+            const expectedOutput = (testData?.ExpectedOutput ?? '').trim();
 
-            if (apiResult.console.trim() === testData.ExpectedOutput.trim()) {
+            givenAnswers.push(consoleOutput);
+            if (consoleOutput === expectedOutput) {
                 score += 1;
-            }
-
-            if (apiResult.console.trim() !== testData.ExpectedOutput.trim()) {
-                score += 0;
             }
             currentTestId = testData.NextTestID;
         }
 
-        //console.log(`Final Score: ${score} out of ${tests.length}`);
-        return { score, total: tests.length };
+        return { given_answers: givenAnswers, score, total: tests.length };
 
         /*
         if (stdin === true) {

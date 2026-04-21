@@ -5,21 +5,21 @@ const EXPERIMENTAL_SECTIONS = [
             {
                 title: 'New user dashboard',
                 description: 'Sidebar-based account page with newer profile and progress layout.',
-                href: '/app/user2.html',
+                href: '/app/user.html',
                 icon: 'fa-user',
                 tag: 'new ui'
             },
             {
                 title: 'New lessons index',
                 description: 'Updated lessons browser with the newer navigation shell.',
-                href: '/app/Lectii/lessons2.html',
+                href: '/app/Lectii/lessons.html',
                 icon: 'fa-book',
                 tag: 'new ui'
             },
             {
                 title: 'New problems index',
                 description: 'Problems listing with the newer card flow and sidebar.',
-                href: '/app/Probleme/index2.html',
+                href: '/app/Probleme/index.html',
                 icon: 'fa-code',
                 tag: 'new ui'
             },
@@ -71,13 +71,6 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'template'
             },
             {
-                title: 'Login template',
-                description: 'Standalone login template sample used by the modal engine.',
-                href: '/app/templates.html',
-                icon: 'fa-id-card',
-                tag: 'template'
-            },
-            {
                 title: 'PDF builder template',
                 description: 'HTML shell for the PDF builder helper.',
                 href: '/app/Scripts/helper/pdfTemplate.html',
@@ -104,6 +97,13 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'admin'
             },
             {
+                title: 'Upload lesson (v1)',
+                description: 'Admin interface for uploading new lessons. Currently in use until next major iteration is ready.',
+                href: '/app/Lectii/lesson-upload.html',
+                icon: 'fa-file-upload',
+                tag: 'admin'
+            },
+            {
                 title: 'Manage lessons (v1)',
                 description: 'Admin interface for reordering, editing, and managing lessons. Currently in use.',
                 href: '/app/Lectii/manage-lessons.html',
@@ -125,31 +125,10 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'legacy'
             },
             {
-                title: 'Legacy login flow (draft)',
-                description: 'Login page before v1. Kept for fun.',
-                href: '/app/o-login.html',
-                icon: 'fa-right-to-bracket',
-                tag: 'legacy'
-            },
-            {
                 title: 'Legacy signup flow (v1)',
                 description: 'Old signup page, useful when checking backwards compatibility.',
                 href: '/app/signup.html',
                 icon: 'fa-user-plus',
-                tag: 'legacy'
-            },
-            {
-                title: 'Legacy signup flow (draft)',
-                description: 'Signup page before v1. Kept for fun.',
-                href: '/app/o-signup.html',
-                icon: 'fa-user-plus',
-                tag: 'legacy'
-            },
-            {
-                title: 'Legacy user profile (v1)',
-                description: 'Old user profile page with the original layout and features.',
-                href: '/app/user.html',
-                icon: 'fa-address-card',
                 tag: 'legacy'
             }
         ]
@@ -217,7 +196,7 @@ async function ensureAccess() {
         return false;
     }
 
-    if (!window.apiService.isAuthenticated(true)) {
+    if (!(await window.apiService.checkAuthentication(true))) {
         return false;
     }
 

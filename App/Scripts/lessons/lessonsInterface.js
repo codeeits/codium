@@ -28,11 +28,11 @@ function toRoman(n) {
 }
 
 // 2 down 1 up
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = false; // SET THIS TO ENABLE LOGS!
     const baseurl = window.location.href;
-    const isAuthenticated = window.apiService.isAuthenticated();
+    const isAuthenticated = await window.apiService.checkAuthentication(false);
 
     // --- DOM ELEMENTS ---
     const elements = {
@@ -621,10 +621,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (isAuthenticated) {
-            await window.apiService.finishLesson(state.lessonId).catch(error => {
+            await window.apiService.lessons.finishLesson(state.lessonId).catch(error => {
                 if (debugMode) console.error("Failed to mark lesson as finished:", error);
             });
-            const d = await window.apiService.getCompletionTime(state.lessonId);
+            const d = await window.apiService.lessons.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
             toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
             
@@ -658,19 +658,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (isAuthenticated) {
-            await window.apiService.finishLesson(state.lessonId).catch(error => {
+            await window.apiService.lessons.finishLesson(state.lessonId).catch(error => {
                 if (debugMode) console.error("Failed to mark lesson as finished:", error);
             });
-            const d = await window.apiService.getCompletionTime(state.lessonId);
+            const d = await window.apiService.lessons.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
             toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
         }
 
-        if (isLegacyUI) {
-            window.location.href = `lessons.html`;
-        } else {
-            window.location.href = `lessons2.html`;
-        }
+        
+        window.location.href = `lessons.html`;
     }
 
     // --- INITIALIZATION ---

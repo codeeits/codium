@@ -4,7 +4,7 @@
  /(__)\  )___/ _)(_  ) _ (  /(__)\  )  (  )(_) ))(__  )__)  )   /\__ \  .-_)(  \__ \
 (__)(__)(__)  (____)(_) (_)(__)(__)(_)\_)(____/(____)(____)(_)\_)(___/()\____) (___/
 
-Pentru caching mai bun si gestionare mai eficientă.
+Now split in multiple services. Removed legacy code and bridges.
 
 Type O Negative - I Don't Wanna Be Me
 */
@@ -94,6 +94,10 @@ class ApiService {
         
         if (error instanceof ApiError) {
             if (error.isUnauthorized()) {
+                if (error.endpoint === '/api/users/totp/authenticate') {
+                    this.showToast('Invalid OTP', 'danger', 3000);
+                    return;
+                }
                 this.showToast('Invalid credentials or session expired. Please log in again.', this.errorToastTypes.unauthorized, 3000);
                 return;
             }
@@ -119,53 +123,110 @@ class ApiService {
         }
     }
     
-
     // ===========================================
     // AUTH si tokens
     // ===========================================
 
     loadTokens() {
-        this.authToken = localStorage.getItem('authToken');
-        this.refreshToken = localStorage.getItem('refreshToken');
+        this.authState = null;
+        this.currentUser = null;
+
+        const legacyKeys = ['authToken', 'refreshToken', 'sessionKnownAuthenticated', 'username', 'userEmail', 'isAdmin', 'userID', 'profilePicID'];
+        legacyKeys.forEach(key => localStorage.removeItem(key));
     }
 
-    saveTokens(authToken, refreshToken) {
-        this.authToken = authToken;
-        this.refreshToken = refreshToken;
-        localStorage.setItem('authToken', authToken);
-        if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-        }
+    saveTokens() {
+        this.warnDeprecated('saveTokens()', 'Backend Set-Cookie headers handle this');
     }
 
     clearTokens() {
-        this.authToken = null;
-        this.refreshToken = null;
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('username');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('isAdmin');
-        localStorage.removeItem('userID');
-        localStorage.removeItem('profilePicID');
+        this.authState = false;
+        this.currentUser = null;
+        localStorage.removeItem('codium_session_active');
     }
 
     getAuthHeaders() {
-        if (!this.authToken) {
-            throw new Error('No authentication token available');
-        }
         return {
-            'Authorization': `Bearer ${this.authToken}`,
             'Content-Type': 'application/json'
         };
     }
 
-    isAuthenticated(redirect = false) {
-        const isAuth = !!this.authToken;
-        if (!isAuth && redirect) {
-            window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    isAuthenticated() {
+        if (this.authState === null && !this.authStateInFlight) {
+            this.checkAuthentication().catch(() => {});
+            return false;
         }
-        return isAuth;
+        return this.authState === true;
+    }
+
+    getCachedCurrentUser() {
+        return this.currentUser;
+    }
+
+    setAuthenticatedUser(user) {
+        if (!user || !user.ID) return;
+        this.currentUser = user;
+        this.authState = true;
+        this.lastAuthCheckAt = Date.now();
+        localStorage.setItem('codium_session_active', 'true');
+    }
+
+    async checkAuthentication(redirect = false) {
+        // fast fail if we know we're not authenticated
+        if (localStorage.getItem('codium_session_active') !== 'true') {
+            this.clearTokens();
+            if (redirect) {
+                window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
+            }
+            return false;
+        }
+        const now = Date.now();
+        const isFresh = now - this.lastAuthCheckAt < 10000;
+        
+        if (isFresh && this.authState !== null) {
+            if (!this.authState && redirect) {
+                window.location.href = `/app/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+            }
+            return this.authState;
+        }
+
+        if (this.authStateInFlight) {
+            return this.authStateInFlight;
+        }
+
+        this.authStateInFlight = (async () => {
+            try {
+                const userData = await this.users.getUserDataGDPR();
+                const parsed = typeof userData === 'string' ? JSON.parse(userData) : userData;
+                const user = parsed?.user || parsed?.User || null;
+
+                if (!user || !user.ID) {
+                    this.clearTokens();
+                    if (redirect) {
+                        window.location.href = `/app/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+                    }
+                    return false;
+                }
+
+                this.setAuthenticatedUser(user);
+                return true;
+            } catch (error) {
+                if (error instanceof ApiError && (error.status === 401 || error.status === 400)) {
+                    this.clearTokens();
+                    if (redirect) {
+                        window.location.href = `/app/login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+                    }
+                    return false;
+                }
+                // we no throwin errors anymore 
+                console.warn('Authentication check encountered an error:', error);
+                return false;
+            } finally {
+                this.authStateInFlight = null;
+            }
+        })();
+
+        return this.authStateInFlight;
     }
 
     isDevEnvironment() {
@@ -182,10 +243,6 @@ class ApiService {
     }
 
     async refreshAuthToken() {
-        if (!this.refreshToken) {
-            throw new ApiError(401, 'Missing refresh token', '/api/refresh');
-        }
-
         if (this.refreshInFlight) {
             return this.refreshInFlight;
         }
@@ -193,10 +250,10 @@ class ApiService {
         this.refreshInFlight = (async () => {
             const response = await fetch(`${this.baseURL}/api/refresh`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ refresh_token: this.refreshToken })
+                }
             });
 
             if (!response.ok) {
@@ -204,20 +261,14 @@ class ApiService {
                 throw new ApiError(response.status, errorText || 'Failed to refresh token', '/api/refresh');
             }
 
-            const data = await response.json();
-            if (!data?.auth_token) {
-                throw new ApiError(500, 'Invalid refresh response: missing auth_token', '/api/refresh');
-            }
-
-            this.saveTokens(data.auth_token, this.refreshToken);
             this.debugRefresh('Session refreshed successfully.');
-            return data.auth_token;
+            return true;
         })();
 
         try {
             return await this.refreshInFlight;
         } catch (error) {
-            this.debugRefresh('Session refresh failed. Please log in again.', 'warning');
+            //this.debugRefresh('Session refresh failed. Please log in again.', 'warning');
             this.clearTokens();
             throw error;
         } finally {
@@ -231,7 +282,7 @@ class ApiService {
 
     async makeRequest(url, options = {}) {
         const config = {
-
+            credentials: 'include',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -247,14 +298,7 @@ class ApiService {
             const shouldTryRefresh = response.status === 401 && options.requiresAuth === true && options.retryOnAuthFailure !== false;
             if (shouldTryRefresh) {
                 await this.refreshAuthToken();
-                const retryConfig = {
-                    ...config,
-                    headers: {
-                        ...config.headers,
-                        'Authorization': `Bearer ${this.authToken}`
-                    }
-                };
-                response = await fetch(`${this.baseURL}${url}`, retryConfig);
+                response = await fetch(`${this.baseURL}${url}`, config);
             }
 
             if (!response.ok) {
@@ -320,369 +364,7 @@ class ApiService {
             headers: this.getAuthHeaders(),
             requiresAuth
         });
-    }
-
-    // ===========================================
-    // File Upload Methods (Bridged)
-    // ===========================================
-
-    async uploadFile(file, location = 'images') {
-        this.warnDeprecated('uploadFile()', 'fileManager.uploadFile()');
-        return this.fileManager.uploadFile(file, location);
-    }
-
-    // ===========================================
-    // auth endpoints (Bridged)
-    // ===========================================
-
-    async login(email, password) {
-        this.warnDeprecated('login()');
-        return this.users.login(email, password);
-    }
-
-    async signup(userData) {
-        this.warnDeprecated('signup()');
-        return this.users.signup(userData);
-    }
-
-    async logout(confirmMessage = false, redirect = true) {
-        this.warnDeprecated('logout()');
-        return this.users.logout(confirmMessage, redirect);
-    }
-
-    // ===========================================
-    // management user endpoints (Bridged)
-    // ===========================================
-
-    async getCurrentUser() {
-        this.warnDeprecated('getCurrentUser()');
-        return this.users.getCurrentUser();
-    }
-
-    async isCurrentAdmin() {
-        this.warnDeprecated('isCurrentAdmin()');
-        return this.users.isCurrentAdmin();
-    }
-
-    async getUserById(userId) {
-        this.warnDeprecated('getUserById()');
-        return this.users.getUserById(userId);
-    }
-
-    async getCurrentUserUsername() {
-        this.warnDeprecated('getCurrentUserUsername()');
-        return this.users.getCurrentUserUsername();
-    }
-
-    async updateUserField(field, value, pic = false) {
-        this.warnDeprecated('updateUserField()');
-        return this.users.updateUserField(field, value, pic);
-    }
-
-    async updatePassword(oldPassword, newPassword) {
-        this.warnDeprecated('updatePassword()');
-        return this.users.updatePassword(oldPassword, newPassword);
-    }
-
-    async updateEmail(newEmail) {
-        this.warnDeprecated('updateEmail()');
-        return this.users.updateEmail(newEmail);
-    }
-
-    async updateUsername(newUsername) {
-        this.warnDeprecated('updateUsername()');
-        return this.users.updateUsername(newUsername);
-    }
-
-    async updateProfilePicture(fileId) {
-        this.warnDeprecated('updateProfilePicture()');
-        return this.users.updateProfilePicture(fileId);
-    }
-
-    // permissions management (admin only)
-
-    async updateUserPermissions(userId, title) {
-        this.warnDeprecated('updateUserPermissions()');
-        return this.users.updateUserPermissions(userId, title);
-    }
-
-    // danger area
-
-    async deleteAccount(userId = null) {
-        this.warnDeprecated('deleteAccount()');
-        return this.users.deleteAccount(userId);
-    }
-    
-    // ===========================================
-    // Lesson Management Endpoints (Bridged)
-    // ===========================================
-
-    async createLesson(lessonData) {
-        this.warnDeprecated('createLesson()', 'lessons');
-        return this.lessons.createLesson(lessonData);
-    }
-
-    async getLessons(params = {}) {
-        this.warnDeprecated('getLessons()', 'lessons');
-        return this.lessons.getLessons(params);
-    }
-
-    async getLessonById(lessonId) {
-        this.warnDeprecated('getLessonById()', 'lessons');
-        return this.lessons.getLessonById(lessonId);
-    }
-
-    async getLessonsByFlags(classNum = null, section = null, module = null) {
-        this.warnDeprecated('getLessonsByFlags()', 'lessons');
-        return this.lessons.getLessonsByFlags(classNum, section, module);
-    }
-
-    async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {
-        this.warnDeprecated('getLessonsSortedByPrevNext()', 'lessons');
-        return this.lessons.getLessonsSortedByPrevNext(classNum, section, module, debug);
-    }
-
-    async getSectionsForClass(classNum){
-        this.warnDeprecated('getSectionsForClass()', 'lessons');
-        return this.lessons.getSectionsForClass(classNum);
-    }
-
-    async getSections(classNum = null, module = null) {
-        this.warnDeprecated('getSections()', 'lessons');
-        return this.lessons.getSections(classNum, module);
-    }
-
-    async modifyBookmark(lessonId) {
-        this.warnDeprecated('modifyBookmark()', 'lessons');
-        return this.lessons.modifyBookmark(lessonId);
-    }
-
-    async modifyFavorite(lessonId) {
-        this.warnDeprecated('modifyFavorite()', 'lessons');
-        return this.lessons.modifyFavorite(lessonId);
-    }
-
-    async getBookmarks(userId) {
-        this.warnDeprecated('getBookmarks()', 'lessons');
-        return this.lessons.getBookmarks(userId);
-    }
-
-    async getBookmarkStatus(lessonId, userId = null) {
-        this.warnDeprecated('getBookmarkStatus()', 'lessons');
-        return this.lessons.getBookmarkStatus(lessonId, userId);
-    }
-
-    async getFavoritesNumber(lessonId) {
-        this.warnDeprecated('getFavoritesNumber()', 'lessons');
-        return this.lessons.getFavoritesNumber(lessonId);
-    }
-
-    async getFavoriteStatus(lessonId, userId = null) {
-        this.warnDeprecated('getFavoriteStatus()', 'lessons');
-        return this.lessons.getFavoriteStatus(lessonId, userId);
-    }
-
-    async finishLesson(lessonId) {
-        this.warnDeprecated('finishLesson()', 'lessons');
-        return this.lessons.finishLesson(lessonId);
-    }
-
-    async startLesson(lessonId) {
-        this.warnDeprecated('startLesson()', 'lessons');
-        return this.lessons.startLesson(lessonId);
-    }
-
-    async getCompletionTime(lessonId, userId = null) {
-        this.warnDeprecated('getCompletionTime()', 'lessons');
-        return this.lessons.getCompletionTime(lessonId, userId);
-    }
-
-    async getInteractions(userId = null, max_results = 3) {
-        this.warnDeprecated('getInteractions()', 'lessons');
-        return this.lessons.getInteractions(userId, max_results);
-    }
-
-    async updateLessonOrder(lessonId, prev = null, next = null) {
-        this.warnDeprecated('updateLessonOrder()', 'lessons');
-        return this.lessons.updateLessonOrder(lessonId, prev, next);
-    }
-
-    async updateLessonSectionStarter(lessonId, sectionNumber) {
-        this.warnDeprecated('updateLessonSectionStarter()', 'lessons');
-        return this.lessons.updateLessonSectionStarter(lessonId, sectionNumber);
-    }
-
-    async updateLessonContent(lessonId, file) {
-        this.warnDeprecated('updateLessonContent()', 'lessons');
-        return this.lessons.updateLessonContent(lessonId, file);
-        // y barcelona me hace vomitar :D
-    }
-
-    async uploadLesson(lessonData, file) {
-        this.warnDeprecated('uploadLesson()', 'lessons');
-        return this.lessons.uploadLesson(lessonData, file);
-    }
-
-    // Update existing lesson
-
-    async updateLessonField(lessonId, targetField, data) {
-        // field can be: flags (class, section, module), details (title, description)
-        this.warnDeprecated('updateLessonField()', 'lessons');
-        return this.lessons.updateLessonField(lessonId, targetField, data);
-    }
-
-    // suggestions endpoints
-
-    async getPendingLessons() {
-        this.warnDeprecated('getPendingLessons()', 'lessons');
-        return this.lessons.getPendingLessons();
-    }
-
-    async approveLesson(lessonId) {
-        this.warnDeprecated('approveLesson()', 'lessons');
-        return this.lessons.approveLesson(lessonId);
-    }
-
-    // ===========================================
-    // Problems Management Endpoints (Bridged)
-    // ===========================================
-
-    async createProblem(problemData) {
-        this.warnDeprecated('createProblem()', 'problems');
-        return this.problems.createProblem(problemData);
-    }
-
-    async updateProblem(problemId, targetField, data) {
-        this.warnDeprecated('updateProblem()', 'problems');
-        return this.problems.updateProblem(problemId, targetField, data);
-    }
-
-    async getProblems() {
-        this.warnDeprecated('getProblems()', 'problems');
-        return this.problems.getProblems();
-    }
-
-    async getProblemById(problemId) {
-        this.warnDeprecated('getProblemById()', 'problems');
-        return this.problems.getProblemById(problemId);
-    }
-
-    async getTestById(testId) {
-        this.warnDeprecated('getTestById()', 'tests');
-        return this.problems.getTestById(testId);
-    }
-
-    async getTestChainForFirstTest(firstTestId = null, problemId = null) {
-        this.warnDeprecated('getTestChainForFirstTest()', 'problems');
-        return this.problems.getTestChainForFirstTest(firstTestId, problemId);
-    }
-
-    async runCodeAgainstTest(testId, code, inputFile = null, stdin = true) {
-        this.warnDeprecated('runCodeAgainstTest()', 'problems');
-        return this.problems.runCodeAgainstTest(testId, code, inputFile, stdin);
-    }
-
-    async runCodeAgainstProblemTests(problemId, code, inputFile = null, stdin = true) {
-        this.warnDeprecated('runCodeAgainstProblemTests()', 'problems');
-        return this.problems.runCodeAgainstProblemTests(problemId, code, inputFile, stdin);
-    }
-
-    async createSolution(problemId, solutionData) {
-        this.warnDeprecated('createSolution()', 'problems');
-        return this.problems.createSolution(problemId, solutionData);
-    }
-
-    async updateSolution(solutionId, targetField, data) {
-        this.warnDeprecated('updateSolution()', 'problems');
-        return this.problems.updateSolution(solutionId, targetField, data);
-    }
-
-    async getSolutionById(solutionId) {
-        // if admin or owner
-        this.warnDeprecated('getSolutionById()', 'problems');
-        return this.problems.getSolutionById(solutionId);
-    }
-
-    async getSolutionsByUser(userId) {
-        this.warnDeprecated('getSolutionsByUser()', 'problems');
-        return this.problems.getSolutionsByUser(userId);
-    }
-
-    async getSolutionsByProblem(problemId) {
-        // owned or admin
-        this.warnDeprecated('getSolutionsByProblem()', 'problems');
-        return this.problems.getSolutionsByProblem(problemId);
-    }
-
-    async countSolutionsForProblem(problemId) {
-        this.warnDeprecated('countSolutionsForProblem()', 'problems');
-        return this.problems.countSolutionsForProblem(problemId);
-    }
-
-    async countSolutionsForUser(userId) {
-        this.warnDeprecated('countSolutionsForUser()', 'problems');
-        return this.problems.countSolutionsForUser(userId);
-    }
-
-    async modifyBookmarkProblem(problemId) {
-        this.warnDeprecated('modifyBookmarkProblem()', 'problems');
-        return this.problems.modifyBookmarkProblem(problemId);
-    }
-
-    async getBookmarkedProblems(userId) {
-        this.warnDeprecated('getBookmarkedProblems()', 'problems');
-        return this.problems.getBookmarkedProblems(userId);
-    }
-
-    async getProblemBookmarkStatus(problemId, userId = null) {
-        this.warnDeprecated('getProblemBookmarkStatus()', 'problems');
-        return this.problems.getProblemBookmarkStatus(problemId, userId);
-    }
-
-    // suggestions endpoints
-
-    async getPendingProblems() {
-        this.warnDeprecated('getPendingProblems()', 'problems');
-        return this.problems.getPendingProblems();
-    }
-
-    async approveProblem(problemId) {
-        this.warnDeprecated('approveProblem()', 'problems');
-        return this.problems.approveProblem(problemId);
-    }
-
-    async bulkUploadProblems(problemsData) {
-        this.warnDeprecated('bulkUploadProblems()', 'problems');
-        return this.problems.bulkUploadProblems(problemsData);
-    }
-
-    // ===========================================
-    // File Management Endpoints (Bridged)
-    // ===========================================
-
-    async getFile(fileId) {
-        this.warnDeprecated('getFile()', 'fileManager');
-        return this.fileManager.getFile(fileId);
-    }
-
-    getFileUrl(fileId) {
-        this.warnDeprecated('getFileUrl()', 'fileManager');
-        return this.fileManager.getFileUrl(fileId);
-    }
-
-    async getProfilePicture(userId = null) {
-        this.warnDeprecated('getProfilePicture()', 'fileManager');
-        return this.fileManager.getProfilePicture(userId);
-    }
-
-    // ===========================================
-    // Code Execution (Bridged)
-    // ===========================================
-
-    async runCode(code, inputFile = null, stdin = '') {
-        this.warnDeprecated('runCode()', 'compiler');
-        return this.compiler.runCode(code, inputFile, stdin);
-    }
+    }    
 
     // ===========================================
     // Misc Stuff
@@ -783,11 +465,6 @@ class ApiService {
 
         return new Chart(target, config);
     }
-
-    getUserDataGDPR() {
-        this.warnDeprecated('getUserDataGDPR()', 'users');
-        return this.users.getUserDataGDPR();
-    }
         
 }
 
@@ -816,9 +493,12 @@ window.showToast = (message, type = 'info', duration = 3000) => {
 
 
 // Quick auth check utility
-window.requireAuth = function(redirectTo = 'login.html') {
-    if (!window.apiService.isAuthenticated()) {
-        window.location.href = redirectTo;
+window.requireAuth = async function(redirectTo = 'login.html') {
+    const isAuth = await window.apiService.checkAuthentication();
+    
+    if (!isAuth) {
+        const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `${redirectTo}?redirect=${currentPath}`;
         return false;
     }
     return true;

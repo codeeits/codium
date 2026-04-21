@@ -54,22 +54,28 @@ func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// Add httpOnly to the response token
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	userJson, err := PrintUserToJson(loginTarget)
-	if err != nil {
-		cfg.Logger.Printf("Failed to marshal user: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	jwt = strings.TrimSpace(jwt)
-	refreshToken = strings.TrimSpace(refreshToken)
-	_, err = w.Write([]byte(fmt.Sprintf(`{"user":%v, "auth_token": "%v", "refresh_token": "%v"}`, userJson, jwt, refreshToken)))
-	if err != nil {
-		cfg.Logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    jwt,
+		HttpOnly: true,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		Secure:   cfg.WebsiteState == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour * 120),
+		Secure:   cfg.WebsiteState == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, loginTarget, PrintUserToJson)
 }
 
 /*
@@ -172,6 +178,36 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.WriteAuthentificationResponse(w, r, loginTarget.ID, token)
 }
 
+func (cfg *ApiCfg) LogoutHandler(w http.ResponseWriter, _ *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   cfg.WebsiteState == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   cfg.WebsiteState == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte("{}"))
+	if err != nil {
+		cfg.Logger.Printf("Failed to write response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 	type params struct {
 		ValidationToken string `json:"validation_token"`
@@ -262,15 +298,12 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-
-	p, err := DecodeParamsFromBody(r, params{})
-	if err != nil {
-		cfg.Logger.Printf("Invalid request body: %v", err)
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+	var refreshToken string
+	cookies := r.Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == "refresh_token" {
+			refreshToken = cookie.Value
+		}
 	}
 
 	cfg.Logger.Print("Received token refresh request")
@@ -282,16 +315,16 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.RefreshToken == "" {
+	if refreshToken == "" {
 		cfg.Logger.Printf("Missing required field: refresh_token")
 		http.Error(w, "Missing required field: refresh_token", http.StatusBadRequest)
 		return
 	}
 
-	storedToken, err := cfg.Db.GetToken(r.Context(), p.RefreshToken)
+	storedToken, err := cfg.Db.GetToken(r.Context(), refreshToken)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cfg.Logger.Printf("Refresh token not found: %v", p.RefreshToken)
+			cfg.Logger.Printf("Refresh token not found: %v", refreshToken)
 			http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 			return
 		}
@@ -301,13 +334,13 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if storedToken.RevokedAt.Valid {
-		cfg.Logger.Printf("Refresh token has been revoked: %v", p.RefreshToken)
+		cfg.Logger.Printf("Refresh token has been revoked: %v", refreshToken)
 		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 		return
 	}
 
 	if time.Now().After(storedToken.ExpiresAt) {
-		cfg.Logger.Printf("Refresh token has expired: %v", p.RefreshToken)
+		cfg.Logger.Printf("Refresh token has expired: %v", refreshToken)
 		http.Error(w, "Refresh token has expired", http.StatusUnauthorized)
 		return
 	}
@@ -319,14 +352,7 @@ func (cfg *ApiCfg) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(fmt.Sprintf(`{"auth_token": "%v"}`, token)))
-	if err != nil {
-		cfg.Logger.Printf("Failed to write response: %v", err)
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
+	cfg.WriteAuthentificationResponse(w, r, storedToken.UserID, token)
 }
 
 func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) {
@@ -971,7 +997,6 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Update email
-
 	res, err := cfg.Db.UpdateUserEmail(r.Context(), database.UpdateUserEmailParams{
 		ID:        targetUser.ID,
 		Email:     p.NewEmail,
@@ -979,6 +1004,18 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to update user email: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	curedEmail := strings.Replace(strings.ToLower(res.Email), ".", "", -1) // Normalize email by removing dots
+	_, err = cfg.Db.UpdateUserCuredEmail(r.Context(), database.UpdateUserCuredEmailParams{
+		ID:         targetUser.ID,
+		CuredEmail: sql.NullString{String: curedEmail, Valid: true},
+		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update user cured email: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

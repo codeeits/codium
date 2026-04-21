@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -59,12 +60,12 @@ type FlagTranslation struct {
 }
 
 type TagTranslation struct {
-	Module           int `json:"module"`
-	Difficulty       int `json:"difficulty"`
-	SolveType        int `json:"solve_type"`
-	ResultType       int `json:"result_type"`
-	VerificationType int `json:"verification_type"`
-	SectionType      int `json:"section"`
+	Module     int `json:"module"`
+	Difficulty int `json:"difficulty"`
+	SolveType  int `json:"solve_type"`
+	ResultType int `json:"result_type"`
+	Class      int `json:"verification_type"`
+	Section    int `json:"section"`
 }
 
 type LessonWithFlags struct {
@@ -129,6 +130,8 @@ const (
 	// PermissionCanSuggestProblems represents the ability to suggest new problems
 	PermissionCanSuggestProblems UserPermissions = 1 << 6
 )
+
+var NoXpAddedErr = errors.New("no XP added for this problem, either because it was already solved or because of an error")
 
 /*uint32
 ===========================================
@@ -524,7 +527,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 				UserID:    userID,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-				SolvedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				SolvedAt:  sql.NullTime{Time: time.Now(), Valid: false},
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -548,7 +551,74 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	if err != nil {
 		return database.UsersProblem{}, fmt.Errorf("failed to update problem solvedAt: %v", err)
 	}
+
+	cfg.Logger.Printf("Trying to give an XP bonus to user: %v", userID)
+	problemXp, err := cfg.CalculateXPBonusForProblem(problemID)
+	if err != nil {
+		return res, NoXpAddedErr
+	}
+	multi, err := cfg.CalculateScoreMultiplier(userID)
+	if err != nil {
+		return res, NoXpAddedErr
+	}
+
+	scoreToAdd := problemXp * multi
+	_, err = cfg.AddScoreToUser(userID, scoreToAdd)
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to add score to user: %v", err)
+	}
+
+	cfg.Logger.Printf("Added %v xp to user: %v", scoreToAdd, userID)
+
 	return res, nil
+}
+
+func (cfg *ApiCfg) CalculateXPBonusForProblem(problemID uuid.UUID) (score int32, err error) {
+	problem, err := cfg.Db.GetProblemByID(context.Background(), problemID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve problem: %v", err)
+	}
+
+	problemTags := ParseProblemTags(problem.Tags)
+	var returnedScore int32 = 0
+	switch problemTags.Difficulty {
+	case 0: // easy problem
+		returnedScore = 40
+	case 1: // medium problem
+		returnedScore = 80
+	case 3: // hard problem
+		returnedScore = 160
+	case 4: // challenge problem
+		returnedScore = 320
+	}
+
+	returnedScore += int32(problemTags.Class + problemTags.Section)
+	// 0 is code execution, 1 is a written answer and 4 is exam
+	if problemTags.SolveType == 0 {
+		returnedScore *= 2
+	}
+
+	if problemTags.SolveType == 4 {
+		returnedScore *= 4
+	}
+
+	returnedScore += rand.Int31n(10) // Add randomness because gambling always makes people feel good
+
+	// Maybe add a chance to crit based on activity today? like if you solved 3 problems today you get a 30% chance of critting with diminishing returns?
+
+	return returnedScore, nil
+}
+
+func (cfg *ApiCfg) CalculateScoreMultiplier(userID uuid.UUID) (score int32, err error) {
+	_, err = cfg.Db.GetUserByID(context.Background(), userID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user: %v", err)
+	}
+
+	// TODO: Implement a table with user activity and then put big boi bonuses here for current streak, active effects, challenges and so on
+	var multiplier int32 = 1
+
+	return multiplier, nil
 }
 
 // Upload local upload
@@ -790,7 +860,7 @@ func ParseLessonFlags(flags int32) FlagTranslation {
 }
 
 func ParseProblemTags(tags int32) TagTranslation {
-	// e.g. tags = 0x01020304 -> Section = 4, VerificationType=3, ResultType=2, SolveType=1, Difficulty=0, Module=1
+	// e.g. tags = 0x01020304 -> Section = 4, Class=3, ResultType=2, SolveType=1, Difficulty=0, Module=1
 	u := uint32(tags)
 	module := int(u >> 24)
 	difficulty := int((u >> 20) & 0x0F)
@@ -828,10 +898,20 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 }
 
 func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.Logger.Printf("Unauthorized access attempt: %v", err)
-		return database.User{}, err
+	cookies := r.Cookies()
+	var token string
+	cfg.Logger.Printf("Authenticating user: %v", cookies)
+	if len(cookies) != 0 {
+		for _, cookie := range cookies {
+			if cookie.Name == "session_token" {
+				token = cookie.Value
+				break
+			}
+		}
+		if token == "" {
+			cfg.Logger.Printf("Cookie not found in sessionToken")
+			return database.User{}, fmt.Errorf("sessionToken not found in cookies")
+		}
 	}
 
 	targetId, err := auth.ValidateUUIDJWT(token, cfg.Secret)
@@ -1059,18 +1139,17 @@ func UserHasPermission(user database.User, permission UserPermissions) bool {
 	return (UserPermissions(user.Permissions) & permission) == permission
 }
 
-func (cfg *ApiCfg) CacheBusterMiddleware(handler http.Handler) http.HandlerFunc {
+func (cfg *ApiCfg) CacheSettingsMiddleware(handler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Pragma", "no-cache")
-		w.Header().Set("Expires", "0")
-		/*
-			if cfg.WebsiteState == "development" {
-				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-				w.Header().Set("Pragma", "no-cache")
-				w.Header().Set("Expires", "0")
-			}
-		*/
+		if cfg.WebsiteState == "development" {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Expires", "0")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=60")
+			w.Header().Set("Pragma", "public")
+			w.Header().Set("Expires", time.Now().Add(time.Minute).Format(http.TimeFormat))
+		}
 		handler.ServeHTTP(w, r)
 	}
 }
