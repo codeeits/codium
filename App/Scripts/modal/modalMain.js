@@ -1,50 +1,3 @@
-// Solution to automatically generate modals so we don't hardcode them. This is more dynamic and maintainable.
-// Assuming we have a modal template in our HTML like this:
-/*
-<div id="modal-template" class="modal hidden" data-modal-type="">
-<div class="modal-content">
-<span class="close-button">&times;</span>
-<h2 class="modal-title"></h2>
-<p class="modal-body"></p>
-</div>
-</div>
-
-all info should be passed in a structured way, for example:
-openModal({
-type: 'delete-confirmation',
-title: 'Confirm Deletion',
-body: 'Are you sure you want to delete this item?',
-onConfirm: () => { /* deletion logic here *\/ },
-onCancel: () => { /* cancellation logic here *\/ }
-});
-
-// eg modal for editing profile info:
-openModal({
-type: 'edit-profile',
-title: 'Edit Profile',
-body: `
-<form id="edit-profile-form">
-<label for="username">Username:</label>
-<input type="text" id="username" name="username" value="${currentUsername}">
-<label for="email">Email:</label>
-<input type="email" id="email" name="email" value="${currentEmail}">
-<button type="submit">Save Changes</button>
-</form>
-`,
-onConfirm: () => {
-const form = document.getElementById('edit-profile-form');
-form.addEventListener('submit', (e) => {
-e.preventDefault();
-const updatedUsername = form.username.value;
-const updatedEmail = form.email.value;
-// Logic to save profile changes
-});
-},
-onCancel: () => {
-// Logic to handle cancellation if needed
-}
-});
-*/
 export class ModalEngine {
     /**
      * @param {Object} config
@@ -53,84 +6,6 @@ export class ModalEngine {
      * @param {Function} [config.onConfirm] - Optional callback for form submission
      * @param {Function} [config.onCancel] - Optional callback for closing the modal
      */
-
-    /* constructor to be removed */
-    /*
-    constructor() {
-        this.templates = {
-            'info': {
-                title: 'Information',
-                body: `<p class="modal-message">This is an informational modal.</p>
-                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Delete</button>
-                        </div>
-                `
-            },
-
-            'danger-confirmation': {
-                title: 'Logout Confirmation',
-                body: `<p class="modal-message">Are you sure you want to logout?</p>
-                        <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Logout</button>
-                        </div>
-                `
-            },
-
-            'edit-profile': {
-                title: 'Edit Profile',
-                body: `
-                <form action="" id="editProfileForm">
-                    <div class="modal-field">
-                        <label for="editEmail" class="input-label" data-i18n="modal.edit_profile.labels.email">Edit email:</label>
-                        <div class="text-container input-field">
-                            <input class="input-text" type="email" name="email" id="editEmail" placeholder="e-mail" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="20" autocomplete="email">
-                            <i class="fa-solid fa-envelope input-icon"></i>
-                        </div>
-                    </div>
-                    <div class="modal-field">
-                        <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Edit username:</label>
-                        <div class="text-container input-field">
-                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20" autocomplete="off" value="">
-                            <i class="fa-solid fa-signature input-icon"></i>
-                        </div>
-                    </div>
-                    <div class="modal-field">
-                        <label for="oldPassword" class="input-label" data-i18n="modal.edit_profile.labels.password">Edit password:</label>
-                        <div class="text-container input-field">
-                            <input class="input-text" type="password" name="password" id="oldPassword" placeholder="actual password" data-i18n-placeholder="modal.edit_profile.current_password" minlength="6">
-                            <i class="fa-solid fa-key input-icon"></i>
-                        </div>
-                    </div>
-                    <div class="modal-field">
-                        <div class="text-container input-field">
-                            <input class="input-text" type="password" name="newPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6">
-                            <i class="fa-solid fa-key input-icon"></i>
-                        </div>
-                    </div>
-                    <div class="modal-field">
-                        <p class="input-label" data-i18n="modal.edit_profile.labels.image">Upload profile picture:</p>
-                        
-                        <label for="editProfilePicture" class="dropzone input-field" style="cursor: pointer; display: block;">
-                            <input class="input-text" type="file" name="profilePicture" id="editProfilePicture" accept="image/*" hidden>
-                            
-                            <i class="fa-solid fa-image input-icon"></i>
-                            <span style="margin-left: 10px;">Click to select an image</span>
-                        </label>
-                    </div>
-                    <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                        <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
-                        
-                        <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.save">Save</button>
-                    </div>
-                </form>
-                `,
-                footer: '<p class="modal-hint" data-i18n="modal.edit_profile.note">Leave fields empty if you don\'t want to change them.</p>'
-            }
-        }
-    }
-    */
 
     constructor(templateUrl = new URL('./modalTemplates.html', import.meta.url).href) {
         this.templatesDoc = null;
@@ -336,6 +211,14 @@ export class ModalEngine {
         const bodyContainer = modalElement.querySelector('.modal-body');
         const footerEl = modalElement.querySelector('.modal-footer');
 
+        if (titleEl instanceof HTMLElement) {
+            modalElement.setAttribute('aria-labelledby', titleEl.id || 'modal-title');
+        }
+
+        if (bodyContainer instanceof HTMLElement) {
+            modalElement.setAttribute('aria-describedby', bodyContainer.id || 'modal-body');
+        }
+
         titleEl.textContent = finalConfig.title || 'Notice';
         iconEl.classList.add(finalConfig.icon || 'fa-info-circle');
 
@@ -364,26 +247,10 @@ export class ModalEngine {
             await finalConfig.onOpen(modalElement, overlay);
         }
 
-        /*
-        overlay.innerHTML = `
-            <div class="modal">
-                <div class="modal-header">
-                    <i class="modal-icon fa-solid ${finalConfig.icon || 'fa-info-circle'}"></i>
-                    <h2 class="modal-title">${finalConfig.title}</h2>
-                    <i class="modal-icon fa-solid fa-x close-button" style="cursor:pointer; margin-left: auto;"></i>
-                </div>
-                <div class="modal-body"></div>
-                <div class="modal-footer">${finalConfig.footer}</div>
-            </div>
-        `;
-        */
-
         document.body.appendChild(overlay);
 
         const closeBtn = overlay.querySelector('.close-button');
         if (closeBtn) {
-            closeBtn.setAttribute('role', 'button');
-            closeBtn.setAttribute('tabindex', '0');
             closeBtn.setAttribute('aria-label', 'Close modal');
         }
 
@@ -441,14 +308,6 @@ export class ModalEngine {
             destroyModal();
         });
 
-        overlay.querySelector('.close-button').addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
-                event.preventDefault();
-                if (finalConfig.onCancel) finalConfig.onCancel();
-                destroyModal();
-            }
-        });
-
         // handle click outside modal to close
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
@@ -483,28 +342,3 @@ export class ModalEngine {
         }
     }
 }
-
-// USAGE EXAMPLE
-/*
-
-const engine = new ModalEngine();
-
-engine.openModal({
-    title: 'Edit Profile',
-    body: `
-        <form id="edit-profile-form">
-            <label>Username: <input type="text" name="username" value="CurrentDevUser"></label><br>
-            <label>Email: <input type="email" name="email" value="dev@example.com"></label><br><br>
-            <button type="submit">Save Changes</button>
-        </form>
-    `,
-    onConfirm: (formElement) => {
-        const updatedUsername = formElement.username.value;
-        const updatedEmail = formElement.email.value;
-        console.log(`Saving... User: ${updatedUsername}, Email: ${updatedEmail}`); // deploy call after testing
-    },
-    onCancel: () => {
-        console.log('User cancelled the modal.');
-    }
-});
-*/
