@@ -17,6 +17,13 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'new ui'
             },
             {
+                title: 'Solution viewer',
+                description: 'New solution page design with improved code display and navigation.',
+                href: '/app/Probleme/solution.html',
+                icon: 'fa-lightbulb',
+                tag: 'new ui'
+            },
+            {
                 title: 'New lessons index',
                 description: 'Updated lessons browser with the newer navigation shell.',
                 href: '/app/Lectii/lessons.html',

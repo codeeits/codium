@@ -92,6 +92,15 @@ export class UserService {
         return null;
     }
 
+    async getCurrentUserID() {
+        const currentUser = await this.getCurrentUser();
+        if (!currentUser) {
+            return null;
+        }
+        const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+        return userData.ID;
+    }
+
     async isCurrentAdmin() {
         const currentUser = await this.getCurrentUser();
         if (!currentUser) {

@@ -309,6 +309,7 @@ async function updateAuthButton() {
         lang: document.getElementById('language-selector'),
         back: document.getElementById('back-btn'),
         contact: document.getElementById('contact-button'),
+        cookies: document.getElementById('user-score'),
     };
 
     let isAuthenticated = false;
@@ -355,7 +356,11 @@ async function updateAuthButton() {
         if (els.loginNew) els.loginNew.classList.add('hidden');
         if (els.userInfo) els.userInfo.classList.remove('hidden');
         if (els.lessons) els.lessons.classList.remove('hidden');
-        
+        if (els.cookies) {
+            const score = await window.apiService.game.getScore();
+            els.cookies.textContent = score;
+            els.cookies.classList.remove('hidden');
+        }
         if (els.userBtn) {
             els.userBtn.classList.remove('hidden');
             els.userBtn.onclick = () => window.location.href = '/app/user.html';

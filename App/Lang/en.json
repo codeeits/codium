@@ -188,7 +188,7 @@
         "appearance-section": {
             "title": "Appearance",
             "options": {
-                "dark-mode": "Dark mode (locked lol)",
+                "dark-mode": "Dark mode",
                 "font-size": "Font size",
                 "color-blind-mode": "Color blind mode",
                 "high-contrast-mode": "High contrast mode",

@@ -188,7 +188,7 @@
         "appearance-section": {
             "title": "Aspect",
             "options": {
-                "dark-mode": "Mod întunecat (blocat lol)",
+                "dark-mode": "Mod întunecat",
                 "font-size": "Dimensiunea fontului",
                 "color-blind-mode": "Mod pentru daltonici",
                 "high-contrast-mode": "Mod de contrast ridicat",

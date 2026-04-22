@@ -14,6 +14,7 @@ import { LessonService } from "./services/lessonService.js";
 import { ProblemService } from "./services/problemService.js";
 import { CompilerService } from "./services/compilerService.js";
 import { FileService } from "./services/fileService.js";
+import { GameService } from "./services/gameService.js";
 
 import { ToastsLoader } from "./ui/toastsLoader.js";
 import { ApiError } from "./core/apiError.js";
@@ -38,6 +39,7 @@ class ApiService {
         this.problems = new ProblemService(this);
         this.compiler = new CompilerService(this);
         this.fileManager = new FileService(this);
+        this.game = new GameService(this);
 
         this.toasts = new ToastsLoader();
 

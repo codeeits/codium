@@ -228,7 +228,7 @@ export class LessonService {
 
     async getCompletionTime(lessonId, userId = null) {
         if (!userId) {
-            const currentUser = await this.api.getCurrentUser();
+            const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
         }
