@@ -425,6 +425,12 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		}
 		return res, nil
 	}
+
+	if res.CompletedAt.Valid {
+		cfg.Logger.Printf("Lesson already completed for user: %v", userID)
+		return database.LessonsUser{}, errors.New("lesson already completed for user")
+	}
+
 	// Interaction exists, update completedAt
 	res, err = cfg.Db.UpdateLessonsUsersComplete(context.Background(), database.UpdateLessonsUsersCompleteParams{
 		CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
