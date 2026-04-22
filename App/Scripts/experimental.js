@@ -10,6 +10,13 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'new ui'
             },
             {
+                title: 'Section starter page',
+                description: 'Entry point for section content, with progress overview and navigation.',
+                href: '/app/Lectii/section-starter.html',
+                icon: 'fa-layer-group',
+                tag: 'new ui'
+            },
+            {
                 title: 'New lessons index',
                 description: 'Updated lessons browser with the newer navigation shell.',
                 href: '/app/Lectii/lessons.html',

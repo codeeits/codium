@@ -340,7 +340,7 @@ table {
     width: 100%;
     border-collapse: separate; 
     border-spacing: 0; 
-    margin: var(--gap-lg) 0;
+    margin: var(--gap-md) 0;
     border: 1px solid var(--border2-solid);
     border-radius: var(--border-radius-sm);
     overflow: hidden; 
