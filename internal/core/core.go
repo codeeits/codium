@@ -436,6 +436,18 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		return database.LessonsUser{}, fmt.Errorf("failed to update lesson completedAt: %v", err)
 	}
 
+	cfg.Logger.Printf("Trying to give an XP bonus to user: %v", userID)
+	lessonXp := 10 + rand.Int31n(10)        // base lesson xp
+	lessonXpMulti := rand.Float32()*0.5 + 1 // up to 50% extra xp cuz gambling is fun
+
+	scoreToAdd := float32(lessonXp) * lessonXpMulti
+	_, err = cfg.AddScoreToUser(userID, int32(scoreToAdd))
+	if err != nil {
+		return database.LessonsUser{}, fmt.Errorf("failed to add score: %v", err)
+	}
+
+	cfg.Logger.Printf("Added %v xp to user: %v for completing lesson: %v", int32(scoreToAdd), userID, lessonID)
+
 	return res, nil
 }
 
