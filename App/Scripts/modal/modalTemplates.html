@@ -1,11 +1,13 @@
 <template id="modal-base-template">
     <div class="modal">
         <div class="modal-header">
-            <i class="modal-icon fa-solid"></i>
-            <h2 class="modal-title"></h2>
-            <i class="modal-icon fa-solid fa-x close-button" style="cursor:pointer; margin-left: auto;"></i>
+            <i class="modal-icon fa-solid" aria-hidden="true"></i>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <button type="button" class="modal-icon close-button" aria-label="Close modal">
+                <i class="fa-solid fa-x" aria-hidden="true"></i>
+            </button>
         </div>
-        <div class="modal-body"></div>
+        <div class="modal-body" id="modal-body"></div>
         <div class="modal-footer"></div>
     </div>
 </template>

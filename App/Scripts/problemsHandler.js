@@ -637,12 +637,15 @@ async function runCodeAgainstProblem(button) {
         const solutionId = solutionResult?.ID || solutionResult?.solution?.ID;
 
         data = {};
-        data.total_tests = result.total;
+        data.given_answers = result.given_answers;
         data.tests_passed = result.score;
+        data.total_tests = result.total;
 
         const updateResult = await problemsApi.updateSolution(solutionId, 'tests', data);
         console.log('Updated solution with test results:', updateResult);
-        showResult('runCodeResult', result);
+        const testsPassed = updateResult?.TestsPassed?.Int32 ?? updateResult?.tests_passed ?? 0;
+        const totalTests = updateResult?.TotalTests?.Int32 ?? updateResult?.total_tests ?? result.total;
+        showResult('runCodeResult', { tests_passed: testsPassed, total_tests: totalTests });
     } catch (error) {
         showResult('runCodeResult', error.message || error, true);
     } finally {

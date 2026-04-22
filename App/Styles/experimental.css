@@ -35,7 +35,6 @@ body.experimental-page .content-area {
 
 .experimental-hero p {
     max-width: 70ch;
-    color: rgba(255, 255, 255, 0.82);
 }
 
 .experimental-hero-actions {
@@ -60,7 +59,6 @@ body.experimental-page .content-area {
 
 .experimental-section-header p {
     margin-top: 0.35rem;
-    color: rgba(255, 255, 255, 0.72);
 }
 
 .experimental-section-chip {
@@ -68,11 +66,9 @@ body.experimental-page .content-area {
     padding: 0.4rem 0.75rem;
     border-radius: 999px;
     border: 1px solid var(--border-subtle);
-    background: rgba(255, 255, 255, 0.05);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.8);
 }
 
 .experimental-grid {
@@ -123,7 +119,6 @@ body.experimental-page .content-area {
 .experiment-card-tag {
     padding: 0.35rem 0.65rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-subtle);
     text-transform: uppercase;
     letter-spacing: 0.08em;

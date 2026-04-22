@@ -47,6 +47,7 @@ export class UserService {
 
         if (response.user) {
             this.api.setAuthenticatedUser(response.user);
+            localStorage.setItem('codium_session_active', 'true');
         }
         return response;
     }
@@ -65,6 +66,7 @@ export class UserService {
                 }
             } finally {
                 this.api.clearTokens();
+                localStorage.removeItem('codium_session_active');
 
                 if (redirect) {
                     window.location.href = '/app/login.html?redirect=' + encodeURIComponent(window.location.href);
@@ -152,6 +154,9 @@ export class UserService {
     }
 
     async getUserDataGDPR() {
+        if (localStorage.getItem('codium_session_active') !== 'true') {
+            throw new Error('User is not authenticated');
+        }
         return this.api.get('/api/users/gdpr', true);
     }
 
@@ -175,6 +180,7 @@ export class UserService {
 
         if (response.user) {
             this.api.setAuthenticatedUser(response.user);
+            localStorage.setItem('codium_session_active', 'true');
         }
 
         return response;

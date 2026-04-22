@@ -553,7 +553,7 @@ func (cfg *ApiCfg) CreateProblemTestHandler(w http.ResponseWriter, r *http.Reque
 	cfg.WriteSingleJsonOutput(w, http.StatusCreated, res, GenericPrinter)
 }
 
-func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.DatabaseCfg.Loaded {
 		cfg.Logger.Println("Database not connected")
@@ -569,6 +569,11 @@ func (cfg *ApiCfg) GetProblemTestByIDHandler(w http.ResponseWriter, r *http.Requ
 		cfg.Logger.Printf("Failed to retrieve problem test: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	}
+
+	// remove answers for students
+	if !UserHasPermission(sendingUser, PermissionCanManageProblems) {
+		res.ExpectedOutput = ""
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)

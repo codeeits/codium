@@ -95,9 +95,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { score, total } = result;
         const percentage = total > 0 ? (score / total) * 100 : 0;
         
-        let scoreClass = "fail";
-        if (percentage === 100) scoreClass = "perfect";
-        else if (percentage >= 50) scoreClass = "partial";
+        let scoreClass = "danger";
+        if (percentage === 100) scoreClass = "confirm";
+        else if (percentage >= 50) scoreClass = "warning";
 
         if (!state.isNewUi && elements.resultsContainer) {
             const submittedText = submitted ? '<p><i class="fas fa-check"></i> Soluție trimisă cu succes!</p>' : '';
@@ -108,6 +108,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             toastsLoader.showToast(`Teste trecute: ${score} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
         }
+    }
+
+    function extractNullableInt(value) {
+        if (value == null) return 0;
+        if (typeof value === 'number') return value;
+        if (typeof value.Int32 === 'number') return value.Int32;
+        if (typeof value.int32 === 'number') return value.int32;
+        return 0;
     }
 
     function bookmarkToggle(getStatusOnly = false) {
@@ -431,16 +439,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const runResult = await window.apiService.problems.runCodeAgainstProblemTests(state.problemId, code);
             
-            const solutionData = { code: code, language: 'cpp' };
+            const solutionData = { code: code, language: 'py' };
             const solution = await window.apiService.problems.createSolution(state.problemId, solutionData);
             
-            await window.apiService.problems.updateSolution(solution.ID, 'tests', {
+            const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests', {
+                given_answers: runResult.given_answers,
                 tests_passed: runResult.score,
                 total_tests: runResult.total
             });
 
-            displayResults(runResult, true);
+            const score = extractNullableInt(gradedSolution?.TestsPassed);
+            const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.total;
+
+            displayResults({ score, total }, true);
             loadMySolutions();
+            loadSolutionStats();
 
         } catch (error) {
             toastsLoader.showToast("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
