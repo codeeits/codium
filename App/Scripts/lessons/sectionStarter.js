@@ -1,18 +1,150 @@
+/*
+
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
-    const bookmarkButton = document.querySelector('.section-bookmark');
-    const startButton = document.querySelector('.section-start-btn');
-    const groups = Array.from(document.querySelectorAll('.resumee-group'));
-    const summaryItems = Array.from(document.querySelectorAll('.resumee-element__element'));
 
-    const progressValue = document.getElementById('stat-progress-value');
-    const completedValue = document.getElementById('stat-completed-value');
-    const progressingValue = document.getElementById('stat-progressing-value');
-    const pendingValue = document.getElementById('stat-pending-value');
-    const progressFill = document.getElementById('stats-progress-fill');
-    const statsHint = document.getElementById('stats-hint');
-    const progressbar = document.querySelector('.stats-progress');
+    let state = {
+        lessonId: null,
+        starterLessonData: null,
+        allLessonData: null,
+        interactions: null,
+        noLessons: 0,
+        noProblems: 0
+    };
 
-    const storageKey = 'section-starter-bookmark';
+    const elements = {
+
+        sectionTitle: document.querySelector('.section-title'),
+        sectionDescription: document.querySelector('.section-description'),
+        sectionImage: document.querySelector('.section-image'),
+
+        metaNoLessons: document.querySelector('.section-meta-lessons'),
+        metaNoProblems: document.querySelector('.section-meta-probleme'),
+
+        bookmarkButton: document.querySelector('.section-bookmark'),
+        startButton: document.querySelector('.section-start-btn'),
+        groups: Array.from(document.querySelectorAll('.resumee-group')),
+        summaryItems: Array.from(document.querySelectorAll('.resumee-element__element')),
+        progressValue: document.getElementById('stat-progress-value'),
+        completedValue: document.getElementById('stat-completed-value'),
+        progressingValue: document.getElementById('stat-progressing-value'),
+        pendingValue: document.getElementById('stat-pending-value'),
+        progressFill: document.getElementById('stats-progress-fill'),
+        statsHint: document.getElementById('stats-hint'),
+        progressbar: document.querySelector('.stats-progress'),
+
+        storageKey: 'section-starter-bookmark'
+    };
+
+    /* FETCH */
+
+    async function getFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const lessonId = params.get('id');
+        
+        if (!lessonId) {
+            console.warn('ID-ul lecției nu a fost furnizat în URL.');
+            window.location.href = '/app/Lectii/lessons.html';
+            return;
+        }
+
+        const isSectionStarter = await window.apiService.lessons.isIdSectionStarter(lessonId);
+        
+        if (!isSectionStarter) {
+            console.warn(`ID-ul ${lessonId} nu corespunde unei sectiuni starter valide.`);
+            window.location.href = '/app/Lectii/lessonindiv.html?id=' + lessonId;
+            return;
+        }
+
+        state.lessonId = lessonId;
+        state.starterLessonData = await window.apiService.lessons.getLessonById(lessonId);
+        state.allLessonData = await window.apiService.lessons.getSectionLessonChain(lessonId);
+        state.interactions = await window.apiService.lessons.getInteractionsSection(lessonId);
+        state.noLessons = state.allLessonData.length;
+
+
+        console.log(state.allLessonData);
+
+        return {
+            id: lessonId,
+        };
+    }
+
+    function populateUI() {
+        if (!state.starterLessonData) {
+            return;
+        }
+
+        const { Title, Description, ThumbnailID } = state.starterLessonData.lesson;
+
+        if (elements.sectionTitle) {
+            elements.sectionTitle.textContent = Title;
+        }
+
+        if (elements.sectionDescription) {
+            elements.sectionDescription.textContent = Description?.String;
+        }
+
+        let image = null;
+        if (ThumbnailID) {
+            image = window.apiService.files.getFileUrl(ThumbnailID);
+        }
+
+        if (elements.sectionImage && image) {
+            elements.sectionImage.src = image;
+            elements.sectionImage.alt = `Imagine reprezentativă pentru ${Title}`;
+        } else if (elements.sectionImage) {
+            //elements.sectionImage.style.display = 'none';
+        }
+
+        if (elements.metaNoLessons && state.noLessons !== 0) {
+            elements.metaNoLessons.textContent = String(state.noLessons);
+        }
+
+        if (elements.metaNoProblems && state.noProblems !== 0) {
+            elements.metaNoProblems.textContent = String(state.noProblems);
+        } else if (elements.metaNoProblems) {
+            elements.metaNoProblems.style.display = 'none';
+            elements.metaNoProblems.previousElementSibling.style.display = 'none';
+        }
+
+        populateLessonsSide();
+    }
+
+    function populateLessonsSide() {
+        const temp = document.querySelector('.resumee-element__element');
+        const container = temp?.parentElement;
+        if (!temp || !container) {
+            return;
+        }
+        const itemsToRemove = container.querySelectorAll('.resumee-element__element');
+
+        itemsToRemove.forEach((item) => { item.remove(); });
+
+        state.allLessonData.forEach((lesson, index) => {
+            const clone = temp.cloneNode(true);
+            const titleEl = clone.querySelector('span');
+
+            if (titleEl) {
+                titleEl.textContent = lesson.lesson.Title;
+            }
+
+            clone.dataset.lessonId = lesson.lesson.ID;
+
+            const interaction = state.interactions.find(i => i.LessonID === lesson.lesson.ID);
+            const uiStatus = mapParsedStatusToUI(interaction?.ParsedStatus);
+            applyStatus(clone, uiStatus);
+            
+            setupItemNavigation(clone); 
+            
+            container.appendChild(clone);
+        });
+
+        elements.summaryItems = Array.from(container.querySelectorAll('.resumee-element__element'));
+    }
+
+    /* */
 
     function iconForStatus(status) {
         switch (status) {
@@ -21,10 +153,22 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'progress':
                 return { classes: 'fa-solid fa-hourglass-half', label: 'In desfasurare' };
             default:
-                return { classes: 'fa-regular fa-circle', label: 'Neinceput' };
+                return { classes: 'fa-solid fa-circle', label: 'Neinceput' };
         }
     }
 
+    function mapParsedStatusToUI(parsedStatus) {
+        switch (parsedStatus) {
+            case 'Completed':
+                return 'done';
+            case 'In Progress':
+                return 'progress';
+            case 'Started':
+                return 'progress';
+            default:
+                return 'pending';
+        }
+    }
     function inferStatus(item) {
         const icon = item.querySelector('i');
         if (!icon) {
@@ -57,24 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         item.dataset.status = status;
     }
 
-    function nextStatus(status) {
-        if (status === 'pending') {
-            return 'progress';
-        }
-
-        if (status === 'progress') {
-            return 'done';
-        }
-
-        return 'pending';
-    }
-
     function updateStats() {
         let done = 0;
         let progress = 0;
         let pending = 0;
 
-        summaryItems.forEach((item) => {
+        elements.summaryItems.forEach((item) => {
             const status = item.dataset.status || inferStatus(item);
 
             if (status === 'done') {
@@ -90,66 +222,68 @@ document.addEventListener('DOMContentLoaded', () => {
             pending += 1;
         });
 
-        const total = summaryItems.length || 1;
+        const total = elements.summaryItems.length || 1;
         const percentage = Math.round(((done + progress * 0.5) / total) * 100);
 
-        if (progressValue) {
-            progressValue.textContent = `${percentage}%`;
+        if (elements.progressValue) {
+            elements.progressValue.textContent = `${percentage}%`;
         }
 
-        if (completedValue) {
-            completedValue.textContent = String(done);
+        if (elements.completedValue) {
+            elements.completedValue.textContent = String(done);
         }
 
-        if (progressingValue) {
-            progressingValue.textContent = String(progress);
+        if (elements.progressingValue) {
+            elements.progressingValue.textContent = String(progress);
         }
 
-        if (pendingValue) {
-            pendingValue.textContent = String(pending);
+        if (elements.pendingValue) {
+            elements.pendingValue.textContent = String(pending);
         }
 
-        if (progressFill) {
-            progressFill.style.width = `${percentage}%`;
+        if (elements.progressFill) {
+            elements.progressFill.style.width = `${percentage}%`;
         }
 
-        if (progressbar) {
-            progressbar.setAttribute('aria-valuenow', String(percentage));
+        if (elements.progressbar) {
+            elements.progressbar.setAttribute('aria-valuenow', String(percentage));
         }
 
-        if (statsHint) {
+        if (elements.statsHint) {
             if (pending === 0 && progress === 0) {
-                statsHint.textContent = 'Sectiunea este complet finalizata. Excelent!';
+                elements.statsHint.textContent = 'Sectiunea este complet finalizata. Excelent!';
             } else if (pending === 0) {
-                statsHint.textContent = 'Ai finalizat aproape tot. Mai ramane sa inchei ce este in desfasurare.';
+                elements.statsHint.textContent = 'Ai finalizat aproape tot. Mai ramane sa inchei ce este in desfasurare.';
             } else if (done === 0 && progress === 0) {
-                statsHint.textContent = 'Porneste prima activitate pentru a incepe progresul.';
+                elements.statsHint.textContent = 'Porneste prima activitate pentru a incepe progresul.';
             } else {
-                statsHint.textContent = 'Continua sectiunea pentru a creste progresul.';
+                elements.statsHint.textContent = 'Continua sectiunea pentru a creste progresul.';
             }
         }
     }
 
-    function activateItemWithKeyboard(item) {
+    function setupItemNavigation(item) {
         item.setAttribute('tabindex', '0');
-        item.setAttribute('role', 'button');
-        item.setAttribute('aria-label', 'Schimba starea elementului');
+        item.setAttribute('role', 'link');
+        item.setAttribute('aria-label', 'Deschide pagina lecției');
+        item.style.cursor = 'pointer';
+
+        const navigateToLesson = () => {
+            const lessonId = item.dataset.lessonId;
+            if (lessonId) {
+                window.location.href = `/app/Lectii/lessonindiv.html?id=${lessonId}`;
+            }
+        };
 
         item.addEventListener('keydown', (event) => {
-            if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') {
-                return;
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                navigateToLesson();
             }
-
-            event.preventDefault();
-            const currentStatus = item.dataset.status || inferStatus(item);
-            applyStatus(item, nextStatus(currentStatus));
-            updateStats();
         });
 
         item.addEventListener('click', () => {
-            const currentStatus = item.dataset.status || inferStatus(item);
-            applyStatus(item, nextStatus(currentStatus));
-            updateStats();
+            navigateToLesson();
         });
     }
 
@@ -166,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setResponsiveGroupDefaults() {
         const mobileView = window.matchMedia('(max-width: 768px)').matches;
 
-        groups.forEach((group, index) => {
+        elements.groups.forEach((group, index) => {
             if (mobileView) {
                 applyCollapseState(group, index !== 0);
                 return;
@@ -177,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initGroups() {
-        groups.forEach((group) => {
+        elements.groups.forEach((group) => {
             const header = group.querySelector('.resumee-group__header');
             if (!header) {
                 return;
@@ -194,31 +328,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initBookmark() {
-        if (!bookmarkButton) {
+        if (!elements.bookmarkButton) {
             return;
         }
 
-        const storedState = localStorage.getItem(storageKey) === 'true';
-        bookmarkButton.setAttribute('aria-pressed', String(storedState));
+        const updateButtonUI = (isBookmarked) => {
+            elements.bookmarkButton.setAttribute('aria-pressed', String(isBookmarked));
+            
+            if (isBookmarked) {
+                elements.bookmarkButton.classList.add('primary');
+                elements.bookmarkButton.classList.remove('secondary');
+            } else {
+                elements.bookmarkButton.classList.add('secondary');
+                elements.bookmarkButton.classList.remove('primary');
+            }
+        };
 
-        bookmarkButton.addEventListener('click', () => {
-            const current = bookmarkButton.getAttribute('aria-pressed') === 'true';
-            const next = !current;
-            bookmarkButton.setAttribute('aria-pressed', String(next));
-            localStorage.setItem(storageKey, String(next));
+        let currentState = localStorage.getItem(elements.storageKey) === 'true';
+        updateButtonUI(currentState);
+
+        elements.bookmarkButton.addEventListener('click', () => {
+            currentState = !currentState; 
+            
+            localStorage.setItem(elements.storageKey, String(currentState));
+            
+            updateButtonUI(currentState);
         });
     }
 
     function initStartButton() {
-        if (!startButton) {
+        if (!elements.startButton) {
             return;
         }
 
-        startButton.addEventListener('click', () => {
-            const nextTarget = summaryItems.find((item) => {
+        elements.startButton.addEventListener('click', () => {
+            const nextTarget = elements.summaryItems.find((item) => {
                 const status = item.dataset.status || inferStatus(item);
                 return status !== 'done';
-            }) || summaryItems[0];
+            }) || elements.summaryItems[0];
 
             if (!nextTarget) {
                 return;
@@ -230,14 +377,14 @@ document.addEventListener('DOMContentLoaded', () => {
             window.setTimeout(() => nextTarget.classList.remove('is-highlighted'), 900);
         });
     }
-
-    summaryItems.forEach((item) => {
-        applyStatus(item, inferStatus(item));
-        activateItemWithKeyboard(item);
-    });
-
-    updateStats();
-    initGroups();
-    initBookmark();
-    initStartButton();
+    
+    async function init() {
+        await getFromURL();
+        populateUI();
+        updateStats();
+        initGroups();
+        initBookmark();
+        initStartButton();
+    }
+    init();
 });

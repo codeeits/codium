@@ -77,22 +77,13 @@
     min-height: 44px;
 }
 
-.section-page .section-buttons .btn.primary {
+.section-page .section-buttons .section-start-btn {
     width: 100%;
 }
 
 .section-page .section-bookmark {
     min-width: 44px;
     transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.section-page .section-bookmark[aria-pressed="true"] {
-    background: var(--border2-solid);
-    border-color: var(--primary);
-}
-
-.section-page .section-bookmark[aria-pressed="true"] i {
-    color: var(--primary);
 }
 
 .section-page .side-content {
