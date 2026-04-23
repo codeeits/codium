@@ -74,9 +74,14 @@ func main() {
 	cfg.SmtpCfg.Password = os.Getenv("SMTP_PASSWORD")
 	cfg.WebsiteUrl = os.Getenv("WEBSITE_URL")
 	cfg.WebsiteState = os.Getenv("WEBSITE_STATE")
+	cfg.TOTPSecret = os.Getenv("TOTP_SECRET")
 
 	if cfg.Secret == "" {
 		cfg.Logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
+	}
+
+	if cfg.TOTPSecret == "" {
+		cfg.Logger.Fatal("A required security variable is not present!\nSet the TOTP_SECRET variable as a long, random string in the .env file.")
 	}
 
 	if cfg.DatabaseCfg.Url != "" {

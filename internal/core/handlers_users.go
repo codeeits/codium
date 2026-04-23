@@ -3,7 +3,10 @@ package core
 import (
 	"Codium/internal/auth"
 	"Codium/internal/database"
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,6 +26,13 @@ import (
 
 ===========================================
 */
+
+func deriveUserScopedSecret(masterSecret, label string, userID uuid.UUID) string {
+	mac := hmac.New(sha256.New, []byte(masterSecret))
+	mac.Write([]byte(label + ":" + userID.String()))
+	sum := mac.Sum(nil)
+	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(sum)
+}
 
 func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.Request, loginTargetID uuid.UUID, jwt string) {
 	// Create a refresh token
@@ -151,7 +161,8 @@ func (cfg *ApiCfg) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		cfg.Logger.Printf("TOTP secret found for user ID: %v, requiring TOTP verification", loginTarget.ID)
 
 		// Encode the jwt in a jwt that will be decoded in the TOTP verification handler
-		totpToken, err := auth.MakeGeneralJWT([]byte(token), cfg.Secret)
+		// Note to self: DO NOT DO THAT, TURNS OUT JWTs CAN BE DECODED VERY EASILY (just not forged)
+		totpToken, err := auth.MakeGeneralJWT([]byte(loginTarget.ID.String()), cfg.TOTPSecret)
 		if err != nil {
 			cfg.Logger.Printf("Failed to create JWT: %v", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -228,24 +239,17 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwtToken, err := auth.ValidateGeneralJWT(p.ValidationToken, cfg.Secret)
+	jwtToken, err := auth.ValidateGeneralJWT(p.ValidationToken, cfg.TOTPSecret)
 	if err != nil {
 		cfg.Logger.Printf("Invalid validation token: %v", err)
 		http.Error(w, "Invalid validation token", http.StatusBadRequest)
 		return
 	}
 
-	userID, err := auth.ValidateUUIDJWT(string(jwtToken), cfg.Secret)
+	userID, err := uuid.Parse(string(jwtToken))
 	if err != nil {
-		cfg.Logger.Printf("Invalid JWT in validation token: %v", err)
-		http.Error(w, "Invalid validation token", http.StatusBadRequest)
-		return
-	}
-
-	encryptedSecret, err := cfg.Db.GetUserTotpSecret(r.Context(), userID)
-	if err != nil {
-		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		cfg.Logger.Printf("Invalid user ID: %v", err)
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
@@ -262,12 +266,8 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	backupSecret, err := auth.ValidateGeneralJWT(encryptedBackupSecret.String, cfg.Secret)
-	if err != nil {
-		cfg.Logger.Printf("Invalid backup code secret: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	backupSecret := deriveUserScopedSecret(cfg.TOTPSecret, "backup", userID)
+	totpSecret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", userID)
 
 	for i := 0; i < 10; i++ {
 		backupHOTP := gotp.NewDefaultHOTP(string(backupSecret))
@@ -279,13 +279,6 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cfg.Logger.Printf("OTP is not a backup code for user: %v", userID)
-
-	totpSecret, err := auth.ValidateGeneralJWT(encryptedSecret.String, cfg.Secret)
-	if err != nil {
-		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 
 	if gotp.NewDefaultTOTP(string(totpSecret)).VerifyTime(p.OTP, time.Now()) == false {
 		cfg.Logger.Printf("Invalid OTP for user: %v", userID)
@@ -394,19 +387,14 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 
 func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	cfg.Logger.Printf("Received CreateTOTP request by userID: %v", sendingUser.ID)
-	secret := gotp.RandomSecret(16)
-	totp := gotp.NewDefaultTOTP(secret)
 
-	encryptedSecret, err := auth.MakeGeneralJWT([]byte(secret), cfg.Secret)
-	if err != nil {
-		cfg.Logger.Printf("Failed to create JWT: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	derivedSecret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", sendingUser.ID)
 
-	_, err = cfg.Db.UpdateUserTotpSecret(r.Context(), database.UpdateUserTotpSecretParams{
+	totp := gotp.NewDefaultTOTP(derivedSecret)
+
+	_, err := cfg.Db.UpdateUserTotpSecret(r.Context(), database.UpdateUserTotpSecretParams{
 		ID:         sendingUser.ID,
-		TotpSecret: sql.NullString{String: encryptedSecret, Valid: true},
+		TotpSecret: sql.NullString{String: "", Valid: true},
 		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
@@ -436,12 +424,7 @@ func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, s
 		return
 	}
 
-	secret, err := auth.ValidateGeneralJWT(encryptedSecret.String, cfg.Secret)
-	if err != nil {
-		cfg.Logger.Printf("Failed to validate user totp secret: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	secret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", sendingUser.ID)
 
 	type params struct {
 		OTP string `json:"otp"`
@@ -451,32 +434,25 @@ func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, s
 		cfg.Logger.Printf("Invalid request body: %v", err)
 	}
 
-	totp := gotp.NewDefaultTOTP(string(secret))
+	totp := gotp.NewDefaultTOTP(secret)
 	if !totp.VerifyTime(p.OTP, time.Now()) {
 		cfg.Logger.Printf("Invalid otp received as verification: %v", p.OTP)
 		http.Error(w, "Invalid otp", http.StatusUnauthorized)
 		return
 	}
 
-	backupSecret := gotp.RandomSecret(16)
+	backupSecret := deriveUserScopedSecret(cfg.TOTPSecret, "backup", sendingUser.ID)
 
-	backupHOTP := gotp.NewDefaultHOTP(backupSecret)
+	backupHOTP := gotp.NewDefaultHOTP(string(backupSecret))
 
 	var backupCodes = make([]string, 0)
 	for i := 0; i < 10; i++ {
 		backupCodes = append(backupCodes, backupHOTP.At(i))
 	}
 
-	encryptedBackupSecret, err := auth.MakeGeneralJWT([]byte(backupSecret), cfg.Secret)
-	if err != nil {
-		cfg.Logger.Printf("Failed to create JWT: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
 	_, err = cfg.Db.UpdateUserBackupCodeSecret(r.Context(), database.UpdateUserBackupCodeSecretParams{
 		ID:               sendingUser.ID,
-		Backupcodesecret: sql.NullString{String: string(encryptedBackupSecret), Valid: true},
+		Backupcodesecret: sql.NullString{String: "", Valid: true},
 		UpdatedAt:        sql.NullTime{Time: time.Now(), Valid: true},
 	})
 	if err != nil {
