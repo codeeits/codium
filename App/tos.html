@@ -123,6 +123,23 @@
         function getCurrentLang() {
             return localStorage.getItem('lang') || 'ro';
         }
+        
+        function getValidLocale(langTag) {
+            const fallbackMap = {
+                'roen': 'ro-RO',
+                'enshk': 'en-GB'
+            };
+
+            const mappedLang = fallbackMap[langTag] || langTag;
+
+            try {
+                Intl.DateTimeFormat.supportedLocalesOf([mappedLang]);
+                return mappedLang;
+            } catch (e) {
+                console.warn(`Invalid locale tag: ${langTag}, falling back to 'en-US'`);
+                return 'en-US';
+            }
+        }
 
         function formatEffectiveDate() {
             const effectiveDateElement = document.getElementById('effective-date');
@@ -130,9 +147,10 @@
 
             const effectiveDate = new Date(effectiveDateElement.dataset.effectiveDate || Date.now());
             const currentLang = getCurrentLang();
+            const safeLocale = getValidLocale(currentLang);
 
             document.documentElement.lang = currentLang;
-            effectiveDateElement.textContent = effectiveDate.toLocaleString(currentLang, {day: 'numeric', month: 'long', year: 'numeric'});
+            effectiveDateElement.textContent = effectiveDate.toLocaleString(safeLocale, {day: 'numeric', month: 'long', year: 'numeric'});
         }
 
         async function buildTermsPdf(event) {
@@ -144,7 +162,7 @@
             const footerHTML = `
                 <div class="gdpr-footer">
                     <p><span data-i18n="tos-page.pdf.generated-on">Generated on</span> ${new Date().toLocaleString(
-                        getCurrentLang(), dateFormatterOptions
+                        getValidLocale(getCurrentLang()), dateFormatterOptions
                     )}</p>
                 </div>
             `;

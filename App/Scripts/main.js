@@ -569,6 +569,19 @@ function openSignupModal() {
     document.addEventListener('click', async (event) => {
         const signupButton = event.target.closest('#get-started-btn');
         if (!signupButton) return;
+        
+        let isAuthenticated = false;
+        if (window.apiService) {
+            try {
+                isAuthenticated = await window.apiService.checkAuthentication(false);
+                if (isAuthenticated) {
+                    window.location.href = '/app/user.html';
+                    return;
+                }
+            } catch (error) {
+                isAuthenticated = false;
+            }
+        }
 
         event.preventDefault();
 

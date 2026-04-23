@@ -1672,13 +1672,25 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     height: 30px;
     flex-shrink: 0;
     align-content: center;
+    color: var(--text-colour-primary-button);
 
     transition: all 0.2s ease-in-out;
 }
 
-.modal-icon:hover {
+.close-button:hover {
     color: var(--primary);
     transform: scale(1.1) rotate(5deg);
+}
+
+.close-button {
+    border-radius: 50%;
+    background-color: var(--contrast);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    cursor: pointer;
 }
 
 .modal-title {

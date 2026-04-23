@@ -50,6 +50,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // -- PREFERENCES MANAGEMENT --
     
+    function getValidLocale(langTag) {
+        const fallbackMap = {
+            'roen': 'ro-RO',
+            'enshk': 'en-GB'
+        };
+
+        const mappedLang = fallbackMap[langTag] || langTag;
+
+        try {
+            Intl.DateTimeFormat.supportedLocalesOf([mappedLang]);
+            return mappedLang;
+        } catch (e) {
+            console.warn(`Invalid locale tag: ${langTag}, falling back to 'en-US'`);
+            return 'en-US';
+        }
+    }
+
     // -- FETCH DATA --
 
     async function fetchUserData() {
@@ -420,6 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
             URL.revokeObjectURL(fileUrl);
 
             const currentLang = localStorage.getItem('lang') || 'ro';
+            const safeLocale = getValidLocale(currentLang);
 
             const translatedLogoP = `<p data-i18n="welcome" class="logo-p">Learn/ Code/ Compete/</p>`;
 
@@ -461,11 +479,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         </tr>
                         <tr>
                             <td>Account created:</td>
-                            <td>${gdprData.user.CreatedAt?.Time ? new Date(gdprData.user.CreatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                            <td>${gdprData.user.CreatedAt?.Time ? new Date(gdprData.user.CreatedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
                         </tr>
                         <tr>
                             <td>Last updated profile:</td>
-                            <td>${gdprData.user.UpdatedAt?.Time ? new Date(gdprData.user.UpdatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                            <td>${gdprData.user.UpdatedAt?.Time ? new Date(gdprData.user.UpdatedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
                         </tr>
                         <tr>
                             <td>Profile picture:</td>
@@ -521,9 +539,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             <tr>
                                 <td>${ul.LessonID}</td>
                                 <td>${ul.Bookmarked ? 'Yes' : 'No'}</td>
-                                <td>${ul.StartedAt?.Time ? new Date(ul.StartedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
-                                <td>${ul.CompletedAt?.Time ? new Date(ul.CompletedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
-                                <td>${ul.UpdatedAt?.Time ? new Date(ul.UpdatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
+                                <td>${ul.StartedAt?.Time ? new Date(ul.StartedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
+                                <td>${ul.CompletedAt?.Time ? new Date(ul.CompletedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
+                                <td>${ul.UpdatedAt?.Time ? new Date(ul.UpdatedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
                             </tr>`).join('') 
                             : `<tr><td colspan="5" data-i18n="no_lesson_interactions">No lesson interactions recorded.</td></tr>`}
                     </tbody>
@@ -546,8 +564,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             <tr>
                                 <td>${up.ProblemID}</td>
                                 <td>${up.Bookmarked?.Bool ? 'Yes' : 'No'}</td>
-                                <td>${up.SolvedAt?.Time ? new Date(up.SolvedAt.Time).toLocaleDateString(currentLang) : 'N/A'}</td>
-                                <td>${up.UpdatedAt ? new Date(up.UpdatedAt).toLocaleDateString(currentLang) : 'N/A'}</td>
+                                <td>${up.SolvedAt?.Time ? new Date(up.SolvedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}</td>
+                                <td>${up.UpdatedAt ? new Date(up.UpdatedAt).toLocaleDateString(safeLocale) : 'N/A'}</td>
                             </tr>`).join('') 
                             : `<tr><td colspan="4" data-i18n="no_problem_interactions">No problem interactions recorded.</td></tr>`}
                     </tbody>
@@ -564,7 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <strong>Problem ID:</strong> ${us.ProblemID} | 
                                     <strong>Language:</strong> ${us.Language} | 
                                     <strong>Tests:</strong> ${us.TestsPassed?.Int32 || 0} / ${us.TotalTests?.Int32 || 0} | 
-                                    <strong>Submitted:</strong> ${us.CreatedAt?.Time ? new Date(us.CreatedAt.Time).toLocaleDateString(currentLang) : 'N/A'}
+                                    <strong>Submitted:</strong> ${us.CreatedAt?.Time ? new Date(us.CreatedAt.Time).toLocaleDateString(safeLocale) : 'N/A'}
                                 </td>
                             </tr>
                             <tr>
@@ -582,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const footerData = `
                 <div class="gdpr-footer">
-                    <p><span data-i18n="pdf_transl.generated_on">Generated on</span> ${new Date().toLocaleString(currentLang, { 
+                    <p><span data-i18n="pdf_transl.generated_on">Generated on</span> ${new Date().toLocaleString(safeLocale, { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long',
