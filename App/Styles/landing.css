@@ -1,3 +1,13 @@
+h1 :not(.top-bar h1, .top-bar svg) {
+    font-size: var(--h1-landing-size);
+}
+
+h2 {
+    font-size: var(--h2-landing-size);
+    font-weight: var(--h2-font-weight);
+    color: var(--text-colour);
+}
+
 .landing-page {
     padding: 0;
     overflow-x: hidden;
@@ -25,10 +35,71 @@
     margin-bottom: 0;
 }
 
-.landing-hero, .contact-us {
+.landing-hero, .contact-us, .why-codium {
     position: relative;
     min-height: calc(100vh);
     display: flex;
+}
+
+.why-codium {
+    padding: var(--gap-xxl) 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: var(--gap-lg);
+}
+
+.cards-viewport {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+    
+    /* The gradient mask for the fade effect */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.why-codium-cards {
+    display: flex;
+    gap: var(--gap-lg);
+    justify-content: flex-start;
+    flex-direction: row;
+    width: max-content;
+    animation: infiniteScroll 30s linear infinite;
+}
+
+.why-codium-cards:hover {
+    animation-play-state: paused;
+}
+
+.why-codium-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    background-color: var(--border2-solid);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--border-radius-lg);
+    transition: all 0.3s ease-in-out;
+    width: 380px;
+    flex-shrink: 0;
+}
+
+.why-codium-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px color-mix(in oklch, var(--primary) 60%, transparent);
+    transform: translateY(-4px);
+}
+
+.row-2 {
+    animation-direction: reverse;
+}
+
+.why-codium-cards i {
+    font-size: 40px;
+    color: var(--text-colour-primary-button);
 }
 
 .contact-us {
@@ -391,6 +462,15 @@
 
     to {
         transform: translate3d(-2%, -18%, 0);
+    }
+}
+
+@keyframes infiniteScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-50% - var(--gap-lg) / 2));
     }
 }
 

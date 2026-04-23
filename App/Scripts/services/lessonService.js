@@ -139,6 +139,22 @@ export class LessonService {
         return lessons;
     }
 
+    async getSectionLessonChain(lessonId) {
+        try {
+            const lesson = await this.getLessonById(lessonId);
+            const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
+            const classNum = lessonData?.flag_translation?.class || null;
+            const section = lessonData?.flag_translation?.section || null;
+            const module = lessonData?.flag_translation?.module || null;
+
+            const lessons = await this.getLessonsSortedByPrevNext(classNum, section, module);
+            return lessons;
+        } catch (error) {
+            console.error(`Failed to get sorted lessons for section starter ID ${lessonId}:`, error);
+            return [];
+        }
+    }
+
     async getSectionsForClass(classNum){
         console.warn("getSectionsForClass is DEPRECATED. Use getSections instead.");
         const result = await this.getSections(classNum, null);
@@ -255,7 +271,7 @@ export class LessonService {
     async getInteractions(userId = null, max_results = 3) {
 
         if (!userId) {
-            const currentUser = await this.api.getCurrentUser();
+            const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
             userId = userData.ID;
         }
@@ -270,6 +286,63 @@ export class LessonService {
         response = response.slice(0, max_results);
         //console.log("User interactions:", response);
         return response;
+
+    }
+
+    async getInteractionsSection(lessonId, section = null, clasa = null, userId = null) {
+        if (!userId) {
+            const currentUser = await this.api.users.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+
+        if (section === null || clasa === null) {
+            try {
+                const lesson = await this.getLessonById(lessonId);
+                const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
+                section = lessonData?.flag_translation?.section || null;
+                clasa = lessonData?.flag_translation?.class || null;
+            } catch (error) {
+                console.error(`Failed to retrieve lesson data for interactions:`, error);
+                return [];
+            }
+        }
+
+        let response = await this.api.get(`/api/users/${userId}/interactions`);
+
+        // filter by section
+        const filteredInteractions = [];
+
+        for (const interaction of response) {
+            try {
+                const interactionSection = await this.getLessonById(interaction.LessonID);
+                const interactionSectionData = typeof interactionSection === 'string' ? JSON.parse(interactionSection) : interactionSection;
+                const sectionNumber = interactionSectionData?.flag_translation?.section || null;
+                const classNumber = interactionSectionData?.flag_translation?.class || null;
+
+                if (sectionNumber === section && classNumber === clasa) {
+                    
+                    if (interaction) {
+                        const isCompleted = interaction.CompletedAt?.Valid;
+                        const isStarted = interaction.StartedAt?.Valid;
+
+                        if (isCompleted) {
+                            interaction.ParsedStatus = 'Completed';
+                        } else if (isStarted) {
+                            interaction.ParsedStatus = 'Started';
+                        } else {
+                            interaction.ParsedStatus = 'Not Started';
+                        }
+                    }
+                    
+                    filteredInteractions.push(interaction);
+                }
+            } catch (error) {
+                console.error(`Failed to check section for lesson ID ${interaction.LessonID}:`, error);
+            }
+        }
+
+        return filteredInteractions;
 
     }
 
@@ -309,6 +382,37 @@ export class LessonService {
         };
         
         return this.createLesson(lessonPayload);
+    }
+
+    // for section starter page
+
+    async isIdSectionStarter(lessonId) {
+        try {
+            const lesson = await this.getLessonById(lessonId);
+            if (!lesson) return false;
+            const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
+            
+            return !!lessonData?.lesson?.SectionStarter;
+        } catch (error) {
+            console.error(`Failed to verify section starter for ID ${lessonId}:`, error);
+            return false; 
+        }
+    }
+
+    async getSectionLength(starterSectionLessonId) {
+        try {
+            const lesson = await this.getLessonById(starterSectionLessonId);
+            if (!lesson) return 0;
+            const classNum = lesson.flag_translation?.class || null;
+            const section = lesson.flag_translation?.section || null;
+            const module = lesson.flag_translation?.module || null;
+
+            const lessons = await this.getLessonsSortedByPrevNext(classNum, section, module);
+            return lessons.length;
+        } catch (error) {
+            console.error(`Failed to get section length for ID ${starterSectionLessonId}:`, error);
+            return 0;
+        }
     }
 
     // Update existing lesson
