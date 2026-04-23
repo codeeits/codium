@@ -88,6 +88,29 @@ func (cfg *ApiCfg) WriteAuthentificationResponse(w http.ResponseWriter, r *http.
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, loginTarget, PrintUserToJson)
 }
 
+func (cfg *ApiCfg) AuthorizeOTP(sendingUserID uuid.UUID, otp string) bool {
+	backupSecret := deriveUserScopedSecret(cfg.TOTPSecret, "backup", sendingUserID)
+	totpSecret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", sendingUserID)
+
+	for i := 0; i < 10; i++ {
+		backupHOTP := gotp.NewDefaultHOTP(backupSecret)
+		if backupHOTP.Verify(otp, i) {
+			cfg.Logger.Printf("Successfully validated OTP for user: %v", sendingUserID)
+			return true
+		}
+	}
+
+	cfg.Logger.Printf("OTP is not a backup code for user: %v", sendingUserID)
+
+	if gotp.NewDefaultTOTP(totpSecret).VerifyTime(otp, time.Now()) == false {
+		cfg.Logger.Printf("Invalid OTP for user: %v", sendingUserID)
+		return false
+	}
+
+	cfg.Logger.Printf("Successfully validated OTP for user: %v", sendingUserID)
+	return true
+}
+
 /*
 ===========================================
 
@@ -266,23 +289,10 @@ func (cfg *ApiCfg) AuthOTPHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	backupSecret := deriveUserScopedSecret(cfg.TOTPSecret, "backup", userID)
-	totpSecret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", userID)
-
-	for i := 0; i < 10; i++ {
-		backupHOTP := gotp.NewDefaultHOTP(string(backupSecret))
-		if backupHOTP.Verify(p.OTP, i) {
-			cfg.Logger.Printf("Successfully validated OTP for user: %v", userID)
-			cfg.WriteAuthentificationResponse(w, r, userID, string(jwtToken))
-			return
-		}
-	}
-
-	cfg.Logger.Printf("OTP is not a backup code for user: %v", userID)
-
-	if gotp.NewDefaultTOTP(string(totpSecret)).VerifyTime(p.OTP, time.Now()) == false {
-		cfg.Logger.Printf("Invalid OTP for user: %v", userID)
-		http.Error(w, "Invalid OTP", http.StatusUnauthorized)
+	valid := cfg.AuthorizeOTP(userID, p.OTP)
+	if !valid {
+		cfg.Logger.Printf("User OTP validation failed: %v", userID)
+		http.Error(w, "User OTP validation failed", http.StatusUnauthorized)
 		return
 	}
 
@@ -465,6 +475,52 @@ func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, s
 		BackupCodes []string `json:"backupCodes"`
 	}
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, output{backupCodes}, GenericPrinter)
+}
+
+func (cfg *ApiCfg) DeleteTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	type params struct {
+		OTP string `json:"otp"`
+	}
+
+	p, err := DecodeParamsFromBody(r, params{})
+	if err != nil {
+		cfg.Logger.Printf("Invalid request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	cfg.Logger.Printf("Received DeleteTOTP request by userID: %v", sendingUser.ID)
+
+	valid := cfg.AuthorizeOTP(sendingUser.ID, p.OTP)
+	if !valid {
+		cfg.Logger.Printf("Invalid otp received as verification: %v", p.OTP)
+		http.Error(w, "Invalid otp", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = cfg.Db.UpdateUserTotpSecret(r.Context(), database.UpdateUserTotpSecretParams{
+		ID:         sendingUser.ID,
+		TotpSecret: sql.NullString{String: "", Valid: false},
+		UpdatedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to delete user totp secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.Db.UpdateUserBackupCodeSecret(r.Context(), database.UpdateUserBackupCodeSecretParams{
+		ID:               sendingUser.ID,
+		Backupcodesecret: sql.NullString{String: "", Valid: false},
+		UpdatedAt:        sql.NullTime{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to delete user backup code secret: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 /*
