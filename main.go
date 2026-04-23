@@ -184,6 +184,10 @@ func main() {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))
 
+		mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.NotFound(w, r)
+		}))
+
 		// Start the HTTP server
 		server := &http.Server{
 			Addr:    ":8443",
