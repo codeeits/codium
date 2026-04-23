@@ -169,6 +169,11 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request, se
 
 	lessonUser, err := cfg.MarkLessonUserStarted(lessonID, sendingUser.ID)
 	if err != nil {
+		if errors.Is(err, ErrNoChange) {
+			cfg.Logger.Printf("Lesson was already started for lessonID %v: %v", lessonID, err)
+			http.Error(w, "Lesson was already started", http.StatusNotModified)
+			return
+		}
 		cfg.Logger.Printf("Failed to mark lesson as started: %v", err)
 		http.Error(w, "Failed to mark lesson as started", http.StatusInternalServerError)
 		return
@@ -197,6 +202,12 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request,
 
 	lessonUser, err := cfg.MarkLessonUserCompleted(lessonID, sendingUser.ID)
 	if err != nil {
+		if errors.Is(err, ErrNoChange) {
+			cfg.Logger.Printf("Lesson was already completed for lessonID %v: %v", lessonID, err)
+			http.Error(w, "Lesson was already completed", http.StatusNotModified)
+			return
+		}
+
 		cfg.Logger.Printf("Failed to mark lesson as completed: %v", err)
 		http.Error(w, "Failed to mark lesson as completed", http.StatusInternalServerError)
 		return

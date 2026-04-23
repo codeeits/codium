@@ -133,6 +133,8 @@ const (
 
 var NoXpAddedErr = errors.New("no XP added for this problem, either because it was already solved or because of an error")
 
+var ErrNoChange = errors.New("no change has been made")
+
 /*uint32
 ===========================================
 
@@ -380,7 +382,7 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-				StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				StartedAt: sql.NullTime{Time: time.Now(), Valid: false},
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -389,6 +391,10 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 		}
 		return res, nil
 	}
+	if res.StartedAt.Valid {
+		return res, ErrNoChange
+	}
+
 	// Interaction exists, update startedAt
 	res, err = cfg.Db.UpdateLessonsUsersStart(context.Background(), database.UpdateLessonsUsersStartParams{
 		StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -439,7 +445,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		UserID:      userID,
 	})
 	if err != nil {
-		return database.LessonsUser{}, fmt.Errorf("failed to update lesson completedAt: %v", err)
+		return database.LessonsUser{}, ErrNoChange
 	}
 
 	cfg.Logger.Printf("Trying to give an XP bonus to user: %v", userID)
