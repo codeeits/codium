@@ -416,7 +416,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 				UserID:      userID,
 				CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
-				CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				CompletedAt: sql.NullTime{Time: time.Now(), Valid: false},
 				ID:          uuid.New(),
 			})
 			if err != nil {
