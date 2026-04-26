@@ -74,9 +74,14 @@ func main() {
 	cfg.SmtpCfg.Password = os.Getenv("SMTP_PASSWORD")
 	cfg.WebsiteUrl = os.Getenv("WEBSITE_URL")
 	cfg.WebsiteState = os.Getenv("WEBSITE_STATE")
+	cfg.TOTPSecret = os.Getenv("TOTP_SECRET")
 
 	if cfg.Secret == "" {
 		cfg.Logger.Fatal("A required security variable is not present!\nSet the SECRET variable as a long, random string in the .env file.")
+	}
+
+	if cfg.TOTPSecret == "" {
+		cfg.Logger.Fatal("A required security variable is not present!\nSet the TOTP_SECRET variable as a long, random string in the .env file.")
 	}
 
 	if cfg.DatabaseCfg.Url != "" {
@@ -128,6 +133,7 @@ func main() {
 		mux.Handle("GET /api/users/gdpr", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.GetAllUserDataHandler)))
 		mux.Handle("GET /api/email/{userID}", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.ValidateEmailHandler)))
 		mux.Handle("POST /api/users/totp", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.CreateTOTPHandler)))
+		mux.Handle("DELETE /api/users/totp", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.DeleteTOTPHandler)))
 		mux.Handle("POST /api/users/totp/validate", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.ValidateTOTPHandler)))
 		mux.Handle("POST /api/users/totp/authenticate", http.HandlerFunc(cfg.AuthOTPHandler))
 		mux.Handle("POST /api/users/logout", http.HandlerFunc(cfg.LogoutHandler))

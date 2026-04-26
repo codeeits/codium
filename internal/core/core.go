@@ -32,6 +32,7 @@ type ApiCfg struct {
 	Logger       log.Logger
 	Db           *database.Queries
 	Secret       string
+	TOTPSecret   string
 	Running      bool
 	WebsiteUrl   string
 	WebsiteState string
