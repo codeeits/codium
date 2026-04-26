@@ -324,3 +324,72 @@
         stop();
     });
 }());
+
+// Secret landing title easter egg popup
+(function initLandingSecretPopup() {
+    const landingTitle = document.querySelector('.landing-title');
+    if (!landingTitle) {
+        return;
+    }
+
+    const triggerClicks = 5;
+    const clickWindowMs = 2600;
+    let clickCount = 0;
+    let resetTimer = 0;
+
+    const popup = document.createElement('div');
+    popup.className = 'landing-secret-popup';
+    popup.setAttribute('aria-hidden', 'true');
+    popup.innerHTML = `
+        <div class="landing-secret-popup__panel" role="dialog" aria-modal="true" aria-label="Security alert">
+            <p class="landing-secret-popup__title">you have been hacked</p>
+            <button type="button" class="btn danger landing-secret-popup__close">Close</button>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    const closeBtn = popup.querySelector('.landing-secret-popup__close');
+
+    function openPopup() {
+        popup.classList.add('is-visible');
+        popup.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('landing-secret-popup-open');
+    }
+
+    function closePopup() {
+        popup.classList.remove('is-visible');
+        popup.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('landing-secret-popup-open');
+    }
+
+    function registerClick() {
+        clickCount += 1;
+        window.clearTimeout(resetTimer);
+
+        if (clickCount >= triggerClicks) {
+            clickCount = 0;
+            openPopup();
+            return;
+        }
+
+        resetTimer = window.setTimeout(() => {
+            clickCount = 0;
+        }, clickWindowMs);
+    }
+
+    landingTitle.addEventListener('click', registerClick);
+
+    closeBtn?.addEventListener('click', closePopup);
+
+    popup.addEventListener('click', (event) => {
+        if (event.target === popup) {
+            closePopup();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && popup.classList.contains('is-visible')) {
+            closePopup();
+        }
+    });
+}());

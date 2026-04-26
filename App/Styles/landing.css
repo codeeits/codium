@@ -13,6 +13,10 @@ h2 {
     overflow-x: hidden;
 }
 
+.landing-page.landing-secret-popup-open {
+    overflow: hidden;
+}
+
 .top-nav {
     align-items: center;
 }
@@ -195,6 +199,63 @@ h2 {
     transform: perspective(1000px) rotateX(10deg) translateX(10%) skew(-10deg);
     text-align: right;
     animation: titleFadeInUp 0.8s ease-out 0.2s both;
+}
+
+.landing-title {
+    cursor: pointer;
+}
+
+.landing-secret-popup {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: color-mix(in oklch, black 78%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.26s ease, visibility 0.26s ease;
+    z-index: 9000;
+}
+
+.landing-secret-popup.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.landing-secret-popup__panel {
+    width: min(860px, calc(100vw - 40px));
+    border: 3px solid color-mix(in oklch, var(--danger) 78%, white);
+    border-radius: var(--border-radius-lg);
+    background: color-mix(in oklch, var(--fundal) 82%, black);
+    box-shadow: 0 40px 120px color-mix(in oklch, var(--danger) 45%, transparent);
+    padding: 48px 30px 34px;
+    text-align: center;
+    transform: scale(0.92);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-secret-popup.is-visible .landing-secret-popup__panel {
+    transform: scale(1);
+}
+
+.landing-secret-popup__title {
+    margin: 0;
+    font-family: 'Bitcount Grid Double', 'Raleway', sans-serif;
+    font-size: clamp(34px, 8.5vw, 96px);
+    letter-spacing: 0.03em;
+    line-height: 0.95;
+    color: color-mix(in oklch, var(--danger) 78%, white);
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-shadow: 0 0 30px color-mix(in oklch, var(--danger) 55%, transparent);
+}
+
+.landing-secret-popup__close {
+    margin-top: 32px;
+    min-width: 140px;
 }
 
 .contact-content-title {
@@ -526,8 +587,28 @@ h2 {
         padding: 70px 0;
     }
 
+    .landing-secret-popup {
+        padding: 18px;
+    }
+
+    .landing-secret-popup__panel {
+        width: min(680px, calc(100vw - 26px));
+        padding: 34px 18px 24px;
+    }
+
+    .landing-secret-popup__title {
+        font-size: clamp(30px, 12vw, 64px);
+    }
+
     .feature-grid,
     .module-list {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-secret-popup,
+    .landing-secret-popup__panel {
+        transition: none;
     }
 }
