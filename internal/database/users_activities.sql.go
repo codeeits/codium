@@ -12,6 +12,30 @@ import (
 	"github.com/google/uuid"
 )
 
+const countUserActivitiesByType = `-- name: CountUserActivitiesByType :one
+SELECT COUNT(*) AS activity_count FROM users_activities
+WHERE user_id = $1 AND activity_type = $2 AND created_at >= $3 AND created_at <= $4
+`
+
+type CountUserActivitiesByTypeParams struct {
+	UserID       uuid.UUID
+	ActivityType string
+	CreatedAt    time.Time
+	CreatedAt_2  time.Time
+}
+
+func (q *Queries) CountUserActivitiesByType(ctx context.Context, arg CountUserActivitiesByTypeParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserActivitiesByType,
+		arg.UserID,
+		arg.ActivityType,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+	)
+	var activity_count int64
+	err := row.Scan(&activity_count)
+	return activity_count, err
+}
+
 const createUsersActivities = `-- name: CreateUsersActivities :one
 INSERT INTO users_activities (user_id, xp_gained, activity_type, created_at, updated_at, id)
     VALUES ($1, $2, $3, $4, $5, $6)
@@ -179,4 +203,97 @@ func (q *Queries) GetUserActivityById(ctx context.Context, id uuid.UUID) (UsersA
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const sumXpGainedByUserId = `-- name: SumXpGainedByUserId :one
+SELECT COALESCE(SUM(xp_gained), 0) AS total_xp FROM users_activities
+WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
+`
+
+type SumXpGainedByUserIdParams struct {
+	UserID      uuid.UUID
+	CreatedAt   time.Time
+	CreatedAt_2 time.Time
+}
+
+func (q *Queries) SumXpGainedByUserId(ctx context.Context, arg SumXpGainedByUserIdParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, sumXpGainedByUserId, arg.UserID, arg.CreatedAt, arg.CreatedAt_2)
+	var total_xp interface{}
+	err := row.Scan(&total_xp)
+	return total_xp, err
+}
+
+const sumXpGainedByUserIdAndType = `-- name: SumXpGainedByUserIdAndType :one
+SELECT COALESCE(SUM(xp_gained), 0) AS total_xp FROM users_activities
+WHERE user_id = $1 AND activity_type = $2 AND created_at >= $3 AND created_at <= $4
+`
+
+type SumXpGainedByUserIdAndTypeParams struct {
+	UserID       uuid.UUID
+	ActivityType string
+	CreatedAt    time.Time
+	CreatedAt_2  time.Time
+}
+
+func (q *Queries) SumXpGainedByUserIdAndType(ctx context.Context, arg SumXpGainedByUserIdAndTypeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, sumXpGainedByUserIdAndType,
+		arg.UserID,
+		arg.ActivityType,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+	)
+	var total_xp interface{}
+	err := row.Scan(&total_xp)
+	return total_xp, err
+}
+
+const sumXpGainedGroupedByDays = `-- name: SumXpGainedGroupedByDays :many
+SELECT DATE_TRUNC('day', created_at) AS day, COALESCE(SUM(xp_gained), 0) AS total_xp
+FROM users_activities
+WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
+GROUP BY day
+ORDER BY day ASC
+LIMIT $4 OFFSET $5
+`
+
+type SumXpGainedGroupedByDaysParams struct {
+	UserID      uuid.UUID
+	CreatedAt   time.Time
+	CreatedAt_2 time.Time
+	Limit       int32
+	Offset      int32
+}
+
+type SumXpGainedGroupedByDaysRow struct {
+	Day     int64
+	TotalXp interface{}
+}
+
+func (q *Queries) SumXpGainedGroupedByDays(ctx context.Context, arg SumXpGainedGroupedByDaysParams) ([]SumXpGainedGroupedByDaysRow, error) {
+	rows, err := q.db.QueryContext(ctx, sumXpGainedGroupedByDays,
+		arg.UserID,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SumXpGainedGroupedByDaysRow
+	for rows.Next() {
+		var i SumXpGainedGroupedByDaysRow
+		if err := rows.Scan(&i.Day, &i.TotalXp); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
