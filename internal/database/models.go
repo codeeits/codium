@@ -133,6 +133,15 @@ type User struct {
 	Backupcodesecret sql.NullString
 }
 
+type UsersActivity struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	XpGained     int32
+	ActivityType string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 type UsersProblem struct {
 	ID         uuid.UUID
 	UserID     uuid.UUID
