@@ -186,6 +186,57 @@ func (q *Queries) GetUserActivitiesByType(ctx context.Context, arg GetUserActivi
 	return items, nil
 }
 
+const getUserActivitiesGroupedByDays = `-- name: GetUserActivitiesGroupedByDays :many
+SELECT DATE_TRUNC('day', created_at) AS day, ARRAY_AGG(users_activities) AS activities
+FROM users_activities
+WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
+GROUP BY day
+ORDER BY day ASC
+LIMIT $4 OFFSET $5
+`
+
+type GetUserActivitiesGroupedByDaysParams struct {
+	UserID      uuid.UUID
+	CreatedAt   time.Time
+	CreatedAt_2 time.Time
+	Limit       int32
+	Offset      int32
+}
+
+type GetUserActivitiesGroupedByDaysRow struct {
+	Day        int64
+	Activities interface{}
+}
+
+func (q *Queries) GetUserActivitiesGroupedByDays(ctx context.Context, arg GetUserActivitiesGroupedByDaysParams) ([]GetUserActivitiesGroupedByDaysRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserActivitiesGroupedByDays,
+		arg.UserID,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserActivitiesGroupedByDaysRow
+	for rows.Next() {
+		var i GetUserActivitiesGroupedByDaysRow
+		if err := rows.Scan(&i.Day, &i.Activities); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserActivityById = `-- name: GetUserActivityById :one
 SELECT id, user_id, xp_gained, activity_type, created_at, updated_at FROM users_activities
 WHERE id = $1

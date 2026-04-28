@@ -42,3 +42,11 @@ WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
 GROUP BY day
 ORDER BY day ASC
 LIMIT $4 OFFSET $5;
+
+-- name: GetUserActivitiesGroupedByDays :many
+SELECT DATE_TRUNC('day', created_at) AS day, ARRAY_AGG(users_activities) AS activities
+FROM users_activities
+WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
+GROUP BY day
+ORDER BY day ASC
+LIMIT $4 OFFSET $5;
