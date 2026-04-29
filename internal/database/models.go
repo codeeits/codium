@@ -131,6 +131,7 @@ type User struct {
 	Title            string
 	TotpSecret       sql.NullString
 	Backupcodesecret sql.NullString
+	CurrentStreak    int32
 }
 
 type UsersActivity struct {

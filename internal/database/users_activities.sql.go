@@ -82,6 +82,27 @@ func (q *Queries) DeleteUserActivitiesByUserId(ctx context.Context, userID uuid.
 	return err
 }
 
+const getLastUserActivity = `-- name: GetLastUserActivity :one
+SELECT id, user_id, xp_gained, activity_type, created_at, updated_at FROM users_activities
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLastUserActivity(ctx context.Context, userID uuid.UUID) (UsersActivity, error) {
+	row := q.db.QueryRowContext(ctx, getLastUserActivity, userID)
+	var i UsersActivity
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.XpGained,
+		&i.ActivityType,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserActivities = `-- name: GetUserActivities :many
 SELECT id, user_id, xp_gained, activity_type, created_at, updated_at FROM users_activities
 WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
@@ -347,4 +368,17 @@ func (q *Queries) SumXpGainedGroupedByDays(ctx context.Context, arg SumXpGainedG
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserStreak = `-- name: UpdateUserStreak :exec
+UPDATE users
+SET current_streak = current_streak + 1
+WHERE id = $1
+`
+
+// This function works on the users table, but it's related to user activities
+// Hence future me get bamboozled <3
+func (q *Queries) UpdateUserStreak(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, updateUserStreak, id)
+	return err
 }

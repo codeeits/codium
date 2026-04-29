@@ -50,3 +50,17 @@ WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
 GROUP BY day
 ORDER BY day ASC
 LIMIT $4 OFFSET $5;
+
+-- name: GetLastUserActivity :one
+SELECT * FROM users_activities
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT 1;
+
+
+-- This function works on the users table, but it's related to user activities
+-- Hence future me get bamboozled <3
+-- name: UpdateUserStreak :exec
+UPDATE users
+SET current_streak = current_streak + 1
+WHERE id = $1;
