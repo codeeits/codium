@@ -58,6 +58,11 @@ main, .content-area {
     max-width: 400px;
 }
 
+.lesson-meta {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-sm);
+}
 
 .card {
     display: flex;
