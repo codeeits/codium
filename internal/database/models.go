@@ -6,6 +6,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +21,14 @@ type CodeTest struct {
 	UpdatedAt      time.Time
 	NextTestID     uuid.NullUUID
 	PreviousTestID uuid.NullUUID
+}
+
+type Event struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Type      string
+	Payload   json.RawMessage
+	CreatedAt time.Time
 }
 
 type File struct {
