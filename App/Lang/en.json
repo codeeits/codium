@@ -217,7 +217,9 @@
             "alfabetic": "Alphabetic",
             "dificuly": "Difficulty",
             "newest": "Newest",
-            "oldest": "Oldest"
+            "oldest": "Oldest",
+            "section-yes": "Show section starter",
+            "section-no": "Don't show section starter"
         },
         "all-fliter": "All",
         "right-bar": {

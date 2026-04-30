@@ -12,9 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE ---
     let lessonsData = [];
+    let sectionStartersData = [];
     let currentFilters = {
         class: 'all',
-        sortBy: 'Alfabetic'
+        sortBy: 'Alfabetic',
+        isSectionStarterShown: false
     };
 
     function makeElementKeyboardActivatable(element, onActivate, role = 'link') {
@@ -56,13 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- RENDER LESSONS ---
-    function renderLessons() {
+    function renderLessons(typeOfRender = 'full') {
         // Clear current items
         const cards = lessonsContainer.querySelectorAll('.content-card:not(#template-card)');
         cards.forEach(card => card.remove());
 
+        const sourceData = currentFilters.isSectionStarterShown ? sectionStartersData : lessonsData;
+
         // 1. FILTER
-        let processedData = lessonsData.filter(item => {
+        let processedData = sourceData.filter(item => {
             if (currentFilters.class === 'all') return true;
             const itemClass = String(item.flag_translation?.class ?? '');
             return itemClass === String(currentFilters.class);
@@ -70,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. SORT
         processedData.sort((a, b) => {
-            // Safety check in case Title is missing
             const titleA = a.lesson?.Title || "";
             const titleB = b.lesson?.Title || "";
 
@@ -89,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 case 'difficulty':
                 case 'Dificultate':
-                    // chestia asta nu face nimic momentan, dar daca o sa avem dificultate in baza de date putem sorta dupa ea
                     const map = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
                     const valA = map[a.difficulty] || 0;
                     const valB = map[b.difficulty] || 0;
@@ -111,9 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = card.querySelector('.content-card-image');
             const seed = encodeURIComponent(lesson.lesson.ID || 'codium');
 
-            const patternUrl = window.apiService.getPatternUrl(seed, "shapes"); // "Glass" is just a pattern type, can be changed to others if needed
+            const patternUrl = window.apiService.getPatternUrl(seed, "shapes"); 
 
             if (img) img.src = patternUrl;
+
+            if (currentFilters.isSectionStarterShown) {
+                card.classList.add('section-starter-card');
+            }
 
             const badge = card.querySelector('.lesson-class-badge');
             if (badge){
@@ -127,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const desc = card.querySelector('.content-card-description');
             if (desc) desc.textContent = lesson.lesson.Description.String;
 
-            // Optional difficulty text update
             const diffText = card.querySelector('.difficulty-text');
             if(diffText && lesson.difficulty){
                 diffText.textContent = lesson.difficulty;
@@ -135,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const openLesson = () => {
-                window.location.href = `/app/Lectii/lessonindiv.html?id=${lesson.lesson.ID}`;
+                const baseUrl = currentFilters.isSectionStarterShown ? '/app/Lectii/section-starter.html' : '/app/Lectii/lessonindiv.html';
+                window.location.href = `${baseUrl}?id=${lesson.lesson.ID}`;
             };
 
             makeElementKeyboardActivatable(card, openLesson, 'link');
@@ -160,23 +166,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateBtn = filters.class.querySelector('.template');
         if (!templateBtn) return;
 
-        // Clear container
         filters.class.innerHTML = '';
-
         const classes = getAvailableClasses();
 
         // 1. Create "TOATE" Button
         const allBtn = templateBtn.cloneNode(true);
         allBtn.classList.remove('template', 'hidden');
-        allBtn.id = ""; // Remove ID to avoid duplicates
+        allBtn.id = ""; 
         allBtn.textContent = "Toate";
         allBtn.dataset.class = "all";
         
         applyBtnStyle(allBtn, currentFilters.class === 'all');
         
-        allBtn.addEventListener('click', () => {
+        allBtn.addEventListener('click', async () => {
             currentFilters.class = 'all';
             updateAllButtonStyles();
+            
+            if (currentFilters.isSectionStarterShown) {
+                const response = await window.apiService.lessons.getSectionStarters('all'); 
+                if (response) sectionStartersData = response;
+            }
+
             renderLessons();
         });
         filters.class.appendChild(allBtn);
@@ -190,25 +200,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (parseInt(cls) == 67) {
                 btn.dataset.i18n = 'classe.67';
             } else if (parseInt(cls) > 12) {
-                btn.dataset.i18n = ''; // no set
+                btn.dataset.i18n = ''; 
                 btn.textContent = `Clasa ${cls}`;
             } else {
-                btn.dataset.i18n = `classe.${cls}`; // For translation
+                btn.dataset.i18n = `classe.${cls}`; 
             }
             btn.dataset.class = String(cls);
             
             applyBtnStyle(btn, currentFilters.class === cls);
 
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 currentFilters.class = cls;
                 updateAllButtonStyles();
+                
+                if (currentFilters.isSectionStarterShown) {
+                    const response = await window.apiService.lessons.getSectionStarters(currentFilters.class);
+                    if (response) sectionStartersData = response;
+                } 
+
                 renderLessons();
             });
             filters.class.appendChild(btn);
         });
     }
 
-    // Helper to style a single button
     function applyBtnStyle(btn, isActive) {
         if (isActive) {
             btn.classList.add('primary', 'active');
@@ -237,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentFilters.sortBy = activeItem.dataset.value || activeItem.textContent.trim();
         }
 
-        // Use the global dropdown controller from main.js (InteractionHandler).
         dropdown.addEventListener('dropdown-selected', (event) => {
             const selectedValue = event.detail?.value || event.detail?.element?.textContent?.trim();
             if (!selectedValue) {
@@ -249,10 +263,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function initSectionStarterDropdown() {
+        const dropdown = document.getElementById('section-starter-dropdown');
+        if (!dropdown) return;
+
+        const activeItem = dropdown.querySelector('.dropdown-item.active');
+        if (activeItem) {
+            currentFilters.isSectionStarterShown = activeItem.dataset.value === 'section-yes';
+        }
+
+        dropdown.addEventListener('dropdown-selected', async (event) => {
+            const selectedValue = event.detail?.value || event.detail?.element?.textContent?.trim();
+            if (!selectedValue) return;
+
+            currentFilters.isSectionStarterShown = (selectedValue === 'section-yes');
+
+            if (currentFilters.isSectionStarterShown) {
+                const response = await window.apiService.lessons.getSectionStarters(currentFilters.class);
+                if (response) sectionStartersData = response;
+            }
+
+            renderLessons();
+        });
+    }
+
     // --- INITIALIZATION ---
     async function initApp() {
         initDropdown(); 
+        initSectionStarterDropdown();
         await fetchLessons();
+        if (currentFilters.isSectionStarterShown) {
+            const response = await window.apiService.lessons.getSectionStarters(currentFilters.class);
+            if (response) sectionStartersData = response;
+        }
         populateClassFilters();
         renderLessons();
     }

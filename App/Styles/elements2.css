@@ -1,3 +1,8 @@
+/*
+    elements2.css
+    The lion doesn't concern himself with frameworks and preprocessors, but frameworks and preprocessors concern themselves with the lion.
+    This file is, despite its name, the **main** stylesheet for the entire app. Ignore main.css, we don't talk about that one.
+*/
 :root {
 
     /* constants colours */
@@ -553,6 +558,19 @@ table td:not(:first-child) {
     gap: var(--gap-lg);
 }
 
+#user-info {
+    cursor: pointer;
+}
+
+.section-starter-card {
+    position: relative;
+    transition: all 0.3s ease-in-out;
+}
+
+.section-starter-card:hover {
+    transform: translateY(-2px);
+}
+
 .top-bar a {
     text-decoration: none;
     font-size: var(--body-font-size);
@@ -852,7 +870,7 @@ main, .content-area {
     border-radius: var(--border-radius-lg);
     padding: var(--padding-card);
     /* box-shadow: var(--card-shadow); */
-    backdrop-filter: blur(3.75px);
+    /* i hope you rot in hell, iOS 17 (backdrop-filter: blur(3.75px); ) */
 }
 
 /* profile card */

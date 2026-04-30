@@ -188,6 +188,21 @@ export class LessonService {
         return result;
     }
 
+    async getSectionStarters(classNum = null, section = null, module = null) {
+        const response = await this.getLessonsByFlags(classNum, section, module);
+        const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
+        const starters = lessonsData.filter(lesson => {
+            const starter = lesson.lesson.SectionStarter;
+            if (typeof starter === 'boolean') {
+                return starter === true;
+            } else if (starter && typeof starter === 'object') {
+                return starter.Valid && starter.Int32 === section;
+            }
+            return false;
+        });
+        return starters;
+    }
+
     async modifyBookmark(lessonId) {
         return this.api.post(`/api/lessons/${lessonId}/bookmark`, {}, true);
     }
