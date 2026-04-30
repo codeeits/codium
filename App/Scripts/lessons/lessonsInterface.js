@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Buttons
         bookmarkBtn: document.getElementById("bookmarkButton"),
         favoriteBtn: document.getElementById("favoriteButton"),
+        shareBtn: document.getElementById("shareButton"),
         prevBtn: document.getElementById("prev-lesson-btn"),
         nextBtn: document.getElementById("next-lesson-btn"),
         // Top Menu
@@ -670,6 +671,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = `lessons.html`;
     }
 
+    function setupShareButton() {
+        if (!elements.shareBtn) return;
+
+        elements.shareBtn.addEventListener("click", () => {
+            const shareData = {
+                title: state.meta.title,
+                text: `Check out this lesson: ${state.meta.title}`,
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).catch(error => {
+                    if (debugMode) console.error("Share failed:", error);
+                    // toastsLoader.showToast("Failed to share the lesson", "danger"); - we can get false negatives from navigator.share, so we won't show a toast in this case
+                });
+            } else {
+                // Fallback: copy URL to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    toastsLoader.showToast("Lesson URL copied to clipboard", "confirm");
+                }).catch(error => {
+                    if (debugMode) console.error("Clipboard copy failed:", error);
+                    toastsLoader.showToast("Failed to copy URL", "danger");
+                });
+            }
+        });
+    }
+
     // --- INITIALIZATION ---
 
     async function initApp() {
@@ -688,6 +716,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             setupInteractionButtons();
             await renderSidebar();
             
+            setupShareButton();
             window.applyTranslations?.(); // Re-apply translations to update the module name
         }
     }

@@ -71,7 +71,7 @@
                     <h1 id="lesson-title">Nume lecție 4</h1>
                     <div class="header-icons">
                         <button type="button" class="btn secondary" id="bookmarkButton"><i class="fa-solid fa-bookmark"></i></button>
-                        <button type="button" class="btn secondary" id="editButton"><i class="fa-solid fa-pencil"></i></button>
+                        <!--<button type="button" class="btn secondary" id="editButton"><i class="fa-solid fa-pencil"></i></button>-->
                         <button type="button" class="btn secondary" id="favoriteButton"><i class="fa-solid fa-heart"></i></button>
                         <button type="button" class="btn secondary" id="shareButton"><i class="fa-solid fa-share"></i></button>
                     </div>
@@ -143,31 +143,5 @@
             </div>
         </main>
     </div>
-    <script>
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.dropdown.open').forEach(dropdown => {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
-
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const dropdown = this.closest('.dropdown');
-                const toggle = dropdown.querySelector('.dropdown-toggle');
-                
-                dropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                const icon = toggle.querySelector('i');
-                toggle.textContent = this.textContent.trim() + ' ';
-                toggle.appendChild(icon);
-                
-                dropdown.classList.remove('open');
-            });
-        });
-    </script>
 </body>
 </html>

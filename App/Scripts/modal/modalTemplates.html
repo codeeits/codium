@@ -169,3 +169,17 @@
         </div>
     </div>
 </template>
+
+<template id="modal-tpl-totp-remove-confirmation">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: var(--gap-lg); margin-top: var(--gap-lg);">
+        <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.remove_note">Are you sure you want to disable 2FA? This will remove all your existing backup codes and require you to set up 2FA again if you want to re-enable it.</p>
+        <div class="text-container input-field" style="width: 100%; max-width: 300px;">
+            <input class="input-text" type="text" name="totpCode" id="totpCodeInput" placeholder="Enter TOTP code" data-i18n-placeholder="modal.2fa_modal.enter_code" minlength="6" maxlength="6" autocomplete="one-time-code">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+        </div>
+    </div>
+    <div class="modal-actions" style="margin-top: var(--gap-lg);">
+        <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+        <button type="button" class="btn danger flex-1" id="modal-confirm-button" data-i18n="settings-page.privacy-section.2fa-notes.disable_button">Disable 2FA</button>
+    </div>
+</template>

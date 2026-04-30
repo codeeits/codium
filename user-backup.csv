@@ -1,0 +1,1 @@
+id,username,email,password_hash,created_at,updated_at,profile_pic_id,email_validated,cured_email,permissions,title,totp_secret,backupcodesecret,current_streak

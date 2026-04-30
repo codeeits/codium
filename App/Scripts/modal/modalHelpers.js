@@ -465,6 +465,69 @@ export class ModalHelpers {
         }
     }
 
+    static removeTotp = {
+
+        activeEngine: null,
+
+        openModal: async ({ engine, onConfirm, title = 'Disable Two-Factor Authentication', icon = 'fa-shield-alt' }) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                throw new Error('A valid modal engine instance is required.');
+            }
+
+            ModalHelpers.removeTotp.activeEngine = engine;
+
+            await engine.openModal({
+                type: 'totp-remove-confirmation',
+                title,
+                icon,
+                onConfirm: (formElement) => {
+                    if (typeof onConfirm === 'function') {
+                        onConfirm(formElement);
+                    }
+                },
+                onCancel: () => {}
+            });
+
+        },
+
+        validateForm: (data) => {
+            /* data syntax example: 
+                data = {
+                    otp: '123456'
+                }
+            */
+
+            const { otp } = data;
+
+            // OTP code validation (6 digits)
+            const otpRegex = /^\d{6}$/;
+            if (!otp || !otpRegex.test(otp)) return { valid: false, error: 'Invalid OTP code format' };
+
+            return { 
+                valid: true, 
+            };
+        },
+
+        performTotpRemoval: async (data) => {
+            const validation = ModalHelpers.removeTotp.validateForm(data);
+            
+            if (!validation.valid) {
+                throw new Error(validation.error);
+            }
+
+            const result = await window.apiService.users.disableTOTP(data.otp);
+
+            if (result?.success) {
+                window.dispatchEvent(new CustomEvent('codium:totp-remove-success'));
+                console.log('TOTP disabled successfully!');
+            }
+
+            console.log('TOTP disable result:', result);
+            
+            return result;
+        }
+    }
+
 }
 
 /* USAGE: */

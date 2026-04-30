@@ -650,11 +650,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function removeTwoFactorButtonParent() {
+    function removeTwoFactorButtonParentAndAddDisableTotpButton() {
         const parent = elements.tfa?.parentElement;
-        if (parent && parent.parentElement) {
-            parent.remove();
-        }
+        if (!parent || !parent.parentElement) return;
+
+        // Create a replacement setting row with a visible label and button
+        const wrapper = document.createElement('div');
+        wrapper.className = parent.className || 'setting-item';
+
+        const label = document.createElement('label');
+        label.setAttribute('for', 'disable-2fa-button');
+        label.textContent = 'Disable two-factor authentication';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'disable-2fa-button';
+        btn.className = 'btn danger';
+        btn.textContent = 'Disable 2FA';
+        btn.setAttribute('aria-label', 'Disable Two-Factor Authentication');
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(btn);
+
+        parent.parentElement.replaceChild(wrapper, parent);
+
+        elements.tfaRow = wrapper;
+        elements.tfa = btn;
+
+        btn.addEventListener('click', () => {
+            ModalHelpers.removeTotp.openModal({
+                engine,
+                onConfirm: (modalElement) => {
+                    const totpInput = modalElement?.querySelector('#totpCodeInput');
+                    const otp = totpInput?.value?.trim() || '';
+
+                    ModalHelpers.removeTotp.performTotpRemoval({ otp }).then(() => {
+                        elements.tfaRow?.remove();
+                        elements.tfaRow = null;
+                        elements.tfa = null;
+                        toastsLoader.showToast('Two-factor authentication disabled successfully.', 'confirm', 3000);
+                        fetchUserData();
+                    }).catch(error => {
+                        console.error('Error disabling two-factor authentication:', error);
+                        toastsLoader.showToast(`Error disabling two-factor authentication: ${error.message || 'Unknown error'}`, 'error', 5000);
+                    });
+                }
+            });
+        });
     }
     
     async function initTwoFactorAuth() {
@@ -662,23 +704,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const is2FA = !!currentUser?.Backupcodesecret?.Valid;
 
         if (is2FA) {
-            removeTwoFactorButtonParent();
+            removeTwoFactorButtonParentAndAddDisableTotpButton();
             console.log('User already has 2FA enabled, skipping 2FA setup button initialization.');
-            return;
         }
 
-        elements.tfa.addEventListener('click', () => {
-            ModalHelpers.totpSetup.openModal({
-                engine,
-                onConfirm: (modalElement) => {
-                    console.log('Starting verification of TOTP code');
-                    handleTwoFactor(modalElement);
-                },
-                onOpen: async (modalElement) => {
-                    await ModalHelpers.totpSetup.initialization(modalElement);
-                }
+        if (is2FA === false) {
+            elements.tfa.addEventListener('click', () => {
+                ModalHelpers.totpSetup.openModal({
+                    engine,
+                    onConfirm: (modalElement) => {
+                        console.log('Starting verification of TOTP code');
+                        handleTwoFactor(modalElement);
+                    },
+                    onOpen: async (modalElement) => {
+                        await ModalHelpers.totpSetup.initialization(modalElement);
+                    }
+                });
             });
-        });
+        }
     }
 
     function handleTwoFactor(modalElement) {
@@ -744,7 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener('codium:totp-setup-success', (e) => {
         console.log('Received TOTP setup success event:', e.detail);
-        removeTwoFactorButtonParent();
+        removeTwoFactorButtonParentAndAddDisableTotpButton();
         fetchUserData();
     });
 

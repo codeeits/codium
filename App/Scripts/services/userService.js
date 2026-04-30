@@ -195,6 +195,15 @@ export class UserService {
         return response;
     }
 
+    async disableTOTP(otp) {
+        return this.api.makeRequest('/api/users/totp', {
+            method: 'DELETE',
+            headers: this.api.getAuthHeaders(),
+            body: JSON.stringify({ otp }),
+            requiresAuth: true
+        });
+    }
+
     // permissions management (admin only)
 
     async updateUserPermissions(userId, title) {
