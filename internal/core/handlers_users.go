@@ -1085,3 +1085,32 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintUserToJson)
 }
+
+/*
+===========================================
+
+	MISC
+
+===========================================
+*/
+
+func (cfg *ApiCfg) GetUserCurrentStreakHandler(w http.ResponseWriter, r *http.Request, targetUser database.User) {
+	if !cfg.DatabaseCfg.Loaded {
+		cfg.Logger.Print("Database not connected")
+		http.Error(w, "Database not connected", http.StatusServiceUnavailable)
+		return
+	}
+
+	res, err := cfg.Db.GetUserStreak(r.Context(), targetUser.ID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user streak: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	type params struct {
+		CurrentStreak int32 `json:"current_streak"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, params{CurrentStreak: res}, GenericPrinter)
+}

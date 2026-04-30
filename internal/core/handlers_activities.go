@@ -3,6 +3,8 @@ package core
 import (
 	"Codium/internal/database"
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,9 +18,35 @@ import (
 ===========================================
 */
 
-func (cfg *ApiCfg) CreateUserActivity(user database.User, activityType string, xpGained int32) error {
-	_, err := cfg.Db.CreateUsersActivities(context.Background(), database.CreateUsersActivitiesParams{
-		UserID:       user.ID,
+func (cfg *ApiCfg) CreateUserActivity(userID uuid.UUID, activityType string, xpGained int32) error {
+	lastActivity, err := cfg.Db.GetLastUserActivity(context.Background(), userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+
+	// Check whether to increase the streak
+	if !lastActivity.CreatedAt.IsZero() {
+		timeSinceLastActivity := time.Now().Sub(lastActivity.CreatedAt)
+		if timeSinceLastActivity < 24*time.Hour && lastActivity.CreatedAt.Day() != time.Now().Day() && timeSinceLastActivity < 48*time.Hour {
+			err = cfg.Db.UpdateUserStreak(context.Background(), userID)
+			if err != nil {
+				return err
+			}
+		} else if timeSinceLastActivity > 48*time.Hour {
+			err = cfg.Db.ResetUserStreak(context.Background(), userID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		err = cfg.Db.UpdateUserStreak(context.Background(), userID)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = cfg.Db.CreateUsersActivities(context.Background(), database.CreateUsersActivitiesParams{
+		UserID:       userID,
 		XpGained:     xpGained,
 		ActivityType: activityType,
 		CreatedAt:    time.Now(),

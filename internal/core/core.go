@@ -461,6 +461,11 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 
 	cfg.Logger.Printf("Added %v xp to user: %v for completing lesson: %v", int32(scoreToAdd), userID, lessonID)
 
+	err = cfg.CreateUserActivity(userID, "lessonCompletion", lessonXp)
+	if err != nil {
+		return database.LessonsUser{}, err
+	}
+
 	return res, nil
 }
 
@@ -594,6 +599,11 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	}
 
 	cfg.Logger.Printf("Added %v xp to user: %v", scoreToAdd, userID)
+
+	err = cfg.CreateUserActivity(userID, "problemSolve", scoreToAdd)
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to create user activity: %v", err)
+	}
 
 	return res, nil
 }

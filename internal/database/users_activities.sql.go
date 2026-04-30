@@ -277,6 +277,29 @@ func (q *Queries) GetUserActivityById(ctx context.Context, id uuid.UUID) (UsersA
 	return i, err
 }
 
+const getUserStreak = `-- name: GetUserStreak :one
+SELECT current_streak FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserStreak(ctx context.Context, id uuid.UUID) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getUserStreak, id)
+	var current_streak int32
+	err := row.Scan(&current_streak)
+	return current_streak, err
+}
+
+const resetUserStreak = `-- name: ResetUserStreak :exec
+UPDATE users
+SET current_streak = 0
+WHERE id = $1
+`
+
+func (q *Queries) ResetUserStreak(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, resetUserStreak, id)
+	return err
+}
+
 const sumXpGainedByUserId = `-- name: SumXpGainedByUserId :one
 SELECT COALESCE(SUM(xp_gained), 0) AS total_xp FROM users_activities
 WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3

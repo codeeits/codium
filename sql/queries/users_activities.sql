@@ -64,3 +64,12 @@ LIMIT 1;
 UPDATE users
 SET current_streak = current_streak + 1
 WHERE id = $1;
+
+-- name: GetUserStreak :one
+SELECT current_streak FROM users
+WHERE id = $1;
+
+-- name: ResetUserStreak :exec
+UPDATE users
+SET current_streak = 0
+WHERE id = $1;
