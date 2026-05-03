@@ -1,8 +1,10 @@
 import { extractCustomBlock } from '/app/Scripts/markdownRenderer.js';
 import { getHashtagsFromContent } from '../helper/helper.js';
+import { setupDragAndDrop } from './problemPage.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
+    const isAuthenticated = await window.apiService.checkAuthentication(false);
     const debugMode = true;
 
     // --- DOM ELEMENTS ---
@@ -250,6 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hook up navigation buttons
             const upBtn = card.querySelector('.right-buttons .fa-chevron-up')?.closest('button');
             const downBtn = card.querySelector('.right-buttons .fa-chevron-down')?.closest('button');
+            const fileInput = card.querySelector('.file-input');
+            console.log("Setting up buttons for problem ID:", problem.problem.ID, { upBtn, downBtn, fileInput });
             
             if (upBtn) upBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -261,6 +265,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 scrollToProblem('down');
             });
 
+            if (fileInput) {
+                const elements = {
+                    dropzone: fileInput.closest('.dropzone'),
+                    fileInput: fileInput
+                };
+                function updateFileLabel(files) {
+                    const display = elements.dropzone.querySelector('.input-text');
+                    if (files.length > 0) {
+                        display.textContent = files[0].name;
+                    }
+                }
+                
+                setupDragAndDrop(elements, updateFileLabel, () => {
+                    handleSubmission(fileInput, problem.problem.ID);
+                });
+                console.log("Initialized drag-and-drop for problem ID:", problem.problem.ID);
+            }
+
             problemsFeedContainer.appendChild(card);
         });
         
@@ -270,6 +292,63 @@ document.addEventListener('DOMContentLoaded', () => {
             feedScrollInitialized = true;
         }
     }
+
+    async function handleSubmission(inputFile, problemId) {
+                if (!isAuthenticated) {
+                    toastsLoader.showToast("Trebuie să fii autentificat pentru a trimite o soluție.", "error");
+                    return;
+                }
+                    
+                if (!inputFile || inputFile.files.length === 0) {
+                    toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "error");
+                    return;
+                }
+
+                let code = "";
+                const file = inputFile.files[0];
+                try {
+                    code = await file.text();
+                    if (!code) throw new Error("File empty");
+                } catch (e) {
+                    toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "error");
+                    return;
+                }
+
+                if (!problemId) {
+                    toastsLoader.showToast("Nu am putut identifica problema curentă.", "error");
+                    return;
+                }
+
+                try {
+                    toastsLoader.showToast("Se evaluează soluția...", "info");
+
+                    const runResult = await window.apiService.problems.runCodeAgainstProblemTests(problemId, code);
+                    
+                    const solutionData = { code: code, language: 'py' };
+                    const solution = await window.apiService.problems.createSolution(problemId, solutionData);
+                    
+                    const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests', {
+                        given_answers: runResult.given_answers,
+                        tests_passed: runResult.score,
+                        total_tests: runResult.total
+                    });
+
+                    // Extract values directly since extractNullableInt isn't in this file
+                    const passed = gradedSolution?.TestsPassed?.Int32 ?? gradedSolution?.TestsPassed ?? runResult.score;
+                    const total = gradedSolution?.TotalTests?.Int32 ?? gradedSolution?.TotalTests ?? runResult.total;
+
+                    // Display results via toast
+                    const percentage = total > 0 ? (passed / total) * 100 : 0;
+                    let scoreClass = "danger";
+                    if (percentage === 100) scoreClass = "confirm";
+                    else if (percentage >= 50) scoreClass = "warning";
+
+                    toastsLoader.showToast(`Teste trecute: ${passed} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
+
+                } catch (error) {
+                    toastsLoader.showToast("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
+                }
+            }
 
     // --- HELPER: GET CLASSES ---
     function getAvailableClasses() {
@@ -576,6 +655,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const toggleViewBtn = document.getElementById('toggle-view-btn');
+    const gridContainer = document.querySelector('.problems-grid-container');
+    const feedContainer = document.querySelector('.problems-feed-container');
+    const toggleBtnText = toggleViewBtn.querySelector('span');
+    const toggleBtnIcon = toggleViewBtn.querySelector('i');
+
+    let isFeedMode = false; // don't start in feed mode
+
+    function applyDisplayMode(feedMode) {
+        if (feedMode) {
+            gridContainer.hidden = true;
+            feedContainer.hidden = false;
+            toggleBtnText.dataset.i18n = 'problems-page.disable-feed-mode';
+            toggleBtnIcon.className = 'fa-solid fa-grip';
+            toggleViewBtn.className = 'btn secondary danger';
+        } else {
+            gridContainer.hidden = false;
+            feedContainer.hidden = true;
+            toggleBtnText.dataset.i18n = 'problems-page.enable-feed-mode';
+            toggleBtnIcon.className = 'fa-solid fa-scroll';
+            toggleViewBtn.className = 'btn secondary confirm';
+        }
+        
+        if (typeof applyTranslations === 'function') {
+            applyTranslations(toggleViewBtn);
+        }
+    }
+
+    applyDisplayMode(isFeedMode);
+
+    toggleViewBtn.addEventListener('click', function() {
+        isFeedMode = !isFeedMode;
+        applyDisplayMode(isFeedMode);
+    });
 
     // --- INITIALIZATION ---
     async function initApp() {

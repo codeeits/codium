@@ -20,12 +20,21 @@
 
 }
 
+.input-field.dropzone {
+    justify-content: center;
+    height: 100%;
+}
+
 .feed-card-hashtags {
     display: flex;
     flex-direction: row;
     gap: var(--gap-sm);
     text-wrap: nowrap;
     flex-wrap: wrap;
+}
+
+.input-text {
+    flex: unset;
 }
 
 .problems-grid-container {

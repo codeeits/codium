@@ -504,9 +504,8 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 				return
 			}
 		} else {
-			cfg.Logger.Printf("Ran out of tests to check the answers to before answers were exhausted for solution: %v", solution.ID)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
+			cfg.Logger.Printf("Ran out of tests while answers remained for solution: %v; ignoring extra answers", solution.ID)
+			break
 		}
 	}
 

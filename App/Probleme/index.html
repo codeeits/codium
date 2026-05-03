@@ -69,11 +69,11 @@
                                 <div class="dropdown-item" role="menuitem" tabindex="0" data-value="hard" data-i18n="difficulty.hard">Grele</div>
                             </div>
                         </div>
-                        <button type="button" class="btn danger" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span class="no-style" data-i18n="problems-page.disable-feed-mode">Dezactivează mod feed</span></button>
+                        <button type="button" class="btn confirm" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span class="no-style" data-i18n="problems-page.enable-feed-mode">Activează mod feed</span></button>
                     </div>
                 </div>
                 <div class="separator"></div>
-                <div class="problems-grid-container" id="problems-grid-container" hidden>
+                <div class="problems-grid-container" id="problems-grid-container">
                     <div class="no-problems hidden" id="noResultsMessage">
                         <i class="fa-solid fa-code"></i>
                         <h2 class="no-bookmarks-message" data-i18n="problems-page.no-problems.title">Nu există probleme pentru filtrele selectate.</h2>
@@ -129,7 +129,7 @@
                     </div>
                 </div>
                 <!-- Infinite scroll mode -->
-                <div class="problems-feed-container" id="problems-feed-container">
+                <div class="problems-feed-container" id="problems-feed-container" hidden>
                     <div class="no-problems hidden" id="noResultsMessage2">
                         <i class="fa-solid fa-code"></i>
                         <h2 class="no-bookmarks-message" data-i18n="problems-page.no-problems.title">Nu există probleme pentru filtrele selectate.</h2>
@@ -166,7 +166,11 @@
                                     </div>
                                 </div>
                                 <h3>Rezolvare:</h3>
-                                <button type="button" class="btn primary"><i class="fa-solid fa-file"></i> Adaugă fișierul</button>
+                                <div class="input-field dropzone" role="button" tabindex="0" aria-label="Selectează un fișier pentru încărcare">
+                                    <input type="file" class="file-input" name="solution-file" accept=".cpp,.py" hidden="">
+                                    <i class="fa-solid fa-upload"></i>
+                                    <span class="input-text placeholder" data-i18n="problems-page.right-bar.send-solution.desc">Prem aquí per pujar o arrossegar i deixar anar.</span>
+                                </div>
                             </div>
                         </div>
                         <div class="right-buttons">
@@ -181,34 +185,5 @@
                 </div>    
         </main>
     </div>
-    <script>
-        // toggle between grid and feed view
-        const toggleViewBtn = document.getElementById('toggle-view-btn');
-        const gridContainer = document.querySelector('.problems-grid-container');
-        const feedContainer = document.querySelector('.problems-feed-container');
-        const toggleBtnText = toggleViewBtn.querySelector('span');
-        const toggleBtnIcon = toggleViewBtn.querySelector('i');
-
-        let isFeedMode = true; // start in feed mode
-
-        toggleViewBtn.addEventListener('click', function() {
-            isFeedMode = !isFeedMode;
-            
-            if (isFeedMode) {
-                gridContainer.hidden = true;
-                feedContainer.hidden = false;
-                toggleBtnText.dataset.i18n = 'problems-page.disable-feed-mode';
-                toggleBtnIcon.className = 'fa-solid fa-grip';
-                toggleViewBtn.className = 'btn secondary danger';
-            } else {
-                gridContainer.hidden = false;
-                feedContainer.hidden = true;
-                toggleBtnText.dataset.i18n = 'problems-page.enable-feed-mode';
-                toggleBtnIcon.className = 'fa-solid fa-scroll';
-                toggleViewBtn.className = 'btn secondary confirm';
-            }
-            applyTranslations(toggleViewBtn);
-        });
-    </script>
 </body>
 </html>

@@ -18,6 +18,56 @@ function getDifficultyLabel(difficulty) {
     return labels[difficulty] || `Dificultate ${difficulty}`;
 }
 
+export function setupDragAndDrop(elements, updateFileLabel, onFileAdded) {
+    const { dropzone, fileInput } = elements;
+    let dragDepth = 0;
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    
+    dropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+
+    dropzone.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragDepth++;
+        dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragover', (e) => e.preventDefault());
+
+    dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragDepth = 0;
+        dropzone.classList.remove('dragover');
+        
+        const droppedFiles = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : [];
+        if (droppedFiles.length > 0) {
+            const dt = new DataTransfer();
+            droppedFiles.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+            updateFileLabel(fileInput.files);
+            
+            if (onFileAdded) onFileAdded(); 
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        updateFileLabel(fileInput.files);
+        
+        if (onFileAdded) onFileAdded();
+    });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = false; 
@@ -161,8 +211,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (debugMode) console.log("[DEBUG] Problem ID:", state.problemId);
 
         if (!state.problemId) {
-            elements.title.textContent = "Eroare: Problemă negăsită";
-            elements.description.textContent = "Nu a fost specificat un ID valid pentru problemă.";
+            if (elements.title) elements.title.textContent = "Eroare: Problemă negăsită";
+            if (elements.description) elements.description.textContent = "Nu a fost specificat un ID valid pentru problemă.";
             return;
         }
 
@@ -219,8 +269,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (error) {
             if (debugMode) console.error("Failed to load problem:", error);
-            elements.title.textContent = "Eroare la încărcarea problemei";
-            elements.description.textContent = error.message || "A apărut o eroare neașteptată.";
+            if (elements.title) elements.title.textContent = "Eroare la încărcarea problemei";
+            if (elements.description) elements.description.textContent = error.message || "A apărut o eroare neașteptată.";
         }
     }
 
@@ -343,56 +393,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Drag & Drop (New UI)
         if (state.isNewUi && elements.dropzone && elements.fileInput) {
-            setupDragAndDrop();
+            setupDragAndDrop(elements, updateFileLabel);
         }
 
         // Submit
         if (elements.submitBtn) {
             elements.submitBtn.addEventListener("click", handleSubmission);
         }
-    }
-
-    function setupDragAndDrop() {
-        const { dropzone, fileInput } = elements;
-        let dragDepth = 0;
-
-        dropzone.addEventListener('click', () => fileInput.click());
-        dropzone.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                fileInput.click();
-            }
-        });
-
-        dropzone.addEventListener('dragenter', (e) => {
-            e.preventDefault();
-            dragDepth++;
-            dropzone.classList.add('dragover');
-        });
-
-        dropzone.addEventListener('dragover', (e) => e.preventDefault());
-
-        dropzone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dragDepth = Math.max(0, dragDepth - 1);
-            if (dragDepth === 0) dropzone.classList.remove('dragover');
-        });
-
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dragDepth = 0;
-            dropzone.classList.remove('dragover');
-            const droppedFiles = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : [];
-            if (droppedFiles.length > 0) {
-                const dt = new DataTransfer();
-                droppedFiles.forEach(f => dt.items.add(f));
-                fileInput.files = dt.files;
-                updateFileLabel(fileInput.files);
-            }
-        });
-
-        fileInput.addEventListener('change', () => updateFileLabel(fileInput.files));
-    }
+    }        
 
     async function handleSubmission() {
         if (!isAuthenticated) {
