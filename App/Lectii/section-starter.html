@@ -42,11 +42,13 @@
                         </p>
                     </div>
                     <div class="section-meta" aria-label="Metadate secțiune">
-                        <span class="no-style section-meta-lessons"><i class="fa-solid fa-lines-leaning"></i> 4 lecții</span>
+                        <span class="no-style section-meta-lessons"><i class="fa-solid fa-lines-leaning"></i> {[noLessons]} {{lowercase.lessons}}</span>                        
                         <span class="no-style separator">&#8226;</span>
-                        <span class="no-style section-meta-tests"><i class="fa-solid fa-list-check"></i> 2 teste</span>
+                        <span class="no-style section-meta-tests"><i class="fa-solid fa-list-check"></i> {[noTests]} {{lowercase.tests}}</span>
                         <span class="no-style separator">&#8226;</span>
-                        <span class="no-style section-meta-probleme"><i class="fa-solid fa-dumbbell"></i> 3 probleme</span>
+                        
+                        <span class="no-style section-meta-probleme"><i class="fa-solid fa-dumbbell"></i> {[noProblems]} {{lowercase.probleme}}</span>
+                        
                         <span class="no-style separator">&#8226;</span>
                         <span class="no-style section-meta-reward"><i class="fa-solid fa-cookie-bite"></i> +50000</span>
                     </div>
@@ -69,41 +71,20 @@
                             <span class="no-style">I.1 De la C++ la Python</span>
                             <i class="fa-solid fa-check" aria-label="Finalizat"></i>
                         </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.2 Variabile și tipuri de date</span>
-                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
-                        </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.3 Structuri de control</span>
-                            <i class="fa-solid fa-hourglass-half" aria-label="În desfășurare"></i>
-                        </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.4 Funcții și modularizare</span>
-                        </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.5 Recapitulare</span>
-                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
-                        </div>
-
                     </div>
+                    
                     <div class="resumee-problems resumee-group" data-group="probleme">
                         <button type="button" class="resumee-group__header" aria-expanded="true">
                             <h2 class="resumee-element__title">Probleme</h2>
                             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                         </button>
+                        <!-- Template item -->
                         <div class="resumee-element__element">
                             <span class="no-style">I.1 De la C++ la Python</span>
                             <i class="fa-solid fa-check" aria-label="Finalizat"></i>
                         </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.2 Variabile și tipuri de date</span>
-                            <i class="fa-solid fa-check" aria-label="Finalizat"></i>
-                        </div>
-                        <div class="resumee-element__element">
-                            <span class="no-style">I.3 Structuri de control</span>
-                            <i class="fa-solid fa-hourglass-half" aria-label="În desfășurare"></i>
-                        </div>
                     </div>
+                    
                     <div class="resumee-teste resumee-group" data-group="teste">
                         <button type="button" class="resumee-group__header" aria-expanded="true">
                             <h2 class="resumee-element__title">Teste</h2>
@@ -117,24 +98,26 @@
                         </div>
                     </div>
                 </section>
+                
                 <section class="stats card">
                     <h2 class="stats__title">Statistici</h2>
                     <div class="stats-grid" aria-live="polite">
+                        <!-- REPLACED: All hardcoded '0's are now StateEngine placeholders -->
                         <div class="stats-item">
                             <span class="stats-label">Progres total</span>
-                            <strong class="stats-value" id="stat-progress-value">0%</strong>
+                            <strong class="stats-value" id="stat-progress-value">{[progressPercentage]}%</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">Finalizate</span>
-                            <strong class="stats-value" id="stat-completed-value">0</strong>
+                            <strong class="stats-value" id="stat-completed-value">{[completedValue]}</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">În desfășurare</span>
-                            <strong class="stats-value" id="stat-progressing-value">0</strong>
+                            <strong class="stats-value" id="stat-progressing-value">{[progressingValue]}</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">Rămase</span>
-                            <strong class="stats-value" id="stat-pending-value">0</strong>
+                            <strong class="stats-value" id="stat-pending-value">{[pendingValue]}</strong>
                         </div>
                     </div>
                     <div class="stats-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progres secțiune">

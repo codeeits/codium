@@ -217,7 +217,9 @@
             "alfabetic": "Alfabètic",
             "dificuly": "Dificultat",
             "newest": "Més nous",
-            "oldest": "Més antics"
+            "oldest": "Més antics",
+            "section-yes": "Amb seccions",
+            "section-no": "Sense seccions"
         },
         "all-fliter": "Totes",
         "right-bar": {
@@ -304,6 +306,12 @@
         "for_teachers": "Per a professors",
         "for_students": "Per a estudiants",
         "coin": "galetes"
+    },
+    "lowercase": {
+        "lessons": "lliçons",
+        "probleme": "problemes",
+        "tests": "tests"
+
     },
     "sidebar": {
         "home": "Inici",

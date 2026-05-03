@@ -57,6 +57,82 @@ const PreferencesManager = {
 window.PreferencesManager = PreferencesManager;
 
 // ----------------------------------
+// Global State & Placeholder System
+// ----------------------------------
+
+const StateEngine = {
+    state: null,
+    
+    init(initialData = {}) {
+        this.compileStatePlaceholders(document.body);
+
+        this.state = new Proxy(initialData, {
+            set: (target, property, value) => {
+                target[property] = value;
+                this.updateBoundElements(property, value);
+                return true;
+            }
+        });
+
+        Object.keys(initialData).forEach(key => {
+            this.updateBoundElements(key, initialData[key]);
+        });
+    },
+
+    compileStatePlaceholders(root) {
+        // Regex to find {[ varname ]}
+        const STATE_PATTERN = /\{\[\s*([a-zA-Z0-9_.-]+)\s*\]\}/g;
+        
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                const parent = node.parentElement;
+                if (!parent || parent.closest('script, style, textarea, template')) return NodeFilter.FILTER_REJECT;
+                STATE_PATTERN.lastIndex = 0;
+                return STATE_PATTERN.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            }
+        });
+
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        textNodes.forEach((node) => {
+            const text = node.nodeValue;
+            STATE_PATTERN.lastIndex = 0;
+            const fragment = document.createDocumentFragment();
+            let lastIndex = 0;
+            let match;
+
+            while ((match = STATE_PATTERN.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                }
+
+                const span = document.createElement('span');
+                span.className = 'no-style';
+                span.setAttribute('data-bind', match[1]);
+                fragment.appendChild(span);
+
+                lastIndex = match.index + match[0].length;
+            }
+
+            if (lastIndex < text.length) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+            }
+
+            node.parentNode.replaceChild(fragment, node);
+        });
+    },
+
+    updateBoundElements(property, value) {
+        document.querySelectorAll(`[data-bind="${property}"]`).forEach(el => {
+            el.textContent = value;
+        });
+    }
+};
+
+window.StateEngine = StateEngine;
+
+// ----------------------------------
 // Visual Settings & Theme Management
 // ----------------------------------
 
@@ -138,6 +214,8 @@ ThemeManager.applyStoredSettings();
 let currentTranslations = {};
 window.currentTranslations = currentTranslations;
 
+const I18N_PLACEHOLDER_PATTERN = /\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}/g;
+
 async function loadLanguage(langCode = 'ro') {
     try {
         const response = await fetch(`/app/Lang/${langCode}.json`);
@@ -155,6 +233,8 @@ async function loadLanguage(langCode = 'ro') {
 
 function applyTranslations(root = document) {
     if (!currentTranslations) return;
+
+    compileI18nPlaceholders(root);
 
     const getVal = (key) => key.split('.').reduce((obj, part) => obj?.[part], currentTranslations);
 
@@ -176,6 +256,59 @@ function applyTranslations(root = document) {
     root.querySelectorAll('[data-i18n-value]').forEach(el => {
         const val = getVal(el.getAttribute('data-i18n-value'));
         if (val) el.setAttribute('value', val);
+    });
+}
+
+function compileI18nPlaceholders(root = document) {
+    const scope = root === document ? document.body : root;
+    if (!scope) return;
+
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+        acceptNode(textNode) {
+            const parent = textNode.parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('script, style, textarea, template, noscript')) return NodeFilter.FILTER_REJECT;
+            if (parent.matches('[data-i18n], [data-i18n-placeholder], [data-i18n-title], [data-i18n-value]')) return NodeFilter.FILTER_REJECT;
+            I18N_PLACEHOLDER_PATTERN.lastIndex = 0;
+            return I18N_PLACEHOLDER_PATTERN.test(textNode.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+    });
+
+    const textNodes = [];
+    while (walker.nextNode()) {
+        textNodes.push(walker.currentNode);
+    }
+
+    textNodes.forEach((textNode) => {
+        const text = textNode.nodeValue;
+        if (!text || !I18N_PLACEHOLDER_PATTERN.test(text)) return;
+
+        I18N_PLACEHOLDER_PATTERN.lastIndex = 0;
+
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        let match;
+
+        while ((match = I18N_PLACEHOLDER_PATTERN.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+            }
+
+            const placeholder = document.createElement('span');
+            placeholder.className = 'no-style';
+            placeholder.setAttribute('data-i18n', match[1]);
+            placeholder.textContent = match[0];
+            fragment.appendChild(placeholder);
+
+            lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < text.length) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        textNode.parentNode.replaceChild(fragment, textNode);
+        I18N_PLACEHOLDER_PATTERN.lastIndex = 0;
     });
 }
 

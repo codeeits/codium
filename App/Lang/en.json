@@ -307,6 +307,12 @@
         "for_students": "For students",
         "coin": "cookies"
     },
+        "lowercase": {
+        "lessons": "lessons",
+        "probleme": "problems",
+        "tests": "tests"
+
+    },
     "sidebar": {
         "home": "Home",
         "bookmarks": "Bookmarks",

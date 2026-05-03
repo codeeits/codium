@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
         allLessonData: null,
         interactions: null,
         noLessons: 0,
-        noProblems: 0
+        noProblems: 0,
+        summaryItems: []
     };
 
     const elements = {
@@ -25,11 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
         bookmarkButton: document.querySelector('.section-bookmark'),
         startButton: document.querySelector('.section-start-btn'),
         groups: Array.from(document.querySelectorAll('.resumee-group')),
-        summaryItems: Array.from(document.querySelectorAll('.resumee-element__element')),
+
+        /* */
+        //summaryItems: Array.from(document.querySelectorAll('.resumee-element__element')),
         progressValue: document.getElementById('stat-progress-value'),
         completedValue: document.getElementById('stat-completed-value'),
         progressingValue: document.getElementById('stat-progressing-value'),
         pendingValue: document.getElementById('stat-pending-value'),
+        /* */
+
         progressFill: document.getElementById('stats-progress-fill'),
         statsHint: document.getElementById('stats-hint'),
         progressbar: document.querySelector('.stats-progress'),
@@ -61,8 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.starterLessonData = await window.apiService.lessons.getLessonById(lessonId);
         state.allLessonData = await window.apiService.lessons.getSectionLessonChain(lessonId);
         state.interactions = await window.apiService.lessons.getInteractionsSection(lessonId);
+        
         state.noLessons = state.allLessonData.length;
-
+        window.StateEngine.state.noLessons = state.noLessons;
 
         console.log(state.allLessonData);
 
@@ -98,15 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
             //elements.sectionImage.style.display = 'none';
         }
 
-        if (elements.metaNoLessons && state.noLessons !== 0) {
-            elements.metaNoLessons.textContent = String(state.noLessons);
-        }
-
-        if (elements.metaNoProblems && state.noProblems !== 0) {
-            elements.metaNoProblems.textContent = String(state.noProblems);
-        } else if (elements.metaNoProblems) {
+        if (elements.metaNoProblems && window.StateEngine.state.noProblems === 0) {
             elements.metaNoProblems.style.display = 'none';
-            elements.metaNoProblems.previousElementSibling.style.display = 'none';
+            if(elements.metaNoProblems.previousElementSibling) {
+                elements.metaNoProblems.previousElementSibling.style.display = 'none';
+            }
         }
 
         populateLessonsSide();
@@ -118,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!temp || !container) {
             return;
         }
+
         const itemsToRemove = container.querySelectorAll('.resumee-element__element');
 
         itemsToRemove.forEach((item) => { item.remove(); });
@@ -141,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(clone);
         });
 
-        elements.summaryItems = Array.from(container.querySelectorAll('.resumee-element__element'));
+        state.summaryItems = Array.from(container.querySelectorAll('.resumee-element__element'));
     }
 
     /* */
@@ -206,40 +209,25 @@ document.addEventListener('DOMContentLoaded', () => {
         let progress = 0;
         let pending = 0;
 
-        elements.summaryItems.forEach((item) => {
+        state.summaryItems.forEach((item) => {
             const status = item.dataset.status || inferStatus(item);
 
             if (status === 'done') {
                 done += 1;
-                return;
-            }
-
-            if (status === 'progress') {
+            } else if (status === 'progress') {
                 progress += 1;
-                return;
+            } else {
+                pending += 1;
             }
-
-            pending += 1;
         });
 
-        const total = elements.summaryItems.length || 1;
+        const total = state.summaryItems.length || 1;
         const percentage = Math.round(((done + progress * 0.5) / total) * 100);
 
-        if (elements.progressValue) {
-            elements.progressValue.textContent = `${percentage}%`;
-        }
-
-        if (elements.completedValue) {
-            elements.completedValue.textContent = String(done);
-        }
-
-        if (elements.progressingValue) {
-            elements.progressingValue.textContent = String(progress);
-        }
-
-        if (elements.pendingValue) {
-            elements.pendingValue.textContent = String(pending);
-        }
+        window.StateEngine.state.progressPercentage = percentage;
+        window.StateEngine.state.completedValue = done;
+        window.StateEngine.state.progressingValue = progress;
+        window.StateEngine.state.pendingValue = pending;
 
         if (elements.progressFill) {
             elements.progressFill.style.width = `${percentage}%`;
@@ -362,10 +350,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         elements.startButton.addEventListener('click', () => {
-            const nextTarget = elements.summaryItems.find((item) => {
+            const nextTarget = state.summaryItems.find((item) => {
                 const status = item.dataset.status || inferStatus(item);
                 return status !== 'done';
-            }) || elements.summaryItems[0];
+            }) || state.summaryItems[0];
 
             if (!nextTarget) {
                 return;
@@ -379,6 +367,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function init() {
+
+        if (window.StateEngine) {
+            window.StateEngine.init({
+                noLessons: 0,
+                noProblems: 0,
+                progressPercentage: 0,
+                completedValue: 0,
+                progressingValue: 0,
+                pendingValue: 0
+            });
+        }
+
         await getFromURL();
         populateUI();
         updateStats();

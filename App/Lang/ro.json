@@ -217,7 +217,9 @@
             "alfabetic": "Alfabetic",
             "dificuly": "Dificultate",
             "newest": "Cele mai noi",
-            "oldest": "Cele mai vechi"
+            "oldest": "Cele mai vechi",
+            "section-yes": "Cu secțiuni",
+            "section-no": "Fără secțiuni"
         },
         "all-fliter": "Toate",
         "right-bar": {
@@ -304,6 +306,12 @@
         "for_teachers": "Pentru profesori",
         "for_students": "Pentru elevi",
         "coin": "biscuiței"
+    },
+    "lowercase": {
+        "lessons": "lecții",
+        "probleme": "probleme",
+        "tests": "teste"
+
     },
     "sidebar": {
         "home": "Acasă",
