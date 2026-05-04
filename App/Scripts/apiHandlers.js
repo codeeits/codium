@@ -18,7 +18,6 @@ import { GameService } from "./services/gameService.js";
 
 import { ToastsLoader } from "./ui/toastsLoader.js";
 import { ApiError } from "./core/apiError.js";
-import { color } from "chart.js/helpers";
 
 class ApiService {
     constructor() {
