@@ -29,6 +29,13 @@ export class ProblemService {
         return this.api.delete(`/api/problems/${problemId}`, true);
     }
 
+    async deleteAllProblems() {
+        for await (const problem of await this.getProblems()) {
+            console.log('Deleting problem:', problem);
+            await this.deleteProblem(problem.problem.ID);
+        }
+    }
+
     async getProblems() {
         return this.api.get('/api/problems', false);
     }
@@ -422,13 +429,12 @@ export class ProblemService {
                 testsCreated += 1;
             }
 
-            // After all tests for this problem are created and linked, set the problem's first_test_id
             if (firstCreatedTestId) {
                 try {
                     await this.updateProblem(problem.id, 'test', { first_test_id: firstCreatedTestId });
                 } catch (err) {
                     console.error('Failed to set first_test_id for problem', problem.id, err);
-                    // don't throw here to allow other problems to continue uploading
+                    // ...
                 }
             }
         }
