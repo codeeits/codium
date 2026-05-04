@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- DOM ELEMENTS ---
     const elements = {
         title: document.getElementById("problem-title"),
-        author: document.getElementById("problem-author"),
+        author: document.getElementById("author-name"),
         source: document.getElementById("problem-source"), // Legacy
         sourceContainer: document.getElementById("problem-source-container"), // New UI
         difficulty: document.getElementById("problem-difficulty"),
