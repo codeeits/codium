@@ -635,7 +635,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
 		ID:        uuid.New(),
 		UserID:    userID,
-		Type:      "lessonCompletion",
+		Type:      "problemCompletion",
 		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v}`, scoreToAdd)),
 		CreatedAt: time.Now(),
 	})
