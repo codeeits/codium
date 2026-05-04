@@ -89,6 +89,7 @@ type Problem struct {
 	ThumbnailFileID uuid.NullUUID
 	AuthorID        uuid.UUID
 	Suggested       bool
+	TotalTests      int32
 }
 
 type RefreshToken struct {
@@ -108,7 +109,6 @@ type Solution struct {
 	SentCode            string
 	Language            string
 	TestsPassed         sql.NullInt32
-	TotalTests          sql.NullInt32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
 }

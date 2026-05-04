@@ -101,9 +101,9 @@ func (q *Queries) CountUserSolutionsByProblemID(ctx context.Context, arg CountUs
 }
 
 const createSolution = `-- name: CreateSolution :one
-INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 `
 
 type CreateSolutionParams struct {
@@ -114,7 +114,6 @@ type CreateSolutionParams struct {
 	SentCode            string
 	Language            string
 	TestsPassed         sql.NullInt32
-	TotalTests          sql.NullInt32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
 }
@@ -128,7 +127,6 @@ func (q *Queries) CreateSolution(ctx context.Context, arg CreateSolutionParams) 
 		arg.SentCode,
 		arg.Language,
 		arg.TestsPassed,
-		arg.TotalTests,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -141,7 +139,6 @@ func (q *Queries) CreateSolution(ctx context.Context, arg CreateSolutionParams) 
 		&i.SentCode,
 		&i.Language,
 		&i.TestsPassed,
-		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -159,7 +156,7 @@ func (q *Queries) DeleteSolution(ctx context.Context, id uuid.UUID) error {
 }
 
 const getSolutionByID = `-- name: GetSolutionByID :one
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 FROM solutions
 WHERE id = $1
 `
@@ -175,7 +172,6 @@ func (q *Queries) GetSolutionByID(ctx context.Context, id uuid.UUID) (Solution, 
 		&i.SentCode,
 		&i.Language,
 		&i.TestsPassed,
-		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -183,7 +179,7 @@ func (q *Queries) GetSolutionByID(ctx context.Context, id uuid.UUID) (Solution, 
 }
 
 const getSolutions = `-- name: GetSolutions :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 FROM solutions
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
@@ -211,7 +207,6 @@ func (q *Queries) GetSolutions(ctx context.Context, arg GetSolutionsParams) ([]S
 			&i.SentCode,
 			&i.Language,
 			&i.TestsPassed,
-			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -229,7 +224,7 @@ func (q *Queries) GetSolutions(ctx context.Context, arg GetSolutionsParams) ([]S
 }
 
 const getSolutionsByProblemID = `-- name: GetSolutionsByProblemID :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 FROM solutions
 WHERE problem_id = $1
 ORDER BY created_at DESC
@@ -259,7 +254,6 @@ func (q *Queries) GetSolutionsByProblemID(ctx context.Context, arg GetSolutionsB
 			&i.SentCode,
 			&i.Language,
 			&i.TestsPassed,
-			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -277,7 +271,7 @@ func (q *Queries) GetSolutionsByProblemID(ctx context.Context, arg GetSolutionsB
 }
 
 const getSolutionsByUserID = `-- name: GetSolutionsByUserID :many
-SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+SELECT id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 FROM solutions
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -307,7 +301,6 @@ func (q *Queries) GetSolutionsByUserID(ctx context.Context, arg GetSolutionsByUs
 			&i.SentCode,
 			&i.Language,
 			&i.TestsPassed,
-			&i.TotalTests,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -328,7 +321,7 @@ const updateSolutionFirstSolutionTest = `-- name: UpdateSolutionFirstSolutionTes
 UPDATE solutions
 SET first_solution_test_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 `
 
 type UpdateSolutionFirstSolutionTestParams struct {
@@ -348,7 +341,6 @@ func (q *Queries) UpdateSolutionFirstSolutionTest(ctx context.Context, arg Updat
 		&i.SentCode,
 		&i.Language,
 		&i.TestsPassed,
-		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -359,7 +351,7 @@ const updateSolutionTests = `-- name: UpdateSolutionTests :one
 UPDATE solutions
 SET tests_passed = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
+RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at
 `
 
 type UpdateSolutionTestsParams struct {
@@ -379,7 +371,6 @@ func (q *Queries) UpdateSolutionTests(ctx context.Context, arg UpdateSolutionTes
 		&i.SentCode,
 		&i.Language,
 		&i.TestsPassed,
-		&i.TotalTests,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

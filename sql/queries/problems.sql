@@ -1,6 +1,6 @@
 -- name: CreateProblem :one
-INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING *;
 
 -- name: GetProblemByID :one
@@ -22,7 +22,7 @@ LIMIT $3 OFFSET $4;
 
 -- name: UpdateProblemFirstTest :one
 UPDATE problems
-SET first_test = $2, updated_at = $3
+SET first_test = $2, updated_at = $3, total_tests = $4
 WHERE id = $1
 RETURNING *;
 

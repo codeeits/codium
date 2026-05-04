@@ -2,6 +2,7 @@ package core
 
 import (
 	"Codium/internal/database"
+	"context"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -10,6 +11,46 @@ import (
 
 	"github.com/google/uuid"
 )
+
+/*
+===========================================
+
+	Helper Functions
+
+===========================================
+*/
+
+func (cfg *ApiCfg) UpdateProblemTests(problemID uuid.UUID, firstTestId uuid.UUID) (database.Problem, error) {
+	test, err := cfg.Db.GetCodeTestByID(context.Background(), firstTestId)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		cfg.Logger.Printf("Failed to retrieve first test: %v", err)
+		return database.Problem{}, err
+	}
+
+	var cnt int32 = 0
+	for test.ID != uuid.Nil {
+		cnt++
+		test, err = cfg.Db.GetCodeTestByID(context.Background(), test.NextTestID.UUID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Failed to retrieve test %v: %v", test.ID, err)
+			return database.Problem{}, err
+		}
+	}
+
+	res, err := cfg.Db.UpdateProblemFirstTest(context.Background(), database.UpdateProblemFirstTestParams{
+		FirstTest:  uuid.NullUUID{UUID: firstTestId, Valid: firstTestId != uuid.Nil},
+		ID:         problemID,
+		UpdatedAt:  time.Now(),
+		TotalTests: cnt,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to update test %v: %v", problemID, err)
+		return database.Problem{}, err
+	}
+
+	cfg.Logger.Printf("Updated problem %v with total test %v", problemID, res.TotalTests)
+	return res, err
+}
 
 /*
 ===========================================
@@ -69,7 +110,6 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		Title:           p.Title,
 		Description:     p.Description,
 		Source:          sql.NullString{String: p.Source, Valid: p.Source != ""},
-		FirstTest:       uuid.NullUUID{UUID: p.FirstTestID, Valid: p.FirstTestID != uuid.Nil},
 		ThumbnailFileID: uuid.NullUUID{UUID: p.ThumbnailID, Valid: p.ThumbnailID != uuid.Nil},
 		Tags:            int32(tags),
 		CreatedAt:       time.Now(),
@@ -79,6 +119,13 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to create problem: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cfg.UpdateProblemTests(res.ID, p.FirstTestID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to update problem tests: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -297,16 +344,7 @@ func (cfg *ApiCfg) UpdateProblemFirstTestHandler(w http.ResponseWriter, r *http.
 
 	cfg.Logger.Print("Received update problem first test request for problem ID: ", targetProblem.ID)
 
-	res, err := cfg.Db.UpdateProblemFirstTest(r.Context(), database.UpdateProblemFirstTestParams{
-		ID:        targetProblem.ID,
-		FirstTest: uuid.NullUUID{UUID: p.FirstTestID, Valid: p.FirstTestID != uuid.Nil},
-		UpdatedAt: time.Now(),
-	})
-	if err != nil {
-		cfg.Logger.Printf("Failed to update problem first test: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	res, err := cfg.UpdateProblemTests(targetProblem.ID, p.FirstTestID)
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, PrintProblemToJson)
 }
