@@ -34,7 +34,7 @@ RETURNING *;
 
 -- name: UpdateSolutionTests :one
 UPDATE solutions
-SET tests_passed = $2, total_tests = $3, updated_at = $4
+SET tests_passed = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
 

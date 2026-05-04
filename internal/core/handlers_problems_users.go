@@ -459,7 +459,6 @@ func (cfg *ApiCfg) GetSolutionsByProblemHandler(w http.ResponseWriter, r *http.R
 func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Request, solution database.Solution, sendingUser database.User) {
 	type params struct {
 		GivenAnswers []string `json:"given_answers"`
-		TotalTests   int32    `json:"total_tests"`
 	}
 
 	// Database check is done in the disambiguation function
@@ -505,15 +504,15 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 				return
 			}
 		} else {
-			cfg.Logger.Printf("Ran out of tests while answers remained for solution: %v; ignoring extra answers", solution.ID)
-			break
+			cfg.Logger.Printf("Ran out of tests while answers remained for solution: %v", solution.ID)
+			http.Error(w, "Too many answers given", http.StatusBadRequest)
+			return
 		}
 	}
 
 	res, err := cfg.Db.UpdateSolutionTests(r.Context(), database.UpdateSolutionTestsParams{
 		ID:          solution.ID,
 		TestsPassed: sql.NullInt32{Valid: true, Int32: testsPassed},
-		TotalTests:  sql.NullInt32{Valid: true, Int32: p.TotalTests},
 		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
 	})
 

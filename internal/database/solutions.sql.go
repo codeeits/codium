@@ -357,7 +357,7 @@ func (q *Queries) UpdateSolutionFirstSolutionTest(ctx context.Context, arg Updat
 
 const updateSolutionTests = `-- name: UpdateSolutionTests :one
 UPDATE solutions
-SET tests_passed = $2, total_tests = $3, updated_at = $4
+SET tests_passed = $2, updated_at = $3
 WHERE id = $1
 RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at
 `
@@ -365,17 +365,11 @@ RETURNING id, user_id, problem_id, first_solution_test_id, sent_code, language, 
 type UpdateSolutionTestsParams struct {
 	ID          uuid.UUID
 	TestsPassed sql.NullInt32
-	TotalTests  sql.NullInt32
 	UpdatedAt   sql.NullTime
 }
 
 func (q *Queries) UpdateSolutionTests(ctx context.Context, arg UpdateSolutionTestsParams) (Solution, error) {
-	row := q.db.QueryRowContext(ctx, updateSolutionTests,
-		arg.ID,
-		arg.TestsPassed,
-		arg.TotalTests,
-		arg.UpdatedAt,
-	)
+	row := q.db.QueryRowContext(ctx, updateSolutionTests, arg.ID, arg.TestsPassed, arg.UpdatedAt)
 	var i Solution
 	err := row.Scan(
 		&i.ID,
