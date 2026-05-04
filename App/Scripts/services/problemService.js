@@ -101,7 +101,7 @@ export class ProblemService {
         }
 
         const givenAnswers = [];
-        let score = 0;
+        // let score = 0;
         let tests = await this.getTestChainForFirstTest(currentTestId);
 
         // console.warn('Test Chain:', tests);
@@ -115,20 +115,27 @@ export class ProblemService {
                 testStdin = testData.TxtInput.Valid ? testData.TxtInput.String : '';
             }
 
-            //console.log(`Running code against Test ID: ${currentTestId}`);
+            console.log(`Running code against Test ID: ${currentTestId}`);
             let apiResult = await this.api.compiler.runCode(code, inputFile, testStdin);
-            //console.log('API Result:', apiResult);
+            console.log('API Result:', apiResult);
             const consoleOutput = (apiResult?.console ?? '').trim();
+            console.log('Console Output:', consoleOutput);
             const expectedOutput = (testData?.ExpectedOutput ?? '').trim();
+            console.log('Expected Output:', expectedOutput);
 
             givenAnswers.push(consoleOutput);
-            if (consoleOutput === expectedOutput) {
-                score += 10; // arbitrary scoring logic not used as scoring happens in backend
-            }
             currentTestId = testData.NextTestID;
         }
 
-        return { given_answers: givenAnswers, score, total: tests.length };
+        const response = {
+            given_answers: givenAnswers,
+            // score,
+            total: tests.length
+        }
+
+        console.warn('Final Response:', response);
+
+        return { response };
 
         /*
         if (stdin === true) {
@@ -149,13 +156,13 @@ export class ProblemService {
 
     async createSolution(problemId, solutionData) {
         // problemId, code, language, problem_id
+        console.warn("here!!!! :3");
         return this.api.post(`/api/solutions`, { problem_id: problemId, ...solutionData }, true);
     }
 
     async updateSolution(solutionId, targetField, data) {
-        // targetField: tests
         if (targetField === 'tests') {
-            // tests_passed, total_tests
+            console.log(`Updating solution ${solutionId} tests with data:`, data);
             return this.api.put(`/api/solutions/${solutionId}?target_field=tests`, data, true);
         }
 

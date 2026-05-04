@@ -450,14 +450,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             const solutionData = { code: code, language: 'py' };
             const solution = await window.apiService.problems.createSolution(state.problemId, solutionData);
             
-            const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests', {
-                given_answers: runResult.given_answers,
-                tests_passed: runResult.score,
-                total_tests: runResult.total
-            });
+            const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests',
+                {
+                    given_answers: runResult.response.given_answers || [],
+                }
+            );
 
+            console.log('Graded Solution:', gradedSolution);
             const score = extractNullableInt(gradedSolution?.TestsPassed);
-            const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.total;
+            const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.response.total;
 
             displayResults({ score, total }, true);
             loadMySolutions();

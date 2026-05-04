@@ -13,3 +13,4 @@ sql/.DS_Store
 .DS_Store
 .github/copilot-instructions.md
 .impeccable.md
+.vscode/settings.json
