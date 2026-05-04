@@ -33,6 +33,7 @@
 
     /* typography */
     font-family: 'Raleway', sans-serif;
+    --font-family: 'Raleway', sans-serif;
 
     /* constants */
     --base-small-size:  12px;

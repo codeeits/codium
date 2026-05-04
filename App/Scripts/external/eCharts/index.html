@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        
+        <link rel="stylesheet" href="/app/Styles/elements2.css">
+        <script type="module" src="/app/Scripts/main.js"></script>
+
+    </head>
+    <body>
+        <div id="radar2Chart" style="width: 400px; height: 400px;"></div>
+        <script type="module">
+            import { ChartMaker } from '/app/Scripts/ui/chartMaker.js';
+
+            document.fonts.ready.then(() => {
+                const chart = new ChartMaker('radar2Chart');
+                const data = {
+                    title: 'Radar Chart',
+                    labels: ['Speed', 'Reliability', 'Comfort', 'Safety', 'Efficiency'],
+                    series: [
+                        {
+                            name: 'Car A',
+                            data: [65, 59, 90, 81, 56]
+                        },
+                        {
+                            name: 'Car B',
+                            data: [28, 48, 40, 19, 96]
+                        }
+                    ]
+                };
+                chart.createSpiderChart(data);
+            })
+        </script>
+        <div id="heatmap" style="width: 1300px; height: 300px;"></div>
+        <script type="module">
+            import * as echarts from '/app/Scripts/external/eCharts/echarts.min.js';
+            import { ChartMaker } from '/app/Scripts/ui/chartMaker.js';
+
+            document.fonts.ready.then(() => {
+                const chart = new ChartMaker('heatmap');
+                
+                function getVirtualData(year) {
+                    const date = +echarts.time.parse(year + '-01-01');
+                    const end = +echarts.time.parse(+year + 1 + '-01-01');
+                    const dayTime = 3600 * 24 * 1000;
+                    const data = [];
+                    
+                    for (let time = date; time < end; time += dayTime) {
+                        let commits = Math.random() > 0.7 
+                            ? Math.floor(Math.random() * 15) + 1 
+                            : Math.floor(Math.random() * 2); 
+                        
+                        data.push([
+                            echarts.time.format(time, '{yyyy}-{MM}-{dd}', false),
+                            commits
+                        ]);
+                    }
+                    return data;
+                }
+
+                const data = {
+                    title: 'GitHub Activity',
+                    year: '2026',
+                    values: getVirtualData('2026')
+                };
+                
+                chart.createCalendarHeatmap(data);
+            });
+        </script>
+        <div id="lineChart" style="width: 600px; height: 400px;"></div>
+        <script type="module">
+            import { ChartMaker } from '/app/Scripts/ui/chartMaker.js';
+            document.fonts.ready.then(() => {
+                const chart = new ChartMaker('lineChart');
+                const data = {
+                    title: 'Line Chart',
+                    labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                    series: [
+                        {
+                            name: 'Puncte',
+                            data: [120, 200, 150, 80, 70, 110]
+                        },
+                        {
+                            name: 'Linii',
+                            data: [30, 182, 434, 791, 390, 30]
+                        }
+                    ]
+                };
+                chart.createLineChart(data);
+            });
+        </script>
+    </body>
+</html>

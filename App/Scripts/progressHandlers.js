@@ -2,94 +2,131 @@
 Progress Page Handlers - Initialize charts and state
 */
 
+import { ChartMaker } from './ui/chartMaker.js';
+
 const exampleResponse = {
-    "userLevel": "Expert",
-    "userCookies": 50000,
-    "lessonsCompleted": 150,
-    "userAccuracy": "95%"
+    userLevel: 'Expert',
+    userCookies: 52480,
+    lessonsCompleted: 148,
+    userAccuracy: 95
+};
+
+const skillData = {
+    title: 'Skill balance',
+    labels: ['HTML', 'CSS', 'JavaScript', 'Python', 'Databases'],
+    series: [{
+        name: 'Current level',
+        data: [92, 88, 79, 86, 71]
+    }]
+};
+
+const monthlyLabels = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const cookiesEvolutionData = {
+    title: 'Cookies earned',
+    labels: monthlyLabels,
+    series: [{
+        name: 'Cookies',
+        data: [4200, 5100, 6200, 6900, 7800, 8700, 9300, 10100, 10950, 11720, 12480, 13240]
+    }]
+};
+
+const historyData = {
+    title: 'Solved problems',
+    labels: monthlyLabels,
+    series: [{
+        name: 'Rezolvări',
+        data: [18, 22, 27, 31, 35, 39, 42, 45, 49, 53, 57, 61]
+    }]
+};
+
+function formatDate(date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+function buildHeatmapData(year) {
+    const values = [];
+    const start = new Date(Date.UTC(year, 0, 1));
+    const end = new Date(Date.UTC(year + 1, 0, 1));
 
-    async function fetchInfo() {
-        // Simulate fetching data from the server
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(exampleResponse);
-            }, 1000); // Simulate network delay
-        });
+    for (let current = new Date(start); current < end; current.setUTCDate(current.getUTCDate() + 1)) {
+        const dayIndex = Math.floor((current - start) / 86400000);
+        const weekday = current.getUTCDay();
+        const month = current.getUTCMonth();
+        const weekdayBoost = weekday === 0 || weekday === 6 ? 0.35 : 1;
+        const seasonalLift = 1 + Math.sin((month / 11) * Math.PI) * 0.4;
+        const cadence = 2 + ((dayIndex % 9) * 0.55) + ((dayIndex % 27) === 0 ? 3 : 0);
+        const solved = Math.min(15, Math.max(0, Math.round(cadence * weekdayBoost * seasonalLift)));
 
-        // set the state with the fetched data 
-        window.StateEngine.state.userLevel = exampleResponse.userLevel;
-        window.StateEngine.state.userCookies = exampleResponse.userCookies;
-        window.StateEngine.state.lessonsCompleted = exampleResponse.lessonsCompleted;
-        window.StateEngine.state.userAccuracy = exampleResponse.userAccuracy;
-    }
-    
-    async function init() {
-
-        if (window.StateEngine) {
-            window.StateEngine.init({
-                "userLevel": "0",
-                "userCookies": "00",
-                "lessonsCompleted": "Lecții 000",
-                "userAccuracy": "00"
-            });
-        }
-
-        await fetchInfo();
-
+        values.push([formatDate(current), solved]);
     }
 
-    function initializeCharts() {
-        // Ensure ApexCharts and apiService are available
-        if (!window.ApexCharts || !window.apiService || !window.apiService.getChart) {
-            console.warn('ApexCharts or apiService not available yet');
-            return;
+    return values;
+}
+
+function updateSummaryCards(progressData) {
+    if (window.StateEngine?.state) {
+        window.StateEngine.state.userLevel = progressData.userLevel;
+        window.StateEngine.state.userCookies = new Intl.NumberFormat('ro-RO').format(progressData.userCookies);
+        window.StateEngine.state.lessonsCompleted = new Intl.NumberFormat('ro-RO').format(progressData.lessonsCompleted);
+        window.StateEngine.state.userAccuracy = progressData.userAccuracy;
+    }
+}
+
+function initializeCharts() {
+    const charts = [
+        ['spiderChart', 'createSpiderChart', skillData],
+        ['heatmapChart', 'createCalendarHeatmap', {
+            title: 'Daily problem heatmap',
+            year: 2026,
+            values: buildHeatmapData(2026)
+        }],
+        ['evolutionChart', 'createLineChart', cookiesEvolutionData],
+        ['historyChart', 'createLineChart', historyData]
+    ];
+
+    for (const [containerId, methodName, data] of charts) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            continue;
         }
 
-        // Spider Chart
-        const spiderChartEl = document.getElementById('spiderChart');
-        if (spiderChartEl) {
-            try {
-                window.apiService.getChart('spiderChart', 'radar', {
-                    title: 'Spider Chart',
-                    labels: ['HTML', 'CSS', 'JS', 'Python', 'Databases'],
-                    series: [{
-                        name: 'Skills',
-                        data: [80, 90, 75, 85, 70]
-                    }]
-                });
-                console.log('Spider chart initialized');
-            } catch (e) {
-                console.error('Failed to create spider chart:', e);
+        try {
+            const chart = new ChartMaker(containerId);
+            if (chart && typeof chart[methodName] === 'function') {
+                chart[methodName](data);
             }
-        }
-        
-        // Evolution Chart
-        const evolutionChartEl = document.getElementById('evolutionChart');
-        if (evolutionChartEl) {
-            try {
-                window.apiService.getChart('evolutionChart', 'line', {
-                    title: 'Evolutie',
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                    series: [{
-                        name: 'Progres',
-                        data: [10, 25, 40, 35, 60, 75, 90]
-                    }]
-                });
-                console.log('Evolution chart initialized');
-            } catch (e) {
-                console.error('Failed to create evolution chart:', e);
-            }
+        } catch (error) {
+            console.error(`Failed to initialize chart ${containerId}:`, error);
         }
     }
+}
 
-    await init();
-    
-    // Initialize charts with a small delay to ensure all scripts loaded
-    setTimeout(() => {
-        initializeCharts();
-    }, 100);
+document.addEventListener('DOMContentLoaded', async () => {
+    const stateDefaults = {
+        userLevel: '0',
+        userCookies: '0',
+        lessonsCompleted: '0',
+        userAccuracy: '0'
+    };
 
+    if (window.StateEngine) {
+        window.StateEngine.init(stateDefaults);
+    }
+
+    await new Promise((resolve) => {
+        setTimeout(resolve, 350);
+    });
+
+    const progressData = { ...exampleResponse };
+
+    updateSummaryCards(progressData);
+
+    const fontReady = document.fonts?.ready ?? Promise.resolve();
+    await fontReady;
+
+    initializeCharts();
 });
