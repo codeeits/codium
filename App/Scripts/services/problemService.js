@@ -383,6 +383,7 @@ export class ProblemService {
             }
 
             let previousTestId = null;
+            let firstCreatedTestId = null;
 
             for (const test of groupTests) {
                 const inputText = String(test.Input ?? '').trim();
@@ -413,13 +414,22 @@ export class ProblemService {
                     throw new Error('Test creation succeeded but no test ID was returned by the API. details: ' + JSON.stringify(createdTestResponse));
                 }
 
-                if (!problem.firstTestSet) {
-                    await this.updateProblem(problem.id, 'test', { first_test_id: createdTestId });
-                    problem.firstTestSet = true;
+                if (!firstCreatedTestId) {
+                    firstCreatedTestId = createdTestId;
                 }
 
                 previousTestId = createdTestId;
                 testsCreated += 1;
+            }
+
+            // After all tests for this problem are created and linked, set the problem's first_test_id
+            if (firstCreatedTestId) {
+                try {
+                    await this.updateProblem(problem.id, 'test', { first_test_id: firstCreatedTestId });
+                } catch (err) {
+                    console.error('Failed to set first_test_id for problem', problem.id, err);
+                    // don't throw here to allow other problems to continue uploading
+                }
             }
         }
 
