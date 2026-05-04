@@ -12,6 +12,12 @@
 
 }
 
+.lesson-meta {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-sm);
+}
+
 #problem-source-container {
     display: flex;
     flex-direction: row;
