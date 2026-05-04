@@ -393,15 +393,18 @@ func (q *Queries) SumXpGainedGroupedByDays(ctx context.Context, arg SumXpGainedG
 	return items, nil
 }
 
-const updateUserStreak = `-- name: UpdateUserStreak :exec
+const updateUserStreak = `-- name: UpdateUserStreak :one
 UPDATE users
 SET current_streak = current_streak + 1
 WHERE id = $1
+RETURNING current_streak
 `
 
 // This function works on the users table, but it's related to user activities
 // Hence future me get bamboozled <3
-func (q *Queries) UpdateUserStreak(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, updateUserStreak, id)
-	return err
+func (q *Queries) UpdateUserStreak(ctx context.Context, id uuid.UUID) (int32, error) {
+	row := q.db.QueryRowContext(ctx, updateUserStreak, id)
+	var current_streak int32
+	err := row.Scan(&current_streak)
+	return current_streak, err
 }

@@ -179,6 +179,11 @@ func (cfg *ApiCfg) StartLessonHandler(w http.ResponseWriter, r *http.Request, se
 		return
 	}
 
+	err = cfg.WriteEventsForUser(sendingUser.ID, w)
+	if err != nil {
+		cfg.Logger.Printf("Failed to write events for user: %v", err)
+	}
+
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, lessonUser, GenericPrinter)
 }
 
@@ -211,6 +216,11 @@ func (cfg *ApiCfg) CompleteLessonHandler(w http.ResponseWriter, r *http.Request,
 		cfg.Logger.Printf("Failed to mark lesson as completed: %v", err)
 		http.Error(w, "Failed to mark lesson as completed", http.StatusInternalServerError)
 		return
+	}
+
+	err = cfg.WriteEventsForUser(sendingUser.ID, w)
+	if err != nil {
+		cfg.Logger.Printf("Failed to write events for user: %v", err)
 	}
 
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, lessonUser, GenericPrinter)

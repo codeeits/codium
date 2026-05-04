@@ -28,6 +28,9 @@ import (
 ===========================================
 */
 
+// front end toast types
+// danger, confirm, warning, info
+
 type ApiCfg struct {
 	Logger       log.Logger
 	Db           *database.Queries
@@ -407,6 +410,22 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 		return database.LessonsUser{}, fmt.Errorf("failed to update lesson startedAt: %v", err)
 	}
 
+	err = cfg.CreateUserActivity(userID, "lessonStarted", 0)
+	if err != nil {
+		return database.LessonsUser{}, err
+	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "lessonStarted",
+		Payload:   json.RawMessage(`{"text":"server_events.lessons.start.placeholder", "type": "info"}`),
+		CreatedAt: time.Now(),
+	})
+	if err != nil {
+		return database.LessonsUser{}, err
+	}
+
 	return res, nil
 }
 
@@ -465,6 +484,14 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 	if err != nil {
 		return database.LessonsUser{}, err
 	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "lessonCompletion",
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.lessons.complete.placeholder", "type": "confirm", "xpGained": %v}`, scoreToAdd)),
+		CreatedAt: time.Now(),
+	})
 
 	return res, nil
 }
@@ -604,6 +631,14 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	if err != nil {
 		return database.UsersProblem{}, fmt.Errorf("failed to create user activity: %v", err)
 	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "lessonCompletion",
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v}`, scoreToAdd)),
+		CreatedAt: time.Now(),
+	})
 
 	return res, nil
 }
@@ -971,9 +1006,50 @@ func (cfg *ApiCfg) AuthenticatedEndpointMiddleware(next func(w http.ResponseWrit
 			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
+
+		err = cfg.WriteEventsForUser(user.ID, w)
+		if err != nil {
+			cfg.Logger.Printf("!! Failed to write events for user: %v", err)
+		}
 		// Call the next handler with the authenticated user
 		next(w, r, user)
 	}
+}
+
+func (cfg *ApiCfg) WriteEventsForUser(userId uuid.UUID, w http.ResponseWriter) error {
+	//TODO: REMOVE EVENTS AFTER SENDING THEM TO THE USER
+	events, err := cfg.Db.GetEventsForUser(context.Background(), userId)
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve events: %v", err)
+		return err
+	}
+
+	cfg.Logger.Printf("Writing %v events for user: %v", len(events), userId)
+	type toast struct {
+		MsgType string          `json:"msg_type"`
+		Msg     json.RawMessage `json:"msg"`
+	}
+
+	writeBuffer := "["
+	for i, event := range events {
+		toastMsg, err := json.Marshal(toast{
+			MsgType: event.Type,
+			Msg:     event.Payload,
+		})
+		if err != nil {
+			cfg.Logger.Printf("Failed to marshal event: %v", err)
+			return err
+		}
+
+		writeBuffer += string(toastMsg)
+		if i != len(events)-1 {
+			writeBuffer += ","
+		}
+	}
+
+	writeBuffer += "]"
+	w.Header().Set("toasts", writeBuffer)
+	return nil
 }
 
 // WriteSingleJsonOutput Write a single JSON object to the response

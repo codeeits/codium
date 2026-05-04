@@ -60,10 +60,11 @@ LIMIT 1;
 
 -- This function works on the users table, but it's related to user activities
 -- Hence future me get bamboozled <3
--- name: UpdateUserStreak :exec
+-- name: UpdateUserStreak :one
 UPDATE users
 SET current_streak = current_streak + 1
-WHERE id = $1;
+WHERE id = $1
+RETURNING current_streak;
 
 -- name: GetUserStreak :one
 SELECT current_streak FROM users

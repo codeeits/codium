@@ -534,6 +534,11 @@ func (cfg *ApiCfg) UpdateSolutionTestsHandler(w http.ResponseWriter, r *http.Req
 		}
 	}
 
+	err = cfg.WriteEventsForUser(sendingUser.ID, w)
+	if err != nil {
+		cfg.Logger.Printf("Failed to write events for user: %v", err)
+	}
+
 	cfg.WriteSingleJsonOutput(w, http.StatusOK, res, GenericPrinter)
 }
 

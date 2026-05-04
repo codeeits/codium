@@ -9,7 +9,6 @@ FROM events
 WHERE user_id = $1
 ORDER BY created_at ASC;
 
--- name: DeleteEvent :one
+-- name: DeleteEvent :exec
 DELETE FROM events
-WHERE id = $1
-RETURNING *;
+WHERE id = $1;

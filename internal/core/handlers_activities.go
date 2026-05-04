@@ -4,7 +4,9 @@ import (
 	"Codium/internal/database"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,24 +27,33 @@ func (cfg *ApiCfg) CreateUserActivity(userID uuid.UUID, activityType string, xpG
 	}
 
 	// Check whether to increase the streak
-	if !lastActivity.CreatedAt.IsZero() {
-		timeSinceLastActivity := time.Now().Sub(lastActivity.CreatedAt)
-		if timeSinceLastActivity < 24*time.Hour && lastActivity.CreatedAt.Day() != time.Now().Day() && timeSinceLastActivity < 48*time.Hour {
-			err = cfg.Db.UpdateUserStreak(context.Background(), userID)
-			if err != nil {
-				return err
-			}
-		} else if timeSinceLastActivity > 48*time.Hour {
-			err = cfg.Db.ResetUserStreak(context.Background(), userID)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		err = cfg.Db.UpdateUserStreak(context.Background(), userID)
+	timeSinceLastActivity := time.Now().Sub(lastActivity.CreatedAt)
+	if timeSinceLastActivity < 24*time.Hour && lastActivity.CreatedAt.Day() != time.Now().Day() && timeSinceLastActivity < 48*time.Hour {
+		res, err := cfg.Db.UpdateUserStreak(context.Background(), userID)
 		if err != nil {
 			return err
 		}
+
+		_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+			ID:        uuid.New(),
+			UserID:    userID,
+			Type:      "streakUpdated",
+			Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.streaks.updated.placeholder", "type": "info", "streak": %v}`, res)),
+			CreatedAt: time.Now(),
+		})
+	} else if timeSinceLastActivity > 48*time.Hour {
+		err = cfg.Db.ResetUserStreak(context.Background(), userID)
+		if err != nil {
+			return err
+		}
+
+		_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+			ID:        uuid.New(),
+			UserID:    userID,
+			Type:      "streakLost",
+			Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.streaks.lost.placeholder", "type": "danger"}`)),
+			CreatedAt: time.Now(),
+		})
 	}
 
 	_, err = cfg.Db.CreateUsersActivities(context.Background(), database.CreateUsersActivitiesParams{
