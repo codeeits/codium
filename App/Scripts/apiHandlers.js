@@ -9,12 +9,15 @@ Now split in multiple services. Removed legacy code and bridges.
 Type O Negative - I Don't Wanna Be Me
 */
 
+import { FileService } from "./services/fileService.js";
+import { GameService } from "./services/gameService.js";
 import { UserService } from "./services/userService.js";
 import { LessonService } from "./services/lessonService.js";
 import { ProblemService } from "./services/problemService.js";
 import { CompilerService } from "./services/compilerService.js";
-import { FileService } from "./services/fileService.js";
-import { GameService } from "./services/gameService.js";
+
+import * as AlgoVis from "./external/AlgoVis/main.js";
+window.AlgoVis = AlgoVis;
 
 import { ToastsLoader } from "./ui/toastsLoader.js";
 import { ApiError } from "./core/apiError.js";
@@ -34,12 +37,12 @@ class ApiService {
             default: 'info'
         };
 
+        this.game = new GameService(this);
         this.users = new UserService(this);
         this.lessons = new LessonService(this);
+        this.fileManager = new FileService(this);
         this.problems = new ProblemService(this);
         this.compiler = new CompilerService(this);
-        this.fileManager = new FileService(this);
-        this.game = new GameService(this);
 
         this.toasts = new ToastsLoader();
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoVis Testing Environment</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #AlgoVis-Viewport {
+            width: 1220px;
+            height: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background-color: #1B0524;
+            position: relative; /* So children absolute positioning works right */
+        }
+    </style>
+</head>
+<body>
+    <div id="AlgoVis-Viewport"></div>
+    
+    <!-- Initialize window.AlgoVis and general apiHandlers -->
+    <script type="module" src="./Scripts/apiHandlers.js"></script>
+    
+    <!-- Run the test script -->
+    <script type="module" src="./Scripts/algovisTest.js"></script>
+</body>
+</html>
