@@ -345,7 +345,7 @@ export class ModalHelpers {
 
         activeEngine: null,
 
-        openModal: async ({ engine, onConfirm, onOpen, title = 'Set up Two-Factor Authentication', icon = 'fa-shield-alt' }) => {
+        openModal: async ({ engine, onConfirm, onOpen, title = '{{settings-page.privacy-section.2fa-notes.title}}', icon = 'fa-shield-alt' }) => {
             if (!engine || typeof engine.openModal !== 'function') {
                 throw new Error('A valid modal engine instance is required.');
             }

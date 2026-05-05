@@ -179,6 +179,7 @@
                 "two-factor-authentication": "Autentificare în doi pași (TOTP/coduri de rezervă)"
             },
             "2fa-notes": {
+                "title": "Configurarea autentificării în doi pași (2FA)",
                 "note-1": "Configurează un cod de autentificare bazat pe timp (TOTP) pentru o securitate sporită.",
                 "note-2": "Folosește o aplicație de autentificare (de exemplu, Google Authenticator, Authy) pentru a scana codul QR și a genera coduri 2FA.",
                 "note-3": "Sau folosește următorul uri (dacă aplicația ta nu suportă coduri QR):",
