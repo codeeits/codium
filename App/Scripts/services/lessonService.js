@@ -308,7 +308,12 @@ export class LessonService {
         if (!userId) {
             const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-            userId = userData.ID;
+            if (!userData || !userData.ID) {
+                console.warn('User not authenticated or user data is invalid');
+                return [];
+            } else {
+                userId = userData.ID;
+            }
         }
 
         if (section === null || clasa === null) {
