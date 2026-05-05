@@ -251,7 +251,7 @@ async function loadUserProfile() {
             if (user.ProfilePicID) {
                 elements.userAvatar.src = window.apiService.fileManager.getFileUrl(user.ProfilePicID);
             } else {
-                elements.userAvatar.src = 'https://placehold.co/80/png';
+                elements.userAvatar.src = 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(user.Username || 'user');
             }
         }
     } catch (error) {
