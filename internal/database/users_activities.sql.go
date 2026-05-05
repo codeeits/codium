@@ -208,12 +208,33 @@ func (q *Queries) GetUserActivitiesByType(ctx context.Context, arg GetUserActivi
 }
 
 const getUserActivitiesGroupedByDays = `-- name: GetUserActivitiesGroupedByDays :many
-SELECT DATE_TRUNC('day', created_at) AS day, ARRAY_AGG(users_activities) AS activities
+WITH daily AS (
+    SELECT
+        created_at::date AS day,
+    COUNT(*)::float8 AS activity_count,
+    COALESCE(SUM(xp_gained), 0)::float8 AS total_xp
 FROM users_activities
-WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
-GROUP BY day
-ORDER BY day ASC
-LIMIT $4 OFFSET $5
+WHERE user_id = $1
+  AND created_at >= $2
+  AND created_at <= $3
+GROUP BY created_at::date
+    ),
+    avg_daily AS (
+SELECT COALESCE(AVG(activity_count), 0.0) AS avg_count
+FROM daily
+    )
+SELECT
+    d.day,
+    d.activity_count::bigint AS activity_count,
+    d.total_xp::bigint AS total_xp,
+    CASE
+        WHEN a.avg_count = 0 THEN 0.0
+        ELSE LEAST(1.0, GREATEST(0.0, d.activity_count / (2.0 * a.avg_count)))
+        END AS intensity
+FROM daily d
+         CROSS JOIN avg_daily a
+ORDER BY d.day DESC
+    LIMIT $4 OFFSET $5
 `
 
 type GetUserActivitiesGroupedByDaysParams struct {
@@ -225,8 +246,10 @@ type GetUserActivitiesGroupedByDaysParams struct {
 }
 
 type GetUserActivitiesGroupedByDaysRow struct {
-	Day        int64
-	Activities interface{}
+	Day           time.Time
+	ActivityCount int64
+	TotalXp       int64
+	Intensity     interface{}
 }
 
 func (q *Queries) GetUserActivitiesGroupedByDays(ctx context.Context, arg GetUserActivitiesGroupedByDaysParams) ([]GetUserActivitiesGroupedByDaysRow, error) {
@@ -244,7 +267,12 @@ func (q *Queries) GetUserActivitiesGroupedByDays(ctx context.Context, arg GetUse
 	var items []GetUserActivitiesGroupedByDaysRow
 	for rows.Next() {
 		var i GetUserActivitiesGroupedByDaysRow
-		if err := rows.Scan(&i.Day, &i.Activities); err != nil {
+		if err := rows.Scan(
+			&i.Day,
+			&i.ActivityCount,
+			&i.TotalXp,
+			&i.Intensity,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -340,57 +368,6 @@ func (q *Queries) SumXpGainedByUserIdAndType(ctx context.Context, arg SumXpGaine
 	var total_xp interface{}
 	err := row.Scan(&total_xp)
 	return total_xp, err
-}
-
-const sumXpGainedGroupedByDays = `-- name: SumXpGainedGroupedByDays :many
-SELECT DATE_TRUNC('day', created_at) AS day, COALESCE(SUM(xp_gained), 0) AS total_xp
-FROM users_activities
-WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
-GROUP BY day
-ORDER BY day ASC
-LIMIT $4 OFFSET $5
-`
-
-type SumXpGainedGroupedByDaysParams struct {
-	UserID      uuid.UUID
-	CreatedAt   time.Time
-	CreatedAt_2 time.Time
-	Limit       int32
-	Offset      int32
-}
-
-type SumXpGainedGroupedByDaysRow struct {
-	Day     int64
-	TotalXp interface{}
-}
-
-func (q *Queries) SumXpGainedGroupedByDays(ctx context.Context, arg SumXpGainedGroupedByDaysParams) ([]SumXpGainedGroupedByDaysRow, error) {
-	rows, err := q.db.QueryContext(ctx, sumXpGainedGroupedByDays,
-		arg.UserID,
-		arg.CreatedAt,
-		arg.CreatedAt_2,
-		arg.Limit,
-		arg.Offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []SumXpGainedGroupedByDaysRow
-	for rows.Next() {
-		var i SumXpGainedGroupedByDaysRow
-		if err := rows.Scan(&i.Day, &i.TotalXp); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const updateUserStreak = `-- name: UpdateUserStreak :one

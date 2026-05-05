@@ -35,21 +35,34 @@ WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3;
 SELECT COALESCE(SUM(xp_gained), 0) AS total_xp FROM users_activities
 WHERE user_id = $1 AND activity_type = $2 AND created_at >= $3 AND created_at <= $4;
 
--- name: SumXpGainedGroupedByDays :many
-SELECT DATE_TRUNC('day', created_at) AS day, COALESCE(SUM(xp_gained), 0) AS total_xp
-FROM users_activities
-WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
-GROUP BY day
-ORDER BY day ASC
-LIMIT $4 OFFSET $5;
-
 -- name: GetUserActivitiesGroupedByDays :many
-SELECT DATE_TRUNC('day', created_at) AS day, ARRAY_AGG(users_activities) AS activities
+WITH daily AS (
+    SELECT
+        created_at::date AS day,
+    COUNT(*)::float8 AS activity_count,
+    COALESCE(SUM(xp_gained), 0)::float8 AS total_xp
 FROM users_activities
-WHERE user_id = $1 AND created_at >= $2 AND created_at <= $3
-GROUP BY day
-ORDER BY day ASC
-LIMIT $4 OFFSET $5;
+WHERE user_id = $1
+  AND created_at >= $2
+  AND created_at <= $3
+GROUP BY created_at::date
+    ),
+    avg_daily AS (
+SELECT COALESCE(AVG(activity_count), 0.0) AS avg_count
+FROM daily
+    )
+SELECT
+    d.day,
+    d.activity_count::bigint AS activity_count,
+    d.total_xp::bigint AS total_xp,
+    CASE
+        WHEN a.avg_count = 0 THEN 0.0
+        ELSE LEAST(1.0, GREATEST(0.0, d.activity_count / (2.0 * a.avg_count)))
+        END AS intensity
+FROM daily d
+         CROSS JOIN avg_daily a
+ORDER BY d.day DESC
+    LIMIT $4 OFFSET $5;
 
 -- name: GetLastUserActivity :one
 SELECT * FROM users_activities

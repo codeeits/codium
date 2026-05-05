@@ -138,6 +138,7 @@ func main() {
 		mux.Handle("POST /api/users/totp/authenticate", http.HandlerFunc(cfg.AuthOTPHandler))
 		mux.Handle("POST /api/users/logout", http.HandlerFunc(cfg.LogoutHandler))
 		mux.Handle("GET /api/users/streak", cfg.AuthenticatedEndpointMiddleware(cfg.GetUserCurrentStreakHandler))
+		mux.Handle("GET /api/users/heatmap", cfg.AuthenticatedEndpointMiddleware(cfg.GetHeatmapHandler))
 
 		mux.Handle("POST /api/upload", cfg.AuthenticatedEndpointMiddleware(cfg.UploadHandler))
 		mux.Handle("GET /api/files/{fileID}", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.GetFileHandler)))

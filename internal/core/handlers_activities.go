@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -73,23 +74,69 @@ func (cfg *ApiCfg) CreateUserActivity(userID uuid.UUID, activityType string, xpG
 	return nil
 }
 
-func (cfg *ApiCfg) GetHeatMapData(user database.User, startDate time.Time, endDate time.Time) (map[time.Time]database.UsersActivity, error) {
-	res, err := cfg.Db.GetUserActivities(context.Background(), database.GetUserActivitiesParams{
+func (cfg *ApiCfg) GetHeatMapData(user database.User, startDate time.Time, endDate time.Time) ([]database.GetUserActivitiesGroupedByDaysRow, error) {
+	res, err := cfg.Db.GetUserActivitiesGroupedByDays(context.Background(), database.GetUserActivitiesGroupedByDaysParams{
 		UserID:      user.ID,
 		CreatedAt:   startDate,
 		CreatedAt_2: endDate,
-		Limit:       1000,
+		Limit:       365,
 		Offset:      0,
 	})
-
 	if err != nil {
-		cfg.Logger.Printf("Error getting user activity: %v", err)
 		return nil, err
 	}
-	activities := make(map[time.Time]database.UsersActivity)
-	for _, activity := range res {
-		activities[activity.CreatedAt] = activity
+
+	return res, nil
+}
+
+func (cfg *ApiCfg) GetHeatmapHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !cfg.DatabaseCfg.Loaded {
+		cfg.Logger.Println("Database not loaded")
+		http.Error(w, "Database not loaded", http.StatusNotImplemented)
+		return
 	}
 
-	return activities, nil
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+
+	var startDate time.Time
+	var endDate time.Time
+	var err error
+
+	if startDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			cfg.Logger.Printf("Error parsing start date: %v", err)
+			http.Error(w, "Error parsing start date", http.StatusBadRequest)
+			return
+		}
+	} else {
+		startDate = sendingUser.CreatedAt.Time
+	}
+
+	if endDateStr != "" {
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			cfg.Logger.Printf("Error parsing end date: %v", err)
+			http.Error(w, "Error parsing end date", http.StatusBadRequest)
+			return
+		}
+	} else {
+		endDate = time.Now()
+	}
+
+	heatmapData, err := cfg.GetHeatMapData(sendingUser, startDate, endDate)
+	if err != nil {
+		cfg.Logger.Printf("Error getting heatmap data: %v", err)
+		http.Error(w, "Error getting heatmap data", http.StatusInternalServerError)
+		return
+	}
+
+	type out struct {
+		StartDate time.Time                                    `json:"startDate"`
+		EndDate   time.Time                                    `json:"endDate"`
+		Cells     []database.GetUserActivitiesGroupedByDaysRow `json:"cells"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, out{StartDate: startDate, EndDate: endDate, Cells: heatmapData}, GenericPrinter)
 }

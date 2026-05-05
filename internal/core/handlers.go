@@ -542,6 +542,14 @@ func userProblemsToAny(ups []database.UsersProblem) []any {
 	return res
 }
 
+func activitiesToAny(activities []database.GetUserActivitiesGroupedByDaysRow) []any {
+	res := make([]any, len(activities))
+	for i, v := range activities {
+		res[i] = v
+	}
+	return res
+}
+
 /*
 ===========================================
 
