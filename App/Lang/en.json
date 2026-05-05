@@ -176,7 +176,7 @@
                 "make-profile-private": "Make my profile private",
                 "download-my-data": "Download my data",
                 "delete-my-data": "Delete my data",
-                "two-factor-authentication": "2fa (TOTP/Backup codes)"
+                "two-factor-authentication": "2FA (TOTP/Backup codes)"
             },
             "2fa-notes": {
                 "note-1": "Set up Time-based One-Time Password (TOTP) for enhanced security.",
