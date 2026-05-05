@@ -510,7 +510,14 @@ async function updateAuthButton() {
 
         if (els.userName) els.userName.textContent = displayUsername || 'User';
         if (els.avatar && window.apiService) {
-            els.avatar.src = await window.apiService.fileManager.getProfilePicture();
+            try {
+                const currentUser = await window.apiService.users.getCurrentUser();
+                const profilePicUrl = currentUser?.profilePicUrl || 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(displayUsername || 'user');
+                els.avatar.src = profilePicUrl;
+            } catch (error) {
+                console.error('Error fetching user avatar:', error);
+                els.avatar.src = 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(displayUsername || 'user');
+            }
         }
     } else {
         // Logged Out

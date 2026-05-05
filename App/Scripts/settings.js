@@ -87,10 +87,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         userData.profilePicUrl = imgUrl;
                     } catch (error) {
                         console.error('Error fetching profile picture URL:', error);
-                        userData.profilePicUrl = 'https://placehold.co/80/png'; // fallback image
+                        userData.profilePicUrl = 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(userData.Username || 'user');
                     }
                 } else {
-                    userData.profilePicUrl = 'https://placehold.co/80/png';
+                    userData.profilePicUrl = 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(userData.Username || 'user');
                 }
 
                 userData.has2FA = !!userData.Backupcodesecret?.Valid;
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        elements.profileAvatar.src = userData.profilePicUrl || 'https://placehold.co/80/png';
+        elements.profileAvatar.src = userData.profilePicUrl || 'https://api.dicebear.com/9.x/initials/svg?seed=';
         elements.profileName.textContent = userData.Username || 'N/A';
         elements.profileEmail.textContent = userData.Email || 'N/A';
     }
