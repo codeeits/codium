@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonId: null,
         starterLessonData: null,
         allLessonData: null,
+        allProblemData: null,
         interactions: null,
         noLessons: 0,
         noProblems: 0,
@@ -66,7 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.starterLessonData = await window.apiService.lessons.getLessonById(lessonId);
         state.allLessonData = await window.apiService.lessons.getSectionLessonChain(lessonId);
         state.interactions = await window.apiService.lessons.getInteractionsSection(lessonId);
-        
+        state.allProblemData = await window.apiService.problems.getProblemsForSpecificLessonClassAndSectionAndFindAShorterNameForThisMethodOKBYE({
+            class: state.starterLessonData.flag_translation.class,
+            section: state.starterLessonData.flag_translation.section
+        });
+
         state.noLessons = state.allLessonData.length;
         window.StateEngine.state.noLessons = state.noLessons;
 
@@ -112,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         populateLessonsSide();
+        populateProblemsSide();
     }
 
     function populateLessonsSide() {
@@ -137,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const interaction = state.interactions.find(i => i.LessonID === lesson.lesson.ID);
             const uiStatus = mapParsedStatusToUI(interaction?.ParsedStatus);
+            console.log(`Lecția ${lesson.lesson.ID} are statusul ${interaction?.ParsedStatus} mapat la UI ca ${uiStatus}`);
             applyStatus(clone, uiStatus);
             
             setupItemNavigation(clone); 
@@ -145,6 +152,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         state.summaryItems = Array.from(container.querySelectorAll('.resumee-element__element'));
+    }
+
+    function populateProblemsSide() {
+        // Similar to populateLessonsSide but for problems, might combine them later on
+        const container = document.querySelector('.resumee-problems');
+        const temp = container?.querySelector('.resumee-element__element');
+
+        if (!temp || !container) {
+            return;
+        }
+
+        const itemsToRemove = container.querySelectorAll('.resumee-element__element');
+
+        itemsToRemove.forEach((item) => { item.remove(); });
+
+        if (state.allProblemData.total !== 0) {
+            state.allProblemData.filteredProblems.forEach((problem) => {
+            const clone = temp.cloneNode(true);
+            const titleEl = clone.querySelector('span');
+
+            if (titleEl) {
+                titleEl.textContent = problem.problem.Title;
+            }
+
+            clone.dataset.problemId = problem.problem.ID;
+
+            // const interaction = state.problemInteractions.find(i => i.ProblemID === problem.problem.ID);
+            // const uiStatus = mapParsedStatusToUI(interaction?.ParsedStatus);
+            applyStatus(clone, 'pending'); // No interactions for problems yet, default to pending
+            
+            setupItemNavigation(clone); // If problems also navigate somewhere
+            
+            container.appendChild(clone);
+        });
+        }
+
     }
 
     /* */
@@ -257,9 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
         item.style.cursor = 'pointer';
 
         const navigateToLesson = () => {
-            const lessonId = item.dataset.lessonId;
-            if (lessonId) {
-                window.location.href = `/app/Lectii/lessonindiv.html?id=${lessonId}`;
+            const structID = item.dataset.lessonId || item.dataset.problemId;
+            if (structID && item.dataset.lessonId) {
+                window.location.href = `/app/Lectii/lessonindiv.html?id=${structID}`;
+            } else if (structID && item.dataset.problemId) {
+                window.location.href = `/app/Probleme/problem2.html?id=${structID}`;
             }
         };
 

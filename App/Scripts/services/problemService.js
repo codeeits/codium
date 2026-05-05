@@ -40,6 +40,36 @@ export class ProblemService {
         return this.api.get('/api/problems', false);
     }
 
+    async getProblemsForSpecificLessonClassAndSectionAndFindAShorterNameForThisMethodOKBYE(data) {
+        /*
+        data: {
+            class: number, // mandatory
+            section: number, // mandatory
+            difficulty: number, // optional - not implemented yet
+        }
+        */
+
+        if (!data.class || !data.section) {
+            throw new Error('Both class and section are required to filter problems');
+        }
+
+        const allProblems = await this.getProblems();
+        const filteredProblems = allProblems.filter(problem => {
+            const matchesClass = data.class ? problem.tag_translation.verification_type === data.class : true;
+            const matchesSection = data.section ? problem.tag_translation.section === data.section : true;
+            // const matchesDifficulty = data.difficulty ? problem.tag_translation.difficulty === data.difficulty : true; // not implemented yet
+            return matchesClass && matchesSection;
+        });
+        return {
+            filteredProblems: filteredProblems,
+            total: filteredProblems.length
+        }
+    }
+
+    async getLessonProblems(data) {
+        return this.getProblemsForSpecificLessonClassAndSectionAndFindAShorterNameForThisMethodOKBYE(data);
+    }
+
     async getProblemById(problemId) {
         return this.api.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
     }
