@@ -114,6 +114,10 @@ export class UserService {
         return this.api.get(`/api/users/${userId}`, true);
     }
 
+    async getAllUsers() {
+        return this.api.get('/api/users', true);
+    }
+
     async getCurrentUserUsername() {
         const user = await this.getCurrentUser();
         if (!user) {

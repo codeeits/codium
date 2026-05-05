@@ -40,7 +40,16 @@
                     </div>
                 </div>
                 <div class="separator"></div>
+
                 <div class="user-control-container" id="user-control-container">
+                    <div class="card section-card">
+                        <h2>Get users:</h2>
+                        <div class="form-grid">
+                            <button type="button" class="btn primary" id="get-users-btn">Get users</button>
+                            <textarea id="get-users-output" class="input-text" style="height: 200px; resize: vertical;" readonly></textarea>
+                        </div>
+                    </div>
+
                     <div class="card section-card">
                         <h2>Set user permissions</h2>
                         <div class="form-grid">
@@ -173,13 +182,22 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    async function initializeAdmin() {
+        // Wait for API service to be available
+        let attempts = 0;
+        while (!window.apiService && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
         const api = window.apiService;
+        if (!api) {
+            console.error('API service failed to load');
+            return;
+        }
 
-        // Auth check
-        if (!api.isAuthenticated(true)) return;
+        console.log('Admin dashboard initializing');
 
-        // Admin check
         try {
             const isAdmin = await api.users.isCurrentAdmin();
             if (!isAdmin) {
@@ -270,6 +288,25 @@
         });
 
         // ============================
+        // Get Users
+        // ============================
+
+        // not good practice code but it's just an admin page and it works so who cares
+        document.getElementById('get-users-btn').addEventListener('click', async () => {
+            const output = document.getElementById('get-users-output');
+            console.log('Fetching users...');
+            output.value = 'Loading...';
+            try {
+                const response = await api.users.getAllUsers();
+                const users = typeof response === 'string' ? JSON.parse(response) : response;
+                output.value = JSON.stringify(users, null, 2);
+            } catch (err) {
+                window.handleApiError(err, 'Failed to fetch users.');
+                output.value = 'Error fetching users.';
+            }
+        });
+
+        // ============================
         // Delete Account
         // ============================
         document.getElementById('delete-account-btn').addEventListener('click', async () => {
@@ -283,9 +320,11 @@
             }
         });
 
+        console.log('Admin dashboard fully initialized');
+
         // ============================
         // Suggested Lessons
-        // ============================
+        // =============================
         let suggestedLessons = [];
         let selectedLesson = null;
         let lessonViewMode = 'raw';
@@ -517,7 +556,13 @@
             div.textContent = str;
             return div.innerHTML;
         }
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAdmin);
+    } else {
+        initializeAdmin();
+    }
     </script>
 </body>
 </html>
