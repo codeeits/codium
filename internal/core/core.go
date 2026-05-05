@@ -472,7 +472,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 	lessonXp := 10 + rand.Int31n(10)        // base lesson xp
 	lessonXpMulti := rand.Float32()*0.5 + 1 // up to 50% extra xp cuz gambling is fun
 
-	scoreToAdd := float32(lessonXp) * lessonXpMulti
+	scoreToAdd := int32(float32(lessonXp) * lessonXpMulti)
 	_, err = cfg.AddScoreToUser(userID, int32(scoreToAdd))
 	if err != nil {
 		return database.LessonsUser{}, fmt.Errorf("failed to add score: %v", err)
@@ -489,7 +489,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		ID:        uuid.New(),
 		UserID:    userID,
 		Type:      "lessonCompletion",
-		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.lessons.complete.placeholder", "type": "confirm", "xpGained": %v}`, scoreToAdd)),
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.lessons.complete.placeholder", "type": "confirm", "xpGained": %v}`, int32(scoreToAdd))),
 		CreatedAt: time.Now(),
 	})
 
@@ -636,7 +636,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 		ID:        uuid.New(),
 		UserID:    userID,
 		Type:      "problemCompletion",
-		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v}`, scoreToAdd)),
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v}`, int32(scoreToAdd))),
 		CreatedAt: time.Now(),
 	})
 

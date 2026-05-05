@@ -1108,9 +1108,19 @@ func (cfg *ApiCfg) GetUserCurrentStreakHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	type params struct {
-		CurrentStreak int32 `json:"current_streak"`
+	temp, err := cfg.Db.GetLastUserActivity(r.Context(), targetUser.ID)
+	if err != nil {
+		cfg.Logger.Printf("Failed to get user last activity: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	cfg.WriteSingleJsonOutput(w, http.StatusOK, params{CurrentStreak: res}, GenericPrinter)
+	didActivityToday := temp.CreatedAt.After(time.Now().Add(-24 * time.Hour))
+
+	type params struct {
+		CurrentStreak int32 `json:"current_streak"`
+		DoneToday     bool  `json:"done_today"`
+	}
+
+	cfg.WriteSingleJsonOutput(w, http.StatusOK, params{CurrentStreak: res, DoneToday: didActivityToday}, GenericPrinter)
 }
