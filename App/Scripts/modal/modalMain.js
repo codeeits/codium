@@ -219,7 +219,7 @@ export class ModalEngine {
             modalElement.setAttribute('aria-describedby', bodyContainer.id || 'modal-body');
         }
 
-        titleEl.textContent = finalConfig.title || 'Notice';
+        titleEl.textContent = finalConfig.title || '{{modal.notice.title}}';
         iconEl.classList.add(finalConfig.icon || 'fa-info-circle');
 
         if (finalConfig.type) {

@@ -345,6 +345,12 @@
         },
         "2fa_modal": {
             "enter_code": "Introdu codul generat"
+        },
+        "log-out": {
+            "title": "Ești sigur că vrei să te deconectezi?"
+        },
+        "notice": {
+            "title": "Notificare"
         }
     },
     "flags": {

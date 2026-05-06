@@ -70,7 +70,7 @@ export function setupDragAndDrop(elements, updateFileLabel, onFileAdded) {
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    const debugMode = false; 
+    const debugMode = true; 
     const baseurl = window.location.href;
     const isAuthenticated = await window.apiService.checkAuthentication(false);
 
@@ -352,18 +352,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!elements.mySolutionsList) return;
         
         elements.mySolutionsList.innerHTML = "";
+
+        console.log("My Solutions:", state.solutions);
         
         if (state.solutions.length > 0) {
             if (elements.noSolutionsMsg) elements.noSolutionsMsg.style.display = "none";
             
-            state.solutions.forEach(sol => {
+            state.solutions.forEach(async sol => {
                 const item = document.createElement("div");
                 item.className = "solution-item";
                 
                 const date = new Date(sol.CreatedAt.Time || sol.CreatedAt);
                 const dateStr = date.toLocaleDateString('ro-RO');
                 const passed = sol.TestsPassed.Int32;
-                const total = sol.TotalTests.Int32;
+                const totalrsp = await window.apiService.problems.getTestChainForFirstTest(null, sol.ProblemID);
+                const total = totalrsp.length || sol.TotalTests.Int32 || 0;
                 
                 const scoreClass = passed === total ? "perfect" : passed > 0 ? "partial" : "fail";
                 
