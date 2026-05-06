@@ -184,7 +184,6 @@ function bindProfileActions() {
             await ModalHelpers.EditProfile.openModal({
                 engine,
                 user: state.user,
-                title: 'Edit Profile',
                 icon: 'fa-pencil',
                 onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');

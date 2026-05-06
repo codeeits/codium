@@ -179,6 +179,7 @@
                 "two-factor-authentication": "2FA (TOTP/Backup codes)"
             },
             "2fa-notes": {
+                "title": "Two-Factor Authentication (2FA) Setup",
                 "note-1": "Set up Time-based One-Time Password (TOTP) for enhanced security.",
                 "note-2": "Use an authenticator app (e.g., Google Authenticator, Authy) to scan the QR code and generate 2FA codes.",
                 "note-3": "Or use the following uri (if your app doesn't support QR codes):",
@@ -329,7 +330,7 @@
     },
     "modal": {
         "edit_profile": {
-            "title": "edit profile",
+            "title": "Edit profile",
             "labels": {
                 "email": "Edit email:",
                 "username": "Edit username:",
@@ -344,6 +345,16 @@
         },
         "2fa_modal": {
             "enter_code": "Enter TOTP code"
+        },
+        "log-out": {
+            "desc": "Are you sure you want to log out?"
+        },
+        "notice": {
+            "title": "Notice"
+        },
+        "delete_account": {
+            "title": "Delete account",
+            "desc": "Are you sure you want to delete your account? This action is irreversible. All your data, including your progress and solutions, will be permanently deleted. If you wish to request a copy of your data, please do so before confirming account deletion."
         }
     },
     "flags": {
@@ -359,17 +370,17 @@
         "earned": "Earned"
     },
     "buttons": {
-        "save": "save",
-        "cancel": "cancel",
+        "save": "Save",
+        "cancel": "Cancel",
         "verify": "Verify",
         "i_saved_them": "I saved them",
         "submit": "Submit",
-        "edit": "edit profile",
-        "delete": "delete",
-        "create": "create",
-        "update": "update",
-        "login": "log in",
-        "register": "sign up",
+        "edit": "Edit profile",
+        "delete": "Delete",
+        "create": "Create",
+        "update": "Update",
+        "login": "Log in",
+        "register": "Sign up",
 
         "comment": "settings specific buttons",
         "log-out": "Log out",

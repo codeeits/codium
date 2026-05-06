@@ -512,7 +512,11 @@ async function updateAuthButton() {
         if (els.avatar && window.apiService) {
             try {
                 const currentUser = await window.apiService.users.getCurrentUser();
-                const profilePicUrl = currentUser?.profilePicUrl || 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(displayUsername || 'user');
+                console.log('Current user data for avatar:', currentUser);
+                console.log('Resolved image URL:', currentUser?.profilePicUrl);
+                const profilePicUrl = currentUser?.profilePicUrl 
+                    || (currentUser?.ProfilePicID ? `/api/files/${currentUser.ProfilePicID}` : null) 
+                    || 'https://api.dicebear.com/9.x/initials/svg?seed=' + encodeURIComponent(displayUsername || 'user');
                 els.avatar.src = profilePicUrl;
             } catch (error) {
                 console.error('Error fetching user avatar:', error);

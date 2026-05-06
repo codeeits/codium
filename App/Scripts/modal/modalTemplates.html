@@ -21,10 +21,10 @@
 </template>
 
 <template id="modal-tpl-danger-confirmation">
-    <p class="modal-message">Are you sure you want to logout?</p>
+    <p class="modal-message">{{modal.log-out.desc}}</p>
     <div class="modal-actions" style="margin-top: var(--gap-lg);">
-        <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-        <button type="button" class="btn danger flex-1" id="modal-confirm-button">Logout</button>
+        <button type="button" class="btn secondary flex-1" id="modal-cancel-button">{{buttons.cancel}}</button>
+        <button type="button" class="btn danger flex-1" id="modal-confirm-button">{{buttons.log-out}}</button>
     </div>
 </template>
 
