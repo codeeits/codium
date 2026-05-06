@@ -306,6 +306,26 @@ class ApiService {
                 response = await fetch(`${this.baseURL}${url}`, config);
             }
 
+            // toast interceptor
+
+            const toastHeader = response.headers.get('toasts');
+            if (toastHeader) {
+                try {
+                    const toasts = JSON.parse(toastHeader);
+                    toasts.forEach(toastEvent => {
+                        const payload = toastEvent.msg;
+
+                        const textKey = payload.text;
+                        const toastType = payload.type;
+                        const xpGained = payload.xpGained;
+
+                        this.triggerToastUI(textKey, toastType, xpGained);
+                    });
+                } catch (error) {
+                    console.warn('Failed to parse toast header:', error);
+                }
+            }
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new ApiError(response.status, errorText, url);
@@ -374,6 +394,17 @@ class ApiService {
     // ===========================================
     // Misc Stuff
     // ===========================================
+
+    triggerToastUI(textKey, type = 'info', xpGained = 0) {
+        const toastEvent = new CustomEvent('codium:server-toast', {
+            detail: {
+                textKey,
+                type,
+                xpGained
+            }
+        });
+        window.dispatchEvent(toastEvent);
+    }
 
     getResolvedHex(cssColor) {
         const canvas = document.createElement('canvas');
@@ -593,3 +624,16 @@ window.requireAuth = async function(redirectTo = 'login.html') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ApiService, ApiError };
 }
+
+// ===========================================
+// Event Listeners
+// ===========================================
+
+window.addEventListener('codium:server-toast', (event) => {
+    const { textKey, type, xpGained } = event.detail || {};
+    let message = '{{' + textKey + '}}';
+    if (xpGained) {
+        message += ` (+${xpGained} XP)`;
+    }
+    window.apiService.showToast(message, type || 'info');
+});

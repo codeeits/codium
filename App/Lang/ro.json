@@ -428,5 +428,21 @@
         "4": "Biologie",
         "5": "Engleză",
         "6": "Matematică"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "Ai finalizat lecția!"
+            },
+            "start": {
+                "placeholder": "Ai început lecția!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "Ai finalizat lecția!"
+            }
+        }
     }
 }

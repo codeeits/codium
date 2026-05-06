@@ -859,6 +859,23 @@ async function initApp() {
         }
     });
 
+    window.addEventListener('codium:server-toast', (event) => { 
+        const { textKey, type, xpGained } = event.detail || {};
+
+        const getVal = (key) => {
+            if (!key) return null;
+            return key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations);
+        };
+
+        let message = getVal(textKey) || textKey;
+
+        if (xpGained) {
+            message += ` (+${xpGained} XP)`;
+        }
+
+        window.toastsLoader.showToast(message, type || 'info', 4000); 
+    });
+
     window.addEventListener('storage', (e) => {
         if (['profilePicID'].includes(e.key)) updateAuthButton();
     });
