@@ -75,6 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.noLessons = state.allLessonData.length;
         window.StateEngine.state.noLessons = state.noLessons;
 
+        state.noProblems = state.allProblemData.total;
+        window.StateEngine.state.noProblems = state.noProblems;
+
         console.log(state.allLessonData);
 
         return {
@@ -109,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //elements.sectionImage.style.display = 'none';
         }
 
+        console.warn('Număr probleme în secțiune:', window.StateEngine.state.noProblems);
         if (elements.metaNoProblems && window.StateEngine.state.noProblems === 0) {
             elements.metaNoProblems.style.display = 'none';
             if(elements.metaNoProblems.previousElementSibling) {
