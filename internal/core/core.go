@@ -1017,7 +1017,6 @@ func (cfg *ApiCfg) AuthenticatedEndpointMiddleware(next func(w http.ResponseWrit
 }
 
 func (cfg *ApiCfg) WriteEventsForUser(userId uuid.UUID, w http.ResponseWriter) error {
-	//TODO: REMOVE EVENTS AFTER SENDING THEM TO THE USER
 	events, err := cfg.Db.GetEventsForUser(context.Background(), userId)
 	if err != nil {
 		cfg.Logger.Printf("Failed to retrieve events: %v", err)
@@ -1048,7 +1047,11 @@ func (cfg *ApiCfg) WriteEventsForUser(userId uuid.UUID, w http.ResponseWriter) e
 	}
 
 	writeBuffer += "]"
+
+	err = cfg.Db.DeleteEventsForUser(context.Background(), userId)
+
 	w.Header().Set("toasts", writeBuffer)
+
 	return nil
 }
 

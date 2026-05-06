@@ -12,3 +12,7 @@ ORDER BY created_at ASC;
 -- name: DeleteEvent :exec
 DELETE FROM events
 WHERE id = $1;
+
+-- name: DeleteEventsForUser :exec
+DELETE FROM events
+WHERE user_id = $1;

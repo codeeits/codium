@@ -56,6 +56,16 @@ func (q *Queries) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteEventsForUser = `-- name: DeleteEventsForUser :exec
+DELETE FROM events
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteEventsForUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteEventsForUser, userID)
+	return err
+}
+
 const getEventsForUser = `-- name: GetEventsForUser :many
 SELECT id, user_id, type, payload, created_at
 FROM events
