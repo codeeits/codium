@@ -419,16 +419,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             const inputFile = elements.fileInput;
             if (!inputFile || inputFile.files.length === 0) {
-                toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "error");
+                toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "danger");
                 return;
             }
 
             const file = inputFile.files[0];
+
+            if (file.size > 5 * 1024 * 1024) {
+                toastsLoader.showToast("Dimensiunea fișierului depășește limita de 5MB.", "danger");
+                throw new Error('File size exceeds the 5MB limit');
+            }
+
+            const fileName = file.name.toLowerCase();
+            const fileType = file.type;
+
+            const validExtensions = ['.py', '.cpp', '.cc', '.cxx'];
+            const validMimeTypes = ['text/x-python', 'text/x-c++src', 'text/plain'];
+
+            const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+            const hasValidMimeType = validMimeTypes.includes(fileType);
+
+            if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
+                toastsLoader.showToast("Tip de fișier neacceptat. Doar fișiere PY și C++ sunt permise.", "danger");
+                throw new Error('Unsupported file type. Only PY and C++ files are allowed.');
+            }
+
             try {
                 code = await file.text();
                 if (!code) throw new Error("File empty");
             } catch (e) {
-                toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "error");
+                toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "danger");
                 return;
             }
         } else {

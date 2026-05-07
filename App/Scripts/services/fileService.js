@@ -18,6 +18,25 @@ export class FileService {
         const formData = new FormData();
         formData.append('file', file);
 
+        if (file.size > 5 * 1024 * 1024) {
+            throw new Error('File size exceeds the 5MB limit');
+        }
+
+        const fileName = file.name.toLowerCase();
+        const fileType = file.type;
+
+
+        // check if image
+        const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'];
+        const validMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'];
+
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        const hasValidMimeType = validMimeTypes.includes(fileType);
+
+        if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
+            throw new Error('Unsupported file type. Only image files are allowed.');
+        }
+
         const config = {
             method: 'POST',
             credentials: 'include',
