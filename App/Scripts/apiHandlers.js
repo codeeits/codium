@@ -625,7 +625,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ApiService, ApiError };
 }
 
-// ===========================================
+/*/ ===========================================
 // Event Listeners
 // ===========================================
 
@@ -636,4 +636,4 @@ window.addEventListener('codium:server-toast', (event) => {
         message += ` (+${xpGained} XP)`;
     }
     window.apiService.showToast(message, type || 'info');
-});
+});*/
