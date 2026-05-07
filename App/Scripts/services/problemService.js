@@ -225,7 +225,16 @@ export class ProblemService {
         return this.api.get(`/api/solutions?search_type=problem&problem_id=${problemId}`, true);
     }
 
-    async countSolutionsForProblem(problemId) {
+    async countSolutionsForProblem(problemId, debug = true) {
+        if (debug) {
+            console.log('Counting solutions manually for problem ID:', problemId);
+            const userId = await this.api.users.getCurrentUserID();
+            console.log('Current user ID:', userId);
+            const solutions = await this.getSolutionsByUser(userId);
+            const count = solutions.filter(sol => sol.ProblemID === problemId).length;
+            console.log(`Manually counted ${count} solutions for problem ID ${problemId}`);
+            return count;
+        }
         return this.api.get(`/api/solutions/count?search_type=problem&problem_id=${problemId}`, true);
     }
 

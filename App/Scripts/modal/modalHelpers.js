@@ -18,7 +18,7 @@ export class ModalHelpers {
     
     static EditProfile = {
 
-        openModal: async ({ engine, user, onConfirm, title = 'Edit Profile', icon = 'fa-pencil' }) => {
+        openModal: async ({ engine, user, onConfirm, title = '{{modal.edit_profile.title}}', icon = 'fa-pencil' }) => {
             if (!engine || typeof engine.openModal !== 'function') {
                 throw new Error('A valid modal engine instance is required.');
             }

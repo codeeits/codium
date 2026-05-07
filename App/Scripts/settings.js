@@ -298,7 +298,6 @@ document.addEventListener("DOMContentLoaded", () => {
             await ModalHelpers.EditProfile.openModal({
                 engine,
                 user: userData,
-                title: 'Edit Profile',
                 icon: 'fa-pencil',
                 onConfirm: (formElement) => {
                     console.log('Profile edit confirmed');
@@ -622,12 +621,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function deleteAccount() {
         elements.eraseMeBtn.addEventListener('click', () => {
             engine.openModal({
-                title: 'Delete Account',
+                title: '{{modal.delete_account.title}}',
                 body: `
-                        <p class="modal-message">Are you sure you want to delete your account? This action is IRREVERSIBLE and cannot be undone. All your data will be permanently deleted. If you want to request your data, please do so first.</p>
+                        <p class="modal-message">{{modal.delete_account.desc}}</p>
                         <div class="modal-actions" style="margin-top: var(--gap-lg);">
-                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
-                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">Delete Account</button>
+                            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">{{buttons.cancel}}</button>
+                            <button type="button" class="btn danger flex-1" id="modal-confirm-button">{{buttons.delete}}</button>
                         </div>
                     `,
                 icon: 'fa-trash',

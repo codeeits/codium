@@ -179,6 +179,7 @@
                 "two-factor-authentication": "Autenticació de dos factors (TOTP/backup codes)"
             },
             "2fa-notes": {
+                "title": "Configuració de l'autenticació en dos passos (2FA)",
                 "note-1": "Configureu un codi d'autenticació basat en el temps (TOTP) per augmentar la seguretat.",
                 "note-2": "Podeu utilitzar una aplicació d'autenticació (per exemple, Google Authenticator o Authy) per escanejar el codi QR i generar codis 2FA.",
                 "note-3": "O bé feu servir l'URI següent (si la vostra aplicació no admet codis QR):",
@@ -329,7 +330,7 @@
     },
     "modal": {
         "edit_profile": {
-            "title": "edita el perfil",
+            "title": "Edita el perfil",
             "labels": {
                 "email": "Edita l'e-mail:",
                 "username": "Edita el nom d'usuari:",
@@ -344,6 +345,16 @@
         },
         "2fa_modal": {
             "enter_code": "Introduïu el codi generat"
+        },
+        "log-out": {
+            "desc": "Estàs segur que vols tancar la sessió?"
+        },
+        "notice": {
+            "title": "Avís"
+        },
+        "delete_account": {
+            "title": "Elimina el compte",
+            "desc": "Estàs segur que vols eliminar el teu compte? Aquesta acció és irreversible. Totes les teves dades, incloent el teu progrés i solucions, s'eliminaran permanentment. Si vols sol·licitar una còpia de les teves dades, fes-ho abans de confirmar l'eliminació del compte."
         }
     },
     "flags": {
@@ -360,16 +371,16 @@
     },
     "buttons": {
         "save": "desa",
-        "cancel": "anula",
+        "cancel": "Anula",
         "verify": "Verifica",
         "i_saved_them": "Sí, els he guardat",
         "submit": "Envia",
-        "edit": "edita el perfil",
-        "delete": "elimina",
-        "create": "crea",
-        "update": "actualitza",
-        "login": "autentifica't",
-        "register": "registra't",
+        "edit": "Edita el perfil",
+        "delete": "Elimina",
+        "create": "Crea",
+        "update": "Actualitza",
+        "login": "Autentifica't",
+        "register": "Registra't",
         
         "comment": "settings specific buttons",
         "log-out": "Tanca la sessió",

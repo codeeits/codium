@@ -330,7 +330,7 @@
     },
     "modal": {
         "edit_profile": {
-            "title": "editează profilul",
+            "title": "Editează profilul",
             "labels": {
                 "email": "Editează e-mailul:",
                 "username": "Editează numele de utilizator:",
@@ -345,6 +345,16 @@
         },
         "2fa_modal": {
             "enter_code": "Introdu codul generat"
+        },
+        "log-out": {
+            "desc": "Ești sigur că vrei să te deconectezi?"
+        },
+        "notice": {
+            "title": "Notificare"
+        },
+        "delete_account": {
+            "title": "Șterge contul",
+            "desc": "Ești sigur că vrei să ștergi contul? Această acțiune este ireversibilă. Toate datele tale, inclusiv progresul și soluțiile, vor fi șterse permanent. Dacă dorești să solicitai o copie a datelor tale, te rugăm să faci acest lucru înainte de a confirma ștergerea contului."
         }
     },
     "flags": {
@@ -361,16 +371,16 @@
     },
     "buttons": {
         "save": "salvează",
-        "cancel": "anulează",
+        "cancel": "Anulează",
         "verify": "Verifică",
         "i_saved_them": "Le-am salvat",
         "submit": "Trimite",
-        "edit": "editează profil",
-        "delete": "șterge",
-        "create": "creează",
-        "update": "actualizează",
-        "login": "autentifică-te",
-        "register": "înregistrează-te",
+        "edit": "Editează profil",
+        "delete": "Șterge",
+        "create": "Creează",
+        "update": "Actualizează",
+        "login": "Autentifică-te",
+        "register": "Înregistrează-te",
 
         "comment": "settings specific buttons",
         "log-out": "Deconectare",
