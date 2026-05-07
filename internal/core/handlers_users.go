@@ -398,6 +398,12 @@ func (cfg *ApiCfg) ValidateEmailHandler(w http.ResponseWriter, r *http.Request) 
 func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	cfg.Logger.Printf("Received CreateTOTP request by userID: %v", sendingUser.ID)
 
+	if !sendingUser.EmailValidated {
+		cfg.Logger.Printf("User hasn't validated Email")
+		http.Error(w, "User hasn't validated Email", http.StatusBadRequest)
+		return
+	}
+
 	derivedSecret := deriveUserScopedSecret(cfg.TOTPSecret, "totp", sendingUser.ID)
 
 	totp := gotp.NewDefaultTOTP(derivedSecret)
@@ -421,6 +427,11 @@ func (cfg *ApiCfg) CreateTOTPHandler(w http.ResponseWriter, r *http.Request, sen
 }
 
 func (cfg *ApiCfg) ValidateTOTPHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
+	if !sendingUser.EmailValidated {
+		cfg.Logger.Printf("User hasn't validated Email")
+		http.Error(w, "Email validation required before enabling TOTP", http.StatusForbidden)
+		return
+	}
 	encryptedSecret, err := cfg.Db.GetUserTotpSecret(r.Context(), sendingUser.ID)
 	if err != nil {
 		cfg.Logger.Printf("Failed to get user totp secret: %v", err)
