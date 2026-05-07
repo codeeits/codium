@@ -119,7 +119,42 @@ export class ChartMaker {
     }
 
     createCalendarHeatmap(data) {
-        const maxVal = Math.max(...data.values.map(v => v[1] || 0));
+        /* 
+        Structure of data:
+        {
+            "startDate": "2025-12-12T14:10:35.510423+02:00",
+            "endDate": "2026-05-07T15:46:55.117302+03:00",
+            "cells": [
+                {
+                    "Day": "2026-05-07T00:00:00Z",
+                    "ActivityCount": 15,
+                    "TotalXp": 196,
+                    "Intensity": 1
+                },
+                {
+                    "Day": "2026-05-06T00:00:00Z",
+                    "ActivityCount": 3,
+                    "TotalXp": 108,
+                    "Intensity": 0.3
+                },
+                {
+                    "Day": "2026-05-04T00:00:00Z",
+                    "ActivityCount": 1,
+                    "TotalXp": 104,
+                    "Intensity": 0.1
+                },
+                {
+                    "Day": "2026-05-03T00:00:00Z",
+                    "ActivityCount": 1,
+                    "TotalXp": 101,
+                    "Intensity": 0.1
+                }
+            ]
+        }
+        
+        */
+       
+        const maxVal = Math.max(...data.cells.map(v => v.ActivityCount || 0));
         const heatmapMax = Math.max(15, maxVal);
 
         const calendarOption = {
@@ -159,7 +194,7 @@ export class ChartMaker {
                 left: 40,
                 right: 20,
                 cellSize: ['auto', 'auto'],
-                range: data.year,
+                range: [data.startDate, data.endDate],
 
                 itemStyle: {
                     borderWidth: 3,
@@ -168,7 +203,7 @@ export class ChartMaker {
                 yearLabel: { show: false },
                 dayLabel: {
                     firstDay: 1, // Start with Monday
-                    nameMap: ['Sun', '', 'Tue', '', 'Thu', '', 'Sat'],
+                    nameMap: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
                     color: this.textColor
                 },
                 monthLabel: {
@@ -177,10 +212,13 @@ export class ChartMaker {
                 }
             },
             series: [{
-                name: data.title,
+                name: 'Activity Heatmap',
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
-                data: data.values,
+                data: data.cells.map(cell => [
+                    cell.Day.slice(0, 10), // Format as 'YYYY-MM-DD'
+                    cell.ActivityCount || 0
+                ]),
                 backgroundColor: this.contrastColor
             }]
         };

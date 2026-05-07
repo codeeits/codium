@@ -47,26 +47,6 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
-function buildHeatmapData(year) {
-    const values = [];
-    const start = new Date(Date.UTC(year, 0, 1));
-    const end = new Date(Date.UTC(year + 1, 0, 1));
-
-    for (let current = new Date(start); current < end; current.setUTCDate(current.getUTCDate() + 1)) {
-        const dayIndex = Math.floor((current - start) / 86400000);
-        const weekday = current.getUTCDay();
-        const month = current.getUTCMonth();
-        const weekdayBoost = weekday === 0 || weekday === 6 ? 0.35 : 1;
-        const seasonalLift = 1 + Math.sin((month / 11) * Math.PI) * 0.4;
-        const cadence = 2 + ((dayIndex % 9) * 0.55) + ((dayIndex % 27) === 0 ? 3 : 0);
-        const solved = Math.min(15, Math.max(0, Math.round(cadence * weekdayBoost * seasonalLift)));
-
-        values.push([formatDate(current), solved]);
-    }
-
-    return values;
-}
-
 function updateSummaryCards(progressData) {
     if (window.StateEngine?.state) {
         window.StateEngine.state.userLevel = progressData.userLevel;
@@ -76,14 +56,10 @@ function updateSummaryCards(progressData) {
     }
 }
 
-function initializeCharts() {
+function initializeCharts(heatmapData) {
     const charts = [
         ['spiderChart', 'createSpiderChart', skillData],
-        ['heatmapChart', 'createCalendarHeatmap', {
-            title: 'Daily problem heatmap',
-            year: 2026,
-            values: buildHeatmapData(2026)
-        }],
+        ['heatmapChart', 'createCalendarHeatmap', heatmapData], 
         ['evolutionChart', 'createLineChart', cookiesEvolutionData],
         ['historyChart', 'createLineChart', historyData]
     ];
@@ -91,6 +67,11 @@ function initializeCharts() {
     for (const [containerId, methodName, data] of charts) {
         const container = document.getElementById(containerId);
         if (!container) {
+            continue;
+        }
+
+        if (!data && containerId === 'heatmapChart') {
+            console.warn('Heatmap data is empty, skipping chart rendering.');
             continue;
         }
 
@@ -117,6 +98,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.StateEngine.init(stateDefaults);
     }
 
+    let heatmapData = null;
+    try {
+        if (window.apiService && window.apiService.game) {
+            heatmapData = await window.apiService.game.getHeatmap();
+        } else {
+            console.error("apiService is not available yet.");
+        }
+    } catch (error) {
+        console.error("Failed to fetch heatmap data:", error);
+    }
+
     await new Promise((resolve) => {
         setTimeout(resolve, 350);
     });
@@ -128,5 +120,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fontReady = document.fonts?.ready ?? Promise.resolve();
     await fontReady;
 
-    initializeCharts();
+    initializeCharts(heatmapData);
 });

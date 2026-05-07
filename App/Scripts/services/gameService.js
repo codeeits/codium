@@ -61,5 +61,14 @@ export class GameService {
             }
         }
     }
-    
+
+    async getHeatmap() {
+        try {
+            const response = await this.api.get(`/api/users/heatmap`);
+            return response;
+        } catch (error) {
+            console.error('Error fetching leaderboard heatmap:', error);
+            throw error;
+        }
+    }
 }

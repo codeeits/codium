@@ -387,14 +387,14 @@ export class LessonService {
 
     async updateLessonContent(lessonId, file) {
         // First upload the file
-        const fileResponse = await this.api.uploadFile(file, 'lessons');
+        const fileResponse = await this.api.fileManager.uploadFile(file, 'lessons');
         // here we could also delete the old file :D
         return this.api.put(`/api/lessons/${lessonId}?target_field=content`, { content_id: fileResponse.file_id }, true);
     }
 
     async uploadLesson(lessonData, file) {
         // First upload the file
-        const fileResponse = await this.api.uploadFile(file, 'lessons');
+        const fileResponse = await this.api.fileManager.uploadFile(file, 'lessons');
         
         const lessonPayload = {
             ...lessonData,

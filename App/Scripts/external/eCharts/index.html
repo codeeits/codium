@@ -9,6 +9,7 @@
         
         <link rel="stylesheet" href="/app/Styles/elements2.css">
         <script type="module" src="/app/Scripts/main.js"></script>
+        <script type="module" src="/app/Scripts/apiHandlers.js"></script>
 
     </head>
     <body>
@@ -40,7 +41,7 @@
             import * as echarts from '/app/Scripts/external/eCharts/echarts.min.js';
             import { ChartMaker } from '/app/Scripts/ui/chartMaker.js';
 
-            document.fonts.ready.then(() => {
+            document.fonts.ready.then(async () => {
                 const chart = new ChartMaker('heatmap');
                 
                 function getVirtualData(year) {
@@ -62,11 +63,13 @@
                     return data;
                 }
 
-                const data = {
+                /*const data = {
                     title: 'GitHub Activity',
                     year: '2026',
                     values: getVirtualData('2026')
-                };
+                };*/
+
+                const data = await window.apiService.game.getHeatmap();
                 
                 chart.createCalendarHeatmap(data);
             });
