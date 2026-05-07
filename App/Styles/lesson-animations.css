@@ -1,0 +1,444 @@
+/**
+ * lesson-animations.css
+ * Animation definitions for the lesson page using CSS variables from elements2.css
+ * Follows the design system: dark, clean, purposeful motion
+ */
+
+:root {
+    /* Animation timings - use across all animations for consistency */
+    --anim-duration-fast: 300ms;
+    --anim-duration-normal: 500ms;
+    --anim-duration-slow: 800ms;
+    --anim-duration-veryslow: 1200ms;
+
+    /* Easing functions */
+    --anim-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --anim-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --anim-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --anim-ease-out-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ========================================= */
+/* === FADE & ENTRANCE ANIMATIONS ======== */
+/* ========================================= */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ========================================= */
+/* === SCALE & EMPHASIS ANIMATIONS ====== */
+/* ========================================= */
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleInBounce {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(176, 123, 201, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(176, 123, 201, 0);
+    }
+}
+
+/* ========================================= */
+/* === ACCENT ANIMATIONS ================ */
+/* ========================================= */
+
+@keyframes underlineGrow {
+    from {
+        transform: scaleX(0);
+        transform-origin: left;
+    }
+    to {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes slideUnderline {
+    from {
+        width: 0;
+        left: 0;
+    }
+    to {
+        width: 100%;
+        left: 0;
+    }
+}
+
+/* ========================================= */
+/* === PROGRESS & ACTIVITY ============== */
+/* ========================================= */
+
+@keyframes progressSlide {
+    from {
+        width: 0;
+        opacity: 0.8;
+    }
+    to {
+        width: var(--progress-width, 0%);
+        opacity: 1;
+    }
+}
+
+@keyframes progressGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 var(--primary);
+    }
+    50% {
+        box-shadow: 0 0 8px 4px rgba(176, 123, 201, 0.4);
+    }
+}
+
+/* ========================================= */
+/* === INTERACTIVE ANIMATIONS ========== */
+/* ========================================= */
+
+@keyframes buttonHoverLift {
+    0% {
+        transform: translateY(0);
+        box-shadow: var(--base-card-shadow);
+    }
+    100% {
+        transform: translateY(-3px);
+        box-shadow: var(--primary-shadow);
+    }
+}
+
+@keyframes buttonActive {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(1px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes iconSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes iconRotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(45deg);
+    }
+}
+
+@keyframes wiggle {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: rotate(-2deg);
+    }
+    20%, 40%, 60%, 80% {
+        transform: rotate(2deg);
+    }
+}
+
+/* ========================================= */
+/* === CONTENT LOAD ANIMATIONS ========= */
+/* ========================================= */
+
+@keyframes contentBlockFade {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes codeBlockHighlight {
+    from {
+        background-color: rgba(176, 123, 201, 0.1);
+    }
+    to {
+        background-color: transparent;
+    }
+}
+
+/* ========================================= */
+/* === PAGE LEVEL ANIMATIONS =========== */
+/* ========================================= */
+
+/* Header animations */
+.header-title {
+    animation: fadeInDown var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.lesson-meta {
+    animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) 100ms backwards;
+}
+
+.header-icons button {
+    animation: scaleIn var(--anim-duration-normal) var(--anim-ease-out-bounce) calc(200ms + (var(--button-index, 0) * 50ms)) backwards;
+}
+
+/* Content animations */
+.lesson-body {
+    animation: fadeIn var(--anim-duration-slow) var(--anim-ease-in-out) 150ms backwards;
+}
+
+.lesson-body > * {
+    animation: contentBlockFade var(--anim-duration-normal) var(--anim-ease-out) calc(200ms + (var(--item-index, 0) * 80ms)) backwards;
+}
+
+.lesson-body h2 {
+    animation: slideInFromLeft var(--anim-duration-normal) var(--anim-ease-out) calc(250ms + (var(--item-index, 0) * 100ms)) backwards;
+}
+
+.lesson-body p {
+    animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) calc(200ms + (var(--item-index, 0) * 80ms)) backwards;
+}
+
+.lesson-body pre {
+    animation: scaleIn var(--anim-duration-normal) var(--anim-ease-out) calc(300ms + (var(--item-index, 0) * 100ms)) backwards;
+}
+
+/* Reading progress bar */
+#reading-progress-bar {
+    animation: progressSlide var(--anim-duration-veryslow) var(--anim-ease-in-out) forwards;
+}
+
+/* Sidebar animations */
+.side-content {
+    animation: slideInFromRight var(--anim-duration-normal) var(--anim-ease-out) 250ms backwards;
+}
+
+.side-content > * {
+    animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) calc(300ms + (var(--item-index, 0) * 100ms)) backwards;
+}
+
+/* ========================================= */
+/* === INTERACTIVE STATE ANIMATIONS ==== */
+/* ========================================= */
+
+/* Button interactions */
+.btn {
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+.btn:hover {
+    animation: buttonHoverLift var(--anim-duration-fast) var(--anim-ease-out) forwards;
+}
+
+.btn:active {
+    animation: buttonActive var(--anim-duration-fast) var(--anim-ease-out);
+}
+
+/* Icon interactions */
+.btn i,
+.header-icons i {
+    transition: transform var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+.btn:hover i {
+    animation: iconRotate var(--anim-duration-fast) var(--anim-ease-out);
+}
+
+.btn.loading i {
+    animation: iconSpin var(--anim-duration-normal) linear infinite;
+}
+
+/* Link interactions */
+.card a {
+    position: relative;
+    transition: color var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+.card a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary);
+    transition: width var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+.card a:hover::after {
+    width: 100%;
+}
+
+/* ========================================= */
+/* === ACCESSIBILITY - REDUCED MOTION == */
+/* ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========================================= */
+/* === UTILITY ANIMATION CLASSES ====== */
+/* ========================================= */
+
+.animate-fade-in {
+    animation: fadeIn var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-fade-in-down {
+    animation: fadeInDown var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-slide-in-left {
+    animation: slideInFromLeft var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-slide-in-right {
+    animation: slideInFromRight var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-scale-in {
+    animation: scaleIn var(--anim-duration-normal) var(--anim-ease-out);
+}
+
+.animate-scale-in-bounce {
+    animation: scaleInBounce var(--anim-duration-normal) var(--anim-ease-out-bounce);
+}
+
+.animate-pulse {
+    animation: pulse var(--anim-duration-normal) var(--anim-ease-in-out) infinite;
+}
+
+.animate-glow-pulse {
+    animation: glowPulse var(--anim-duration-normal) var(--anim-ease-in-out) infinite;
+}
+
+.animate-spin {
+    animation: iconSpin var(--anim-duration-slow) linear infinite;
+}
+
+.animate-delay-100 {
+    animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+    animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+    animation-delay: 300ms;
+}
+
+.animate-delay-fast {
+    animation-duration: var(--anim-duration-fast);
+}
+
+.animate-delay-slow {
+    animation-duration: var(--anim-duration-slow);
+}

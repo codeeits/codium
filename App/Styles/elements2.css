@@ -75,6 +75,19 @@
     --border-radius-lg: 20px;
 
     --top-bar-height: 3.75rem;
+
+    /* Animation Timings */
+    --anim-duration-fast: 300ms;
+    --anim-duration-normal: 500ms;
+    --anim-duration-slow: 800ms;
+    --anim-duration-veryslow: 1200ms;
+
+    /* Easing Functions */
+    --anim-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --anim-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --anim-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --anim-ease-out-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --anim-ease-linear: linear;
 }
 
 /* ====================== */
@@ -334,7 +347,7 @@ option, select {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: var(--text-colour);
-    transition: all 0.3s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
     cursor: pointer;
 }
 
@@ -428,27 +441,8 @@ table td:not(:first-child) {
     pointer-events: none;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-}
+/* Keyframes for toast notifications - using CSS variables for timing */
+/* Note: Additional keyframes are defined in lesson-animations.css for consistency */
 
 .toast.fade-out {
     animation: fadeOut 1s ease forwards;
@@ -565,7 +559,7 @@ table td:not(:first-child) {
 
 .section-starter-card {
     position: relative;
-    transition: all 0.3s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
     box-shadow: 
         0px 8px 0 -4px var(--fundal),
         0px 8px 0 -3px var(--border-subtle),
@@ -589,7 +583,7 @@ table td:not(:first-child) {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
     color: inherit;
-    transition: color 0.2s ease-in-out;
+    transition: color var(--anim-duration-fast) var(--anim-ease-in-out);
 
 }
 
@@ -737,7 +731,7 @@ main, .content-area {
     font-weight: var(--button-font-weight);
     color: var(--text-colour);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-fast) var(--anim-ease-out);
     text-align: center;
     white-space: nowrap;
 }
@@ -784,7 +778,7 @@ main, .content-area {
 
 .btn.confirm {
     background-color: var(--confirm);
-    transition: background-color 0.3s ease-in-out;
+    transition: background-color var(--anim-duration-fast) var(--anim-ease-in-out);
     color: var(--text-colour-primary-button);
 }
 
@@ -794,7 +788,7 @@ main, .content-area {
 
 .btn.danger {
     background-color: var(--danger);
-    transition: background-color 0.3s ease-in-out;
+    transition: background-color var(--anim-duration-fast) var(--anim-ease-in-out);
     color: var(--text-colour-primary-button);
 }
 
@@ -846,7 +840,7 @@ main, .content-area {
     right: 0;
     bottom: 0;
     background-color: var(--contrast);
-    transition: .4s;
+    transition: all var(--anim-duration-normal) var(--anim-ease-in-out);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-subtle);
 }
@@ -859,7 +853,7 @@ main, .content-area {
     left: 1px;
     bottom: 1px;
     background-color: var(--text-colour);
-    transition: .4s;
+    transition: all var(--anim-duration-normal) var(--anim-ease-in-out);
     border-radius: 50%;
 }
 
@@ -949,7 +943,7 @@ main, .content-area {
     display: flex;
     gap: var(--gap-md);
     padding: var(--gap-md);
-    transition: all 0.3s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .content-card-image {
@@ -1046,7 +1040,7 @@ main, .content-area {
     flex-direction: column;
     gap: var(--gap-md);
     padding: var(--gap-lg);
-    transition: all 0.3s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .header-feed-card {
@@ -1143,7 +1137,7 @@ footer a:hover {
     opacity: 0.6;
     pointer-events: none;
 
-    transition: all 0.3s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .example-block pre.copied::before, .lesson-body pre.copied::before {
@@ -1213,7 +1207,7 @@ footer a:hover {
     margin: 0;
     height: 100%;
     cursor: pointer;
-    transition: border-color 0.2s ease-in-out;
+    transition: border-color var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 
@@ -1253,7 +1247,7 @@ pre:not(.example-block pre) {
 .lesson-body pre {
     position: relative;
     cursor: pointer;
-    transition: border-color 0.2s ease-in-out;
+    transition: border-color var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .lesson-body pre:hover {
@@ -1304,7 +1298,7 @@ blockquote {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--anim-duration-fast) var(--anim-ease-out);
 }
 
 .nav-arrow:hover {
@@ -1451,7 +1445,7 @@ blockquote {
     padding: var(--gap-md) 15px;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--anim-duration-fast) var(--anim-ease-out);
 }
 
 .sidebar-item:hover {
@@ -1548,17 +1542,6 @@ blockquote {
     align-items: flex-end;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
 .toast {
     display: flex;
     align-items: start;
@@ -1568,7 +1551,7 @@ blockquote {
     padding: var(--gap-md);
     border-radius: var(--border-radius-sm);
     border: 1px solid transparent;
-    animation: fadeIn 1s ease forwards;
+    animation: slideInFromRight var(--anim-duration-slow) var(--anim-ease-out) forwards;
     box-shadow: 0px 0px 7.5px 0px transparent;
 }
 
@@ -1627,7 +1610,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     cursor: pointer;
     padding: 0;
     opacity: 0.8;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--anim-duration-fast) var(--anim-ease-out);
 }
 
 .toast-close:hover {
@@ -1641,7 +1624,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
 .modal-overlay {
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 
     position: fixed;
     top: 0;
@@ -1676,7 +1659,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     overflow-y: auto;
 
     transform: translateY(-20px) scale(0.95) rotate(-1deg);
-    transition: transform 0.2s ease-in-out;
+    transition: transform var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .modal-overlay.active .modal {
@@ -1706,7 +1689,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     align-content: center;
     color: var(--text-colour-primary-button);
 
-    transition: all 0.2s ease-in-out;
+    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .close-button:hover {
@@ -1776,7 +1759,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     border: 1px solid var(--border2-solid);
     border-radius: var(--border-radius-sm);
     width: 100%;
-    transition: border-color 0.2s ease-in-out;
+    transition: border-color var(--anim-duration-fast) var(--anim-ease-in-out);
 }
 
 .input-field.disabled {
@@ -1850,7 +1833,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
 }
 
 .dropdown-toggle i {
-    transition: transform 0.2s ease;
+    transition: transform var(--anim-duration-fast) var(--anim-ease-out);
 }
 
 .dropdown.open .dropdown-toggle i {
@@ -1870,7 +1853,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: all 0.2s ease;
+    transition: all var(--anim-duration-fast) var(--anim-ease-out);
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -1879,6 +1862,9 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     visibility: visible;
     transform: translateY(0);
 }
+
+/* Toast notifications use CSS variable timing and easing from :root */
+/* Additional keyframes are defined in lesson-animations.css for consistency */
 
 /* Top bar-specific dropdown fixes.
    The generic .top-bar div rule makes all divs flex; reset dropdown menus explicitly. */
@@ -1931,7 +1917,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     font-weight: var(--body-font-weight);
     color: var(--text-colour);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--anim-duration-fast) var(--anim-ease-out);
     white-space: nowrap;
 }
 

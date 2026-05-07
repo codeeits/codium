@@ -9,7 +9,13 @@ Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pe
 
 Phoenix - Mugur de Fluier
 */
-
+import { triggerConfetti } from '/app/Scripts/animations/confetti.js';
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    getCSSVar,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
 function toRoman(n) {
     if (n === 0) return "All";
     if (n >= 67) return "N/A"; // Neclasificat
@@ -49,7 +55,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         sidebarTitle: document.getElementById("lesson-sidebar_title") || document.getElementById("lectii-sesiune-clasa"),
         cuprinsCard: document.getElementById("cuprins-card"),
         keypointsCard: document.getElementById("keypoints-card"),
-        // Buttons
+        // Header Buttons
+        headerIconsContainer: document.querySelector(".header-icons"),
         bookmarkBtn: document.getElementById("bookmarkButton"),
         favoriteBtn: document.getElementById("favoriteButton"),
         shareBtn: document.getElementById("shareButton"),
@@ -271,6 +278,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         elements.container.innerHTML = marked.parse(state.markdownContent || '');
         hljs.highlightAll();
 
+        // Apply entrance animations to content elements if motion is not reduced
+        if (!prefersReducedMotion()) {
+            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table');
+            cascadeEntrance(contentBlocks, 'fade', {
+                staggerDelay: 60,
+                baseDelay: 200,
+            });
+        }
+
         renderExternalLibraries();
     }
 
@@ -342,6 +358,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             link.textContent = '#' + item.text.trim();
             elements.cuprinsCard.appendChild(link);
         });
+
+        // Animate table of contents links
+        if (!prefersReducedMotion()) {
+            const links = elements.cuprinsCard.querySelectorAll('a');
+            applyStaggeredAnimation(links, 'fadeInUp', {
+                staggerDelay: 30,
+                baseDelay: 400,
+            });
+        }
+    }
+
+    function setupHeaderAnimations() {
+        // Animate header icon buttons with stagger
+        if (!prefersReducedMotion() && elements.headerIconsContainer) {
+            const buttons = elements.headerIconsContainer.querySelectorAll('button');
+            buttons.forEach((btn, index) => {
+                btn.style.setProperty('--button-index', index);
+            });
+        }
     }
 
     async function renderSidebar() {
@@ -441,6 +476,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 sidebarSection.appendChild(lessonsList);
                 elements.sidebar.appendChild(sidebarSection);
+
+                // Animate sidebar items
+                if (!prefersReducedMotion()) {
+                    const items = sidebarSection.querySelectorAll('.lesson-sidebar_item');
+                    applyStaggeredAnimation(items, 'fadeInUp', {
+                        staggerDelay: 40,
+                        baseDelay: 300,
+                    });
+                }
             } else {
 
                 //Header section for new UI is "Sectiunea X"
@@ -467,6 +511,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                     lessonLink.textContent = lessonData.lesson.Title || "Untitled Lesson";
 
                     elements.sidebar.appendChild(lessonLink);
+                }
+
+                // Animate sidebar links
+                if (!prefersReducedMotion()) {
+                    const links = elements.sidebar.querySelectorAll('a');
+                    applyStaggeredAnimation(links, 'slideInFromRight', {
+                        staggerDelay: 35,
+                        baseDelay: 350,
+                    });
                 }
             }
 
@@ -664,7 +717,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             const d = await window.apiService.lessons.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
+            
+            triggerConfetti({ particleCount: 120, duration: 3000 });
+            
             toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
+            
+            // Wait for confetti to finish before navigating
+            await new Promise(resolve => setTimeout(resolve, 3300));
         }
 
         
@@ -714,6 +773,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             setupTopMenuObserver();
             setupNavigationButtons();
             setupInteractionButtons();
+            setupHeaderAnimations();
             await renderSidebar();
             
             setupShareButton();
