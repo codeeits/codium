@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"mime/multipart"
 	"net/http"
@@ -614,7 +615,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	if err != nil {
 		return res, NoXpAddedErr
 	}
-	multi, err := cfg.CalculateScoreMultiplier(userID)
+	multi, err, isCrit := cfg.CalculateScoreMultiplier(userID)
 	if err != nil {
 		return res, NoXpAddedErr
 	}
@@ -636,7 +637,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 		ID:        uuid.New(),
 		UserID:    userID,
 		Type:      "problemCompletion",
-		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v}`, int32(scoreToAdd))),
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v, "isCrit": "%v"}`, scoreToAdd, isCrit)),
 		CreatedAt: time.Now(),
 	})
 
@@ -679,16 +680,42 @@ func (cfg *ApiCfg) CalculateXPBonusForProblem(problemID uuid.UUID) (score int32,
 	return returnedScore, nil
 }
 
-func (cfg *ApiCfg) CalculateScoreMultiplier(userID uuid.UUID) (score int32, err error) {
+func (cfg *ApiCfg) CalculateScoreMultiplier(userID uuid.UUID) (score int32, err error, critted bool) {
 	_, err = cfg.Db.GetUserByID(context.Background(), userID)
 	if err != nil {
-		return -1, fmt.Errorf("failed to retrieve user: %v", err)
+		return -1, fmt.Errorf("failed to retrieve user: %v", err), false
 	}
 
 	// TODO: Implement a table with user activity and then put big boi bonuses here for current streak, active effects, challenges and so on
 	var multiplier int32 = 1
 
-	return multiplier, nil
+	res, err := cfg.Db.GetUserActivitiesByTypeToday(context.Background(), database.GetUserActivitiesByTypeTodayParams{
+		UserID:       userID,
+		ActivityType: "problemSolve",
+		Limit:        1000,
+		Offset:       0,
+	})
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user-activities: %v", err), false
+	}
+	nrProblemsSolvedToday := int32(len(res))
+
+	critChance := float64(nrProblemsSolvedToday*40) / float64(nrProblemsSolvedToday+5)
+	randVal := math.Floor(rand.Float64() * 100)
+
+	if randVal < critChance {
+		multiplier *= 2
+		critted = true
+	}
+
+	userStreak, err := cfg.Db.GetUserStreak(context.Background(), userID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user-streak: %v", err), false
+	}
+
+	multiplier *= 1.0 + userStreak/100
+
+	return multiplier, nil, critted
 }
 
 // Upload local upload

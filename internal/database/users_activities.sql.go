@@ -207,6 +207,55 @@ func (q *Queries) GetUserActivitiesByType(ctx context.Context, arg GetUserActivi
 	return items, nil
 }
 
+const getUserActivitiesByTypeToday = `-- name: GetUserActivitiesByTypeToday :many
+SELECT id, user_id, xp_gained, activity_type, created_at, updated_at FROM users_activities
+WHERE user_id = $1 AND activity_type = $2 AND created_at >= CURRENT_DATE AND created_at < CURRENT_DATE + INTERVAL '1 day'
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type GetUserActivitiesByTypeTodayParams struct {
+	UserID       uuid.UUID
+	ActivityType string
+	Limit        int32
+	Offset       int32
+}
+
+func (q *Queries) GetUserActivitiesByTypeToday(ctx context.Context, arg GetUserActivitiesByTypeTodayParams) ([]UsersActivity, error) {
+	rows, err := q.db.QueryContext(ctx, getUserActivitiesByTypeToday,
+		arg.UserID,
+		arg.ActivityType,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UsersActivity
+	for rows.Next() {
+		var i UsersActivity
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.XpGained,
+			&i.ActivityType,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserActivitiesGroupedByDays = `-- name: GetUserActivitiesGroupedByDays :many
 WITH daily AS (
     SELECT

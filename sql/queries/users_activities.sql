@@ -15,6 +15,12 @@ WHERE user_id = $1 AND activity_type = $2 AND created_at >= $3 AND created_at <=
 ORDER BY created_at DESC
 LIMIT $5 OFFSET $6;
 
+-- name: GetUserActivitiesByTypeToday :many
+SELECT * FROM users_activities
+WHERE user_id = $1 AND activity_type = $2 AND created_at >= CURRENT_DATE AND created_at < CURRENT_DATE + INTERVAL '1 day'
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4;
+
 -- name: GetUserActivityById :one
 SELECT * FROM users_activities
 WHERE id = $1;
