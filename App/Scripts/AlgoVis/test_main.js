@@ -37,76 +37,79 @@ console.log(root);
 
 view.render();
 
-console.log("Test main executed");
-let prev = {x: 0, y: 0};
-let pendingRender = false;
-let dragging = false;
-let activePointerID = null;
-let viewPortElement = document.getElementById("AlgoVis-Viewport")
+{
+    let prev = {x: 0, y: 0};
+    let pendingRender = false;
+    let dragging = false;
+    let activePointerID = null;
+    let viewPortElement = document.getElementById("AlgoVis-Viewport")
 
-function scheduleRender() {
-    if (pendingRender) return;
-    pendingRender = true;
-    requestAnimationFrame(() => {
-        view.render();
-        pendingRender = false;
-    });
-}
-
-viewPortElement.addEventListener("pointerdown", (e) => {
-    if (e.button && e.button !== 0) return;
-    e.preventDefault();
-    dragging = true;
-    activePointerID = e.pointerId;
-    prev.x = e.clientX;
-    prev.y = e.clientY;
-
-    try {
-        viewPortElement.setPointerCapture(activePointerID);
-    } catch (w) {
-        console.warn("Failed to capture pointer:", w);
+    function scheduleRender() {
+        if (pendingRender) return;
+        pendingRender = true;
+        requestAnimationFrame(() => {
+            view.render();
+            pendingRender = false;
+        });
     }
 
-    viewPortElement.style.cursor = "none";
-})
+    viewPortElement.addEventListener("pointerdown", (e) => {
+        if (e.button && e.button !== 0) return;
+        e.preventDefault();
+        dragging = true;
+        activePointerID = e.pointerId;
+        prev.x = e.clientX;
+        prev.y = e.clientY;
 
-viewPortElement.addEventListener("pointermove", (e) => {
-    if (!dragging || e.pointerId !== activePointerID) return;
-    e.preventDefault(); // prevents default behaviors while dragging
-    const dx = e.clientX - prev.x;
-    const dy = e.clientY - prev.y;
-    prev.x = e.clientX
-    prev.y = e.clientY;
+        try {
+            viewPortElement.setPointerCapture(activePointerID);
+        } catch (w) {
+            console.warn("Failed to capture pointer:", w);
+        }
 
-    // update your logical view position
-    view.move(-dx, -dy);
-
-    // schedule a single rAF render per frame (throttles heavy rendering)
-    scheduleRender();
-});
-
-viewPortElement.addEventListener("pointerover", (e) => {
-    if (dragging) {
         viewPortElement.style.cursor = "none";
-    }
-    else {
-        viewPortElement.style.cursor = "move";
-    }
-})
+    })
 
-function stopDrag(e) {
-    if (!dragging) return;
-    // release pointer capture
-    try { viewPortElement.releasePointerCapture(activePointerID); } catch (err) { /* ignore */ }
-    dragging = false;
-    activePointerID = null;
-    viewPortElement.style.cursor = "";
-    // final render to ensure state is correct
-    view.render();
+    viewPortElement.addEventListener("pointermove", (e) => {
+        if (!dragging || e.pointerId !== activePointerID) return;
+        e.preventDefault(); // prevents default behaviors while dragging
+        const dx = e.clientX - prev.x;
+        const dy = e.clientY - prev.y;
+        prev.x = e.clientX
+        prev.y = e.clientY;
+
+        // update your logical view position
+        view.move(-dx, -dy);
+
+        // schedule a single rAF render per frame (throttles heavy rendering)
+        scheduleRender();
+    });
+
+    viewPortElement.addEventListener("pointerover", (e) => {
+        if (dragging) {
+            viewPortElement.style.cursor = "none";
+        } else {
+            viewPortElement.style.cursor = "move";
+        }
+    })
+
+    function stopDrag(e) {
+        if (!dragging) return;
+        // release pointer capture
+        try {
+            viewPortElement.releasePointerCapture(activePointerID);
+        } catch (err) { /* ignore */
+        }
+        dragging = false;
+        activePointerID = null;
+        viewPortElement.style.cursor = "";
+        // final render to ensure state is correct
+        view.render();
+    }
+
+    viewPortElement.addEventListener("pointerup", stopDrag);
+    viewPortElement.addEventListener("pointercancel", stopDrag);
 }
-
-viewPortElement.addEventListener("pointerup", stopDrag);
-viewPortElement.addEventListener("pointercancel", stopDrag);
 
 let animator = new AnimationHandler()
 
@@ -115,6 +118,5 @@ function compare(a, b) {
 }
 
 ExtraHelpers.SetAnimator(animator);
-PrefabAnimations.BUBBLE_SORT_ANIMATION(vector, compare, scheduleRender, {highlightColor: "", highlightBorderColor: "", speed: 10, doneColor: ""})
 
 animator.Start();
