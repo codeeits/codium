@@ -368,7 +368,7 @@ func (q *Queries) GetUserStreak(ctx context.Context, id uuid.UUID) (int32, error
 
 const resetUserStreak = `-- name: ResetUserStreak :exec
 UPDATE users
-SET current_streak = 0
+SET current_streak = 1
 WHERE id = $1
 `
 

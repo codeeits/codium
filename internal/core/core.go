@@ -686,7 +686,6 @@ func (cfg *ApiCfg) CalculateScoreMultiplier(userID uuid.UUID) (score int32, err 
 		return -1, fmt.Errorf("failed to retrieve user: %v", err), false
 	}
 
-	// TODO: Implement a table with user activity and then put big boi bonuses here for current streak, active effects, challenges and so on
 	var multiplier int32 = 1
 
 	res, err := cfg.Db.GetUserActivitiesByTypeToday(context.Background(), database.GetUserActivitiesByTypeTodayParams{
