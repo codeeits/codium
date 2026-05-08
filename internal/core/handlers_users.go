@@ -1039,6 +1039,12 @@ func (cfg *ApiCfg) UpdateUserEmailHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if x, err := regexp.Match("^[^\\s@]+@[^\\s@]+.[^\\s@]+$", []byte(p.NewEmail)); !x || err != nil {
+		cfg.Logger.Printf("Invalid user email: %v", p.NewEmail)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	// Update email
 	res, err := cfg.Db.UpdateUserEmail(r.Context(), database.UpdateUserEmailParams{
 		ID:        targetUser.ID,
@@ -1080,6 +1086,12 @@ func (cfg *ApiCfg) UpdateUserUsernameHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		cfg.Logger.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if x, err := regexp.Match("^[a-zA-Z0-9_]+$", []byte(p.NewUsername)); !x || err != nil {
+		cfg.Logger.Printf("Invalid username: %v", p.NewUsername)
+		http.Error(w, "Invalid username", http.StatusBadRequest)
 		return
 	}
 

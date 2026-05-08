@@ -673,10 +673,7 @@ func (cfg *ApiCfg) CalculateXPBonusForProblem(problemID uuid.UUID) (score int32,
 		returnedScore *= 4
 	}
 
-	returnedScore += rand.Int31n(10) // Add randomness because gambling always makes people feel good
-
-	// Maybe add a chance to crit based on activity today? like if you solved 3 problems today you get a 30% chance of critting with diminishing returns?
-
+	returnedScore += rand.Int31n(20) // Add randomness because gambling always makes people feel good
 	return returnedScore, nil
 }
 
