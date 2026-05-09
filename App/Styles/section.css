@@ -81,9 +81,9 @@
     width: 100%;
 }
 
+
 .section-page .section-bookmark {
     min-width: 44px;
-    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .section-page .side-content {

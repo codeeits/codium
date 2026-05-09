@@ -226,6 +226,25 @@
         "right-bar": {
             "content": "Content",
             "keypoints": "Key Points"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Start section"
+            },
+            "stats": {
+                "title": "Statistics",
+                "total-progress": "Total progress",
+                "finished-lessons": "Finished lessons",
+                "in-progress-lessons": "In progress lessons",
+                "remaining-lessons": "Remaining lessons",
+
+                "tips": {
+                    "tip-1": "The section is completely finished. Excellent!",
+                    "tip-2": "You have finished almost everything. There is only one thing left to complete!",
+                    "tip-3": "Start the first activity to begin the progress.",
+                    "tip-4": "Continue the section to increase the progress."
+                }
+            }
         }
     },
 

@@ -226,6 +226,25 @@
         "right-bar": {
             "content": "Cuprins",
             "keypoints": "De reținut"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Începe secțiunea"
+            },
+            "stats": {
+                "title": "Statistici",
+                "total-progress": "Progres total",
+                "finished-lessons": "Finalizate",
+                "in-progress-lessons": "În desfășurare",
+                "remaining-lessons": "Rămase",
+                
+                "tips": {
+                    "tip-1": "Secțiunea este complet finalizată. Excelent!",
+                    "tip-2": "Ai finalizat aproape tot. Mai rămâne să închei ce este în desfășurare!",
+                    "tip-3": "Porneste prima activitate pentru a incepe progresul.",
+                    "tip-4": "Continua sectiunea pentru a creste progresul."
+                }
+            }
         }
     },
 

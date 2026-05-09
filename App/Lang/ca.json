@@ -226,6 +226,25 @@
         "right-bar": {
             "content": "Contingut",
             "keypoints": "Punts clau"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Comença la secció"
+            },
+            "stats": {
+                "title": "Estadístiques",
+                "total-progress": "Progrés total",
+                "finished-lessons": "Finalizades",
+                "in-progress-lessons": "En curs",
+                "remaining-lessons": "Pendents",
+                
+                "tips": {
+                    "tip-1": "La secció està completament finalitzada. Excel·lent!",
+                    "tip-2": "Has finalitzat gairebé tot. Només et queda acabar el que està en curs!",
+                    "tip-3": "Comença la primera activitat per començar el progrés.",
+                    "tip-4": "Continua la secció per augmentar el progrés."
+                }
+            }
         }
     },
 

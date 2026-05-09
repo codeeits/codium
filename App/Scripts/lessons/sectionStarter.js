@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.noProblems = state.allProblemData.total;
         window.StateEngine.state.sectionStarterData.noProblems = state.noProblems;
 
-        state.noTests = 10; // Placeholder, as we don't have tests yet
+        state.noTests = 0; // Placeholder, as we don't have tests yet
         window.StateEngine.state.sectionStarterData.noTests = state.noTests;
 
         console.log(state.allLessonData);
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.metaNoTests.previousElementSibling.style.display = 'none';
             }
 
-            const container = document.querySelector('.resumee-tests');
+            const container = document.querySelector('.resumee-teste');
             if (container) {
                 container.style.display = 'none';
             }
@@ -307,13 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (elements.statsHint) {
             if (pending === 0 && progress === 0) {
-                elements.statsHint.textContent = 'Sectiunea este complet finalizata. Excelent!';
+                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-1}}';
             } else if (pending === 0) {
-                elements.statsHint.textContent = 'Ai finalizat aproape tot. Mai ramane sa inchei ce este in desfasurare.';
+                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-2}}';
             } else if (done === 0 && progress === 0) {
-                elements.statsHint.textContent = 'Porneste prima activitate pentru a incepe progresul.';
+                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-3}}';
             } else {
-                elements.statsHint.textContent = 'Continua sectiunea pentru a creste progresul.';
+                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-4}}';
             }
         }
     }
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', setResponsiveGroupDefaults);
     }
 
-    function initBookmark() {
+    async function initBookmark() {
         if (!elements.bookmarkButton) {
             return;
         }
@@ -402,15 +402,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        let currentState = localStorage.getItem(elements.storageKey) === 'true';
-        updateButtonUI(currentState);
+        let currentState = false;
 
-        elements.bookmarkButton.addEventListener('click', () => {
-            currentState = !currentState; 
-            
-            localStorage.setItem(elements.storageKey, String(currentState));
-            
+        try {
+            elements.bookmarkButton.disabled = true;
+            currentState = await window.apiService.lessons.getBookmarkStatus(state.lessonId);
             updateButtonUI(currentState);
+        } catch (error) {
+            console.error("Failed to load initial bookmark status:", error);
+        } finally {
+            elements.bookmarkButton.disabled = false;
+        }
+
+        elements.bookmarkButton.addEventListener('click', async () => {
+            try {
+                elements.bookmarkButton.disabled = true;
+                
+                await window.apiService.lessons.modifyBookmark(state.lessonId);
+                
+                currentState = !currentState; 
+                updateButtonUI(currentState);
+                
+            } catch (error) {
+                console.error("Failed to modify bookmark:", error);
+            } finally {
+                elements.bookmarkButton.disabled = false;
+            }
         });
     }
 
