@@ -438,5 +438,66 @@
         "4": "Biology",
         "5": "English",
         "6": "Mathematics"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "You completed the lesson!"
+            },
+            "start": {
+                "placeholder": "You started the lesson!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "You completed the lesson!"
+            }
+        },
+        "toasts": {
+            "page-not-implemented": "Page not yet implemented.",
+            "login-success": "Login successful!",
+            "login-failed": "Login failed: ",
+            "passwords-dont-match": "Passwords do not match.",
+            "account-created": "Account created successfully!",
+            "account-creation-failed": "Account creation failed: ",
+            "account-this-info-already-used": "This email or username is already in use.",
+            "logout-cancelled": "Logout cancelled.",
+            "edit-profile-success": "Profile updated successfully!",
+            "edit-profile-failed": "Profile update failed: ",
+            "delete-account-success": "Account deleted successfully.",
+            "delete-account-failed": "Account deletion failed: ",
+            "delete-account-cancelled": "Account deletion cancelled.",
+            "2fa-enabled": "Two-factor authentication enabled.",
+            "2fa-disabled": "Two-factor authentication has been disabled.",
+            "2fa-enabling-failed": "Enabling two-factor authentication failed: ",
+
+            "lesson_": "Lesson ",
+            "problem_": "Problem ",
+            "_bookmarked": "added to bookmarks.",
+            "_unbookmarked": "removed from bookmarks.",
+            "bookmark-failed": "Bookmark action failed: ",
+            "_favorited": " added to favorites.",
+            "_unfavorited": " removed from favorites.",
+            "favorite-failed": "Favorite action failed: ",
+            "_completed-in": " completed in ",
+            "_finished-section": "You finished the section!",
+            "url_": "The URL ",
+            "_lesson_": "of the lesson ",
+            "_problem_": "of the problem ",
+            "_copied-to-clipboard": " was copied to clipboard.",
+            "copy-failed": "Copying to clipboard failed: ",
+            "grading-solution": "Grading solution...",
+
+            "passed-tests": "Passed tests: ",
+            "you-need-to-be-authenticated-to-do-that": "You need to be authenticated to do that.",
+            "please-select-a-file": "Please select a file to submit your solution.",
+            "file-too-large": "The selected file exceeds the allowed size limit.",
+            "file-type-not-allowed": "The selected file type is not allowed. Please select a file with the .py extension.",
+            "file-reading-error": "An error occurred while reading the file. Please try again.",
+            "sending-error": "Error: ",
+            "problem-id-missing": "Problem ID is missing."
+        }
+
     }
 }

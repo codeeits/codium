@@ -438,5 +438,66 @@
         "4": "Biologia",
         "5": "Anglès",
         "6": "Matemàtiques"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "Has completat la lliçó!"
+            },
+            "start": {
+                "placeholder": "Has començat la lliçó!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "Has completat la lliçó!" 
+            }
+        },
+        "toasts": {
+            "page-not-implemented": "La pàgina encara no s'ha implementat.",
+            "login-success": "Sessió iniciada amb èxit!",
+            "login-failed": "L'inici de sessió ha fallat: ",
+            "passwords-dont-match": "Les contrasenyes no coincideixen.",
+            "account-created": "Compte creat amb èxit!",
+            "account-creation-failed": "La creació del compte ha fallat: ",
+            "account-this-info-already-used": "Aquest correu electrònic o nom d'usuari ja s'està utilitzant.",
+            "logout-cancelled": "Tancament de sessió cancel·lat.",
+            "edit-profile-success": "Perfil actualitzat amb èxit!",
+            "edit-profile-failed": "L'actualització del perfil ha fallat: ",
+            "delete-account-success": "Compte suprimit amb èxit.",
+            "delete-account-failed": "La supressió del compte ha fallat: ",
+            "delete-account-cancelled": "S'ha cancel·lat la supressió del compte.",
+            "2fa-enabled": "Autenticació en dos passos activada.",
+            "2fa-disabled": "L'autenticació en dos passos s'ha desactivat.",
+            "2fa-enabling-failed": "L'activació de l'autenticació en dos passos ha fallat: ",
+
+            "lesson_": "Lliçó ",
+            "problem_": "Problema ",
+            "_bookmarked": "afegit als elements desats.",
+            "_unbookmarked": "eliminat dels elements desats.",
+            "bookmark-failed": "L'acció de desar ha fallat: ",
+            "_favorited": " afegit a preferits.",
+            "_unfavorited": " eliminat de preferits.",
+            "favorite-failed": "L'acció d'afegir a preferits ha fallat: ",
+            "_completed-in": " completat en ",
+            "_finished-section": "Has acabat la secció!",
+            "url_": "L'URL ",
+            "_lesson_": "de la lliçó ",
+            "_problem_": "del problema ",
+            "_copied-to-clipboard": " s'ha copiat al porta-retalls.",
+            "copy-failed": "La còpia al porta-retalls ha fallat: ",
+            "grading-solution": "Avaluant la solució...",
+
+            "passed-tests": "Proves superades: ",
+            "you-need-to-be-authenticated-to-do-that": "Has d'iniciar sessió per a fer això.",
+            "please-select-a-file": "Si us plau, selecciona un fitxer per enviar la teva solució.",
+            "file-too-large": "El fitxer seleccionat supera el límit de mida permès.",
+            "file-type-not-allowed": "Aquest tipus de fitxer no està permès. Si us plau, selecciona un fitxer amb l'extensió .py.",
+            "file-reading-error": "S'ha produït un error en llegir el fitxer. Si us plau, torna-ho a provar.",
+            "sending-error": "Error: ",
+            "problem-id-missing": "Falta l'ID del problema."
+            
+        }
     }
 }
