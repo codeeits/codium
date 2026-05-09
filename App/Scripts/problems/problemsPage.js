@@ -307,12 +307,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function handleSubmission(inputFile, problemId) {
                 if (!isAuthenticated) {
-                    toastsLoader.showToast("Trebuie să fii autentificat pentru a trimite o soluție.", "error");
+                    toastsLoader.showToast("{{server_events.toasts.you-need-to-be-authenticated-to-do-that}}", "danger");
                     return;
                 }
                     
                 if (!inputFile || inputFile.files.length === 0) {
-                    toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "error");
+                    toastsLoader.showToast("{{server_events.toasts.please-select-a-file}}", "danger");
                     return;
                 }
 
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const file = inputFile.files[0];
 
                 if (file.size > 5 * 1024 * 1024) {
-                    toastsLoader.showToast("Dimensiunea fișierului depășește limita de 5MB.", "danger");
+                    toastsLoader.showToast("{{server_events.toasts.file-too-large}}", "danger");
                     throw new Error('File size exceeds the 5MB limit');
                 }
 
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const hasValidMimeType = validMimeTypes.includes(fileType);
 
                 if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
-                    toastsLoader.showToast("Tip de fișier neacceptat. Doar fișiere PY și C++ sunt permise.", "danger");
+                    toastsLoader.showToast("{{server_events.toasts.file-type-not-allowed}}", "danger");
                     throw new Error('Unsupported file type. Only PY and C++ files are allowed.');
                 }
 
@@ -342,17 +342,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     code = await file.text();
                     if (!code) throw new Error("File empty");
                 } catch (e) {
-                    toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "danger");
+                    toastsLoader.showToast("{{server_events.toasts.file-reading-error}}", "danger");
                     return;
                 }
 
                 if (!problemId) {
-                    toastsLoader.showToast("Nu am putut identifica problema curentă.", "danger");
+                    toastsLoader.showToast("{{server_events.toasts.problem-id-missing}}", "danger");
                     return;
                 }
 
                 try {
-                    toastsLoader.showToast("Se evaluează soluția...", "info");
+                    toastsLoader.showToast("{{server_events.toasts.grading-solution}}", "info");
 
                     const runResult = await window.apiService.problems.runCodeAgainstProblemTests(problemId, code);
                     
@@ -375,10 +375,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (percentage === 100) scoreClass = "confirm";
                     else if (percentage >= 50) scoreClass = "warning";
 
-                    toastsLoader.showToast(`Teste trecute: ${passed} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
+                    toastsLoader.showToast(`{{server_events.toasts.passed-tests}}${passed} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
 
                 } catch (error) {
-                    toastsLoader.showToast("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
+                    toastsLoader.showToast("{{server_events.toasts.sending-error}}" + (error.message || "A apărut o eroare la trimitere."), "danger");
                 }
             }
 

@@ -453,6 +453,51 @@
             "complete": {
                 "placeholder": "Ai finalizat lecția!"
             }
+        },
+        "toasts": {
+            "page-not-implemented": "Pagina nu a fost încă implementată.",
+            "login-success": "Autentificare reușită!",
+            "login-failed": "Autentificare eșuată: ",
+            "passwords-dont-match": "Parolele nu se potrivesc.",
+            "account-created": "Cont creat cu succes!",
+            "account-creation-failed": "Crearea contului a eșuat: ",
+            "account-this-info-already-used": "Acest e-mail sau nume de utilizator este deja folosit.",
+            "logout-cancelled": "Deconectare anulată.",
+            "edit-profile-success": "Profil actualizat cu succes!",
+            "edit-profile-failed": "Actualizarea profilului a eșuat: ",
+            "delete-account-success": "Cont șters cu succes.",
+            "delete-account-failed": "Ștergerea contului a eșuat: ",
+            "delete-account-cancelled": "Ștergerea contului a fost anulată.",
+            "2fa-enabled": "Autentificare în doi pași activată.",
+            "2fa-disabled": "Autentificare în doi pași a fost dezactivată.",
+            "2fa-enabling-failed": "Activarea autentificării în doi pași a eșuat: ",
+
+            "lesson_": "Lecție ",
+            "problem_": "Problemă ",
+            "_bookmarked": "adăugată la elemente salvate.",
+            "_unbookmarked": "eliminată din elemente salvate.",
+            "bookmark-failed": "Acțiunea de bookmark a eșuat: ",
+            "_favorited": " adăugată la favorite.",
+            "_unfavorited": " eliminată din favorite.",
+            "favorite-failed": "Acțiunea de favorite a eșuat: ",
+            "_completed-in": " finalizată în ",
+            "_finished-section": "Ai terminat secțiunea!",
+            "url_": "URL-ul ",
+            "_lesson_": "lecției ",
+            "_problem_": "problemei ",
+            "_copied-to-clipboard": " a fost copiat în clipboard.",
+            "copy-failed": "Copierea în clipboard a eșuat: ",
+            "grading-solution": "Se evaluează soluția...",
+
+            "passed-tests": "Teste trecute: ",
+            "you-need-to-be-authenticated-to-do-that": "Trebuie să fii autentificat pentru a face asta.",
+            "please-select-a-file": "Te rugăm să selectezi un fișier pentru a trimite soluția ta.",
+            "file-too-large": "Fișierul selectat depășește limita de dimensiune permisă.",
+            "file-type-not-allowed": "Tipul de fișier selectat nu este permis. Te rugăm să selectezi un fișier cu extensia .py.",
+            "file-reading-error": "A apărut o eroare la citirea fișierului. Te rugăm să încerci din nou.",
+            "sending-error": "Eroare: ",
+            "problem-id-missing": "ID-ul problemei lipsește."
+
         }
     }
 }

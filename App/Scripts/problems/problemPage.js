@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <p class="score ${scoreClass}">Teste trecute: ${score} / ${total} (${percentage.toFixed(2)}%)</p>
             `;
         } else {
-            toastsLoader.showToast(`Teste trecute: ${score} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
+            toastsLoader.showToast(`{{server_events.toasts.passed-tests}} ${score} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
         }
     }
 
@@ -191,17 +191,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Problem bookmarked", "confirm");
+                    toastsLoader.showToast("{{server_events.toasts.problem_}}{{server_events.toasts._bookmarked}}", "confirm");
                 } else {
                     elements.bookmarkBtn.classList.remove("primary");
                     elements.bookmarkBtn.classList.add("secondary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Bookmark removed", "info");
+                    toastsLoader.showToast("{{server_events.toasts.problem_}}{{server_events.toasts._unbookmarked}}", "info");
                 }
             });
         }).catch(error => {
             if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
-            toastsLoader.showToast("Failed to toggle bookmark", "danger");
+            toastsLoader.showToast("{{server_events.toasts.bookmark-failed}}", "danger");
         });
     }
 
@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function handleSubmission() {
         if (!isAuthenticated) {
-            toastsLoader.showToast("Trebuie să fii autentificat pentru a trimite o soluție.", "error");
+            toastsLoader.showToast("{{server_events.toasts.you-need-to-be-authenticated-to-do-that}}", "danger");
             return;
         }
 
@@ -415,18 +415,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (state.isNewUi) {
             // New UI: File Upload
-            toastsLoader.showToast("Trimiterea soluțiilor nu este încă disponibilă în noua interfață. Lucrăm la asta!", "info");
+            // toastsLoader.showToast("Trimiterea soluțiilor nu este încă disponibilă în noua interfață. Lucrăm la asta!", "info");
             
             const inputFile = elements.fileInput;
             if (!inputFile || inputFile.files.length === 0) {
-                toastsLoader.showToast("Te rugăm să selectezi un fișier înainte de a trimite.", "danger");
+                toastsLoader.showToast("{{server_events.toasts.please-select-a-file}}", "danger");
                 return;
             }
 
             const file = inputFile.files[0];
 
             if (file.size > 5 * 1024 * 1024) {
-                toastsLoader.showToast("Dimensiunea fișierului depășește limita de 5MB.", "danger");
+                toastsLoader.showToast("{{server_events.toasts.file-too-large}}", "danger");
                 throw new Error('File size exceeds the 5MB limit');
             }
 
@@ -440,7 +440,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const hasValidMimeType = validMimeTypes.includes(fileType);
 
             if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
-                toastsLoader.showToast("Tip de fișier neacceptat. Doar fișiere PY și C++ sunt permise.", "danger");
+                toastsLoader.showToast("{{server_events.toasts.file-type-not-allowed}}", "danger");
                 throw new Error('Unsupported file type. Only PY and C++ files are allowed.');
             }
 
@@ -448,14 +448,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 code = await file.text();
                 if (!code) throw new Error("File empty");
             } catch (e) {
-                toastsLoader.showToast("A apărut o eroare la citirea fișierului.", "danger");
+                toastsLoader.showToast("{{server_events.toasts.file-reading-error}}", "danger");
                 return;
             }
         } else {
             // Old UI: Text Area
             code = elements.codeEditor.value.trim();
             if (!code) {
-                toastsLoader.showToast("Scrie ceva cod înainte de a trimite.", "error");
+                // toastsLoader.showToast("Scrie ceva cod înainte de a trimite.", "error");
                 return;
             }
         }
@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             loadSolutionStats();
 
         } catch (error) {
-            toastsLoader.showToast("Eroare: " + (error.message || "A apărut o eroare la trimitere."), "error");
+            toastsLoader.showToast("{{server_events.toasts.sending-error}}" + (error.message || "A apărut o eroare la trimitere."), "danger");
         } finally {
             elements.submitBtn.disabled = false;
             elements.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Trimite';

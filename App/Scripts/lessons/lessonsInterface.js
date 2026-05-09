@@ -601,16 +601,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Lesson bookmarked", "confirm");
+                    //toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._bookmarked}}", "confirm");
                 } else {
                     elements.bookmarkBtn.classList.remove("primary");
                     elements.bookmarkBtn.classList.add("secondary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Bookmark removed", "info");
+                    //toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._unbookmarked}}", "info");
                 }
             }).catch(error => {
                 if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
-                toastsLoader.showToast("Failed to toggle bookmark", "danger");
+                toastsLoader.showToast("{{server_events.toasts.bookmark-failed}}", "danger");
             });
         }
     }
@@ -625,17 +625,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                     elements.bookmarkBtn.classList.remove("secondary");
                     elements.bookmarkBtn.classList.add("primary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Lesson bookmarked", "confirm");
+                    toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._bookmarked}}", "confirm");
                 } else {
                     elements.bookmarkBtn.classList.remove("primary");
                     elements.bookmarkBtn.classList.add("secondary");
                     elements.bookmarkBtn.innerHTML = "<i class='fas fa-bookmark'></i>";
-                    toastsLoader.showToast("Bookmark removed", "info");
+                    toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._unbookmarked}}", "info");
                 }
             });
         }).catch(error => {
             if (debugMode) console.error("[DEBUG] Bookmark toggle failed:", error);
-            toastsLoader.showToast("Failed to toggle bookmark", "danger");
+            toastsLoader.showToast("{{server_events.toasts.bookmark-failed}}", "danger");
         });
     }
 
@@ -645,12 +645,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             const isFavorited = result.Favorited;
             
             if (isFavorited) {
-                toastsLoader.showToast("Lesson added to favorites", "confirm");
+                toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._favorited}}", "confirm");
                 elements.favoriteBtn.classList.remove("secondary");
                 elements.favoriteBtn.classList.add("primary");
                 elements.favoriteBtn.innerHTML = "<i class='fas fa-heart'></i>";
             } else {
-                toastsLoader.showToast("Removed from favorites", "info");
+                toastsLoader.showToast("{{server_events.toasts.lesson_}}{{server_events.toasts._unfavorited}}", "info");
                 elements.favoriteBtn.classList.remove("primary");
                 elements.favoriteBtn.classList.add("secondary");
                 elements.favoriteBtn.innerHTML = "<i class='fas fa-heart'></i>";
@@ -664,7 +664,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         }).catch(error => {
             if (debugMode) console.error("[DEBUG] Favorite toggle failed:", error);
-            toastsLoader.showToast("Failed to toggle favorite", "danger");
+            toastsLoader.showToast("{{server_events.toasts.favorite-failed}}", "danger");
         });
     }
 
@@ -680,7 +680,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             const d = await window.apiService.lessons.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
-            toastsLoader.showToast(`Lesson completed in ${d}`, "confirm");
+            toastsLoader.showToast(`{{server_events.toasts.lesson_}}{{server_events.toasts._completed-in}}${d}`, "confirm");
             
             // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
             await new Promise(resolve => setTimeout(resolve, 3000));
@@ -720,7 +720,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             triggerConfetti({ particleCount: 120, duration: 3000 });
             
-            toastsLoader.showToast(`Lesson completed in ${d}. You finished the section!`, "confirm");
+            toastsLoader.showToast(`{{server_events.toasts.lesson_}}{{server_events.toasts._completed-in}}${d}. {{server_events.toasts._finished-section}}`, "confirm");
             
             // Wait for confetti to finish before navigating
             await new Promise(resolve => setTimeout(resolve, 3300));
@@ -743,15 +743,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (navigator.share) {
                 navigator.share(shareData).catch(error => {
                     if (debugMode) console.error("Share failed:", error);
-                    // toastsLoader.showToast("Failed to share the lesson", "danger"); - we can get false negatives from navigator.share, so we won't show a toast in this case
+                    // we can get false negatives from navigator.share,
+                    // so we won't show a toast in this case
+                    // toastsLoader.showToast("Failed to share the lesson", "danger");
                 });
             } else {
                 // Fallback: copy URL to clipboard
                 navigator.clipboard.writeText(window.location.href).then(() => {
-                    toastsLoader.showToast("Lesson URL copied to clipboard", "confirm");
+                    toastsLoader.showToast("{{server_events.toasts.url_}}{{server_events.toasts._lesson_}}{{server_events.toasts._copied-to-clipboard}}", "confirm");
                 }).catch(error => {
                     if (debugMode) console.error("Clipboard copy failed:", error);
-                    toastsLoader.showToast("Failed to copy URL", "danger");
+                    toastsLoader.showToast("{{server_events.toasts.copy-failed}}", "danger");
                 });
             }
         });

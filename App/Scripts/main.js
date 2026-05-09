@@ -380,7 +380,7 @@ async function loadSidebar() {
                 const href = item.getAttribute('href');
                 if (href && href === '#') {
                     item.onclick = () => {
-                        toastsLoader.showToast('Page not implemented yet', 'warning');
+                        toastsLoader.showToast('{{server_events.toasts.page-not-implemented}}', 'warning');
                     };
                 }
             });
@@ -698,11 +698,11 @@ async function handleLogin(formElement) {
 
     ModalHelpers.LoginPopup.performLogin(data, { engine }).then(() => {
         localStorage.setItem('codium_session_active', 'true');
-        toastsLoader.showToast('Login successful!', 'confirm');
+        toastsLoader.showToast('{{server_events.toasts.login-success}}', 'confirm');
         updateAuthButton();
     }).catch(err => {
         console.error('Login failed:', err);
-        toastsLoader.showToast(`Login failed: ${err.message}`, 'danger');
+        toastsLoader.showToast('{{server_events.toasts.login-failed}}', 'danger');
     });
 
 }
@@ -749,18 +749,18 @@ function handleSignup(formElement) {
     }
 
     if (data.password !== data.confirm_password) {
-        toastsLoader.showToast('Passwords do not match', 'danger');
+        toastsLoader.showToast('{{server_events.toasts.passwords-dont-match}}', 'danger');
         return;
     }
 
     console.log(data);
 
     ModalHelpers.SignupPopup.performSignup(data).then(() => {
-        toastsLoader.showToast('Signup!', 'confirm', 5000);
+        toastsLoader.showToast('{{server_events.toasts.account-created}}', 'confirm', 5000);
         updateAuthButton();
     }).catch(err => {
         console.log(err);
-        toastsLoader.showToast(`Signup failed: ${err.message}`, 'danger');
+        toastsLoader.showToast('{{server_events.toasts.account-creation-failed}}', 'danger');
     })
 }
 
@@ -866,6 +866,8 @@ async function initApp() {
     window.addEventListener('codium:server-toast', (event) => { 
         const { textKey, type, xpGained } = event.detail || {};
 
+        /* We might not need following function now that we transitioned to automatically translate toasts, but I am keeping it in case
+        */
         const getVal = (key) => {
             if (!key) return null;
             return key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations);

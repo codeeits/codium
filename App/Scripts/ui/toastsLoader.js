@@ -27,6 +27,7 @@ export class ToastsLoader {
         if (type === 'error') {
             type = 'danger';
         }
+        if (type === 'success') type = 'confirm';
 
         const validTypes = ['info', 'danger', 'confirm', 'warning'];
         if (!validTypes.includes(type)) {
@@ -45,10 +46,19 @@ export class ToastsLoader {
             duration = 3000;
         }
         
+        let finalMessage = message;
+        if (window.currentTranslations) {
+            finalMessage = finalMessage.replace(/\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}/g, (match, key) => {
+                const val = key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations);
+                return val !== undefined ? val : match;
+            });
+        }
+        console.log(`Showing toast: "${finalMessage}" (type: ${type}, duration: ${duration}ms)`);   
+
         const toast = document.createElement('div');
         const bodyEl = document.createElement('p');
         const iconEl = document.createElement('i');
-        bodyEl.textContent = message;
+        bodyEl.textContent = finalMessage;
         toast.appendChild(bodyEl);
 
         toast.className = `card-t toast toast-${type}`;
@@ -62,6 +72,11 @@ export class ToastsLoader {
 
         iconEl.className = iconMap[type];
         toast.appendChild(iconEl);
+
+        // translate the message if it contains placeholders
+        if (typeof window.applyTranslations === 'function') {
+            window.applyTranslations(toast);
+        }
 
         this.toastsContainer.appendChild(toast);
 

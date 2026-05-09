@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.apiService.users.logout();
                 },
                 onCancel: () => {
-                    toastsLoader.showToast('Logout cancelled.', 'info', 2500);
+                    toastsLoader.showToast('{{server_events.toasts.logout-cancelled}}', 'info', 2500);
                 }
             });
         });
@@ -341,11 +341,11 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('Updating profile with data:', updateData);
 
         ModalHelpers.EditProfile.updateProfileData(updateData).then(() => {
-            toastsLoader.showToast('Profile updated successfully!', 'success', 3000);
+            toastsLoader.showToast('{{server_events.toasts.edit-profile-success}}', 'success', 3000);
             fetchUserData(); // Refresh user data to reflect changes
         }).catch(error => { 
             console.error('Error updating profile:', error);
-            toastsLoader.showToast(`Error updating profile: ${error.message}`, 'error', 5000);
+            toastsLoader.showToast('{{server_events.toasts.edit-profile-failed}}', 'error', 5000);
         });
 
     }
@@ -633,17 +633,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 onConfirm: async () => {
                     try {
                         await window.apiService.users.deleteAccount();
-                        toastsLoader.showToast('Account deleted successfully. Redirecting...', 'success', 3000);
+                        toastsLoader.showToast('{{server_events.toasts.delete-account-success}}', 'success', 3000);
                         setTimeout(() => {
                             window.apiService.users.logout();
                         }, 3000);
                     } catch (error) {
                         console.error('Error deleting account:', error);
-                        toastsLoader.showToast(`Error deleting account: ${error.message}`, 'error', 5000);
+                        toastsLoader.showToast('{{server_events.toasts.delete-account-failed}}', 'error', 5000);
                     }
                 },
                 onCancel: () => {
-                    toastsLoader.showToast('Account deletion cancelled.', 'info', 2500);
+                    toastsLoader.showToast('{{server_events.toasts.delete-account-cancelled}}', 'info', 2500);
                 }
             });
         });
@@ -687,11 +687,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         elements.tfaRow?.remove();
                         elements.tfaRow = null;
                         elements.tfa = null;
-                        toastsLoader.showToast('Two-factor authentication disabled successfully.', 'confirm', 3000);
+                        toastsLoader.showToast('{{server_events.toasts.2fa-disabled}}', 'confirm', 3000);
                         fetchUserData();
                     }).catch(error => {
                         console.error('Error disabling two-factor authentication:', error);
-                        toastsLoader.showToast(`Error disabling two-factor authentication: ${error.message || 'Unknown error'}`, 'error', 5000);
+                        toastsLoader.showToast(`{{server_events.toasts.2fa-enabling-failed}} ${error.message || 'Unknown error'}`, 'error', 5000);
                     });
                 }
             });
@@ -728,10 +728,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const totpCode = totpInput?.value?.trim() || '';
         
         ModalHelpers.totpSetup.performTotpSetup({ totpCode }).then(() => {
-            toastsLoader.showToast('Two-factor authentication setup successfully!', 'confirm', 3000);
+            toastsLoader.showToast('{{server_events.toasts.2fa-enabled}}', 'confirm', 3000);
         }).catch(error => {
             console.error('Error setting up two-factor authentication:', error);
-            toastsLoader.showToast(`Error setting up two-factor authentication: ${error.message}`, 'danger', 5000);
+            toastsLoader.showToast(`{{server_events.toasts.2fa-enabling-failed}} ${error.message || 'Unknown error'}`, 'danger', 5000);
         });
     }
 

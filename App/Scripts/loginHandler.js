@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
-        toastsLoader.showToast('Login successful, redirecting...', 'confirm');
+        toastsLoader.showToast('{{server_events.toasts.login-success}}', 'confirm');
         
         // Refresh auth button if available
         if (window.refreshAuthButton) {
