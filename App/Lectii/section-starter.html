@@ -42,12 +42,12 @@
                         </p>
                     </div>
                     <div class="section-meta" aria-label="Metadate secțiune">
-                        <span class="no-style section-meta-lessons"><i class="fa-solid fa-lines-leaning"></i> {[noLessons]} {{lowercase.lessons}}</span>                        
+                        <span class="no-style section-meta-lessons"><i class="fa-solid fa-lines-leaning"></i> {[sectionStarterData.noLessons]} {{lowercase.lessons}}</span>                        
                         <span class="no-style separator">&#8226;</span>
-                        <span class="no-style section-meta-tests"><i class="fa-solid fa-list-check"></i> {[noTests]} {{lowercase.tests}}</span>
+                        <span class="no-style section-meta-tests"><i class="fa-solid fa-list-check"></i> {[sectionStarterData.noTests]} {{lowercase.tests}}</span>
                         <span class="no-style separator">&#8226;</span>
                         
-                        <span class="no-style section-meta-probleme"><i class="fa-solid fa-dumbbell"></i> {[noProblems]} {{lowercase.probleme}}</span>
+                        <span class="no-style section-meta-probleme"><i class="fa-solid fa-dumbbell"></i> {[sectionStarterData.noProblems]} {{lowercase.probleme}}</span>
                         
                         <span class="no-style separator">&#8226;</span>
                         <span class="no-style section-meta-reward"><i class="fa-solid fa-cookie-bite"></i> +50000</span>
@@ -105,19 +105,19 @@
                         <!-- REPLACED: All hardcoded '0's are now StateEngine placeholders -->
                         <div class="stats-item">
                             <span class="stats-label">Progres total</span>
-                            <strong class="stats-value" id="stat-progress-value">{[progressPercentage]}%</strong>
+                            <strong class="stats-value" id="stat-progress-value">{[sectionStarterData.progressPercentage]}%</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">Finalizate</span>
-                            <strong class="stats-value" id="stat-completed-value">{[completedValue]}</strong>
+                            <strong class="stats-value" id="stat-completed-value">{[sectionStarterData.completedValue]}</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">În desfășurare</span>
-                            <strong class="stats-value" id="stat-progressing-value">{[progressingValue]}</strong>
+                            <strong class="stats-value" id="stat-progressing-value">{[sectionStarterData.progressingValue]}</strong>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">Rămase</span>
-                            <strong class="stats-value" id="stat-pending-value">{[pendingValue]}</strong>
+                            <strong class="stats-value" id="stat-pending-value">{[sectionStarterData.pendingValue]}</strong>
                         </div>
                     </div>
                     <div class="stats-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progres secțiune">

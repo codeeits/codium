@@ -135,11 +135,19 @@
 @keyframes buttonHoverLift {
     0% {
         transform: translateY(0);
-        box-shadow: var(--base-card-shadow);
+        
     }
     100% {
         transform: translateY(-3px);
-        box-shadow: var(--primary-shadow);
+    }
+}
+
+@keyframes buttonHoverLower {
+    from {
+        transform: translateY(-3px);
+    }
+    to {
+        transform: translateY(0);
     }
 }
 
@@ -170,6 +178,15 @@
     }
     to {
         transform: rotate(45deg);
+    }
+}
+
+@keyframes iconRotateBack {
+    from {
+        transform: rotate(45deg);
+    }
+    to {
+        transform: rotate(0deg);
     }
 }
 
@@ -222,9 +239,11 @@
     animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) 100ms backwards;
 }
 
+/*
 .header-icons button {
     animation: scaleIn var(--anim-duration-normal) var(--anim-ease-out-bounce) calc(200ms + (var(--button-index, 0) * 50ms)) backwards;
 }
+*/
 
 /* Content animations */
 .lesson-body {
@@ -267,7 +286,7 @@
 
 /* Button interactions */
 .btn {
-    transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
+    animation: buttonHoverLower var(--anim-duration-fast) var(--anim-ease-out) forwards;
 }
 
 .btn:hover {
@@ -281,7 +300,8 @@
 /* Icon interactions */
 .btn i,
 .header-icons i {
-    transition: transform var(--anim-duration-fast) var(--anim-ease-in-out);
+    /* transition: transform var(--anim-duration-fast) var(--anim-ease-in-out); */
+    animation: iconRotateBack var(--anim-duration-fast) var(--anim-ease-out) forwards;
 }
 
 .btn:hover i {

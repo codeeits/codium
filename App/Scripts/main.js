@@ -65,17 +65,57 @@ const StateEngine = {
     
     init(initialData = {}) {
         this.compileStatePlaceholders(document.body);
+        this.state = this._createDeepProxy(initialData, '');
 
-        this.state = new Proxy(initialData, {
-            set: (target, property, value) => {
-                target[property] = value;
-                this.updateBoundElements(property, value);
+        this.updateAllBoundElements(initialData);
+    },
+
+    _createDeepProxy(target, pathPrefix) {
+        return new Proxy(target, {
+            get: (obj, prop) => {
+                const value = obj[prop];
+                if ( value !== null && typeof value === 'object' ) {
+                    const newPrefix = pathPrefix ? `${pathPrefix}.${prop}` : prop;
+                    return this._createDeepProxy(value, newPrefix);
+                }
+                return value;
+            },
+            set: (obj, prop, value) => {
+                obj[prop] = value;
+                const fullPath = pathPrefix ? `${pathPrefix}.${prop}` : prop;
+                this.updateBoundElements(fullPath, value);
+                
+                if (typeof value === 'object') {
+                    this._updateChildren(fullPath, value);
+                }
                 return true;
             }
         });
+    },
 
-        Object.keys(initialData).forEach(key => {
-            this.updateBoundElements(key, initialData[key]);
+    _resolvePath(obj, path) {
+        return path.split('.').reduce((previous, current) => previous?.[current], obj);
+    },
+
+    _updateChildren(parentPath, obj) {
+        Object.keys(obj).forEach(key => {
+            const currentPath = `${parentPath}.${key}`;
+            const value = obj[key];
+            if (typeof value === 'object' && value !== null) {
+                this._updateChildren(currentPath, value);
+            } else {
+                this.updateBoundElements(currentPath, value);
+            }
+        });
+    },
+
+    updateAllBoundElements(data) {
+        document.querySelectorAll('[data-bind]').forEach(el => {
+            const path = el.getAttribute('data-bind');
+            const value = this._resolvePath(data, path);
+            if (value !== undefined) {
+                el.textContent = value;
+            }
         });
     },
 
@@ -109,7 +149,7 @@ const StateEngine = {
 
                 const span = document.createElement('span');
                 span.className = 'no-style';
-                span.setAttribute('data-bind', match[1]);
+                span.setAttribute('data-bind', match[1]); // e.g. data-bind="sectionStarterData.progressPercentage"
                 fragment.appendChild(span);
 
                 lastIndex = match.index + match[0].length;

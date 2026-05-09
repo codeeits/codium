@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         interactions: null,
         noLessons: 0,
         noProblems: 0,
+        noTests: 0,
         summaryItems: []
     };
 
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         metaNoLessons: document.querySelector('.section-meta-lessons'),
         metaNoProblems: document.querySelector('.section-meta-probleme'),
+        metaNoTests: document.querySelector('.section-meta-tests'),
 
         bookmarkButton: document.querySelector('.section-bookmark'),
         startButton: document.querySelector('.section-start-btn'),
@@ -73,10 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         state.noLessons = state.allLessonData.length;
-        window.StateEngine.state.noLessons = state.noLessons;
+        window.StateEngine.state.sectionStarterData.noLessons = state.noLessons;
 
         state.noProblems = state.allProblemData.total;
-        window.StateEngine.state.noProblems = state.noProblems;
+        window.StateEngine.state.sectionStarterData.noProblems = state.noProblems;
+
+        state.noTests = 10; // Placeholder, as we don't have tests yet
+        window.StateEngine.state.sectionStarterData.noTests = state.noTests;
 
         console.log(state.allLessonData);
 
@@ -100,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.sectionDescription.textContent = Description?.String;
         }
 
-        let image = null;
+        let image = window.apiService.getPatternUrl(state.starterLessonData.lesson.ID);
         if (ThumbnailID) {
             image = window.apiService.files.getFileUrl(ThumbnailID);
         }
@@ -112,11 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
             //elements.sectionImage.style.display = 'none';
         }
 
-        console.warn('Număr probleme în secțiune:', window.StateEngine.state.noProblems);
-        if (elements.metaNoProblems && window.StateEngine.state.noProblems === 0) {
+        if (elements.metaNoProblems && window.StateEngine.state.sectionStarterData.noProblems === 0) {
             elements.metaNoProblems.style.display = 'none';
             if(elements.metaNoProblems.previousElementSibling) {
                 elements.metaNoProblems.previousElementSibling.style.display = 'none';
+            }
+
+            const container = document.querySelector('.resumee-problems');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+
+        if (elements.metaNoTests && window.StateEngine.state.sectionStarterData.noTests === 0) {
+            elements.metaNoTests.style.display = 'none';
+            if(elements.metaNoTests.previousElementSibling) {
+                elements.metaNoTests.previousElementSibling.style.display = 'none';
+            }
+
+            const container = document.querySelector('.resumee-tests');
+            if (container) {
+                container.style.display = 'none';
             }
         }
 
@@ -271,10 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = state.summaryItems.length || 1;
         const percentage = Math.round(((done + progress * 0.5) / total) * 100);
 
-        window.StateEngine.state.progressPercentage = percentage;
-        window.StateEngine.state.completedValue = done;
-        window.StateEngine.state.progressingValue = progress;
-        window.StateEngine.state.pendingValue = pending;
+        window.StateEngine.state.sectionStarterData.progressPercentage = percentage;
+        window.StateEngine.state.sectionStarterData.completedValue = done;
+        window.StateEngine.state.sectionStarterData.progressingValue = progress;
+        window.StateEngine.state.sectionStarterData.pendingValue = pending;
 
         if (elements.progressFill) {
             elements.progressFill.style.width = `${percentage}%`;
@@ -419,12 +440,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.StateEngine) {
             window.StateEngine.init({
-                noLessons: 0,
-                noProblems: 0,
-                progressPercentage: 0,
-                completedValue: 0,
-                progressingValue: 0,
-                pendingValue: 0
+                sectionStarterData: {
+                    noLessons: 0,
+                    noProblems: 0,
+                    noTests: 0, // Placeholder, as we don't have tests yet
+                    progressPercentage: 0,
+                    completedValue: 0,
+                    progressingValue: 0,
+                    pendingValue: 0
+                }
             });
         }
 
