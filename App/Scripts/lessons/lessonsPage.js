@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const diffText = card.querySelector('.difficulty-text');
             if(diffText && lesson.difficulty){
-                diffText.textContent = lesson.difficulty;
-                diffText.dataset.i18n = `difficulty.${lesson.difficulty.toLowerCase()}`;
+                diffText.textContent = '{{' + `difficulty.${lesson.difficulty.toLowerCase()}` + '}}';
+                // diffText.dataset.i18n = `difficulty.${lesson.difficulty.toLowerCase()}`;
             }
 
             const openLesson = () => {
@@ -222,6 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             filters.class.appendChild(btn);
         });
+
+        window.applyTranslations(filters.class);
     }
 
     function applyBtnStyle(btn, isActive) {

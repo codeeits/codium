@@ -1018,6 +1018,7 @@ main, .content-area {
     align-items: center;
     gap: var(--gap-sm);
     color: var(--confirm);
+    margin-top: auto;
 }
 
 .difficulty-icon {

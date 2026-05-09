@@ -165,13 +165,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Optional difficulty text update
             const diffText = card.querySelector('.difficulty-text');
-            if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;
+            if(diffText && problem.tag_translation.difficulty >= 0) {
+                diffText.dataset.i18n = `difficulty.${normalizeDifficulty(problem)}`;
+            }
 
             const openProblem = () => {
                 window.location.href = `/app/Probleme/problem2.html?id=${problem.problem.ID}`;
             };
 
             makeElementKeyboardActivatable(card, openProblem, 'link');
+
+            if (typeof window.applyTranslations === 'function') {
+                window.applyTranslations(card);
+            }
 
             problemsGridContainer.appendChild(card);
         });
@@ -207,7 +213,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const diffText = card.querySelector('.feed-card-difficulty-pill');
-            if(diffText && problem.tag_translation.difficulty>=0) diffText.textContent = problem.tag_translation.difficulty;
+            if(diffText && problem.tag_translation.difficulty>=0) {
+                diffText.dataset.i18n = `difficulty.${normalizeDifficulty(problem)}`;
+            }
             
             const title = card.querySelector('.feed-card-title');
             if (title) title.textContent = problem.problem.Title;
@@ -281,6 +289,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     handleSubmission(fileInput, problem.problem.ID);
                 });
                 console.log("Initialized drag-and-drop for problem ID:", problem.problem.ID);
+            }
+
+            if (typeof window.applyTranslations === 'function') {
+                window.applyTranslations(card);
             }
 
             problemsFeedContainer.appendChild(card);
@@ -396,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const allBtn = templateBtn.cloneNode(true);
         allBtn.classList.remove('template', 'hidden');
         allBtn.id = ""; // Remove ID to avoid duplicates
-        allBtn.textContent = "Toate";
+        allBtn.dataset.i18n = "problems-page.all-filter";
         allBtn.dataset.class = "all";
         
         applyBtnStyle(allBtn, currentFilters.class === 'all');
@@ -434,6 +446,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             filters.class.appendChild(btn);
         });
+
+        window.applyTranslations(filters.class);
     }
 
     // Helper to style a single button
