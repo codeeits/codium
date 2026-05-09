@@ -1,6 +1,10 @@
-/*
-
-*/
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    animateProgress,
+    bouncElement,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -177,6 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         state.summaryItems = Array.from(container.querySelectorAll('.resumee-element__element'));
+
+        if (!prefersReducedMotion() && state.summaryItems.length > 0) {
+            applyStaggeredAnimation(state.summaryItems, 'fadeInUp', {
+                staggerDelay: 40,
+                baseDelay: 200
+            });
+        }
     }
 
     function populateProblemsSide() {
@@ -194,25 +205,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state.allProblemData.total !== 0) {
             state.allProblemData.filteredProblems.forEach((problem) => {
-            const clone = temp.cloneNode(true);
-            const titleEl = clone.querySelector('span');
+                const clone = temp.cloneNode(true);
+                const titleEl = clone.querySelector('span');
 
-            if (titleEl) {
-                titleEl.textContent = problem.problem.Title;
+                if (titleEl) {
+                    titleEl.textContent = problem.problem.Title;
+                }
+
+                clone.dataset.problemId = problem.problem.ID;
+
+                applyStatus(clone, 'pending'); 
+                setupItemNavigation(clone); 
+                
+                container.appendChild(clone);
+            });
+
+            const problemItems = Array.from(container.querySelectorAll('.resumee-element__element'));
+            if (!prefersReducedMotion() && problemItems.length > 0) {
+                applyStaggeredAnimation(problemItems, 'fadeInUp', {
+                    staggerDelay: 40,
+                    baseDelay: 350 // Adjusted base delay to come after lessons animation
+                });
             }
-
-            clone.dataset.problemId = problem.problem.ID;
-
-            // const interaction = state.problemInteractions.find(i => i.ProblemID === problem.problem.ID);
-            // const uiStatus = mapParsedStatusToUI(interaction?.ParsedStatus);
-            applyStatus(clone, 'pending'); // No interactions for problems yet, default to pending
-            
-            setupItemNavigation(clone); // If problems also navigate somewhere
-            
-            container.appendChild(clone);
-        });
         }
-
     }
 
     /* */
@@ -448,11 +463,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
             nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
             nextTarget.classList.add('is-highlighted');
+
+            /* lmao why not */
+            if (!prefersReducedMotion()) {
+                bouncElement(nextTarget, { duration: 'var(--anim-duration-slow)' });
+            }
+
             nextTarget.focus({ preventScroll: true });
             window.setTimeout(() => nextTarget.classList.remove('is-highlighted'), 900);
         });
     }
     
+    function setupEntranceAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const leftElements = document.querySelectorAll('.left-meta__1 > *, .section-meta, .section-buttons');
+        if (leftElements.length > 0) {
+            cascadeEntrance(leftElements, 'fade', { staggerDelay: 80, baseDelay: 100 });
+        }
+
+        if (elements.sectionImage) {
+            elements.sectionImage.style.animation = 'scaleIn var(--anim-duration-slow) var(--anim-ease-out) backwards';
+        }
+
+        const sideCards = document.querySelectorAll('.side-content .card');
+        if (sideCards.length > 0) {
+            cascadeEntrance(sideCards, 'slide', { staggerDelay: 150, baseDelay: 200 });
+        }
+    }
+
     async function init() {
 
         if (window.StateEngine) {
@@ -475,6 +514,9 @@ document.addEventListener('DOMContentLoaded', () => {
         initGroups();
         initBookmark();
         initStartButton();
+        
+        setupEntranceAnimations();
     }
+    
     init();
 });

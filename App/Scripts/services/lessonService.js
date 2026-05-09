@@ -29,10 +29,16 @@ export class LessonService {
     }
 
     async getLessonsByFlags(classNum = null, section = null, module = null) {
+        if (classNum === null && section === null && module === null) {
+            console.warn("requires at least one flag to filter lessons");
+            return [];
+        }
+
         const params = new URLSearchParams({ search_type: 'flags' });
         if (classNum !== null) params.append('class', classNum);
         if (section !== null) params.append('section', section);
         if (module !== null) params.append('module', module);
+
         return this.api.get(`/api/lessons?${params.toString()}`, false);
     }
 
@@ -44,98 +50,52 @@ export class LessonService {
         //console.log(`[DEBUG] lessonsData:`, lessonsData);
 
         if (!Array.isArray(lessonsData) || lessonsData.length === 0) {
-            console.warn("[WARN] No lessons found for given flags.");
+            if (debug) console.warn("[WARN] No lessons found for given flags.");
             return [];
         }
 
-        let lessons = [];
+        const lessonMap = new Map(lessonsData.map(lesson => [lesson.lesson.ID, lesson]));
         let startLesson = null;
-        let nextId = null;
-
-        // attempt to find a section starter (if not in debug mode)
 
         if (!debug) {
-            const sectionStarter = lessonsData.find(lesson => {
+            startLesson = lessonsData.find(lesson => {
                 const starter = lesson.lesson.SectionStarter;
-                let valid = false;
-
-                if (typeof starter === 'boolean') {
-                    valid = starter === true;
-                } else if (starter && typeof starter === 'object') {
-                    valid = starter.Valid && starter.Int32 === section;
-                }
-
-                /*console.log(`[DEBUG] Checking lesson ${lesson.lesson.ID} for section starter:`, {
-                    sectionStarter: starter,
-                    valid,
-                    targetSection: section
-                });*/
-
-                return valid;
-            });
-
-            if (sectionStarter) {
-                //console.log(`[DEBUG] Found section starter:`, sectionStarter);
-                startLesson = sectionStarter;
-            } else {
-                console.log(`[DEBUG] No section starter found for section ${section}, falling back to first lesson in chain.`);
-            }
-        }
-
-        // fallback (also used when debug === true)
-        if (!startLesson) {
-            startLesson = lessonsData.find(lesson =>
-                !lesson.lesson.PrevLessonID || lesson.lesson.PrevLessonID === ""
-            );
-            console.log(`[DEBUG] Fallback - found first lesson:`, startLesson);
-        }
-
-        // if still no valid starting point, just return lessons sorted by creation time
-        if (!startLesson) {
-            console.log(`[DEBUG] No valid chain start found, sorting by CreatedAt`);
-            return lessonsData.sort((a, b) => {
-                const dateA = new Date(a.lesson.CreatedAt.Time);
-                const dateB = new Date(b.lesson.CreatedAt.Time);
-                return dateA - dateB;
+                return starter === true || (starter?.Valid && starter.Int32 === section);
             });
         }
 
-        // build chain
+        if (!startLesson) {
+            startLesson = lessonsData.find(l => !l.lesson.PrevLessonID || l.lesson.PrevLessonID === "");
+        }
+
+        if (!startLesson) {
+            return lessonsData.sort((a, b) => new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time));
+        }
+
+        const lessons = [];
         const visitedIds = new Set();
-        lessons.push(startLesson);
-        visitedIds.add(startLesson.lesson.ID);
-        nextId = startLesson.lesson.NextLessonID;
+        let currentId = startLesson.lesson.ID;
 
-        while (nextId) {
-            // avoid circular reference exists
-            if (lessons.some(l => l.lesson.ID === nextId)) {
-                console.warn(`[WARN] Circular reference detected at lesson ${nextId}.`);
+        while (currentId && lessonMap.has(currentId)) {
+            if (visitedIds.has(currentId)) {
+                console.warn(`[WARN] Circular reference detected at lesson ${currentId}.`);
                 break;
             }
 
-            const nextLesson = lessonsData.find(l => l.lesson.ID === nextId);
-            if (nextLesson) {
-                lessons.push(nextLesson);
-                visitedIds.add(nextLesson.lesson.ID);
-                nextId = nextLesson.lesson.NextLessonID;
-            } else {
-                nextId = null; // chain ends
-            }
+            const currentLesson = lessonMap.get(currentId);
+            lessons.push(currentLesson);
+            visitedIds.add(currentId);
+            
+            currentId = currentLesson.lesson.NextLessonID;
         }
 
-        // Keep disconnected lessons visible so they can be repaired from the UI.
-        const disconnectedLessons = lessonsData.filter(l => !visitedIds.has(l.lesson.ID));
-        if (disconnectedLessons.length > 0) {
-            disconnectedLessons.sort((a, b) => {
-                const dateA = new Date(a.lesson.CreatedAt.Time);
-                const dateB = new Date(b.lesson.CreatedAt.Time);
-                return dateA - dateB;
-            });
-            lessons.push(...disconnectedLessons);
-            console.warn(`[WARN] Appended ${disconnectedLessons.length} disconnected lesson(s) to preserve visibility.`);
+        if (visitedIds.size < lessonsData.length) {
+            const disconnected = lessonsData.filter(l => !visitedIds.has(l.lesson.ID));
+            disconnected.sort((a, b) => new Date(a.lesson.CreatedAt.Time) - new Date(b.lesson.CreatedAt.Time));
+            lessons.push(...disconnected);
+            console.warn(`[WARN] Appended ${disconnected.length} disconnected lesson(s) to preserve visibility.`);
         }
 
-        //console.log(`[DEBUG] Final sorted lessons:`, lessons);
         return lessons;
     }
 
@@ -143,12 +103,17 @@ export class LessonService {
         try {
             const lesson = await this.getLessonById(lessonId);
             const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
-            const classNum = lessonData?.flag_translation?.class || null;
-            const section = lessonData?.flag_translation?.section || null;
-            const module = lessonData?.flag_translation?.module || null;
+            
+            const classNum = lessonData?.flag_translation?.class ?? null;
+            const section = lessonData?.flag_translation?.section ?? null;
+            const module = lessonData?.flag_translation?.module ?? null;
 
-            const lessons = await this.getLessonsSortedByPrevNext(classNum, section, module);
-            return lessons;
+            if (classNum === null && section === null && module === null) {
+                console.warn(`[WARN] Cannot build chain: Lesson ${lessonId} lacks all routing flags.`);
+                return [];
+            }
+
+            return await this.getLessonsSortedByPrevNext(classNum, section, module);
         } catch (error) {
             console.error(`Failed to get sorted lessons for section starter ID ${lessonId}:`, error);
             return [];
