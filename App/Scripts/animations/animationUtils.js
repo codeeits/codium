@@ -28,7 +28,8 @@ export function getColorPalette() {
         getCSSVar('--confirm'),
         getCSSVar('--warning'),
         getCSSVar('--danger'),
-        getCSSVar('--text-cream'),
+        getCSSVar('--contrast'),
+        getCSSVar('--fundal'),
     ];
 }
 

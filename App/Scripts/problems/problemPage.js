@@ -8,6 +8,14 @@ Problem Page Logic
 */
 
 import { renderExternalLibraries, tomarkdown } from '../markdownRenderer.js';
+import { triggerConfetti } from '/app/Scripts/animations/confetti.js';
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    getCSSVar,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
+
 function getDifficultyLabel(difficulty) {
     const labels = {
         0: "Neclasificat",
@@ -306,6 +314,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (state.isNewUi){ elements.description.innerHTML = tomarkdown(p.Description || "Fără descriere", state); }
         else { elements.description.textContent = p.Description || "Fără descriere"; }
 
+        // --- ANIMATE DESCRIPTION BLOCKS ---
+        if (!prefersReducedMotion() && elements.description) {
+            const contentBlocks = elements.description.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table');
+            if (contentBlocks.length > 0) {
+                cascadeEntrance(contentBlocks, 'fade', {
+                    staggerDelay: 60,
+                    baseDelay: 200,
+                });
+            } else {
+                // Fallback if markdown doesn't have multiple structural elements
+                cascadeEntrance([elements.description], 'fade', { baseDelay: 200 });
+            }
+        }
 
         elements.difficulty.dataset.i18n = getDifficultyLabel(state.meta.difficulty);
 
@@ -345,6 +366,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 a.className = "hashtag";
                 elements.sourceContainer.appendChild(a);
             });
+
+            // --- ANIMATE TAGS ---
+            if (!prefersReducedMotion()) {
+                const tags = elements.sourceContainer.querySelectorAll('.hashtag');
+                applyStaggeredAnimation(tags, 'fadeInUp', {
+                    staggerDelay: 30,
+                    baseDelay: 400,
+                });
+            }
         }
     }
 
@@ -352,13 +382,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!elements.mySolutionsList) return;
         
         elements.mySolutionsList.innerHTML = "";
-
-        console.log("My Solutions:", state.solutions);
         
         if (state.solutions.length > 0) {
             if (elements.noSolutionsMsg) elements.noSolutionsMsg.style.display = "none";
             
-            state.solutions.forEach(async sol => {
+            // Resolve all promises concurrently to prevent random appending order
+            const itemPromises = state.solutions.map(async sol => {
                 const item = document.createElement("div");
                 item.className = "solution-item";
                 
@@ -374,7 +403,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <span class="score ${scoreClass}">${passed}/${total}</span>
                     <span class="date">${dateStr}</span>
                 `;
-                elements.mySolutionsList.appendChild(item);
+                return item;
+            });
+
+            Promise.all(itemPromises).then(items => {
+                items.forEach(item => elements.mySolutionsList.appendChild(item));
+
+                // --- ANIMATE SOLUTIONS LIST ---
+                if (!prefersReducedMotion()) {
+                    applyStaggeredAnimation(items, 'fadeInUp', {
+                        staggerDelay: 40,
+                        baseDelay: 300,
+                    });
+                }
             });
         }
     }
@@ -439,7 +480,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
             const hasValidMimeType = validMimeTypes.includes(fileType);
 
-            if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
+            if (!hasValidExtension && (fileType !== "" && !hasValidMimeType)) {
                 toastsLoader.showToast("{{server_events.toasts.file-type-not-allowed}}", "danger");
                 throw new Error('Unsupported file type. Only PY and C++ files are allowed.');
             }
@@ -452,12 +493,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
         } else {
-            // Old UI: Text Area
             code = elements.codeEditor.value.trim();
-            if (!code) {
-                // toastsLoader.showToast("Scrie ceva cod înainte de a trimite.", "error");
-                return;
-            }
+            if (!code) return;
         }
 
         await processCodeSubmission(code);
@@ -484,6 +521,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.response.total;
 
             displayResults({ score, total }, true);
+
+            // --- CONFETTI ON PERFECT SCORE ---
+            if (score === total && total > 0 && !prefersReducedMotion()) {
+                triggerConfetti({ particleCount: 120, duration: 3000 });
+            }
+
             loadMySolutions();
             loadSolutionStats();
 
@@ -491,7 +534,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             toastsLoader.showToast("{{server_events.toasts.sending-error}}" + (error.message || "A apărut o eroare la trimitere."), "danger");
         } finally {
             elements.submitBtn.disabled = false;
-            elements.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Trimite';
+            elements.submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> {{buttons.submit}}';
+            window.applyTranslations?.();
         }
     }
 
@@ -501,7 +545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (debugMode) console.log("Initializing Problem Page...");
         if (state.isNewUi) console.log("New UI detected");
 
-        bookmarkToggle(true); // Initialize bookmark state
+        bookmarkToggle(true); 
 
         setupEventListeners();
         await fetchProblemData();

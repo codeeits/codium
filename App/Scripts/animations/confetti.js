@@ -8,16 +8,15 @@
  * triggerConfetti({ duration: 2000, particleCount: 100, colors: [...] })
  */
 
-import { getCSSVar, getColorPalette, getAnimationTimings } from './animationUtils.js';
+import { getColorPalette, getAnimationTimings } from './animationUtils.js';
 
 /**
- * Extract CSS color value from var format (e.g., "rgb(176, 123, 201)" -> hex)
+ * Extract CSS color value 
  */
 function cssColorToHex(cssColor) {
-    // If already hex, return it
+    if (!cssColor || cssColor.trim() === '') return null; // Reject empty strings
     if (cssColor.startsWith('#')) return cssColor;
     
-    // Parse rgb/rgba format
     const match = cssColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
         const r = parseInt(match[1]).toString(16).padStart(2, '0');
@@ -25,25 +24,54 @@ function cssColorToHex(cssColor) {
         const b = parseInt(match[3]).toString(16).padStart(2, '0');
         return `#${r}${g}${b}`;
     }
-    
-    return cssColor;
+
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        
+        const ctx = canvas.getContext('2d', { willReadFrequently: true }); 
+        
+        // Clear canvas so the pixel is transparent (alpha = 0)
+        ctx.clearRect(0, 0, 1, 1);
+        
+        ctx.fillStyle = cssColor;
+        ctx.fillRect(0, 0, 1, 1);
+        
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        
+        // If alpha is 0, the Canvas rejected the color string and drew nothing.
+        if (a === 0) return null; 
+        
+        const toHex = (v) => v.toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    } catch (e) {
+        return null;
+    }
 }
 
 class ConfettiAnimation {
     constructor(options = {}) {
-        // Get timing from CSS variables, fall back to ms values
         const timings = getAnimationTimings();
         const parsedDuration = parseInt(timings.normal) || 500;
         
-        this.duration = options.duration || parsedDuration + 2000; // Make it a bit longer than normal
+        this.duration = options.duration || parsedDuration + 2000; 
         this.particleCount = options.particleCount || 100;
         
-        // Use design system colors from CSS variables
+        const fallbackPalette = ['#9B59BB', '#B380CB', '#8E44AD', '#3498DB', '#F1C40F', '#E74C3C'];
+        
         if (options.colors) {
             this.colors = options.colors;
         } else {
-            const palette = getColorPalette();
-            this.colors = palette.map(color => cssColorToHex(color));
+            const rawPalette = getColorPalette();
+            
+            const parsedColors = rawPalette
+                .map(color => cssColorToHex(color))
+                .filter(color => color !== null);
+            
+            this.colors = parsedColors.length > 0 ? parsedColors : fallbackPalette;
+            
+            console.log('Final Confetti Colors:', this.colors);
         }
         
         this.particles = [];

@@ -443,6 +443,7 @@ async function updateAuthButton() {
         back: document.getElementById('back-btn'),
         contact: document.getElementById('contact-button'),
         cookies: document.getElementById('user-score'),
+        themeToggle: document.getElementById('theme-toggle'),
     };
 
     let isAuthenticated = false;
@@ -470,6 +471,17 @@ async function updateAuthButton() {
 
     if (els.hardExit) {
         els.hardExit.onclick = () => window.location.href = '/app/Lectii/lessons.html';
+    }
+
+    if (els.themeToggle) {
+        if (els.themeToggle) {
+            els.themeToggle.onclick = (e) => {
+                e.preventDefault();
+                if (window.lightMode) {
+                    window.lightMode();
+                }
+            };
+        }
     }
 
     // Language Selector Logic
