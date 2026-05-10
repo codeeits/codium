@@ -33,6 +33,9 @@ const elements = {
     bookmarksPrevBtn: document.getElementById('bookmarksPrevBtn'),
     bookmarksNextBtn: document.getElementById('bookmarksNextBtn'),
     bookmarksNavIndicator: document.getElementById('bookmarksNavIndicator'),
+
+    streakDaysContainer: document.querySelector('.streak-days'),
+    streakDescription: document.querySelector('.streak-days')?.previousElementSibling
 };
 
 function parseData(data) {
@@ -91,6 +94,49 @@ function setContinueEmptyState() {
     }
     if (elements.continueNavIndicator) {
         elements.continueNavIndicator.textContent = '0/0';
+    }
+}
+
+async function loadStreakWidget() {
+    if (!elements.streakDaysContainer || !elements.streakDescription) return;
+
+    try {
+        let streakData = { current_streak: 0, done_today: false };
+        if (window.apiService && window.apiService.game) {
+            streakData = await window.apiService.game.getStreak();
+        }
+
+        const currentStreak = streakData.current_streak || 0;
+        const isDoneToday = streakData.done_today || false;
+
+        const jsDay = new Date().getDay();
+        const todayIndex = jsDay === 0 ? 6 : jsDay - 1; 
+
+        const dayElements = elements.streakDaysContainer.querySelectorAll('.streak-day');
+        
+        dayElements.forEach((el, index) => {
+            el.classList.remove('active', 'completed');
+            
+            const daysToLookBack = isDoneToday ? currentStreak - 1 : currentStreak;
+            if (index < todayIndex && index >= todayIndex - daysToLookBack) {
+                el.classList.add('completed');
+            }
+        });
+
+        const todayEl = dayElements[todayIndex];
+        if (todayEl) {
+            todayEl.classList.add('active');
+            if (isDoneToday) todayEl.classList.add('completed');
+        }
+
+        if (isDoneToday) {
+            elements.streakDescription.textContent = `Great job! Problem completed today. Streak continues!`;
+        } else {
+            elements.streakDescription.textContent = `Complete a problem today to start a new streak.`;
+        }
+
+    } catch (error) {
+        console.error("Failed to load streak widget:", error);
     }
 }
 
@@ -573,6 +619,8 @@ async function initApp() {
 
     await loadUserProfile();
     bindProfileActions();
+
+    await loadStreakWidget();
 
     await Promise.all([
         loadContinueLearning(),

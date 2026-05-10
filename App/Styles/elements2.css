@@ -1381,6 +1381,11 @@ blockquote {
     margin-top: -12px;
 }
 
+.streak-day.completed .day-circle {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
 .day-label {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);
@@ -1391,7 +1396,7 @@ blockquote {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid var(--border2-solid);
+    border: 2px solid var(--border-subtle);
     background-color: transparent;
 }
 

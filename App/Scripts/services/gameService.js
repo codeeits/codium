@@ -71,4 +71,14 @@ export class GameService {
             throw error;
         }
     }
+
+    async getStreak() {
+        try {
+            const response = await this.api.get(`/api/users/streak`);
+            return response;
+        } catch (error) {
+            console.error('Error fetching user streak:', error);
+            throw error;
+        }
+    }
 }
