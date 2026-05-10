@@ -976,7 +976,7 @@ main, .content-area {
 .content-card-category {
     font-size: var(--small-font-size);
     font-weight: var(--small-font-weight);
-    color: var(--border2-solid);
+    color: var(--disabled-text);
 }
 
 .content-card-title {

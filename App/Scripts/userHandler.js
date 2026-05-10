@@ -1,5 +1,9 @@
 import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
 import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
 
 const engine = new ModalEngine();
 
@@ -135,6 +139,13 @@ async function loadStreakWidget() {
             elements.streakDescription.textContent = `Complete a problem today to start a new streak.`;
         }
 
+        if (!prefersReducedMotion()) {
+            applyStaggeredAnimation(dayElements, 'scaleInBounce', {
+                staggerDelay: 60,
+                baseDelay: 400
+            });
+        }
+
     } catch (error) {
         console.error("Failed to load streak widget:", error);
     }
@@ -184,7 +195,7 @@ function inferDifficulty(lessonData) {
     if (lessonData && lessonData.difficulty) {
         return lessonData.difficulty;
     }
-    return 'Unknown';
+    return 'Easy';
 }
 
 function bindProfileActions() {
@@ -330,7 +341,7 @@ function renderContinueItem(index) {
     const classLabel = lessonData?.flag_translation?.class;
 
     if (elements.continueCategory) {
-        elements.continueCategory.textContent = classLabel ? `CLASA A ${classLabel}-A` : 'Lesson';
+        elements.continueCategory.textContent = classLabel ? `{{classe.${classLabel}}}` : 'Lesson';
     }
     if (elements.continueTitle) {
         elements.continueTitle.textContent = lesson.Title || 'Untitled lesson';
@@ -362,6 +373,14 @@ function renderContinueItem(index) {
 
     setArrowState(elements.continuePrevBtn, elements.continueNextBtn, state.continueItems.length, safeIndex);
     updateNavIndicator(elements.continueNavIndicator, safeIndex, state.continueItems.length);
+
+    window.applyTranslations?.(elements.continueCard);
+
+    if (!prefersReducedMotion() && elements.continueCard) {
+        elements.continueCard.style.animation = 'none';
+        void elements.continueCard.offsetWidth; 
+        elements.continueCard.style.animation = 'scaleIn var(--anim-duration-fast) var(--anim-ease-out)';
+    }
 }
 
 function bindContinueArrows() {
@@ -378,7 +397,11 @@ function bindContinueArrows() {
 }
 
 async function loadContinueLearning() {
-    // loadContinueLearning returns, on logged in users, an array of interactions sorted by most recent, with the lesson data for each interaction, and whether it's in progress or completed. We then render the most recent interaction as the "Continue Learning" card, and allow navigation through the next 5 interactions if available.
+    // loadContinueLearning returns, on logged in users, 
+    // an array of interactions sorted by most recent, 
+    // with the lesson data for each interaction, and whether it's in progress or completed. 
+    // We then render the most recent interaction as the "Continue Learning" card, 
+    // and allow navigation through the next 5 interactions if available.
     if (!state.userId) {
         setContinueEmptyState();
         return;
@@ -480,7 +503,7 @@ function createBookmarkCard(lessonData) {
 
     if (category) {
         const classLabel = lessonData?.flag_translation?.class;
-        category.textContent = classLabel ? `CLASA A ${classLabel}-A` : 'Lesson';
+        category.textContent = classLabel ? `{{classe.${classLabel}}}` : 'Lesson';
     }
 
     if (description) {
@@ -507,6 +530,8 @@ function createBookmarkCard(lessonData) {
     }
 
     makeElementKeyboardActivatable(card, openLesson, 'link');
+
+    window.applyTranslations?.(card);
 
     return card;
 }
@@ -538,6 +563,12 @@ function renderBookmarkItem(index) {
     const card = createBookmarkCard(selectedLesson);
     if (card) {
         elements.bookmarksCards.appendChild(card);
+
+        if (!prefersReducedMotion()) {
+            card.style.animation = 'none';
+            void card.offsetWidth;
+            card.style.animation = 'scaleIn var(--anim-duration-fast) var(--anim-ease-out)';
+        }
     }
 
     setArrowState(elements.bookmarksPrevBtn, elements.bookmarksNextBtn, state.bookmarkLessons.length, safeIndex);
@@ -626,6 +657,14 @@ async function initApp() {
         loadContinueLearning(),
         loadBookmarks(),
     ]);
+
+    if (!prefersReducedMotion()) {
+        const achievements = document.querySelectorAll('.achievement');
+        applyStaggeredAnimation(achievements, 'slideInFromRight', {
+            staggerDelay: 100,
+            baseDelay: 600
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
