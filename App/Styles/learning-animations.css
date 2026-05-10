@@ -231,11 +231,11 @@
 /* ========================================= */
 
 /* Header animations */
-.header-title {
+body:not(.is-loading) .header-title {
     animation: fadeInDown var(--anim-duration-normal) var(--anim-ease-out);
 }
 
-.lesson-meta {
+body:not(.is-loading) .lesson-meta {
     animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) 100ms backwards;
 }
 
@@ -246,37 +246,37 @@
 */
 
 /* Content animations */
-.lesson-body {
+body:not(.is-loading) .lesson-body {
     animation: fadeIn var(--anim-duration-slow) var(--anim-ease-in-out) 150ms backwards;
 }
 
-.lesson-body > * {
+body:not(.is-loading) .lesson-body > * {
     animation: contentBlockFade var(--anim-duration-normal) var(--anim-ease-out) calc(200ms + (var(--item-index, 0) * 80ms)) backwards;
 }
 
-.lesson-body h2 {
+body:not(.is-loading) .lesson-body h2 {
     animation: slideInFromLeft var(--anim-duration-normal) var(--anim-ease-out) calc(250ms + (var(--item-index, 0) * 100ms)) backwards;
 }
 
-.lesson-body p {
+body:not(.is-loading) .lesson-body p {
     animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) calc(200ms + (var(--item-index, 0) * 80ms)) backwards;
 }
 
-.lesson-body pre {
+body:not(.is-loading) .lesson-body pre {
     animation: scaleIn var(--anim-duration-normal) var(--anim-ease-out) calc(300ms + (var(--item-index, 0) * 100ms)) backwards;
 }
 
 /* Reading progress bar */
-#reading-progress-bar {
+body:not(.is-loading) #reading-progress-bar {
     animation: progressSlide var(--anim-duration-veryslow) var(--anim-ease-in-out) forwards;
 }
 
 /* Sidebar animations */
-.side-content {
+body:not(.is-loading) .side-content {
     animation: slideInFromRight var(--anim-duration-normal) var(--anim-ease-out) 250ms backwards;
 }
 
-.side-content > * {
+body:not(.is-loading) .side-content > * {
     animation: fadeInUp var(--anim-duration-normal) var(--anim-ease-out) calc(300ms + (var(--item-index, 0) * 100ms)) backwards;
 }
 

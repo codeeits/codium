@@ -985,6 +985,15 @@ main, .content-area {
     color: var(--text-colour);
 }
 
+body {
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+body.is-loading {
+    opacity: 0 !important; 
+    visibility: hidden !important;
+}
+
 .content-card-description {
     font-size: var(--body-font-size);
     font-weight: var(--body-font-weight);

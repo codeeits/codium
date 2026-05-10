@@ -4,8 +4,10 @@ import { setupDragAndDrop } from './problemPage.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const isAuthenticated = await window.apiService.checkAuthentication(false);
+    let isAuthenticated = false;
     const debugMode = true;
+
+    document.body.classList.add('is-loading');
 
     // --- DOM ELEMENTS ---
     const filters = {
@@ -728,13 +730,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- INITIALIZATION ---
     async function initApp() {
 
-        initDropdownFilters();
-        await fetchProblems();
+        try {
+            isAuthenticated = await window.apiService.checkAuthentication(false).catch(err => {
+                console.error("Authentication check failed:", err);
+                return false; // Treat as not authenticated on error
+            });
 
-        initSurpriseButton();
+             initDropdownFilters();
+            await fetchProblems();
 
-        populateClassFilters();
-        renderProblems();
+            initSurpriseButton();
+
+            populateClassFilters();
+            renderProblems();
+
+            await window.applyTranslations(document.body);
+
+            document.body.classList.remove('is-loading');
+
+        } catch (error) {
+            console.error("Error during initialization:", error);
+        } finally {
+            document.body.classList.remove('is-loading');
+        }
     }
 
     initApp();

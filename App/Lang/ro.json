@@ -48,6 +48,13 @@
         "bornIn": "Creat în România 🇷🇴."
     },
 
+    "misc": {
+        "code_example": {
+            "input": "INTRARE: ",
+            "output": "IEȘIRE: "
+        }
+    },
+
     "tos-page": {
         "meta": {
             "title": "Termeni și condiții - Codium"

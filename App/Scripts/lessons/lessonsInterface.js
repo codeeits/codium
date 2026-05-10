@@ -38,7 +38,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = false; // SET THIS TO ENABLE LOGS!
     const baseurl = window.location.href;
-    const isAuthenticated = await window.apiService.checkAuthentication(false);
+    let isAuthenticated = false;
+
+    document.body.classList.add('is-loading');
 
     // --- DOM ELEMENTS ---
     const elements = {
@@ -71,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const state = {
         lessonId: baseurl.split("?id=")[1]?.trim(),
         contentRaw: null, // Full API response
-        markdownContent: '', // The file content
+        markdownContent: null, // The file content
         h2Array: [], // For Table of Contents
         meta: {
             title: '',
@@ -183,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // --- RENDERERS ---
 
-    function renderLessonContent() {
+    async function renderLessonContent() {
         if (!elements.container) {
             if (debugMode) console.error("[DEBUG] Lesson container not found!");
             return;
@@ -277,38 +279,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Parse and Render
         elements.container.innerHTML = marked.parse(state.markdownContent || '');
         hljs.highlightAll();
+        
 
-        // Apply entrance animations to content elements if motion is not reduced
-        if (!prefersReducedMotion()) {
-            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table');
-            cascadeEntrance(contentBlocks, 'fade', {
-                staggerDelay: 60,
-                baseDelay: 200,
-            });
-        }
-
-        renderExternalLibraries();
+        await renderExternalLibraries();
     }
 
-    function renderExternalLibraries() {
-        // Process MathJax
-        if (window.MathJax && window.MathJax.typesetPromise) {
-            setTimeout(() => {
-                MathJax.typesetPromise([elements.container]).then(() => {
-                    if (debugMode) console.log('[MATH] MathJax processing complete');
-                }).catch((err) => {
-                    if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
-                });
-            }, 100);
-        } else if (window.MathJax && window.MathJax.Hub) {
-            setTimeout(() => {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, elements.container]);
-            }, 100);
+    async function renderExternalLibraries() {
+        const promises = [];
+
+        if (window.MathJax) {
+            if (window.MathJax.typesetPromise) {
+                promises.push(
+                    MathJax.typesetPromise([elements.container]).then(() => {
+                        if (debugMode) console.log('[MATH] MathJax processing complete');
+                    }).catch((err) => {
+                        if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
+                    })
+                );
+            } else if (window.MathJax.Hub) {
+                promises.push(
+                    new Promise(resolve => {
+                        MathJax.Hub.Queue(["Typeset", MathJax.Hub, elements.container]);
+                        MathJax.Hub.Queue(resolve);
+                    })
+                );
+            }
         }
 
         // Process Mermaid
         if (window.mermaid) {
-            mermaid.initialize({
+            window.mermaid.initialize({
                 startOnLoad: false,
                 theme: 'dark',
                 themeVariables: {
@@ -321,16 +321,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             });
 
-            setTimeout(() => {
-                mermaid.run({
-                    querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
-                }).then(() => {
-                    if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
-                }).catch((err) => {
-                    if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
-                });
-            }, 200);
+            promises.push(
+                new Promise(resolve => setTimeout(resolve, 50)).then(() => {
+                    return window.mermaid.run({
+                        querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
+                    }).then(() => {
+                        if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
+                    }).catch((err) => {
+                        if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
+                    });
+                })
+            );
         }
+
+        await Promise.all(promises);
     }
 
     function renderCuprinsSidebar() {
@@ -359,18 +363,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             elements.cuprinsCard.appendChild(link);
         });
 
-        // Animate table of contents links
-        if (!prefersReducedMotion()) {
-            const links = elements.cuprinsCard.querySelectorAll('a');
-            applyStaggeredAnimation(links, 'fadeInUp', {
-                staggerDelay: 30,
-                baseDelay: 400,
-            });
-        }
     }
 
     function setupHeaderAnimations() {
-        // Animate header icon buttons with stagger
         if (!prefersReducedMotion() && elements.headerIconsContainer) {
             const buttons = elements.headerIconsContainer.querySelectorAll('button');
             buttons.forEach((btn, index) => {
@@ -477,14 +472,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 sidebarSection.appendChild(lessonsList);
                 elements.sidebar.appendChild(sidebarSection);
 
-                // Animate sidebar items
-                if (!prefersReducedMotion()) {
-                    const items = sidebarSection.querySelectorAll('.lesson-sidebar_item');
-                    applyStaggeredAnimation(items, 'fadeInUp', {
-                        staggerDelay: 40,
-                        baseDelay: 300,
-                    });
-                }
             } else {
 
                 //Header section for new UI is "Sectiunea X"
@@ -513,14 +500,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     elements.sidebar.appendChild(lessonLink);
                 }
 
-                // Animate sidebar links
-                if (!prefersReducedMotion()) {
-                    const links = elements.sidebar.querySelectorAll('a');
-                    applyStaggeredAnimation(links, 'slideInFromRight', {
-                        staggerDelay: 35,
-                        baseDelay: 350,
-                    });
-                }
             }
 
         } catch (sectionError) {
@@ -759,27 +738,72 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    function playAllAnimations() {
+        if (prefersReducedMotion()) return;
+
+        if (elements.container) {
+            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table');
+            cascadeEntrance(contentBlocks, 'fade', { staggerDelay: 60, baseDelay: 200 });
+        }
+
+        if (elements.cuprinsCard && elements.cuprinsCard.style.display !== "none") {
+            const links = elements.cuprinsCard.querySelectorAll('a');
+            applyStaggeredAnimation(links, 'fadeInUp', { staggerDelay: 30, baseDelay: 400 });
+        }
+
+        if (elements.sidebar) {
+            if (elements.sidebar.id === "lectii-sectiune") {
+                const links = elements.sidebar.querySelectorAll('a');
+                applyStaggeredAnimation(links, 'slideInFromRight', { staggerDelay: 35, baseDelay: 350 });
+            }
+        }
+    }
+
     // --- INITIALIZATION ---
 
     async function initApp() {
-        // Event Listeners
-        window.addEventListener('scroll', updateProgressBar);
-        window.addEventListener('resize', updateProgressBar);
-        updateProgressBar(); // Initial call
+        try {
+            isAuthenticated = await window.apiService.checkAuthentication(false).catch(err => {
+                if (debugMode) console.error("[DEBUG] Authentication check failed:", err);
+                return false;
+            });
+            // Event Listeners
+            window.addEventListener('scroll', updateProgressBar);
+            window.addEventListener('resize', updateProgressBar);
+            updateProgressBar(); // Initial call
 
-        await fetchLessonData();
-        
-        if (state.markdownContent) {
-            renderLessonContent();
-            renderCuprinsSidebar();
-            setupTopMenuObserver();
-            setupNavigationButtons();
-            setupInteractionButtons();
-            setupHeaderAnimations();
-            await renderSidebar();
+            await fetchLessonData();
             
-            setupShareButton();
-            window.applyTranslations?.(); // Re-apply translations to update the module name
+            if (state.markdownContent !== null) {
+                await renderLessonContent();
+                
+                renderCuprinsSidebar();
+                setupTopMenuObserver();
+                setupNavigationButtons();
+                setupInteractionButtons();
+                setupShareButton();
+                await renderSidebar();
+
+                window.applyTranslations(document.body); 
+                
+                document.body.classList.remove('is-loading');
+                
+                await new Promise(resolve => setTimeout(resolve, 110));
+                setupHeaderAnimations();
+                playAllAnimations();
+
+            } else {
+                if (debugMode) console.error("[DEBUG] No markdown content to render");
+                document.body.classList.remove('is-loading');
+                elements.container.innerHTML = "<p>Failed to load lesson content. Please try again later.</p>";
+            }
+        } catch (error) {
+            if (debugMode) console.error("[DEBUG] Critical error during initialization:", error);
+            if (elements.container) {
+                elements.container.innerHTML = "<p>Failed to load lesson content. Please try again later.</p>";
+            }
+        } finally {
+            document.body.classList.remove('is-loading');
         }
     }
 

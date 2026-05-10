@@ -48,6 +48,13 @@
         "bornIn": "Construït a Romania 🇷🇴."
     },
 
+    "misc": {
+        "code_example": {
+            "input": "ENTRADA: ",
+            "output": "Sortida: "
+        }
+    },
+
     "tos-page": {
         "meta": {
             "title": "Condicions del servei - Codium"

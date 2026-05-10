@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const debugMode = true; 
     const baseurl = window.location.href;
-    const isAuthenticated = await window.apiService.checkAuthentication(false);
+    let isAuthenticated = false;
 
     // --- DOM ELEMENTS ---
     const elements = {
@@ -542,16 +542,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- INITIALIZATION ---
 
     async function initApp() {
-        if (debugMode) console.log("Initializing Problem Page...");
-        if (state.isNewUi) console.log("New UI detected");
+        try {
+            isAuthenticated = await window.apiService.checkAuthentication(false).catch(err => {
+                if (debugMode) console.warn("Authentication check failed:", err);
+                return false;
+            })
 
-        bookmarkToggle(true); 
+            if (debugMode) console.log("Initializing Problem Page...");
+            if (state.isNewUi) console.log("New UI detected");
 
-        setupEventListeners();
-        await fetchProblemData();
-        renderProblemUI();
-        window.applyTranslations?.();
+            bookmarkToggle(true); 
+
+            setupEventListeners();
+            await fetchProblemData();
+            renderProblemUI();
+            window.applyTranslations?.();
+            
+        } catch (error) {
+            if (debugMode) console.error("Initialization error:", error);
+            toastsLoader.showToast("{{server_events.toasts.initialization-error}}" + (error.message || "A apărut o eroare la inițializare."), "danger");
+        } finally {
+            document.body.classList.remove('is-loading');
+        }
     }
 
-    initApp();
+    await initApp();
 });

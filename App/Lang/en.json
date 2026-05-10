@@ -48,6 +48,13 @@
         "bornIn": "Born in Romania 🇷🇴."
     },
 
+    "misc": {
+        "code_example": {
+            "input": "INPUT: ",
+            "output": "OUTPUT: "
+        }
+    },
+
     "tos-page": {
         "meta": {
             "title": "Terms of Service - Codium"
