@@ -744,9 +744,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             populateClassFilters();
             renderProblems();
 
-            await window.applyTranslations(document.body);
-
-            document.body.classList.remove('is-loading');
+            window.applyTranslations(document.body);
 
         } catch (error) {
             console.error("Error during initialization:", error);
