@@ -634,6 +634,8 @@ body.light-mode .codium-logo {
 }
 
 .language-dropdown {
+    color: var(--text-colour);
+
     background: transparent;
     border: none;
     cursor: pointer;
@@ -641,7 +643,9 @@ body.light-mode .codium-logo {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%23FFFFFF' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+
+    background-image: url("data:image/svg+xml;utf8,<svg fill='currentColor' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    
     background-repeat: no-repeat;
     background-position: right 8px center;
     background-size: 16px;
@@ -1309,9 +1313,13 @@ blockquote {
     background-color: var(--border2-solid);
 }
 
-.nav-arrow svg {
+.nav-arrow i {
+    color: var(--text-colour);
+}
 
-    color: var(--text-colour-primary-button);
+.nav-arrow:disabled i, .nav-arrow:disabled {
+    color: var(--disabled-text);
+    cursor: not-allowed;
 }
 
 /* stats card (progress, day streak, achievements) */
@@ -1691,7 +1699,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     height: 30px;
     flex-shrink: 0;
     align-content: center;
-    color: var(--text-colour-primary-button);
+    color: var(--text-colour);
 
     transition: all var(--anim-duration-fast) var(--anim-ease-in-out);
 }
@@ -1710,6 +1718,7 @@ body.light-mode .toast-danger *, body.light-mode .toast-error *, body.light-mode
     justify-content: center;
     margin-left: auto;
     cursor: pointer;
+    color: var(--text-colour);
 }
 
 .modal-title {

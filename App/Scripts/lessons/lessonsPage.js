@@ -41,7 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FETCH DATA ---
     async function fetchLessons(classFilter = null) {
         try {
-            const response = await window.apiService.lessons.getLessonsByFlags(classFilter);
+            let response = {};
+            if (!classFilter) {
+                response = await window.apiService.lessons.getLessons();
+            } else {
+                response = await window.apiService.lessons.getLessonsByFlags(classFilter);
+            }
             if (response) {
                 lessonsData = response;
             }

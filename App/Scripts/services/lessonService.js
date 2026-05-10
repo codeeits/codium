@@ -25,21 +25,23 @@ export class LessonService {
     }
 
     async getLessonById(lessonId) {
-        return this.api.get(`/api/lessons?search_type=id&lesson_id=${lessonId}`, false);
+        // return this.api.get(`/api/lessons?search_type=id&lesson_id=${lessonId}`, false);
+        return this.getLessons({ search_type: 'id', lesson_id: lessonId });
     }
 
     async getLessonsByFlags(classNum = null, section = null, module = null) {
         if (classNum === null && section === null && module === null) {
             console.warn("requires at least one flag to filter lessons");
+            console.trace();
             return [];
         }
 
-        const params = new URLSearchParams({ search_type: 'flags' });
-        if (classNum !== null) params.append('class', classNum);
-        if (section !== null) params.append('section', section);
-        if (module !== null) params.append('module', module);
+        const params = { search_type: 'flags' };
+        if (classNum !== null) params.class = classNum;
+        if (section !== null) params.section = section;
+        if (module !== null) params.module = module;
 
-        return this.api.get(`/api/lessons?${params.toString()}`, false);
+        return this.getLessons(params);
     }
 
     async getLessonsSortedByPrevNext(classNum = null, section = null, module = null, debug = false) {
@@ -130,7 +132,13 @@ export class LessonService {
     }
 
     async getSections(classNum = null, module = null) {
-        const response = await this.getLessonsByFlags(classNum, null, module);
+
+        let response = {};
+        if (classNum === null && module === null) {
+            response = await this.getLessons();
+        } else {
+            response = await this.getLessonsByFlags(classNum, null, module);
+        }
         const lessonsData = typeof response === 'string' ? JSON.parse(response) : response;
         const sectionsMap = new Map();
 
