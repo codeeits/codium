@@ -27,14 +27,14 @@ export class FileService {
 
 
         // check if image
-        const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'];
-        const validMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'];
+        const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.md', '.txt', '.pdf'];
+        const validMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp', 'text/markdown', 'text/plain', 'application/pdf'];
 
         const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
         const hasValidMimeType = validMimeTypes.includes(fileType);
 
         if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
-            throw new Error('Unsupported file type. Only image files are allowed.');
+            throw new Error('Unsupported file type. Only image files and markdown/text files are allowed.');
         }
 
         const config = {
