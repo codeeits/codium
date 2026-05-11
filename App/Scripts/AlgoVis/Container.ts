@@ -1,16 +1,13 @@
 // A container class for managing layout and rendering of HTML elements in a hierarchical structure.
 // This common container can be used for most visual elements in the AlgoVis library.
-class Container {
+export class Container {
      width: number;
      height: number;
      rel_x: number;
      rel_y: number;
-     bg_color: string = "transparent";
-     border_color: string = "transparent";
-     border_width: number = 0;
      element: HTMLElement | null = null;
      parent: Container | null = null;
-     elem_align: string;
+     template: HTMLElement | null = null;
 
      children: Container[];
 
@@ -20,21 +17,15 @@ class Container {
      * @param height - The height of the container.
      * @param rel_x - The x position relative to the parent container.
      * @param rel_y - The y position relative to the parent container.
-     * @param bg_color
-     * @param border_color
-     * @param border_width
-     * @param elem_align
+     * @param template
      */
-     constructor(width: number, height: number, rel_x: number = 0, rel_y: number = 0, bg_color: string = "transparent", border_color: string = "transparent", border_width: number = 0, elem_align: string = "left") {
+     constructor(width: number, height: number, rel_x: number = 0, rel_y: number = 0, template: HTMLElement | null = null) {
          this.width = width;
          this.height = height;
          this.rel_x = rel_x;
          this.rel_y = rel_y;
          this.children = [];
-            this.bg_color = bg_color;
-            this.border_color = border_color;
-            this.border_width = border_width;
-            this.elem_align = elem_align;
+            this.template = template;
      }
 
     /**
@@ -48,6 +39,10 @@ class Container {
          }
          child.parent = this;
          this.children.push(child);
+     }
+
+     toString() {
+         return `Container (width: ${this.width}, height: ${this.height}, rel_x: ${this.rel_x}, rel_y: ${this.rel_y}, children: ${this.children.length})`;
      }
 
     /**
@@ -121,15 +116,12 @@ class Container {
              //console.log(this.element);
              output.appendChild(this.element);
          }
+         output.style = this.template ? this.template.style.cssText : "";
          output.style.width = this.width + "px";
          output.style.height = this.height + "px";
          output.style.position = "absolute";
          output.style.left = this.rel_x + "px";
          output.style.top = this.rel_y + "px";
-         output.style.backgroundColor = this.bg_color;
-         output.style.borderColor = this.border_color;
-         output.style.borderWidth = this.border_width + "px";
-         output.style.borderStyle = this.border_width > 0 ? "solid" : "none";
             output.style.textAlign = "center";
             output.style.verticalAlign = "middle";
 
@@ -182,7 +174,7 @@ class Container {
  * The RootContainer is a special container that serves as the top-level container for the entire layout.
  * It contains a Viewport which is responsible for rendering the visible portion of the layout.
  */
-class RootContainer extends Container {
+export class RootContainer extends Container {
     viewport : Viewport;
 
     /**
@@ -221,7 +213,7 @@ class RootContainer extends Container {
  * The Viewport is a special container that defines the visible area of the layout.
  * It is responsible for rendering only the containers that intersect with its area.
  */
-class Viewport extends Container {
+export class Viewport extends Container {
     children: null;
 
     /**
@@ -250,7 +242,6 @@ class Viewport extends Container {
         output.style.top = "15px";
         output.style.left = "15px";
         output.draggable = false;
-        output.style.backgroundColor = this.bg_color;
 
         // Clear existing content
         output.innerHTML = "";
@@ -264,8 +255,14 @@ class Viewport extends Container {
                 continue;
             } // Skip non-intersecting children
 
-            // Calculate the relative position of the child within the viewport
-            let relativeChild = new Container(child.width, child.height, child.rel_x - this.rel_x, child.rel_y - this.rel_y, child.bg_color, child.border_color, child.border_width);
+            let relativeChild: Container;
+            if (child instanceof Connection) {
+                child.update()
+                relativeChild = new Connection(child.width, child.height, child.direction, child.rel_x - this.rel_x, child.rel_y - this.rel_y, child.template);
+            } else {
+                relativeChild = new Container(child.width, child.height, child.rel_x - this.rel_x, child.rel_y - this.rel_y, child.template);
+            }
+
             if (child.element) {
                 relativeChild.setElement(child.element);
             }
@@ -286,7 +283,7 @@ class Viewport extends Container {
         let newY = this.rel_y + y;
 
         if (!this.parent) {
-            throw new Error("Movement would place container out of parent bounds.");
+            throw new Error("Current container doesn't seem to have a parent!");
         }
         if (newX < 0) {
             this.rel_x = 0;
@@ -306,5 +303,90 @@ class Viewport extends Container {
         else {
             this.rel_y = newY;
         }
+    }
+}
+
+export class Connection extends Container {
+    from: Container
+    to: Container
+    direction: {x: number, y: number}
+
+    style: string = "solid"
+    ending: string = "arrow"
+
+    static UndetailedConstructor(from: Container, to: Container, template: HTMLElement, style: string = "solid", ending: string = "arrow") : Connection {
+        let fromCenter: {x: number, y: number} = {x: Math.floor(from.rel_x + from.width / 2), y: Math.floor(from.rel_y + from.height / 2)};
+        let toCenter: {x: number, y: number} = {x: Math.floor(to.rel_x + to.width / 2), y: Math.floor(to.rel_y + to.height / 2)};
+
+        let width = Math.abs(toCenter.x - fromCenter.x);
+        let height = Math.abs(toCenter.y - fromCenter.y);
+        let length = Math.sqrt(width * width + height * height);
+
+        // Guard against zero-length connections (avoid division by zero producing NaN angles)
+        let direction;
+        if (length === 0) {
+            direction = {x: 1, y: 0}; // default to horizontal
+        } else {
+            direction = {x: (toCenter.x - fromCenter.x)/length, y: (toCenter.y - fromCenter.y)/length};
+        }
+        let result = new Connection(Math.floor(length), 0, direction, fromCenter.x, fromCenter.y, template);
+        result.from = from;
+        result.to = to;
+        result.style = style;
+        result.ending = ending;
+
+        console.log("Created connection between ")
+        console.log(from)
+        console.log(to)
+
+        console.log("Having length " + length + "and direction vector: X - " + direction.x + "; Y - " + direction.y);
+        return result
+    }
+
+    update() {
+        console.log(this)
+        console.log("Updating connection between ")
+        console.log(this.from)
+        console.log(this.to)
+        if (!this.from || !this.to) {
+            console.log("Connection doesn't seem to have valid endpoints. Skipping update.");
+            return;
+        }
+
+        let fromCenter: {x: number, y: number} = {x: Math.floor(this.from.rel_x + this.from.width / 2), y: Math.floor(this.from.rel_y + this.from.height / 2)};
+        let toCenter: {x: number, y: number} = {x: Math.floor(this.to.rel_x + this.to.width / 2), y: Math.floor(this.to.rel_y + this.to.height / 2)};
+
+        let width = Math.abs(toCenter.x - fromCenter.x);
+        let height = Math.abs(toCenter.y - fromCenter.y);
+        let length = Math.sqrt(width * width + height * height);
+        if (length === 0) {
+            this.direction = {x: 1, y: 0};
+        } else {
+            this.direction = {x: (toCenter.x - fromCenter.x)/length, y: (toCenter.y - fromCenter.y)/length};
+        }
+        this.width = Math.floor(length);
+        this.rel_x = fromCenter.x;
+        this.rel_y = fromCenter.y;
+    }
+
+    constructor(width: number, height: number, dirVector: {x: number, y: number}, rel_x: number, rel_y: number, template: HTMLElement) {
+        super(width, height, rel_x, rel_y, template);
+        this.direction = dirVector
+    }
+
+    render(): HTMLElement {
+        let output = super.render();
+        // Use atan2 to correctly compute quadrant-aware angle; convert to degrees
+        let degrees = (Math.atan2(this.direction.y, this.direction.x) * (180 / Math.PI));
+
+        // Ensure connection has a small visible height so it's drawn as a line
+        if (this.height <= 0) {
+            output.style.height = "2px";
+        }
+
+        // Pivot rotation around the left-center of the element so the connection starts at rel_x/rel_y
+        output.style.transformOrigin = "0 50%";
+        output.style.transform = "rotate(" + degrees + "deg)";
+        return output;
     }
 }

@@ -1,4 +1,4 @@
-class AnimationHandler {
+export class AnimationHandler {
     private animations: Array<[(t: number) => boolean, start_frame: number, duration: number, callback: (() => boolean)]>;
     //Capping the animation at 60 FPS
     private timerId: number | null = null;
@@ -11,6 +11,13 @@ class AnimationHandler {
             return;
         }
         this.frameCount++;
+        this.renderAnimations();
+        if (this.animations.length === 0) {
+            this.Stop();
+        }
+    }
+
+    private renderAnimations(): void {
         this.animations = this.animations.filter(([animation, start_frame, duration, callback]) => {
             if (this.frameCount >= start_frame && this.frameCount <= start_frame + duration) {
                 const isComplete = this.RunAnimation(animation, duration, this.frameCount - start_frame);
@@ -22,9 +29,6 @@ class AnimationHandler {
             return this.frameCount < start_frame + duration;
 
         });
-        if (this.animations.length === 0) {
-            this.Stop();
-        }
     }
 
     constructor() {
@@ -69,10 +73,26 @@ class AnimationHandler {
         this.lastFrame += delay + duration;
     }
 
+    ScheduleAnimationWithPrevious(animation: (t: number) => boolean, duration: number, callback: () => boolean): void {
+        this.animations.push([animation, this.lastFrame - duration, duration, callback]);
+    }
+
     Start(): void {
         this.running = true;
         this.timerId = window.setInterval(() => this.Update(), 16);
         this.frameCount = 0;
+    }
+
+    Pause(): void {
+        if (!this.running) {
+            this.Start();
+        }
+        this.running = false;
+    }
+
+    Step(): void{
+        this.frameCount++;
+        this.renderAnimations();
     }
 
     Stop(): void {
@@ -96,7 +116,7 @@ class AnimationHandler {
     }
 }
 
-const COMMON_ANIMATION_EASING_FUNCTIONS = {
+export const COMMON_ANIMATION_EASING_FUNCTIONS = {
     Linear: (t: number): number => {
         return t;
     },
@@ -105,10 +125,16 @@ const COMMON_ANIMATION_EASING_FUNCTIONS = {
     },
     EaseInOutCubic: (t: number): number => {
         return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    },
+    EaseInCubic: (t: number): number => {
+        return t * t * t;
+    },
+    EaseOutCubic: (t: number): number => {
+        return (--t) * t * t + 1;
     }
 }
 
-const COMMON_ANIMATIONS = {
+export const COMMON_ANIMATIONS = {
     FadeIn: (element: HTMLElement, easingFunction: (t: number) => number) => {
         return (t: number): boolean => {
             const easedT = easingFunction(t);
@@ -155,6 +181,10 @@ const COMMON_ANIMATIONS = {
             return false;
         }
     },
+
+    // A generic linear interpolation function that can be used for any numeric property.
+    // Returns a function that takes in a parameter for time and calls the callback with the interpolated value.
+    // The function returns true when the animation is complete.
     LinearInterpolation: (startValue: number, endValue: number, callback: (value: number) => void) => {
         return (t: number): boolean => {
             const currentValue = startValue + (endValue - startValue) * t;
