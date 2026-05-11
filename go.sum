@@ -1,5 +1,7 @@
 github.com/Andrew-The-Cat/SimpleCLI v0.2.1 h1:FMFLnxwS/xDZz6qxGwFvTJk4KRWRp4SyDGjSqDIH6K4=
 github.com/Andrew-The-Cat/SimpleCLI v0.2.1/go.mod h1:zppEaJszp3/+L47qK8yLxqR4+oUqfNIpQIONENzEETI=
+github.com/Andrew-The-Cat/SimpleCLI v0.4.0 h1:mp9qK7tOCdpbhXCj9LM8dB9sDt44qFaMndRmO0jQlU0=
+github.com/Andrew-The-Cat/SimpleCLI v0.4.0/go.mod h1:zppEaJszp3/+L47qK8yLxqR4+oUqfNIpQIONENzEETI=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
 github.com/golang-jwt/jwt/v5 v5.3.1/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

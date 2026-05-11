@@ -8,6 +8,8 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    document.body.classList.add('is-loading');
+
     let state = {
         lessonId: null,
         starterLessonData: null,
@@ -514,6 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initGroups();
         initBookmark();
         initStartButton();
+
+        document.body.classList.remove('is-loading');
         
         setupEntranceAnimations();
     }
