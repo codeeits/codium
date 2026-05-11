@@ -26,65 +26,33 @@ document.addEventListener("DOMContentLoaded", async function() {
         window.location.href = 'user.html';
         return;  
     }
-*/
+    */
     const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
-    userId = userData.ID;
+    const userId = userData?.ID;
 
     if(debugMode) console.info("[DEBUG] Current User:", userData);
     
     // ------------------------------
     // LESSON UPLOAD HANDLER MODAL
     // ------------------------------
+    
+    document.addEventListener("codium:lesson-upload-submit", async function(e) {
+        const formElement = e.detail.formElement;
 
-    const uploadModal = document.getElementById("uploadLessonModal");
-    const form = document.getElementById("lessonUploadForm");
-    const fileInput = document.getElementById("lessonFile");
-    const fileInfo = document.getElementById("fileInfo");
-    const clearForm = document.getElementById("clearForm");
-
-    let prevLess = null;
-    let nextLess = null;
-
-    //clear form funct
-
-    clearForm.addEventListener("click", function(){
-
-        form.reset();
-        if (fileInfo) {
-            fileInfo.style.display = "none";
-        }
-
-    });
-    // Show file info when file is selected
-    fileInput.addEventListener("change", function(e) {
-        const file = e.target.files[0];
-        const nameLabel = document.getElementById("fileName");
-        const sizeLabel = document.getElementById("fileSize");
-
-        if (file && nameLabel && sizeLabel && fileInfo) {
-            nameLabel.textContent = file.name;
-            sizeLabel.textContent = `${(file.size / 1024).toFixed(2)} KB`;
-            fileInfo.style.display = "block";
-        } else if (fileInfo) {
-            fileInfo.style.display = "none";
-        }
-    });
-
-    form.addEventListener("submit", async function(e) {
-        e.preventDefault();
+        let prevLess = null;
+        let nextLess = null;
 
         const formData = {
-            title: document.getElementById("lessonTitle").value,
-            description: document.getElementById("lessonDescription").value,
-            class: parseInt(document.getElementById("modalLessonClass").value),
-            section: parseInt(document.getElementById("lessonSection").value),
+            title: formElement.querySelector("#lessonTitle").value,
+            description: formElement.querySelector("#lessonDescription").value,
+            class: parseInt(formElement.querySelector("#modalLessonClass").value),
+            section: parseInt(formElement.querySelector("#lessonSection").value),
             number: 1,
-            module: parseInt(document.getElementById("lessonModule").value),
+            module: parseInt(formElement.querySelector("#lessonModule").value),
         }
 
         // upload file and create lesson
-
-        const fileInput = document.getElementById("lessonFile");
+        const fileInput = formElement.querySelector("#lessonFile");
         const fileS = fileInput.files[0];
         const fileLength = fileS.size;
         const fileName = fileS.name;
@@ -136,21 +104,6 @@ document.addEventListener("DOMContentLoaded", async function() {
                 toastsLoader.showToast("Warning: Could not check section starter status", "warning");
             }
 
-            // Update UI elements if they exist
-            const nameLabel = document.getElementById("fileName");
-            if (nameLabel) {
-                nameLabel.textContent = fileName;
-            }
-            
-            const sizeLabel = document.getElementById("fileSize");
-            if (sizeLabel) {
-                sizeLabel.textContent = `${(fileLength / 1024).toFixed(2)} KB`;
-            }
-
-            if(fileInfo) {
-                fileInfo.style.display = "none";
-            }
-
         } catch (error) {
             console.error("Lesson upload failed:", error);
             toastsLoader.showToast(`Lesson upload failed: ${error.message}`, "danger");
@@ -159,8 +112,8 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         try {
             // Get debug form values if they exist
-            const debugPrevInput = document.getElementById("debugPrevLesson");
-            const debugNextInput = document.getElementById("debugNextLesson");
+            const debugPrevInput = formElement.querySelector("#debugPrevLesson");
+            const debugNextInput = formElement.querySelector("#debugNextLesson");
             
             if (debugPrevInput && debugNextInput) {
                 const debugPrev = debugPrevInput.value.trim();
@@ -195,8 +148,5 @@ document.addEventListener("DOMContentLoaded", async function() {
             return;
         }
 
-        // Reset form only after everything is done
-        form.reset();
-
-    })
-})
+    });
+});

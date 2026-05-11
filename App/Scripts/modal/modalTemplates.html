@@ -183,3 +183,107 @@
         <button type="button" class="btn danger flex-1" id="modal-confirm-button" data-i18n="settings-page.privacy-section.2fa-notes.disable_button">Disable 2FA</button>
     </div>
 </template>
+
+<template id="modal-tpl-lesson-upload">
+    <form id="lessonUploadForm" enctype="multipart/form-data">
+        <div class="modal-field">
+            <div class="text-container input-field">
+                <input class="input-text" type="text" id="lessonTitle" name="title" placeholder="Enter lesson title" required>
+                <i class="fa-solid fa-heading input-icon"></i>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <div class="text-container input-field">
+                <textarea class="input-text" id="lessonDescription" name="description" placeholder="Brief description of the lesson" rows="2" required></textarea>
+                <i class="fa-solid fa-align-left input-icon" style="top: 20px;"></i>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <div class="text-container input-field">
+                <select class="input-text" id="modalLessonClass" name="class" required>
+                    <option value="">Alege clasa:</option>
+                    <option value="9">Clasa a IX-a</option>
+                    <option value="10">Clasa a X-a</option>
+                    <option value="11">Clasa a XI-a</option>
+                    <option value="12">Clasa a XII-a</option>
+                    <option value="67">Neclasificat</option>
+                </select>
+                <i class="fa-solid fa-school input-icon"></i>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label for="lessonSection" class="input-label">Secțiunea</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="number" id="lessonSection" name="section" placeholder="1" min="1" max="255" required>
+                <i class="fa-solid fa-list-ol input-icon"></i>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label for="lessonModule" class="input-label">Modul [1 - Informatică]</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="number" id="lessonModule" name="module" placeholder="1" min="1" max="1" required>
+                <i class="fa-solid fa-puzzle-piece input-icon"></i>
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label for="debugNextLesson" class="input-label">[DEBUG] Next lesson:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" id="debugNextLesson" name="debugNextLesson" placeholder="00000000-0000-0000-0000-000000000000">
+                <i class="fa-solid fa-forward input-icon"></i>
+            </div>
+        </div>
+        
+        <div class="modal-field">
+            <label for="debugPrevLesson" class="input-label">[DEBUG] Previous lesson:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" id="debugPrevLesson" name="debugPrevLesson" placeholder="00000000-0000-0000-0000-000000000000">
+                <i class="fa-solid fa-backward input-icon"></i>
+            </div>
+        </div>
+
+        <div class="upload-row">
+            <div class="modal-field">
+                <label for="lessonFile" class="input-label">Continutul lectiei (.md sau .txt)</label>
+                <div class="text-container input-field file-upload-container">
+                    <input class="input-text" type="file" id="lessonFile" name="lessonFile" accept=".md,.markdown,.txt" style="padding-left: 45px;" required>
+                    <i class="fa-solid fa-file-code input-icon"></i>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none; margin-top: 8px; font-size: 0.9em; color: var(--color-text-muted);">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span id="fileName"></span>
+                    <span id="fileSize" style="margin-left: 8px; opacity: 0.8;"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-field preview-section" id="previewSection" style="display: none;">
+            <div class="modal-field">
+                <label class="input-label">Content Preview</label>
+                <div class="preview-container">
+                    <div class="preview-header">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Markdown Preview</span>
+                        <button type="button" id="togglePreview" class="btn secondary small">
+                            <i class="fa-solid fa-code"></i> Show Raw
+                        </button>
+                    </div>
+                    <div class="preview-content" id="previewContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="clearForm">
+                <i class="fa-solid fa-times"></i> Clear Form
+            </button>
+            <button type="submit" class="btn primary flex-1" id="uploadBtn">
+                <i class="fa-solid fa-upload"></i> Upload
+            </button>
+        </div>
+    </form>
+</template>

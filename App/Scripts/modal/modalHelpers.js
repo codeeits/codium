@@ -528,6 +528,61 @@ export class ModalHelpers {
         }
     }
 
+    static LessonUpload = {
+
+        openModal: async ({ engine, onConfirm, onClear, title = 'Quick Upload', icon = 'fa-cloud-upload-alt' }) => {
+            if (!engine || typeof engine.openModal !== 'function') {
+                throw new Error('A valid modal engine instance is required.');
+            }
+
+            await engine.openModal({
+                type: 'lesson-upload',
+                title,
+                icon,
+                onConfirm: (formElement) => {
+                    if (typeof onConfirm === 'function') {
+                        onConfirm(formElement);
+                    }
+                },
+                onCancel: () => {},
+                onOpen: (modalElement) => {
+                    // Hook up the clear form button
+                    const clearBtn = modalElement.querySelector('#clearForm');
+                    if (clearBtn) {
+                        clearBtn.addEventListener('click', () => {
+                            const form = modalElement.querySelector('form');
+                            if (form) form.reset();
+                            
+                            const fileInfo = modalElement.querySelector('#fileInfo');
+                            if (fileInfo) fileInfo.style.display = 'none';
+
+                            if (typeof onClear === 'function') onClear();
+                        });
+                    }
+
+                    // Hook up file info preview
+                    const fileInput = modalElement.querySelector('#lessonFile');
+                    const fileInfo = modalElement.querySelector('#fileInfo');
+                    const fileNameSpan = modalElement.querySelector('#fileName');
+                    const fileSizeSpan = modalElement.querySelector('#fileSize');
+
+                    if (fileInput) {
+                        fileInput.addEventListener('change', (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                fileNameSpan.textContent = file.name;
+                                fileSizeSpan.textContent = `(${(file.size / 1024).toFixed(2)} KB)`;
+                                fileInfo.style.display = 'block';
+                            } else {
+                                fileInfo.style.display = 'none';
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    };
+
 }
 
 /* USAGE: */
