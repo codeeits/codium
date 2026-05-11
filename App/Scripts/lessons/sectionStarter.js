@@ -167,14 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const titleEl = clone.querySelector('span');
 
             if (titleEl) {
-                titleEl.textContent = lesson.lesson.Title;
+                titleEl.textContent = lesson.Title;
             }
 
-            clone.dataset.lessonId = lesson.lesson.ID;
+            clone.dataset.lessonId = lesson.ID;
 
-            const interaction = state.interactions.find(i => i.LessonID === lesson.lesson.ID);
+            const interaction = state.interactions.find(i => i.LessonID === lesson.ID);
             const uiStatus = mapParsedStatusToUI(interaction?.ParsedStatus);
-            console.log(`Lecția ${lesson.lesson.ID} are statusul ${interaction?.ParsedStatus} mapat la UI ca ${uiStatus}`);
+            console.log(`Lecția ${lesson.ID} are statusul ${interaction?.ParsedStatus} mapat la UI ca ${uiStatus}`);
             applyStatus(clone, uiStatus);
             
             setupItemNavigation(clone); 
