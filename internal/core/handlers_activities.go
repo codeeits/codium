@@ -29,7 +29,7 @@ func (cfg *ApiCfg) CreateUserActivity(userID uuid.UUID, activityType string, xpG
 
 	// Check whether to increase the streak
 	timeSinceLastActivity := time.Now().Sub(lastActivity.CreatedAt)
-	if timeSinceLastActivity < 24*time.Hour && lastActivity.CreatedAt.Day() != time.Now().Day() && timeSinceLastActivity < 48*time.Hour {
+	if (timeSinceLastActivity < 24*time.Hour && lastActivity.CreatedAt.Day() != time.Now().Day()) || (timeSinceLastActivity >= 24*time.Hour && timeSinceLastActivity < 48*time.Hour) {
 		res, err := cfg.Db.UpdateUserStreak(context.Background(), userID)
 		if err != nil {
 			return err
