@@ -677,3 +677,38 @@ func (cfg *ApiCfg) GetSectionStarterLessonsHandler(w http.ResponseWriter, r *htt
 
 	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(lessons), PrintLessonToJson)
 }
+
+func (cfg *ApiCfg) GetSectionLessonsHandler(w http.ResponseWriter, r *http.Request) {
+	cfg.Logger.Print("Received get section lessons request")
+	if cfg.DatabaseCfg.Loaded != true {
+		cfg.Logger.Printf("Database not loaded")
+		http.Error(w, "Database not loaded", http.StatusInternalServerError)
+		return
+	}
+
+	sectionStarterId, err := GetUUIDFromPath(r, "sectionStarterId")
+	if err != nil {
+		cfg.Logger.Printf("Invalid section starter id: %v", err)
+		http.Error(w, "Invalid section starter_id", http.StatusBadRequest)
+		return
+	}
+
+	lessonChain, err := cfg.Db.GetAllLessonsFromSectionStarter(r.Context(), sectionStarterId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Section starter lesson not found: %v", err)
+			http.Error(w, "Section starter lesson not found", http.StatusNotFound)
+			return
+		}
+		cfg.Logger.Printf("Failed to retrieve lessons from section starter: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var lessons = make([]database.Lesson, 0)
+	for _, lesson := range lessonChain {
+		lessons = append(lessons, database.Lesson(lesson))
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(lessons), GenericPrinter)
+}

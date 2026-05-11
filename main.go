@@ -146,6 +146,7 @@ func main() {
 		mux.Handle("POST /api/lessons", cfg.AuthenticatedEndpointMiddleware(cfg.CreateLessonHandler))
 		mux.Handle("DELETE /api/lessons/{lessonID}", cfg.AuthenticatedEndpointMiddleware(cfg.DeleteLessonHandler))
 		mux.Handle("GET /api/lessons", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.GetLessonDisambiguationHandler)))
+		mux.Handle("GET /api/lesson_chapter/{sectionStarterId}", http.HandlerFunc(cfg.GetSectionLessonsHandler))
 
 		mux.Handle("POST /api/lessons/{lessonID}/favorite", cfg.AuthenticatedEndpointMiddleware(cfg.FavoriteLessonHandler))
 		mux.Handle("POST /api/lessons/{lessonID}/bookmark", cfg.AuthenticatedEndpointMiddleware(cfg.BookmarkLessonHandler))
@@ -188,6 +189,7 @@ func main() {
 		mux.Handle("GET /api/users/{userID}/completed_lessons/count", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.CountUserCompletedLessonsHandler)))
 		mux.Handle("GET /api/users/{userID}/bookmarks/count", cfg.CacheSettingsMiddleware(http.HandlerFunc(cfg.CountUserBookmarkedLessonsHandler)))
 		mux.Handle("GET /api/solutions/count", cfg.CacheSettingsMiddleware(cfg.AuthenticatedEndpointMiddleware(cfg.CountSolutionsDisambiguationHandler)))
+
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
 		}))

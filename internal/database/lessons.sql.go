@@ -113,6 +113,75 @@ func (q *Queries) DeleteLessonByID(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getAllLessonsFromSectionStarter = `-- name: GetAllLessonsFromSectionStarter :many
+WITH RECURSIVE lesson_chain AS (
+    SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language
+    FROM lessons f
+    WHERE f.id = $1
+    UNION ALL
+    SELECT l.id, l.title, l.description, l.content_id, l.author_id, l.created_at, l.updated_at, l.flags, l.next_lesson_id, l.prev_lesson_id, l.section_starter, l.suggested, l.thumbnail_id, l.language
+    FROM lessons l
+    INNER JOIN lesson_chain lc ON l.id = lc.next_lesson_id
+)
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language FROM lesson_chain
+ORDER BY created_at ASC
+`
+
+type GetAllLessonsFromSectionStarterRow struct {
+	ID             uuid.UUID
+	Title          string
+	Description    sql.NullString
+	ContentID      uuid.UUID
+	AuthorID       uuid.NullUUID
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	Flags          int32
+	NextLessonID   uuid.NullUUID
+	PrevLessonID   uuid.NullUUID
+	SectionStarter bool
+	Suggested      bool
+	ThumbnailID    uuid.NullUUID
+	Language       string
+}
+
+func (q *Queries) GetAllLessonsFromSectionStarter(ctx context.Context, id uuid.UUID) ([]GetAllLessonsFromSectionStarterRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllLessonsFromSectionStarter, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllLessonsFromSectionStarterRow
+	for rows.Next() {
+		var i GetAllLessonsFromSectionStarterRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.ContentID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Flags,
+			&i.NextLessonID,
+			&i.PrevLessonID,
+			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
+			&i.Language,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLessonByContentID = `-- name: GetLessonByContentID :one
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language FROM lessons
 WHERE content_id = $1

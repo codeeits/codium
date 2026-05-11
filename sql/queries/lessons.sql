@@ -124,3 +124,16 @@ UPDATE lessons
 SET language = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: GetAllLessonsFromSectionStarter :many
+WITH RECURSIVE lesson_chain AS (
+    SELECT *
+    FROM lessons f
+    WHERE f.id = $1
+    UNION ALL
+    SELECT l.*
+    FROM lessons l
+    INNER JOIN lesson_chain lc ON l.id = lc.next_lesson_id
+)
+SELECT * FROM lesson_chain
+ORDER BY created_at ASC;
