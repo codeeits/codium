@@ -28,9 +28,12 @@
     
     <div class="main-content-auth main-layout">
         <div class="auth-nav left card">
-            <div class="auth-title">
-                <i class="fa-solid fa-id-badge"></i>
-                <h2 data-i18n="login.title">Log-in</h2>
+            <div class="auth-header">
+                <div class="auth-title">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <h2 data-i18n="login.title">Log in</h2>
+                </div>
+                <p data-i18n="login.subtitle">Welcome back! Please enter your details.</p>
             </div>
             <form id="loginForm" class="auth-form">
                 <div class="modal-field">
@@ -47,9 +50,13 @@
                         <i class="fa-solid fa-key input-icon"></i>
                     </div>
                 </div>
-                <div class="auth-remember-me">
-                    <input type="checkbox" name="remember" id="rememberMe">
-                    <label for="rememberMe" data-i18n="login.remember_me">remember me?</label>
+                
+                <div class="auth-options">
+                    <div class="auth-remember-me">
+                        <input type="checkbox" name="remember" id="rememberMe">
+                        <label for="rememberMe" data-i18n="login.remember_me">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-password" data-i18n="login.forgot_password">Forgot password?</a>
                 </div>
                 <div class="auth-buttons">
                     <button type="button" class="btn secondary" data-i18n="buttons.register">Sign Up</button>
@@ -69,6 +76,5 @@
             <p data-i18n="welcome">Learn/ Code/ Compete/</p>
         </div>
     </div>
-    
 </body>
 </html>

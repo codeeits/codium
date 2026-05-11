@@ -21,6 +21,17 @@
     align-items: center;
     flex-direction: column;
     gap: var(--gap-lg);
+    background: var(--primary);
+    overflow: hidden;
+    text-align: center;
+}
+
+.auth-nav.right h2 {
+    font-size: var(--h1-landing-size);
+}
+
+.auth-nav.right p {
+    font-size: var(--h2-font-size);
 }
 
 .auth-form {
@@ -28,6 +39,46 @@
     flex-direction: column;
     gap: var(--gap-md);
     height: 100%;
+}
+
+.auth-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+
+.auth-header p {
+    color: var(--disabled-text);
+}
+
+.auth-title {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    color: var(--text-primary);
+}
+
+/* Options row for login (Remember me + Forgot Password) */
+.auth-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-remember-me {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+}
+
+.forgot-password {
+    color: var(--primary);
+    text-decoration: none;
+    transition: opacity var(--anim-duration-fast);
+}
+
+.forgot-password:hover {
+    opacity: 0.8;
 }
 
 .auth-buttons {
@@ -41,17 +92,32 @@
     flex: 1;
 }
 
-.auth-title {
-    display: flex;
-    gap: var(--gap-sm);
-}
-
+/* Bringing the floating orbs to life */
 .floating-orbs {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--gap-lg);
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
+    animation: float 10s infinite ease-in-out alternate;
+}
+
+/* Size and positioning for the 5 orbs */
+.orb:nth-child(1) { width: 120px; height: 120px; top: 10%; left: 15%; animation-delay: 0s; }
+.orb:nth-child(2) { width: 200px; height: 200px; top: 55%; left: 75%; animation-delay: -2s; }
+.orb:nth-child(3) { width: 80px; height: 80px; top: 45%; left: 30%; animation-delay: -4s; }
+.orb:nth-child(4) { width: 150px; height: 150px; top: 75%; left: 10%; animation-delay: -6s; }
+.orb:nth-child(5) { width: 60px; height: 60px; top: 20%; left: 65%; animation-delay: -8s; }
+
+@keyframes float {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-40px) scale(1.05); }
 }
