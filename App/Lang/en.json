@@ -153,20 +153,31 @@
     },
 
     "login": {
-        "title": "log-in",
-        "email": "e-mail",
-        "password": "password",
-        "forgot_password": "forgot password?",
-        "remember_me": "remember me?",
-        "no_account": "no account?",
-        "register": "sign up"
+        "title": "Log in",
+        "email": "Enter your e-mail:",
+        "password": "Enter your password:",
+        "forgot_password": "Forgot password?",
+        "remember_me": "Remember me?",
+        "no_account": "No account?",
+        "register": "Sign up",
+        "placeholders": {
+            "email": "john.doe@example.co.uk",
+            "password": "********",
+            "top-text": "Welcome back! We've missed you :)"
+        }
     },
     "signup": {
-        "title": "sign up",
-        "username": "username",
-        "email": "e-mail",
-        "password": "password",
-        "confirm_password": "confirm password"
+        "title": "Sign up",
+        "username": "Choose a username:",
+        "email": "Enter your e-mail:",
+        "password": "Enter your password:",
+        "confirm_password": "Confirm your password:",
+        "placeholders": {
+            "username": "john_doe123",
+            "email": "john.doe@example.co.uk",
+            "password": "********",
+            "top-text": "Create an account to start coding."
+        }
     },
     "user-page": {
         "progress": "progress",

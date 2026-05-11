@@ -153,20 +153,31 @@
     },
 
     "login": {
-        "title": "inicia sessió",
-        "email": "e-mail",
-        "password": "contrasenya",
-        "forgot_password": "has oblidat la contrasenya?",
-        "remember_me": "recorda'm",
-        "no_account": "no tens un compte?",
-        "register": "registra't"
+        "title": "Inicia sessió",
+        "email": "Introdueix el teu correu electrònic:",
+        "password": "Introdueix la teva contrasenya:",
+        "forgot_password": "Has oblidat la contrasenya?",
+        "remember_me": "Recorda'm",
+        "no_account": "No tens un compte?",
+        "register": "Registra't",
+        "placeholders": {
+            "email": "pere.cullera@exemple.cat",
+            "password": "********",
+            "top-text": "Benvingut/da de nou! T'hem trobat a faltar :)"
+        }
     },
     "signup": {
-        "title": "registra't",
-        "username": "nom d'usuari",
-        "email": "e-mail",
-        "password": "contrasenya",
-        "confirm_password": "confirma la contrasenya"
+        "title": "Registra't",
+        "username": "Tria un nom d'usuari:",
+        "email": "Introdueix el teu correu electrònic:",
+        "password": "Introdueix la teva contrasenya:",
+        "confirm_password": "Confirma la teva contrasenya:",
+        "placeholders": {
+            "username": "pere_cullera123",
+            "email": "pere.cullera@exemple.cat",
+            "password": "********",
+            "top-text": "Crea un compte per començar a programar."
+        }
     },
     "user-page": {
         "progress": "progrés",

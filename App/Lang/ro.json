@@ -153,20 +153,31 @@
     },
 
     "login": {
-        "title": "autentificare",
-        "email": "e-mail",
-        "password": "parolă",
-        "forgot_password": "ai uitat parola?",
-        "remember_me": "ține-mă minte",
+        "title": "Autentificare",
+        "email": "Introdu adresa de e-mail:",
+        "password": "Introdu parola:",
+        "forgot_password": "Ai uitat parola?",
+        "remember_me": "Ține-mă minte",
         "no_account": "nu ai un cont?",
-        "register": "înregistrează-te"
+        "register": "Înregistrează-te",
+        "placeholders": {
+            "email": "ion.popescu@exemplu.com",
+            "password": "********",
+            "top-text": "Bine ai revenit! Te-am așteptat :)"
+        }
     },
     "signup": {
-        "title": "înregistrează-te",
-        "username": "nume de utilizator",
-        "email": "e-mail",
-        "password": "parolă",
-        "confirm_password": "confirmă parola"
+        "title": "Înregistrează-te",
+        "username": "Alege un nume de utilizator:",
+        "email": "Introdu adresa de e-mail:",
+        "password": "Introdu parola:",
+        "confirm_password": "Confirmă parola:",
+        "placeholders": {
+            "username": "popescu123",
+            "email": "ion.popescu@exemplu.com",
+            "password": "********",
+            "top-text": "Creează-ți un cont pentru a începe să programezi."
+        }
     },
     "user-page": {
         "progress": "progres",
