@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/problem.css">
+    <link rel="stylesheet" href="/app/Styles/learning-animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- MathJax Configuration (Safari-compatible) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            startup: {
+                ready: function () {
+                    console.log('MathJax is ready');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/problems/problemPage.js" defer></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="problems">
+</head>
+<body class="is-loading">
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="main-content">
+                <div class="problem-hashtags" id="problem-source-container">
+                    <a href="#" class="hashtag">#ONIA</a>
+                    <a href="#" class="hashtag">#olimp</a>
+                </div>
+                <div class="header-title">
+                    <h1 id="problem-title">Eureni</h1>
+                    <div class="header-icons">
+                        <button type="button" class="btn secondary" id="bookmark-btn"><i class="fa-solid fa-bookmark"></i></button>
+                        <!--<button type="button" class="btn secondary"><i class="fa-solid fa-pencil"></i></button>-->
+                        <button type="button" class="btn secondary"><i class="fa-solid fa-share"></i></button>
+                    </div>
+                </div>
+                <div class="lesson-meta">
+                    <div class="author-name">
+                        <span id="author-name" class="no-style">Nume autor</span>
+                        <i class="fa-solid fa-circle-check" id="author-verified" title="Author is verified"></i>
+                    </div>
+                </div>
+                <!-- pills -->
+                <div class="problem-pills">
+                    <span class="feed-card-section-pill pill" id="problem-section">Secțiunea 3</span>
+                    <span class="feed-card-class-pill pill" id="problem-class">Clasa 1</span>
+                    <span class="feed-card-difficulty-pill warning pill" id="problem-difficulty">5</span>
+                </div>
+                <div class="separator"></div>
+                <div class="problem-body" id="problem-description"><!-- dinamically loaded -->
+                    <h2>Cerință</h2>
+                    <p>Pentru cadourile pe care Moş Crăciun urmează să le cumpere copiilor cuminți, Consiliul Polului Nord a alocat suma de <code>S eureni</code>. Știind că în comerțul polar se utilizează <code>n+1</code> tipuri de bancnote de valori <code>1, e<sup>1</sup>, e<sup>2</sup>, e<sup>3</sup>, …, e<sup>n</sup></code> şi faptul că Moșul trebuie să primească un număr minim de bancnote pentru suma aprobată, să se determine numărul de bancnote din fiecare tip utilizat în plata sumei și numărul total de bancnote care i s-au alocat.</p>
+                    <h2>Intrare</h2>
+                    <p>Fișierul de intrare <code>eureni.in</code> conține pe prima linie numerele naturale <code>S n e</code>.</p>
+                    <h2>Ieșire</h2>
+                    <p>Fișierul de ieșire <code>eureni.out</code> va conține mai multe linii: pe fiecare linie va fi scrisă valoarea unei bancnote folosită în plata sumei <code>S</code> și numărul de bancnote folosite, separate printr-un spațiu, în ordinea descrescătoare a valorilor bancnotelor folosite. Pe ultima linie se va scrie numai numărul total de bancnote folosite.</p>
+                    <h2>Restricții și precizări</h2>
+                    <ul>
+                        <li><code>1 ≤ S ≤ 2<sup>20</sup></code></li>
+                        <li><code>1 ≤ n ≤ 10</code></li>
+                        <li><code>2 ≤ e ≤ 10</code></li>
+                        <li>Se garantează că suma <code>S</code> poate fi plătită cu bancnotele disponibile.</li>
+                    </ul>
+                    <h2>Exemplu</h2>
+                    <div class="example-block" id="io-container">
+                        <div class="example-input">
+                            <p>Intrare:</p>
+                            <pre><code>5
+3 -1 4 -2 5</code></pre>
+                        </div>
+                        <div class="example-output">
+                            <p>Ieșire:</p>
+                            <pre><code>2</code></pre>
+                        </div>
+                    </div>
+                    <p>Acest program afișează numerele de la 1 la 10.</p>
+                </div>
+                <div class="problem-buttons-bottom">
+                    <button type="button" class="btn secondary" data-i18n="buttons.feedback">Feedback</button>
+                    <button type="button" class="btn primary" data-i18n="buttons.next_problem">Următoarea problemă</button>
+                </div>
+            </div>
+            <div class="side-content">
+                <div class="card stats-card">
+                    <h2 data-i18n="problems-page.right-bar.activity.activity">Activitate</h2>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.available_tests"></span>: <span id="tests-count">5</span></p>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.sent_solutions"></span>: <span id="solutions-count">3</span></p>
+                    <p><span class="no-style" data-i18n="problems-page.right-bar.activity.correct_solutions"></span>: <span id="correct-solutions-count">2</span></p>
+                </div>
+                <div class="card submit-card">
+                    <h2 data-i18n="problems-page.right-bar.send-solution.title">Trimite soluția</h2>
+                    <form id="submit-form">
+                        <div class="form-group">
+                            <div class="input-field dropzone" role="button" tabindex="0" aria-label="Selectează un fișier pentru încărcare">
+                                <input type="file" id="file-input" name="solution-file" accept=".cpp,.py" hidden>
+                                <i class="fa-solid fa-upload"></i>
+                                <span class="input-text placeholder" data-i18n="problems-page.right-bar.send-solution.desc">Apasă pentru a încărca sau drag and drop</span>
+                            </div>
+                            <button type="button" class="btn primary" id="submit-code-btn"><i class="fas fa-paper-plane"></i> {{buttons.submit}}</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card solution-card">
+                    <h2 data-i18n="problems-page.right-bar.solutions.title">Soluții</h2>
+                    <ul id="my-solutions-list">
+                        <li class="hidden" id="no-solutions-msg">Nu ai trimis încă nicio soluție pentru această problemă.</li>
+                        <li>2/5 22.10.2025</li>
+                        <li>4/5 22.10.2025</li>
+                        <li>5/5 22.10.2025</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

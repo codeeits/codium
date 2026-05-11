@@ -1,6 +1,6 @@
 -- name: CreateSolution :one
-INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, tests_passed, total_tests, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO solutions (id, problem_id, user_id, first_solution_test_id, sent_code, language, tests_passed, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: DeleteSolution :exec
@@ -34,7 +34,7 @@ RETURNING *;
 
 -- name: UpdateSolutionTests :one
 UPDATE solutions
-SET tests_passed = $2, total_tests = $3, updated_at = $4
+SET tests_passed = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;
 

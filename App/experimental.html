@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experimental Hub - Codium</title>
+
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/experimental.css">
+
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/experimental.js" defer></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="experimental">
+</head>
+<body class="experimental-page">
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <section class="card experimental-hero">
+                <h1>Experimental shit</h1>
+                <p>
+                    Contains a bunch of experimental stuff not implemented fully yet.
+                </p>
+                <div class="experimental-hero-actions">
+                    <a class="btn primary" href="/app/user.html">Back to user page</a>
+                    <a class="btn secondary" href="/app/Scripts/main.js">Shared shell (main.js)</a>
+                </div>
+            </section>
+
+            <section class="experimental-section">
+                <div class="experimental-section-header">
+                    <div>
+                        <h2>Sandbox</h2>
+                    </div>
+                </div>
+                <div id="experimental-tools-grid" class="experimental-grid"></div>
+            </section>
+
+            <section class="experimental-section">
+                <div class="experimental-section-header">
+                    <div>
+                        <h2>UI implemented partially</h2>
+                    </div>
+                </div>
+                <div id="experimental-ui-grid" class="experimental-grid"></div>
+            </section>
+
+            <section class="experimental-section">
+                <div class="experimental-section-header">
+                    <div>
+                        <h2>Templates and partials</h2>
+                    </div>
+                </div>
+                <div id="experimental-templates-grid" class="experimental-grid"></div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

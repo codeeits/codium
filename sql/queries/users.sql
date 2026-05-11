@@ -2,7 +2,7 @@
 SELECT * FROM users WHERE email = $1;
 
 -- name: CreateUser :one
-INSERT INTO users (id, email, password_hash, username, created_at, updated_at, is_admin, cured_email, permissions)
+INSERT INTO users (id, email, password_hash, username, created_at, updated_at, cured_email, permissions, title)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
@@ -73,5 +73,29 @@ RETURNING *;
 -- name: SetUserTitle :one
 UPDATE users
 SET title = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserTotpSecret :one
+UPDATE users
+SET totp_secret = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: GetUserTotpSecret :one
+SELECT totp_secret FROM users WHERE id = $1;
+
+-- name: UpdateUserBackupCodeSecret :one
+UPDATE users
+SET backupCodeSecret = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: GetUserBackupCodeSecret :one
+SELECT backupCodeSecret FROM users WHERE id = $1;
+
+-- name: UpdateUserCuredEmail :one
+UPDATE users
+SET cured_email = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;

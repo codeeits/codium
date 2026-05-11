@@ -1,5 +1,14 @@
+/*
 
-const problemsApi = new ApiService();
+Hiiii!!! :3 
+I feel like problemsHandler.js is getting a bit spaghetti.
+This code is not supposed to be a shining example of good practices. 
+Now updated so it doesnt do fetch calls directly.!!
+
+*/
+
+const api = window.apiService;
+const problemsApi = api.problems;
 
 // ===========================================
 // HELPER FUNCTIONS
@@ -8,7 +17,8 @@ const problemsApi = new ApiService();
 function showResult(elementId, data, isError = false) {
     const el = document.getElementById(elementId);
     el.style.display = 'block';
-    el.className = 'result ' + (isError ? 'error' : 'success');
+    el.classList.remove('error', 'success');
+    el.classList.add(isError ? 'error' : 'success');
     el.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
 }
 
@@ -221,7 +231,7 @@ async function deleteProblem() {
         }
 
         console.log('Deleting problem:', problemId);
-        await problemsApi.delete(`/api/problems/${problemId}`, true);
+        await problemsApi.deleteProblem(problemId);
         showResult('deleteProblemResult', 'Problem deleted successfully');
     } catch (error) {
         showResult('deleteProblemResult', error.message || error, true);
@@ -265,7 +275,7 @@ async function createTest() {
         if (nextId) data.next_test_id = nextId;
 
         console.log('Creating test with data:', data);
-        const result = await problemsApi.post('/api/tests', data, true);
+        const result = await problemsApi.createTest(data);
         showResult('createTestResult', result);
     } catch (error) {
         showResult('createTestResult', error.message || error, true);
@@ -337,7 +347,7 @@ async function updateTestInput() {
         }
 
         console.log('Updating test input:', data);
-        const result = await problemsApi.put(`/api/tests/${testId}?target_field=input`, data, true);
+        const result = await problemsApi.updateTestInput(testId, data);
         showResult('updateTestResult', result);
     } catch (error) {
         showResult('updateTestResult', error.message || error, true);
@@ -360,7 +370,7 @@ async function updateTestExpectedOutput() {
 
         const data = { expected_output: expectedOutput };
         console.log('Updating test expected output:', data);
-        const result = await problemsApi.put(`/api/tests/${testId}?target_field=expected_output`, data, true);
+        const result = await problemsApi.updateTestExpectedOutput(testId, data);
         showResult('updateTestResult', result);
     } catch (error) {
         showResult('updateTestResult', error.message || error, true);
@@ -379,7 +389,7 @@ async function updateTestPrev() {
         const data = { prev: prevId || null };
 
         console.log('Updating test prev:', data);
-        const result = await problemsApi.put(`/api/tests/${testId}?target_field=prev`, data, true);
+        const result = await problemsApi.updateTestPrev(testId, data);
         showResult('updateTestResult', result);
     } catch (error) {
         showResult('updateTestResult', error.message || error, true);
@@ -398,7 +408,7 @@ async function updateTestNext() {
         const data = { next: nextId || null };
 
         console.log('Updating test next:', data);
-        const result = await problemsApi.put(`/api/tests/${testId}?target_field=next`, data, true);
+        const result = await problemsApi.updateTestNext(testId, data);
         showResult('updateTestResult', result);
     } catch (error) {
         showResult('updateTestResult', error.message || error, true);
@@ -418,7 +428,7 @@ async function deleteTest() {
         }
 
         console.log('Deleting test:', testId);
-        await problemsApi.delete(`/api/tests/${testId}`, true);
+        await problemsApi.deleteTest(testId);
         showResult('deleteTestResult', 'Test deleted successfully');
     } catch (error) {
         showResult('deleteTestResult', error.message || error, true);
@@ -587,7 +597,7 @@ async function deleteSolution() {
         }
 
         console.log('Deleting solution:', solutionId);
-        await problemsApi.delete(`/api/solutions/${solutionId}`, true);
+        await problemsApi.deleteSolution(solutionId);
         showResult('deleteSolutionResult', 'Solution deleted successfully');
     } catch (error) {
         showResult('deleteSolutionResult', error.message || error, true);
@@ -624,15 +634,18 @@ async function runCodeAgainstProblem(button) {
 
         console.log('Creating solution record with data:', data);
         const solutionResult = await problemsApi.createSolution(problemId, data);
-        solutionId = solutionResult.ID;
+        const solutionId = solutionResult?.ID || solutionResult?.solution?.ID;
 
         data = {};
-        data.total_tests = result.total;
+        data.given_answers = result.given_answers;
         data.tests_passed = result.score;
+        data.total_tests = result.total;
 
         const updateResult = await problemsApi.updateSolution(solutionId, 'tests', data);
         console.log('Updated solution with test results:', updateResult);
-        showResult('runCodeResult', result);
+        const testsPassed = updateResult?.TestsPassed?.Int32 ?? updateResult?.tests_passed ?? 0;
+        const totalTests = updateResult?.TotalTests?.Int32 ?? updateResult?.total_tests ?? result.total;
+        showResult('runCodeResult', { tests_passed: testsPassed, total_tests: totalTests });
     } catch (error) {
         showResult('runCodeResult', error.message || error, true);
     } finally {
@@ -656,18 +669,67 @@ async function uploadImage() {
 
         const file = fileInput.files[0];
         console.log('Uploading image file:', file.name);
-        const result = await problemsApi.uploadFile(file);
+        const result = await problemsApi.uploadProblemImage(file);
         showResult('uploadImageResult', result);
     } catch (error) {
         showResult('uploadImageResult', error.message || error, true);
     }
 }
+
+// Compatibility aliases for pages still using legacy inline handler names
+// CAUTION: These functions rely on the presence of specific input fields and may not work correctly if html structure is changed.
+// Caution 2: These functions are not meant to be used as general-purpose handlers and may have limited error handling or flexibility. Use the above functions directly for better control and reliability.
+
+async function getSolutionById() {
+    return getSolutions('solution');
+}
+
+async function runCode() {
+    const button = document.querySelector('button[onclick="runCode()"]');
+    return runCodeAgainstProblem(button || { disabled: false, textContent: '', style: { opacity: '1' } });
+}
+
+async function submitCode() {
+    return runCode();
+}
+
+Object.assign(window, {
+    createProblem,
+    getProblems,
+    getProblemById,
+    updateProblemTags,
+    updateProblemDetails,
+    updateProblemFirstTest,
+    updateProblemThumbnail,
+    deleteProblem,
+    createTest,
+    getTestById,
+    getTestChainByFirstId,
+    updateTestInput,
+    updateTestExpectedOutput,
+    updateTestPrev,
+    updateTestNext,
+    deleteTest,
+    createSolution,
+    updateSolutionTests,
+    getSolutions,
+    getSolutionById,
+    countSolutions,
+    deleteSolution,
+    runCodeAgainstProblem,
+    runCode,
+    submitCode,
+    uploadImage
+});
+
+// END OF CAUTIONARY ALIASES
+
 // ===========================================
 // AUTH CHECK ON LOAD
 // ===========================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!problemsApi.isAuthenticated()) {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!(await api.checkAuthentication(false))) {
         console.warn('Not authenticated - some operations will fail');
         document.body.insertAdjacentHTML('afterbegin', 
             '<div style="background:#a44;color:#fff;padding:10px;text-align:center;margin-bottom:10px;">⚠️ Not authenticated. Please log in first for write operations.</div>'

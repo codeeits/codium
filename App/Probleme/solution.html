@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/solution.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"> <!-- EXTERNAL -->
+
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <!--<script type="module" src="/app/Scripts/problems/problemPage.js" defer></script>-->
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="problems">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="main-content">
+                <div class="solution-meta" id="solution-meta">
+                    <p><span class="no-style">Solve ID: 11111111-2222-3333-4444-555555555555</span> &#8226; <span class="no-style">Solution ID: 11111111-2222-3333-4444-555555555555</span></p>
+                </div>
+                <div class="header-title">
+                    <h1 id="problem-title">Detalii evaluare</h1>
+                    <div class="evaluation-meta">
+                        <p><i class="fa-solid fa-calendar"></i> <span class="no-style">Data: 22.10.2025</span></p>
+                        <span class="no-style separator">&#8226;</span>
+                        <p><i class="fa-solid fa-code"></i> <span class="no-style">Limbaj: Python</span></p>
+                        <span class="no-style separator">&#8226;</span>
+                        <p><i class="fa-solid fa-crosshairs"></i> <span class="no-style">Scor: 100%</span></p>
+                    </div>
+                </div>
+                <!-- pills -->
+                 <!--
+                <div class="problem-pills">
+                    <span class="feed-card-section-pill pill" id="problem-section">Secțiunea 3</span>
+                    <span class="feed-card-class-pill pill" id="problem-class">Clasa 1</span>
+                    <span class="feed-card-difficulty-pill warning pill" id="problem-difficulty">5</span>
+                </div>
+                -->
+                <div class="separator"></div>
+                <div class="problem-body" id="problem-description"><!-- dinamically loaded -->
+                    <div class="problem-description__header">
+                        <h2>Cod sursă:</h2>
+                        <button type="button" class="btn secondary"><i class="fa-solid fa-file"></i> Descarcă codul sursă</button>
+                    </div>
+                    <pre><code class="language-python">def solve():
+    n = int(input())
+    a = list(map(int, input().split()))
+    print(sum(a))
+</code></pre>
+                    <h2>Rezultate evaluare:</h2>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Test</th>
+                                <th>Status</th>
+                                <th>Scor</th>
+                                <th>Detalii</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Test 1</td>
+                                <td><span class="status correct">Corect</span></td>
+                                <td>20%</td>
+                                <td><button class="btn secondary details-btn" data-test-id="1">Vezi detalii</button></td>
+                            </tr>
+                            <tr>
+                                <td>Test 2</td>
+                                <td><span class="status correct">Corect</span></td>
+                                <td>20%</td>
+                                <td><button class="btn secondary details-btn" data-test-id="2">Vezi detalii</button></td>
+                            </tr>
+                            <tr>
+                                <td>Test 3</td>
+                                <td><span class="status correct">Corect</span></td>
+                                <td>20%</td>
+                                <td><button class="btn secondary details-btn" data-test-id="3">Vezi detalii</button></td>
+                            </tr>
+                            <tr>
+                                <td>Test 4</td>
+                                <td><span class="status correct">Corect</span></td>
+                                <td>20%</td>
+                                <td><button class="btn secondary details-btn" data-test-id="4">Vezi detalii</button></td>
+                            </tr>
+                            <tr>
+                                <td>Test 5</td>
+                                <td><span class="status correct">Corect</span></td>
+                                <td>20%</td>
+                                <td><button class="btn secondary details-btn" data-test-id="5">Vezi detalii</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="side-content">
+                <div class="card score-card">
+                </div>
+                <div class="card problem-details-card">
+                    <h2>Detalii problemă</h2>
+                    <div class="problem-details__element">
+                        <p>Număr teste:</p>
+                        <p><span class="no-style">5</span></p>
+                    </div>
+                    <div class="problem-details__element">
+                        <p>Dintre care ascunse:</p>
+                        <p><span class="no-style">?</span></p>
+                    </div>
+                    <div class="problem-details__element">
+                        <p>Dificultate:</p>
+                        <p><span class="no-style">Ușor</span></p>
+                    </div>
+                    <div class="problem-details__element">
+                        <p>Scorul tău maxim:</p>
+                        <p><span class="no-style">100/100</span></p>
+                    </div>
+                    <button type="button" class="btn primary">
+                        Vezi enunț complet 
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="card biscuitonomie-card">
+                    <h2>Biscuitonomie</h2>
+                    <div class="biscuitonomie-sub">
+                        <h3>Câștiguri:</h3>
+                        <p><span class="no-style">+100 <i class="fa-solid fa-cookie-bite"></i> Câștigați</span></p>
+                    </div>
+                    <div class="separator"></div>
+                    <div class="biscuitonomie-sub">
+                        <h3>Magazin:</h3>
+                        <div class="card shop-element">
+                            <h3>Test ascuns:</h3>
+                            <p><i class="fa-solid fa-cookie-bite"></i> 500</p>
+                            <button class="btn secondary" disabled>Răscumpără</button>
+                        </div>
+                        <div class="card shop-element">
+                            <h3>Soluție eficientă:</h3>
+                            <p><i class="fa-solid fa-cookie-bite"></i> 1000</p>
+                            <button class="btn secondary" disabled>Răscumpără</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

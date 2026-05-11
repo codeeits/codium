@@ -55,9 +55,9 @@ func (q *Queries) CountProblemsByTag(ctx context.Context, arg CountProblemsByTag
 }
 
 const createProblem = `-- name: CreateProblem :one
-INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+INSERT INTO problems (id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type CreateProblemParams struct {
@@ -72,6 +72,7 @@ type CreateProblemParams struct {
 	ThumbnailFileID uuid.NullUUID
 	AuthorID        uuid.UUID
 	Suggested       bool
+	TotalTests      int32
 }
 
 func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error) {
@@ -87,6 +88,7 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		arg.ThumbnailFileID,
 		arg.AuthorID,
 		arg.Suggested,
+		arg.TotalTests,
 	)
 	var i Problem
 	err := row.Scan(
@@ -101,6 +103,7 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
@@ -116,7 +119,7 @@ func (q *Queries) DeleteProblem(ctx context.Context, id uuid.UUID) error {
 }
 
 const getProblemByID = `-- name: GetProblemByID :one
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE id = $1
 `
 
@@ -135,12 +138,13 @@ func (q *Queries) GetProblemByID(ctx context.Context, id uuid.UUID) (Problem, er
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
 
 const getProblems = `-- name: GetProblems :many
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
          WHERE suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
@@ -172,6 +176,7 @@ func (q *Queries) GetProblems(ctx context.Context, arg GetProblemsParams) ([]Pro
 			&i.ThumbnailFileID,
 			&i.AuthorID,
 			&i.Suggested,
+			&i.TotalTests,
 		); err != nil {
 			return nil, err
 		}
@@ -187,7 +192,7 @@ func (q *Queries) GetProblems(ctx context.Context, arg GetProblemsParams) ([]Pro
 }
 
 const getProblemsByAuthorID = `-- name: GetProblemsByAuthorID :many
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE author_id = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -220,6 +225,7 @@ func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAu
 			&i.ThumbnailFileID,
 			&i.AuthorID,
 			&i.Suggested,
+			&i.TotalTests,
 		); err != nil {
 			return nil, err
 		}
@@ -235,7 +241,7 @@ func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAu
 }
 
 const getProblemsBySource = `-- name: GetProblemsBySource :many
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE source = $1 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -268,6 +274,7 @@ func (q *Queries) GetProblemsBySource(ctx context.Context, arg GetProblemsBySour
 			&i.ThumbnailFileID,
 			&i.AuthorID,
 			&i.Suggested,
+			&i.TotalTests,
 		); err != nil {
 			return nil, err
 		}
@@ -283,7 +290,7 @@ func (q *Queries) GetProblemsBySource(ctx context.Context, arg GetProblemsBySour
 }
 
 const getProblemsByTag = `-- name: GetProblemsByTag :many
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE $1 & tags = $2 and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $3 OFFSET $4
@@ -323,6 +330,7 @@ func (q *Queries) GetProblemsByTag(ctx context.Context, arg GetProblemsByTagPara
 			&i.ThumbnailFileID,
 			&i.AuthorID,
 			&i.Suggested,
+			&i.TotalTests,
 		); err != nil {
 			return nil, err
 		}
@@ -338,7 +346,7 @@ func (q *Queries) GetProblemsByTag(ctx context.Context, arg GetProblemsByTagPara
 }
 
 const getSuggestedProblems = `-- name: GetSuggestedProblems :many
-SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested FROM problems
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE suggested = TRUE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
@@ -370,6 +378,7 @@ func (q *Queries) GetSuggestedProblems(ctx context.Context, arg GetSuggestedProb
 			&i.ThumbnailFileID,
 			&i.AuthorID,
 			&i.Suggested,
+			&i.TotalTests,
 		); err != nil {
 			return nil, err
 		}
@@ -388,7 +397,7 @@ const updateProblemDetails = `-- name: UpdateProblemDetails :one
 UPDATE problems
 SET title = $2, description = $3, source=$4, updated_at = $5
 WHERE id = $1
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type UpdateProblemDetailsParams struct {
@@ -420,25 +429,32 @@ func (q *Queries) UpdateProblemDetails(ctx context.Context, arg UpdateProblemDet
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
 
 const updateProblemFirstTest = `-- name: UpdateProblemFirstTest :one
 UPDATE problems
-SET first_test = $2, updated_at = $3
+SET first_test = $2, updated_at = $3, total_tests = $4
 WHERE id = $1
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type UpdateProblemFirstTestParams struct {
-	ID        uuid.UUID
-	FirstTest uuid.NullUUID
-	UpdatedAt time.Time
+	ID         uuid.UUID
+	FirstTest  uuid.NullUUID
+	UpdatedAt  time.Time
+	TotalTests int32
 }
 
 func (q *Queries) UpdateProblemFirstTest(ctx context.Context, arg UpdateProblemFirstTestParams) (Problem, error) {
-	row := q.db.QueryRowContext(ctx, updateProblemFirstTest, arg.ID, arg.FirstTest, arg.UpdatedAt)
+	row := q.db.QueryRowContext(ctx, updateProblemFirstTest,
+		arg.ID,
+		arg.FirstTest,
+		arg.UpdatedAt,
+		arg.TotalTests,
+	)
 	var i Problem
 	err := row.Scan(
 		&i.ID,
@@ -452,6 +468,7 @@ func (q *Queries) UpdateProblemFirstTest(ctx context.Context, arg UpdateProblemF
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
@@ -460,7 +477,7 @@ const updateProblemSuggested = `-- name: UpdateProblemSuggested :one
 UPDATE problems
 SET suggested = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type UpdateProblemSuggestedParams struct {
@@ -484,6 +501,7 @@ func (q *Queries) UpdateProblemSuggested(ctx context.Context, arg UpdateProblemS
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
@@ -492,7 +510,7 @@ const updateProblemTags = `-- name: UpdateProblemTags :one
 UPDATE problems
 SET tags = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type UpdateProblemTagsParams struct {
@@ -516,6 +534,7 @@ func (q *Queries) UpdateProblemTags(ctx context.Context, arg UpdateProblemTagsPa
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }
@@ -524,7 +543,7 @@ const updateProblemThumbnail = `-- name: UpdateProblemThumbnail :one
 UPDATE problems
 SET thumbnail_file_id = $2, updated_at = $3
 WHERE id = $1
-RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested
+RETURNING id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests
 `
 
 type UpdateProblemThumbnailParams struct {
@@ -548,6 +567,7 @@ func (q *Queries) UpdateProblemThumbnail(ctx context.Context, arg UpdateProblemT
 		&i.ThumbnailFileID,
 		&i.AuthorID,
 		&i.Suggested,
+		&i.TotalTests,
 	)
 	return i, err
 }

@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -27,10 +29,14 @@ import (
 ===========================================
 */
 
+// front end toast types
+// danger, confirm, warning, info
+
 type ApiCfg struct {
 	Logger       log.Logger
 	Db           *database.Queries
 	Secret       string
+	TOTPSecret   string
 	Running      bool
 	WebsiteUrl   string
 	WebsiteState string
@@ -59,12 +65,12 @@ type FlagTranslation struct {
 }
 
 type TagTranslation struct {
-	Module           int `json:"module"`
-	Difficulty       int `json:"difficulty"`
-	SolveType        int `json:"solve_type"`
-	ResultType       int `json:"result_type"`
-	VerificationType int `json:"verification_type"`
-	SectionType      int `json:"section"`
+	Module     int `json:"module"`
+	Difficulty int `json:"difficulty"`
+	SolveType  int `json:"solve_type"`
+	ResultType int `json:"result_type"`
+	Class      int `json:"verification_type"`
+	Section    int `json:"section"`
 }
 
 type LessonWithFlags struct {
@@ -129,6 +135,10 @@ const (
 	// PermissionCanSuggestProblems represents the ability to suggest new problems
 	PermissionCanSuggestProblems UserPermissions = 1 << 6
 )
+
+var NoXpAddedErr = errors.New("no XP added for this problem, either because it was already solved or because of an error")
+
+var ErrNoChange = errors.New("no change has been made")
 
 /*uint32
 ===========================================
@@ -216,16 +226,16 @@ func (cfg *ApiCfg) ResetAll() error {
 		Username:     cfg.AdminCfg.Username,
 		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
 		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		IsAdmin:      true,
 		CuredEmail:   sql.NullString{String: "codiumOfficial@lekastech", Valid: true},
 		Permissions:  int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
+		Title:        "admin",
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to create default admin user: %v", err)
 		return err
 	}
 
-	cfg.AdminCfg.Token, err = auth.MakeJWT(defaultAdmin.ID, cfg.Secret, time.Hour*24*30)
+	cfg.AdminCfg.Token, err = auth.MakeUUIDJWT(defaultAdmin.ID, cfg.Secret, time.Hour*24*30)
 	if err != nil {
 		cfg.Logger.Printf("Failed to create default admin JWT token: %v", err)
 	}
@@ -377,7 +387,7 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 				UserID:    userID,
 				CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-				StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				StartedAt: sql.NullTime{Time: time.Now(), Valid: false},
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -386,6 +396,10 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 		}
 		return res, nil
 	}
+	if res.StartedAt.Valid {
+		return res, ErrNoChange
+	}
+
 	// Interaction exists, update startedAt
 	res, err = cfg.Db.UpdateLessonsUsersStart(context.Background(), database.UpdateLessonsUsersStartParams{
 		StartedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -395,6 +409,22 @@ func (cfg *ApiCfg) MarkLessonUserStarted(lessonID uuid.UUID, userID uuid.UUID) (
 	})
 	if err != nil {
 		return database.LessonsUser{}, fmt.Errorf("failed to update lesson startedAt: %v", err)
+	}
+
+	err = cfg.CreateUserActivity(userID, "lessonStarted", 0)
+	if err != nil {
+		return database.LessonsUser{}, err
+	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "lessonStarted",
+		Payload:   json.RawMessage(`{"text":"server_events.lessons.start.placeholder", "type": "info"}`),
+		CreatedAt: time.Now(),
+	})
+	if err != nil {
+		return database.LessonsUser{}, err
 	}
 
 	return res, nil
@@ -413,7 +443,7 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 				UserID:      userID,
 				CreatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
 				UpdatedAt:   sql.NullTime{Time: time.Now(), Valid: true},
-				CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
+				CompletedAt: sql.NullTime{Time: time.Now(), Valid: false},
 				ID:          uuid.New(),
 			})
 			if err != nil {
@@ -422,6 +452,12 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		}
 		return res, nil
 	}
+
+	if res.CompletedAt.Valid {
+		cfg.Logger.Printf("Lesson already completed for user: %v", userID)
+		return database.LessonsUser{}, errors.New("lesson already completed for user")
+	}
+
 	// Interaction exists, update completedAt
 	res, err = cfg.Db.UpdateLessonsUsersComplete(context.Background(), database.UpdateLessonsUsersCompleteParams{
 		CompletedAt: sql.NullTime{Time: time.Now(), Valid: true},
@@ -430,8 +466,33 @@ func (cfg *ApiCfg) MarkLessonUserCompleted(lessonID uuid.UUID, userID uuid.UUID)
 		UserID:      userID,
 	})
 	if err != nil {
-		return database.LessonsUser{}, fmt.Errorf("failed to update lesson completedAt: %v", err)
+		return database.LessonsUser{}, ErrNoChange
 	}
+
+	cfg.Logger.Printf("Trying to give an XP bonus to user: %v", userID)
+	lessonXp := 10 + rand.Int31n(10)        // base lesson xp
+	lessonXpMulti := rand.Float32()*0.5 + 1 // up to 50% extra xp cuz gambling is fun
+
+	scoreToAdd := int32(float32(lessonXp) * lessonXpMulti)
+	_, err = cfg.AddScoreToUser(userID, int32(scoreToAdd))
+	if err != nil {
+		return database.LessonsUser{}, fmt.Errorf("failed to add score: %v", err)
+	}
+
+	cfg.Logger.Printf("Added %v xp to user: %v for completing lesson: %v", int32(scoreToAdd), userID, lessonID)
+
+	err = cfg.CreateUserActivity(userID, "lessonCompletion", lessonXp)
+	if err != nil {
+		return database.LessonsUser{}, err
+	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "lessonCompletion",
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.lessons.complete.placeholder", "type": "confirm", "xpGained": %v}`, int32(scoreToAdd))),
+		CreatedAt: time.Now(),
+	})
 
 	return res, nil
 }
@@ -483,6 +544,7 @@ func (cfg *ApiCfg) ToggleProblemUserBookmarked(problemID uuid.UUID, userID uuid.
 		if errors.Is(err, sql.ErrNoRows) {
 			// Interaction not initialized yet, add bookmark
 			res, err = cfg.Db.CreateUserProblem(context.Background(), database.CreateUserProblemParams{
+				ID:         uuid.New(),
 				ProblemID:  problemID,
 				UserID:     userID,
 				CreatedAt:  time.Now(),
@@ -523,7 +585,7 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 				UserID:    userID,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-				SolvedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+				SolvedAt:  sql.NullTime{Time: time.Now(), Valid: false},
 				ID:        uuid.New(),
 			})
 			if err != nil {
@@ -547,7 +609,109 @@ func (cfg *ApiCfg) MarkProblemUserSolved(problemID uuid.UUID, userID uuid.UUID) 
 	if err != nil {
 		return database.UsersProblem{}, fmt.Errorf("failed to update problem solvedAt: %v", err)
 	}
+
+	cfg.Logger.Printf("Trying to give an XP bonus to user: %v", userID)
+	problemXp, err := cfg.CalculateXPBonusForProblem(problemID)
+	if err != nil {
+		return res, NoXpAddedErr
+	}
+	multi, err, isCrit := cfg.CalculateScoreMultiplier(userID)
+	if err != nil {
+		return res, NoXpAddedErr
+	}
+
+	scoreToAdd := problemXp * multi
+	_, err = cfg.AddScoreToUser(userID, scoreToAdd)
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to add score to user: %v", err)
+	}
+
+	cfg.Logger.Printf("Added %v xp to user: %v", scoreToAdd, userID)
+
+	err = cfg.CreateUserActivity(userID, "problemSolve", scoreToAdd)
+	if err != nil {
+		return database.UsersProblem{}, fmt.Errorf("failed to create user activity: %v", err)
+	}
+
+	_, err = cfg.Db.CreateEvent(context.Background(), database.CreateEventParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Type:      "problemCompletion",
+		Payload:   json.RawMessage(fmt.Sprintf(`{"text":"server_events.problems.complete.placeholder", "type": "confirm", "xpGained": %v, "isCrit": "%v"}`, scoreToAdd, isCrit)),
+		CreatedAt: time.Now(),
+	})
+
 	return res, nil
+}
+
+func (cfg *ApiCfg) CalculateXPBonusForProblem(problemID uuid.UUID) (score int32, err error) {
+	problem, err := cfg.Db.GetProblemByID(context.Background(), problemID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve problem: %v", err)
+	}
+
+	problemTags := ParseProblemTags(problem.Tags)
+	var returnedScore int32 = 0
+	switch problemTags.Difficulty {
+	case 0: // easy problem
+		returnedScore = 40
+	case 1: // medium problem
+		returnedScore = 80
+	case 3: // hard problem
+		returnedScore = 160
+	case 4: // challenge problem
+		returnedScore = 320
+	}
+
+	returnedScore += int32(problemTags.Class + problemTags.Section)
+	// 0 is code execution, 1 is a written answer and 4 is exam
+	if problemTags.SolveType == 0 {
+		returnedScore *= 2
+	}
+
+	if problemTags.SolveType == 4 {
+		returnedScore *= 4
+	}
+
+	returnedScore += rand.Int31n(20) // Add randomness because gambling always makes people feel good
+	return returnedScore, nil
+}
+
+func (cfg *ApiCfg) CalculateScoreMultiplier(userID uuid.UUID) (score int32, err error, critted bool) {
+	_, err = cfg.Db.GetUserByID(context.Background(), userID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user: %v", err), false
+	}
+
+	var multiplier int32 = 1
+
+	res, err := cfg.Db.GetUserActivitiesByTypeToday(context.Background(), database.GetUserActivitiesByTypeTodayParams{
+		UserID:       userID,
+		ActivityType: "problemSolve",
+		Limit:        1000,
+		Offset:       0,
+	})
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user-activities: %v", err), false
+	}
+	nrProblemsSolvedToday := int32(len(res))
+
+	critChance := float64(nrProblemsSolvedToday*40) / float64(nrProblemsSolvedToday+5)
+	randVal := math.Floor(rand.Float64() * 100)
+
+	if randVal < critChance {
+		multiplier *= 2
+		critted = true
+	}
+
+	userStreak, err := cfg.Db.GetUserStreak(context.Background(), userID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to retrieve user-streak: %v", err), false
+	}
+
+	multiplier *= 1.0 + userStreak/100
+
+	return multiplier, nil, critted
 }
 
 // Upload local upload
@@ -606,7 +770,7 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 			return "", "", fmt.Errorf("invalid file extension for lessons: %v", fileExtensions)
 		}
 		// Lessons are privileged uploads only
-		if !user.IsAdmin {
+		if !UserHasPermission(user, PermissionCanManageLessons) && !UserHasPermission(user, PermissionCanSuggestLessons) {
 			return "", "", fmt.Errorf("unauthorized upload attempt to lessons")
 		}
 
@@ -660,6 +824,18 @@ func (cfg *ApiCfg) Upload(multipart multipart.File, location string, fileType st
 	}
 
 	return filePath, fileId.String(), nil
+}
+
+func (cfg *ApiCfg) MakeAdmin(userID uuid.UUID) error {
+	_, err := cfg.Db.SetUserPermissions(context.Background(), database.SetUserPermissionsParams{
+		ID:          userID,
+		Permissions: int16(PermissionAdmin | PermissionCanManageUsers | PermissionCanManageLessons | PermissionCanManageProblems | PermissionCanViewOtherSolutions),
+		UpdatedAt:   sql.NullTime{Valid: true, Time: time.Now()},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to set user permissions: %v", err)
+	}
+	return nil
 }
 
 // DeleteUser Delete a user and all their associated files
@@ -777,7 +953,7 @@ func ParseLessonFlags(flags int32) FlagTranslation {
 }
 
 func ParseProblemTags(tags int32) TagTranslation {
-	// e.g. tags = 0x01020304 -> Section = 4, VerificationType=3, ResultType=2, SolveType=1, Difficulty=0, Module=1
+	// e.g. tags = 0x01020304 -> Section = 4, Class=3, ResultType=2, SolveType=1, Difficulty=0, Module=1
 	u := uint32(tags)
 	module := int(u >> 24)
 	difficulty := int((u >> 20) & 0x0F)
@@ -815,13 +991,23 @@ func (cfg *ApiCfg) DeleteFile(fileID uuid.UUID) error {
 }
 
 func (cfg *ApiCfg) AuthenticateUser(r *http.Request) (database.User, error) {
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		cfg.Logger.Printf("Unauthorized access attempt: %v", err)
-		return database.User{}, err
+	cookies := r.Cookies()
+	var token string
+	cfg.Logger.Printf("Authenticating user: %v", cookies)
+	if len(cookies) != 0 {
+		for _, cookie := range cookies {
+			if cookie.Name == "session_token" {
+				token = cookie.Value
+				break
+			}
+		}
+		if token == "" {
+			cfg.Logger.Printf("Cookie not found in sessionToken")
+			return database.User{}, fmt.Errorf("sessionToken not found in cookies")
+		}
 	}
 
-	targetId, err := auth.ValidateJWT(token, cfg.Secret)
+	targetId, err := auth.ValidateUUIDJWT(token, cfg.Secret)
 	if err != nil {
 		cfg.Logger.Printf("Invalid token: %v", err)
 		return database.User{}, err
@@ -843,9 +1029,53 @@ func (cfg *ApiCfg) AuthenticatedEndpointMiddleware(next func(w http.ResponseWrit
 			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
+
+		err = cfg.WriteEventsForUser(user.ID, w)
+		if err != nil {
+			cfg.Logger.Printf("!! Failed to write events for user: %v", err)
+		}
 		// Call the next handler with the authenticated user
 		next(w, r, user)
 	}
+}
+
+func (cfg *ApiCfg) WriteEventsForUser(userId uuid.UUID, w http.ResponseWriter) error {
+	events, err := cfg.Db.GetEventsForUser(context.Background(), userId)
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve events: %v", err)
+		return err
+	}
+
+	cfg.Logger.Printf("Writing %v events for user: %v", len(events), userId)
+	type toast struct {
+		MsgType string          `json:"msg_type"`
+		Msg     json.RawMessage `json:"msg"`
+	}
+
+	writeBuffer := "["
+	for i, event := range events {
+		toastMsg, err := json.Marshal(toast{
+			MsgType: event.Type,
+			Msg:     event.Payload,
+		})
+		if err != nil {
+			cfg.Logger.Printf("Failed to marshal event: %v", err)
+			return err
+		}
+
+		writeBuffer += string(toastMsg)
+		if i != len(events)-1 {
+			writeBuffer += ","
+		}
+	}
+
+	writeBuffer += "]"
+
+	err = cfg.Db.DeleteEventsForUser(context.Background(), userId)
+
+	w.Header().Set("toasts", writeBuffer)
+
+	return nil
 }
 
 // WriteSingleJsonOutput Write a single JSON object to the response
@@ -924,6 +1154,10 @@ func PrintUserToJson(p any) (string, error) {
 	}
 
 	user.PasswordHash = "" // Remove password hash for security
+
+	// Remove user totp secrets for security reasons while keeping validated status for frontend verification
+	user.Backupcodesecret = sql.NullString{String: "", Valid: user.Backupcodesecret.Valid}
+	user.TotpSecret = sql.NullString{String: "", Valid: user.TotpSecret.Valid}
 	jsonData, err := json.Marshal(user)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal user: %v", err)
@@ -1038,33 +1272,21 @@ func BuildProblemTags(module int, difficulty int, solveType int, resultType int,
 	return tags, mask
 }
 
-func BuildUserPermissions(canManageUsers bool, canManageProblems bool, canManageLessons bool, canViewOtherSolutions bool, canSuggestProblems bool, isAdmin bool, canSuggestLessons bool) UserPermissions {
-	var permissions UserPermissions = 0
-	if canManageUsers {
-		permissions |= PermissionCanManageUsers
-	}
-	if canManageProblems {
-		permissions |= PermissionCanManageProblems
-	}
-	if canManageLessons {
-		permissions |= PermissionCanManageLessons
-	}
-	if canViewOtherSolutions {
-		permissions |= PermissionCanViewOtherSolutions
-	}
-	if canSuggestProblems {
-		permissions |= PermissionCanSuggestProblems
-	}
-	if isAdmin {
-		permissions |= PermissionAdmin
-	}
-	if canSuggestLessons {
-		permissions |= PermissionCanSuggestLessons
-	}
-
-	return permissions
-}
-
 func UserHasPermission(user database.User, permission UserPermissions) bool {
 	return (UserPermissions(user.Permissions) & permission) == permission
+}
+
+func (cfg *ApiCfg) CacheSettingsMiddleware(handler http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if cfg.WebsiteState == "development" {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Expires", "0")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=60")
+			w.Header().Set("Pragma", "public")
+			w.Header().Set("Expires", time.Now().Add(time.Minute).Format(http.TimeFormat))
+		}
+		handler.ServeHTTP(w, r)
+	}
 }

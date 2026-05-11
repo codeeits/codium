@@ -1,0 +1,232 @@
+{
+    "language": "Shakespearean",
+    "hidden": "true",
+    "_comment": "Verily, a translation file for the noble tongue of olde. Huzzah!",
+    "app_name": "Code Upon The Stage/",
+    "welcome": "",
+    "landing": {
+        "meta": {
+            "title": "The Grand Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Learneth",
+                "python": "Python",
+                "interactive": ". Most interactive,",
+                "simple": "simple",
+                "and-at": "and most",
+                "focus": "to the point",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Thy complete platform of coding, forged and aligned one hundred percent with the new curriculum of the Ministry of Learning, refreshed this very year. Learn",
+                "highlight": "precisely",
+                "part-2": "what mattereth for school, trials, and final reckonings."
+            },
+            "buttons": {
+                "curriculum": "Behold the curriculum",
+                "start": "Begin thy coding",
+                "start_now": "Begin forthwith"
+            }
+        }
+    },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. All rights thereby preserv'd.",
+            "text-2": "Fashion'd and wrought by a fellowship of young scholars, possessing a most fervent zeal for the art of code and the sharing of knowledge."
+        },
+        "legal": "Matters of the Law",
+        "terms": "Covenants of Thine Usage",
+        "privacy": "Doctrine of Secrecy",
+        "cookies": "We partake not in the baking of cookies, nor do we employ dark arts to trace thy steps.",
+        "external": "Yonder Realms",
+        "github": "The GitHub Treasury",
+        "instagram": "The Gram of Insta",
+        "home": "The Hearth",
+        "aboutUs": "Our Tale",
+        "faq": "Inquiries Oft Render'd",
+        "contact": "Send Tidings",
+        "bornIn": "Brought forth into this world in Romania 🇷🇴."
+    },
+
+    "tos-page": {
+        "meta": {
+            "title": "Covenants of Service - Codium"
+        },
+        "header": {
+            "last-updated": "Last updated:",
+            "download-pdf": "Download PDF"
+        },
+        "intro": "Welcome unto Codium! These Covenants of Service (\"Terms\") govern thy use of the Codium website, platform, and like services (collectively, the \"Service\"). By accessing or using our Service, thou dost agree to be bound by these Terms. If these Terms please thee not, pray do not use the Service.",
+        "section-1": "1. Description of Service",
+        "section-1-desc": "Codium is an educational platform fashioned to provide coding lessons, algorithm visualizations, coding challenges (\"Problems\"), and an in-browser code compilation and testing hall.",
+        "section-2-title": "2. User Accounts",
+        "section-2": {
+            "registration": "Registration: To gain access unto certain features (e.g., saving progress, submitting solutions, bookmarking), thou must create an account. Thou dost agree to provide information true and complete (such as a valid email address).",
+            "security": "Security: Thou art responsible for guarding the secrecy of thy account credentials, including passwords and Two-Factor Authentication (TOTP/Backup codes), if enabled. Thou art answerable for all deeds that occur under thy account.",
+            "termination": "Termination: We reserve the right to suspend or terminate thy account at any time, without notice, for conduct we deem violateth these Terms or that is harmful unto other users, unto us, or unto third parties, or for any other cause."
+        },
+        "section-3-title": "3. Acceptable Use",
+        "section-3-desc": "Thou dost agree not to use the Service to:",
+        "section-3": {
+            "prohibited-1": "Submit, upload, or execute malicious code, viruses, or any software meant to disturb, damage, or gain unauthorized access to the Codium compiler, servers, or databases.",
+            "prohibited-2": "Attempt to bypass any security measures, rate limits, or execution limits set upon the code compiler.",
+            "prohibited-3": "Scrape, crawl, or mass-download lessons, problems, or other proprietary content without our express written leave.",
+            "prohibited-4": "Harass other users or submit content unseemly, offensive, or unlawful in community features or problem suggestions."
+        },
+        "section-4": "4. User-Generated Content",
+        "section-4-desc": "Thou retainest all rights to any content thou dost submit, upload, or create whilst using the Service (\"User-Generated Content\"). Yet by submitting User-Generated Content, thou grantest us a non-exclusive, royalty-free, perpetual, irrevocable, and fully sublicensable right to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, and display such content in connection with the Service. Thou alone art responsible for the User-Generated Content thou dost create and submit, and thou agree not to submit content that infringeth on any third-party rights or violateth any laws. We reserve the right to remove or modify any User-Generated Content we deem, in our sole judgment, to violate these Terms or to be otherwise objectionable.",
+        "section-5": "5. Intellectual Property",
+        "section-5-desc": "All Codium-made content, including but not limited to lessons, platform design, algorithms, text, graphics, and logos, be the property of Codium or its licensors and are shielded by copyright and intellectual property laws. Thou mayst not distribute, reproduce, or create derivative works from our content without leave.",
+        "section-6": "6. Disclaimer of Warranties",
+        "section-6-desc": "The Service is provided on an \"AS IS\" and \"AS AVAILABLE\" basis. Codium maketh no warranties, expressed or implied, touching the reliability, accuracy, or availability of the platform, the compiler, or the educational content. We warrant not that the Service shall be error-free or uninterrupted, and we are not answerable for any issues arising from thy use of the Service, including but not limited unto loss of data, incorrect code execution results, or any other damages.",
+        "section-7": "7. Limitation of Liability",
+        "section-7-desc": "To the fullest extent permitted by law, Codium shall not be liable for any indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service, including but not limited to lost data, lost progress, or server downtime. In no event shall Codium's total liability unto thee for all damages exceed the amount paid by thee, if any, for access to the Service.",
+        "section-8": "8. Changes to Terms",
+        "section-8-desc": "We reserve the right to modify these Terms at any time. If we make material changes, we shall provide notice through the Service or by other means. Thy continued use of the Service after any changes constitutes thy acceptance of the new Terms. We encourage thee to review these Terms from time to time for updates.",
+        "section-9": "9. Contact Us",
+        "section-9-desc": "If thou hast any questions about these Terms, pray contact us at legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generated on"
+        }
+    },
+
+    "privacy-page": {
+        "meta": {
+            "title": "Privacy Policy - Codium",
+            "heading": "Privacy Policy for Codium"
+        },
+        "header": {
+            "effective-date": "Effective Date:",
+            "download-pdf": "Print"
+        },
+        "intro": "At Codium, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform.",
+        "section-1-title": "1. Information We Collect",
+        "section-1-desc": "We collect information that you provide directly to us and data gathered automatically when you use our Service:",
+        "section-1": {
+            "personal-info": "Personal Information: When you register, we collect your email address, username, password (stored securely as a hash), and optionally a profile picture.",
+            "usage-data": "Usage Data & Progress: We track your interaction with the Service, including completed lessons, coding problem solutions, test results, bookmarks, and user permissions/roles (e.g., admin status).",
+            "technical-data": "Technical Data: We automatically collect standard technical information, such as your IP address, browser type, device information, and interactions with our web pages."
+        },
+        "section-2-title": "2. How We Use Your Information",
+        "section-2-desc": "We use the collected information for the following purposes:",
+        "section-2": {
+            "use-1": "To provide, operate, and maintain the Codium platform (e.g., authenticating your login, running your code submissions, tracking your progress).",
+            "use-2": "To improve our educational content and compiler infrastructure.",
+            "use-3": "To communicate with you, including sending account verification emails, password resets, and important service updates.",
+            "use-4": "To ensure the security of our platform and prevent fraudulent or malicious activity (e.g., bot detection)."
+        },
+        "section-3": "3. Cookies and Tracking Technologies",
+        "section-3-desc": "Codium uses cookies and similar tracking technologies (such as JSON Web Tokens/Refresh Tokens) to maintain your session, remember your preferences, and keep you logged securely into your account. You can control cookie preferences through your browser settings, but disabling them may affect your ability to use authenticated features.",
+        "section-4-title": "4. Data Sharing and Disclosure",
+        "section-4-desc": "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following situations:",
+        "section-4": {
+            "share-1": "Service Providers: With trusted third-party services that assist us in operating our platform (e.g., email delivery services for validation emails, cloud hosting providers), under strict confidentiality agreements.",
+            "share-2": "Legal Compliance: If required by law, subpoena, or other legal processes, or to protect the rights, property, or safety of Codium, our users, or others."
+        },
+        "section-5": "5. Data Security",
+        "section-5-desc": "We implement standard security measures to protect your personal information, including encrypting passwords and securing database access. However, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure.",
+        "section-6-title": "6. Your Data Rights",
+        "section-6-desc": "Depending on your location, you may have the right to:",
+        "section-6": {
+            "right-1": "Access the personal data we hold about you.",
+            "right-2": "Request the correction of inaccurate data.",
+            "right-3": "Request the deletion of your account and associated data (including your code solutions and progress).",
+            "right-4": "Opt-out of non-essential communications."
+        },
+        "section-6-footer": "To exercise these rights, please contact us using the information below.",
+        "section-7": "7. Children's Privacy",
+        "section-7-desc": "Codium is not intentionally directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such data, we will take steps to delete it.",
+        "section-8": "8. Changes to This Privacy Policy",
+        "section-8-desc": "We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated \"Effective Date.\" We encourage you to review this policy periodically.",
+        "section-9": "9. Contact Us",
+        "section-9-desc": "If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at: [Insert Contact Email].",
+        "pdf": {
+            "generated-on": "Generated"
+        }
+    },
+    
+    "login": {
+        "title": "",
+        "email": "Thy electronic missive",
+        "password": "Thy secret watchword",
+        "forgot_password": "Hast thou lost thy wits?",
+        "remember_me": "Hold me in thy memory",
+        "no_account": "Art thou a stranger here?",
+        "register": "Inscribe thy name"
+    },
+    "signup": {
+        "title": "Join the Fellowship",
+        "username": "Thy noble moniker",
+        "email": "Thy electronic missive",
+        "password": "Thy secret watchword",
+        "confirm_password": "Swear thy watchword again"
+    },
+    "user-page": {
+        "progress": "The Journey",
+        "achievements": "Glorious Triumphs",
+        "recent-activity": "Thy Past Deeds",
+        "bookmarks": "Scrolls Kept Safe"
+    },
+    "log-out": "Exit Stage Left",
+    "top-menu": {
+        "teory": "Ancient Lore",
+        "probleme": "Tribulations",
+        "contact": "Send a Raven",
+        "coin": "Groats"
+    },
+    "sidebar": {
+        "home": "The Hearth",
+        "bookmarks": "Hoarded Scrolls",
+        "progress": "The Journey",
+        "learn": "Partake in Wisdom",
+        "lessons": "Sermons",
+        "problems": "Tribulations",
+        "tests": "The Inquisition",
+        "other": "Sundry oddities",
+        "manage-lessons": "Govern thy Sermons",
+        "manage-problems": "Govern thy Tribulations",
+        "settings": "Strange Machinations",
+        "about": "The Tale of Us"
+    },
+    "modal": {
+        "edit_profile": {
+            "title": "Refashion Thyself",
+            "labels": {
+                "email": "Alter thy missive:",
+                "username": "Alter thy moniker:",
+                "password": "Alter thy watchword:",
+                "image": "Alter thy portrait:"
+            },
+            "email": "electronic missive",
+            "username": "noble moniker",
+            "current_password": "current watchword",
+            "new_password": "fresh watchword",
+            "note": "Let the fields lie fallow if thou art content"
+        }
+    },
+    "flags": {
+        "module": "The Tome",
+        "section": "The Chapter",
+        "class": "The Guild"
+    },
+    "activity": {
+        "completed": "Vanquished",
+        "solved": "Deciphered",
+        "started": "Embarked Upon",
+        "favourite": "Cherished",
+        "earned": "Plundered"
+    },
+    "buttons": {
+        "save": "IMMORTALIZE",
+        "cancel": "NAY! CEASE!",
+        "submit": "DISPATCH",
+        "edit": "AMEND",
+        "delete": "BANISH TO HELL",
+        "create": "CONCEIVE",
+        "update": "TRANSMOGRIFY",
+        "login": "I seek entry",
+        "register": "I seek kinship"
+    }
+}

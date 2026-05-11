@@ -1,6 +1,157 @@
 {
+    "language": "English",
     "app_name": "codium/",
     "welcome": "Learn/ Code/ Compete/",
+    "landing": {
+        "meta": {
+            "title": "Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Learn",
+                "python": "Python",
+                "interactive": ". Interactive,",
+                "simple": "simple",
+                "and-at": "and",
+                "focus": "focused",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Your complete coding platform, built and aligned 100% with the new Ministry of Education curriculum updated this year. Learn",
+                "highlight": "exactly",
+                "part-2": "what matters for school, tests, and final exams."
+            },
+            "buttons": {
+                "curriculum": "View curriculum",
+                "start": "Start coding",
+                "start_now": "Start now"
+            }
+        }
+    },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. All rights reserved.",
+            "text-2": "Designed and developed by a team of high school students passionate about programming and education."
+        },
+        "legal": "Legal",
+        "terms": "Terms of Service",
+        "privacy": "Privacy Policy",
+        "cookies": "We do not use cookies or any tracking technologies.",
+        "external": "External",
+        "github": "GitHub repository",
+        "instagram": "Instagram",
+        "home": "Home",
+        "aboutUs": "About Us",
+        "faq": "FAQ",
+        "contact": "Contact",
+        "bornIn": "Born in Romania 🇷🇴."
+    },
+
+    "misc": {
+        "code_example": {
+            "input": "INPUT: ",
+            "output": "OUTPUT: "
+        }
+    },
+
+    "tos-page": {
+        "meta": {
+            "title": "Terms of Service - Codium"
+        },
+        "header": {
+            "last-updated": "Last updated:",
+            "download-pdf": "Print"
+        },
+        "intro": "Welcome to Codium! These Terms of Service (\"Terms\") govern your use of the Codium website, platform, and related services (collectively, the \"Service\"). By accessing or using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service.",
+        "section-1": "1. Description of Service",
+        "section-1-desc": "Codium is an educational platform designed to provide coding lessons, algorithms visualization, coding challenges (\"Problems\"), and an in-browser code compilation and testing environment.",
+        "section-2-title": "2. User Accounts",
+        "section-2": {
+            "registration": "Registration: To access certain features (e.g., saving progress, submitting solutions, bookmarking), you must create an account. You agree to provide accurate and complete information (such as a valid email address).",
+            "security": "Security: You are responsible for maintaining the confidentiality of your account credentials, including passwords and Two-Factor Authentication (TOTP/Backup codes) if enabled. You are responsible for all activities that occur under your account.",
+            "termination": "Termination: We reserve the right to suspend or terminate your account at any time, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties, or for any other reason."
+        },
+        "section-3-title": "3. Acceptable Use",
+        "section-3-desc": "You agree not to use the Service to:",
+        "section-3": {
+            "prohibited-1": "Submit, upload, or execute malicious code, viruses, or any software intended to disrupt, damage, or gain unauthorized access to the Codium compiler, servers, or databases.",
+            "prohibited-2": "Attempt to bypass any security measures, rate limits, or execution limits set on the code compiler.",
+            "prohibited-3": "Scrape, crawl, or mass-download lessons, problems, or other proprietary content without our explicit written permission.",
+            "prohibited-4": "Harass other users or submit inappropriate, offensive, or illegal content in community features or problem suggestions."
+        },
+        "section-4": "4. User-Generated Content",
+        "section-4-desc": "You retain all rights to any content you submit, upload, or create while using the Service (\"User-Generated Content\"). However, by submitting User-Generated Content, you grant us a non-exclusive, royalty-free, perpetual, irrevocable, and fully sublicensable right to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, and display such content in connection with the Service. You are solely responsible for the User-Generated Content you create and submit, and you agree not to submit content that infringes on any third-party rights or violates any laws. We reserve the right to remove or modify any User-Generated Content that we determine, in our sole discretion, violates these Terms or is otherwise objectionable.",
+        "section-5": "5. Intellectual Property",
+        "section-5-desc": "All Codium-created content, including but not limited to lessons, platform design, algorithms, text, graphics, and logos, are the property of Codium or its licensors and are protected by copyright and intellectual property laws. You may not distribute, reproduce, or create derivative works from our content without permission.",
+        "section-6": "6. Disclaimer of Warranties",
+        "section-6-desc": "The Service is provided on an \"AS IS\" and \"AS AVAILABLE\" basis. Codium makes no warranties, expressed or implied, regarding the reliability, accuracy, or availability of the platform, the compiler, or the educational content. We do not guarantee that the Service will be error-free or uninterrupted, and we are not responsible for any issues arising from your use of the Service, including but not limited to loss of data, incorrect code execution results, or any other damages.",
+        "section-7": "7. Limitation of Liability",
+        "section-7-desc": "To the maximum extent permitted by law, Codium shall not be liable for any indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service, including but not limited to lost data, lost progress, or server downtime. In no event shall Codium's total liability to you for all damages exceed the amount paid by you, if any, for accessing the Service.",
+        "section-8": "8. Changes to Terms",
+        "section-8-desc": "We reserve the right to modify these Terms at any time. If we make material changes, we will provide notice through the Service or by other means. Your continued use of the Service after any changes constitutes your acceptance of the new Terms. We encourage you to review these Terms periodically for any updates.",
+        "section-9": "9. Contact Us",
+        "section-9-desc": "If you have any questions about these Terms, please contact us at legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generated"
+        }
+    },
+
+    "privacy-page": {
+        "meta": {
+            "title": "Privacy Policy - Codium",
+            "heading": "Privacy Policy for Codium"
+        },
+        "header": {
+            "effective-date": "Effective Date:",
+            "download-pdf": "Print"
+        },
+        "intro": "At Codium, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform.",
+        "section-1-title": "1. Information We Collect",
+        "section-1-desc": "We collect information that you provide directly to us and data gathered automatically when you use our Service:",
+        "section-1": {
+            "personal-info": "Personal Information: When you register, we collect your email address, username, password (stored securely as a hash), and optionally a profile picture.",
+            "usage-data": "Usage Data & Progress: We track your interaction with the Service, including completed lessons, coding problem solutions, test results, bookmarks, and user permissions/roles (e.g., admin status).",
+            "technical-data": "Technical Data: We automatically collect standard technical information, such as your IP address, browser type, device information, and interactions with our web pages."
+        },
+        "section-2-title": "2. How We Use Your Information",
+        "section-2-desc": "We use the collected information for the following purposes:",
+        "section-2": {
+            "use-1": "To provide, operate, and maintain the Codium platform (e.g., authenticating your login, running your code submissions, tracking your progress).",
+            "use-2": "To improve our educational content and compiler infrastructure.",
+            "use-3": "To communicate with you, including sending account verification emails, password resets, and important service updates.",
+            "use-4": "To ensure the security of our platform and prevent fraudulent or malicious activity (e.g., bot detection)."
+        },
+        "section-3": "3. Cookies and Tracking Technologies",
+        "section-3-desc": "Codium uses cookies and similar tracking technologies (such as JSON Web Tokens/Refresh Tokens) to maintain your session, remember your preferences, and keep you logged securely into your account. You can control cookie preferences through your browser settings, but disabling them may affect your ability to use authenticated features.",
+        "section-4-title": "4. Data Sharing and Disclosure",
+        "section-4-desc": "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following situations:",
+        "section-4": {
+            "share-1": "Service Providers: With trusted third-party services that assist us in operating our platform (e.g., email delivery services for validation emails, cloud hosting providers), under strict confidentiality agreements.",
+            "share-2": "Legal Compliance: If required by law, subpoena, or other legal processes, or to protect the rights, property, or safety of Codium, our users, or others."
+        },
+        "section-5": "5. Data Security",
+        "section-5-desc": "We implement standard security measures to protect your personal information, including encrypting passwords and securing database access. However, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure.",
+        "section-6-title": "6. Your Data Rights",
+        "section-6-desc": "Depending on your location, you may have the right to:",
+        "section-6": {
+            "right-1": "Access the personal data we hold about you.",
+            "right-2": "Request the correction of inaccurate data.",
+            "right-3": "Request the deletion of your account and associated data (including your code solutions and progress).",
+            "right-4": "Opt-out of non-essential communications."
+        },
+        "section-6-footer": "To exercise these rights, please contact us using the information below.",
+        "section-7": "7. Children's Privacy",
+        "section-7-desc": "Codium is not intentionally directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such data, we will take steps to delete it.",
+        "section-8": "8. Changes to This Privacy Policy",
+        "section-8-desc": "We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated \"Effective Date.\" We encourage you to review this policy periodically.",
+        "section-9": "9. Contact Us",
+        "section-9-desc": "If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at: privacy@codium.lol.",
+        "pdf": {
+            "generated-on": "Generated"
+        }
+    },
+
     "login": {
         "title": "log-in",
         "email": "e-mail",
@@ -23,15 +174,189 @@
         "recent-activity": "recent activity",
         "bookmarks": "bookmarks"
     },
+
+    "settings-page": {
+        "title": "Settings",
+        "privacy-section": {
+            "title": "Privacy",
+            "options": {
+                "make-profile-private": "Make my profile private",
+                "download-my-data": "Download my data",
+                "delete-my-data": "Delete my data",
+                "two-factor-authentication": "2FA (TOTP/Backup codes)"
+            },
+            "2fa-notes": {
+                "title": "Two-Factor Authentication (2FA) Setup",
+                "note-1": "Set up Time-based One-Time Password (TOTP) for enhanced security.",
+                "note-2": "Use an authenticator app (e.g., Google Authenticator, Authy) to scan the QR code and generate 2FA codes.",
+                "note-3": "Or use the following uri (if your app doesn't support QR codes):",
+                "note-4": "Save these backup codes in a secure place. Each code can be used once. You won't see these codes EVER again. So be careful!"
+            }
+        },
+        "appearance-section": {
+            "title": "Appearance",
+            "options": {
+                "dark-mode": "Dark mode",
+                "font-size": "Font size",
+                "color-blind-mode": "Color blind mode",
+                "high-contrast-mode": "High contrast mode",
+                "hue-slider": "Hue slider"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Other stuff",
+            "options": {
+                "language": "Display language",
+                "support": "Contact form"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. All rights reserved.",
+            "opensource": "Codium is an open source project.",
+            "contribute": "Contribute on GitHub",
+            "made_with_love": "made with ♥ by andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lessons",
+        "desc": "Your base knowledge concepts",
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest",
+            "section-yes": "Show section starter",
+            "section-no": "Don't show section starter"
+        },
+        "all-fliter": "All",
+        "right-bar": {
+            "content": "Content",
+            "keypoints": "Key Points"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Start section"
+            },
+            "stats": {
+                "title": "Statistics",
+                "total-progress": "Total progress",
+                "finished-lessons": "Finished lessons",
+                "in-progress-lessons": "In progress lessons",
+                "remaining-lessons": "Remaining lessons",
+
+                "tips": {
+                    "tip-1": "The section is completely finished. Excellent!",
+                    "tip-2": "You have finished almost everything. There is only one thing left to complete!",
+                    "tip-3": "Start the first activity to begin the progress.",
+                    "tip-4": "Continue the section to increase the progress."
+                }
+            }
+        }
+    },
+
+    "problems-page": {
+        "title": "Problems",
+        "desc": "Apply the theory.",
+        "all-filter": "All",
+        "dropdown-1": {
+            "alfabetic": "Alphabetic",
+            "discovery": "Discovery",
+            "random": "Random",
+            "newest": "Newest"
+        },
+        "dropdown-2": {
+            "dificulty": "Difficulty",
+            "easy": "Easy",
+            "medium": "Medium",
+            "hard": "Hard"
+        },
+        "enable-feed-mode": "Enable feed mode",
+        "disable-feed-mode": "Disable feed mode",
+        "surprise-me": "Surprise me",
+
+        "no-problems": {
+            "title": "No problems for the selected filters.",
+            "desc": "Try modifying the filters to see more problems."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activity",
+                "available_tests": "Available tests",
+                "sent_solutions": "Sent solutions",
+                "correct_solutions": "Correct solutions"
+            },
+            "send-solution": {
+                "title": "Send solution",
+                "desc": "Press here to upload or drag and drop."
+            },
+            "solutions": {
+                "title": "Solutions"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Bookmarks",
+        "desc": "Your saved lessons and problems for quick access.",
+        "no-bookmarks": {
+            "title": "You don't have any bookmarks yet.",
+            "desc": "To get started, explore the available lessons and add them to your bookmarks."
+        },
+        "remove_bookmark": "Remove bookmark",
+        "buttons": {
+            "all": "All",
+            "lessons": "Lessons",
+            "problems": "Problems",
+            "explore-lessons": "Explore lessons"
+        },
+        "dropdown": {
+            "alfabetic": "Alphabetic",
+            "dificuly": "Difficulty",
+            "newest": "Newest",
+            "oldest": "Oldest"
+        },
+        "badge-types": {
+            "lesson": "lesson",
+            "problem": "problem"
+        }
+    },
+
     "log-out": "log out",
     "top-menu": {
-        "teory": "> theory",
-        "probleme": "> problems",
-        "contact": "> contact"
+        "teory": "Theory",
+        "probleme": "Problems",
+        "contact": "Contact",
+        "curriculum": "Curriculum",
+        "for_who": "For who?",
+        "for_teachers": "For teachers",
+        "for_students": "For students",
+        "coin": "cookies"
+    },
+        "lowercase": {
+        "lessons": "lessons",
+        "probleme": "problems",
+        "tests": "tests"
+
+    },
+    "sidebar": {
+        "home": "Home",
+        "bookmarks": "Bookmarks",
+        "progress": "Progress",
+        "learn": "Learn",
+        "lessons": "Lessons",
+        "problems": "Problems",
+        "tests": "Tests",
+        "other": "Other",
+        "manage-lessons": "Manage lessons",
+        "manage-problems": "Manage problems",
+        "settings": "Settings",
+        "about": "About us"
     },
     "modal": {
         "edit_profile": {
-            "title": "edit profile",
+            "title": "Edit profile",
             "labels": {
                 "email": "Edit email:",
                 "username": "Edit username:",
@@ -43,6 +368,19 @@
             "current_password": "actual password",
             "new_password": "new password",
             "note": "Leave fields empty if you don't want to change them"
+        },
+        "2fa_modal": {
+            "enter_code": "Enter TOTP code"
+        },
+        "log-out": {
+            "desc": "Are you sure you want to log out?"
+        },
+        "notice": {
+            "title": "Notice"
+        },
+        "delete_account": {
+            "title": "Delete account",
+            "desc": "Are you sure you want to delete your account? This action is irreversible. All your data, including your progress and solutions, will be permanently deleted. If you wish to request a copy of your data, please do so before confirming account deletion."
         }
     },
     "flags": {
@@ -58,14 +396,134 @@
         "earned": "Earned"
     },
     "buttons": {
-        "save": "save",
-        "cancel": "cancel",
-        "submit": "submit",
-        "edit": "edit profile",
-        "delete": "delete",
-        "create": "create",
-        "update": "update",
-        "login": "log in",
-        "register": "sign up"
+        "save": "Save",
+        "cancel": "Cancel",
+        "verify": "Verify",
+        "i_saved_them": "I saved them",
+        "submit": "Submit",
+        "edit": "Edit profile",
+        "delete": "Delete",
+        "create": "Create",
+        "update": "Update",
+        "login": "Log in",
+        "register": "Sign up",
+
+        "comment": "settings specific buttons",
+        "log-out": "Log out",
+        "support-button": "Contact support",
+        "download-data": "Download",
+        "delete-data": "Erase me",
+        "enable": "Enable",
+        "font-size-labels": {
+            "small": "Small",
+            "medium": "Medium",
+            "large": "Large",
+            "x-large": "X-Large"
+        },
+
+        "next_lesson": "Next lesson",
+        "feedback": "Feedback",
+
+        "next_problem": "Next problem"
+    },
+    "pdf_transl": {
+        "generated_on": "Generated on",
+        "gdpr_notice": "This document constitutes a formal request for access to all personal data associated with this account, provided in accordance with the General Data Protection Regulation (GDPR).",
+        "privacy_minimization_title": "Data Minimization Principle",
+        "privacy_minimization_text": "In accordance with the data minimization principle (Article 5) of the GDPR, Codium strictly limits the collection of data to only the essential information needed to provide our educational and competitive services. We do not intentionally track IP addresses, browser fingerprints, or financial data." ,
+    
+        "email_unverified_warning": "Warning: The email address associated with this account is not verified. Please ensure you download this document in a secure manner.",
+        "user_data_request": "User Data Request Result"
+        
+    },
+
+    "difficulty": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+    },
+
+    "classe": {
+        "1": "1st grade",
+        "2": "2nd grade",
+        "3": "3rd grade",
+        "4": "4th grade",
+        "8": "8th grade",
+        "9": "9th grade",
+        "10": "10th grade",
+        "11": "11th grade",
+        "12": "12th grade",
+        "67": "67th grade"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatics",
+        "2": "Physics",
+        "3": "Chemistry",
+        "4": "Biology",
+        "5": "English",
+        "6": "Mathematics"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "You completed the lesson!"
+            },
+            "start": {
+                "placeholder": "You started the lesson!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "You completed the lesson!"
+            }
+        },
+        "toasts": {
+            "page-not-implemented": "Page not yet implemented.",
+            "login-success": "Login successful!",
+            "login-failed": "Login failed: ",
+            "passwords-dont-match": "Passwords do not match.",
+            "account-created": "Account created successfully!",
+            "account-creation-failed": "Account creation failed: ",
+            "account-this-info-already-used": "This email or username is already in use.",
+            "logout-cancelled": "Logout cancelled.",
+            "edit-profile-success": "Profile updated successfully!",
+            "edit-profile-failed": "Profile update failed: ",
+            "delete-account-success": "Account deleted successfully.",
+            "delete-account-failed": "Account deletion failed: ",
+            "delete-account-cancelled": "Account deletion cancelled.",
+            "2fa-enabled": "Two-factor authentication enabled.",
+            "2fa-disabled": "Two-factor authentication has been disabled.",
+            "2fa-enabling-failed": "Enabling two-factor authentication failed: ",
+
+            "lesson_": "Lesson ",
+            "problem_": "Problem ",
+            "_bookmarked": "added to bookmarks.",
+            "_unbookmarked": "removed from bookmarks.",
+            "bookmark-failed": "Bookmark action failed: ",
+            "_favorited": " added to favorites.",
+            "_unfavorited": " removed from favorites.",
+            "favorite-failed": "Favorite action failed: ",
+            "_completed-in": " completed in ",
+            "_finished-section": "You finished the section!",
+            "url_": "The URL ",
+            "_lesson_": "of the lesson ",
+            "_problem_": "of the problem ",
+            "_copied-to-clipboard": " was copied to clipboard.",
+            "copy-failed": "Copying to clipboard failed: ",
+            "grading-solution": "Grading solution...",
+
+            "passed-tests": "Passed tests: ",
+            "you-need-to-be-authenticated-to-do-that": "You need to be authenticated to do that.",
+            "please-select-a-file": "Please select a file to submit your solution.",
+            "file-too-large": "The selected file exceeds the allowed size limit.",
+            "file-type-not-allowed": "The selected file type is not allowed. Please select a file with the .py extension.",
+            "file-reading-error": "An error occurred while reading the file. Please try again.",
+            "sending-error": "Error: ",
+            "problem-id-missing": "Problem ID is missing."
+        }
+
     }
 }

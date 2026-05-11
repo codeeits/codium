@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress - Codium</title>
+    
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/progress.css">
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/progressHandlers.js"></script>
+
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="home">
+</head>
+<body>
+    <div id="top-menu-container"></div>
+
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="content-area">
+            <div class="card progress-top">
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Nivel</span>
+                    <h1>{[userLevel]}</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>Cookie</span>
+                    <h1>{[userCookies]}</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Lecții</span>
+                    <h1>{[lessonsCompleted]}</h1>
+                </div>
+                <div class="progress-type-container">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>Acuratețe</span>
+                    <h1>{[userAccuracy]}%</h1>
+                </div>
+            </div>
+            <div class="card progress-spider chart-card">
+                <div class="chart-header">
+                    <h2>Spider</h2>
+                    <p>Distribuția competențelor pe subiectele principale</p>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="spiderChart" class="chart-host" aria-label="Radar chart"></div>
+                </div>
+            </div>
+            <div class="card heatmap-problems-graph chart-card">
+                <div class="chart-header">
+                    <h2>Heatmap problems</h2>
+                    <p>Activitate zilnică și ritm de rezolvare pe parcursul anului</p>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="heatmapChart" class="chart-host chart-host--heatmap" aria-label="Calendar heatmap"></div>
+                </div>
+            </div>
+            <div class="card evolution-cookies chart-card">
+                <div class="chart-header">
+                    <h2>Evoluție</h2>
+                    <p>Creșterea numărului de cookies câștigate lună de lună</p>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="evolutionChart" class="chart-host" aria-label="Line chart"></div>
+                </div>
+            </div>
+            <div class="card history-solutions chart-card">
+                <div class="chart-header">
+                    <h2>Istoric rezolvări</h2>
+                    <p>Volumul de probleme rezolvate și tendința de consistență</p>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="historyChart" class="chart-host" aria-label="History line chart"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

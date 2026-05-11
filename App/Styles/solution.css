@@ -1,0 +1,74 @@
+main {
+    gap: var(--gap-lg);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+}
+
+.separator {
+    height: 1px;
+    background: var(--border-subtle);
+}
+
+.main-content .evaluation-meta {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-md);
+}
+
+.solution-meta {
+    font-size: var(--small-font-size);
+    color: var(--disabled-text);
+}
+
+.solution-meta p {
+    all: inherit;
+}
+
+.header-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+}
+
+.problem-description__header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.problem-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.side-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+    width: 300px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.biscuitonomie-sub {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.problem-details__element {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}

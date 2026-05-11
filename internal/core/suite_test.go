@@ -38,24 +38,35 @@ type RequestBuilder struct {
 	wantedStatus     int
 	targetStructType interface{}
 	token            string
+	refreshToken     string
 	contentType      string
 }
 
 // Build builds and executes the HTTP request, returning the response decoded into the target struct type.
-func (u *RequestBuilder) Build() (interface{}, error) {
+func (u *RequestBuilder) Build() (interface{}, []*http.Cookie, error) {
 	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl+u.queryParams, bytes.NewReader(u.bytesBody))
 	if err != nil {
-		return u.targetStructType, err
+		return u.targetStructType, nil, err
 	}
 	req.Header.Set("Content-Type", u.contentType)
 	if u.token != "" {
-		req.Header.Set("Authorization", "Bearer "+u.token)
+		req.AddCookie(&http.Cookie{
+			Name:  "session_token",
+			Value: u.token,
+		})
 	}
+	if u.refreshToken != "" {
+		req.AddCookie(&http.Cookie{
+			Name:  "refresh_token",
+			Value: u.refreshToken,
+		})
+	}
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		return u.targetStructType, err
+		return u.targetStructType, nil, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -65,34 +76,56 @@ func (u *RequestBuilder) Build() (interface{}, error) {
 	}(res.Body)
 
 	if res.StatusCode != u.wantedStatus {
-		return u.targetStructType, fmt.Errorf("wrong status code: %d", res.StatusCode)
+		return u.targetStructType, nil, fmt.Errorf("wrong status code: %d", res.StatusCode)
 	}
+
+	returnedCookies := res.Cookies()
 
 	// Decode response into target struct type
 	if err := json.NewDecoder(res.Body).Decode(u.targetStructType); err != nil {
-		return u.targetStructType, err
+		return u.targetStructType, nil, err
 	}
 
 	// If targetStructType is a pointer, return the dereferenced concrete value so callers can assert to T
 	rv := reflect.ValueOf(u.targetStructType)
 	if rv.Kind() == reflect.Ptr {
-		return rv.Elem().Interface(), nil
+		return rv.Elem().Interface(), returnedCookies, nil
 	}
-	return u.targetStructType, nil
+	return u.targetStructType, returnedCookies, nil
 }
 
 // BuildRaw builds and executes the HTTP request, returning the raw http.Response.
-func (u *RequestBuilder) BuildRaw() (*http.Response, error) {
+func (u *RequestBuilder) BuildRaw() (*http.Response, []*http.Cookie, error) {
 	ctx := context.Background()
 	req, err := http.NewRequestWithContext(ctx, u.method, u.baseUrl+u.queryParams, bytes.NewReader(u.bytesBody))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if u.token != "" {
-		req.Header.Set("Authorization", "Bearer "+u.token)
+		req.AddCookie(&http.Cookie{
+			Name:  "session_token",
+			Value: u.token,
+		})
 	}
+	if u.refreshToken != "" {
+		req.AddCookie(&http.Cookie{
+			Name:  "refresh_token",
+			Value: u.refreshToken,
+		})
+	}
+
 	client := &http.Client{}
-	return client.Do(req)
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if res.StatusCode != u.wantedStatus {
+		return nil, nil, fmt.Errorf("wrong status code: %d", res.StatusCode)
+	}
+
+	returnedCookies := res.Cookies()
+	return res, returnedCookies, nil
 }
 
 func (u *RequestBuilder) WithPath(path string) *RequestBuilder {
@@ -141,6 +174,11 @@ func (u *RequestBuilder) WithGeneratedFile(fileData []byte, fieldName, fileName 
 	return u
 }
 
+func (u *RequestBuilder) WithRefreshToken(refreshToken string) *RequestBuilder {
+	u.refreshToken = refreshToken
+	return u
+}
+
 // For the sake of testing we'll assume we're using localhost:6767 as base URL
 func NewRequestBuilder[T any](method string, jsonBody []byte, wantedStatus int, _ T) *RequestBuilder {
 	return &RequestBuilder{
@@ -161,6 +199,13 @@ func NewRequestBuilderNoTarget(method string, jsonBody []byte, wantedStatus int)
 		method:       method,
 		bytesBody:    jsonBody,
 		wantedStatus: wantedStatus,
+	}
+}
+
+func assertNonNilID(t *testing.T, id uuid.UUID, context string) {
+	t.Helper()
+	if id == uuid.Nil {
+		t.Fatalf("Expected non-nil ID for %s", context)
 	}
 }
 
@@ -295,30 +340,31 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestGetDefaultAdminUser", func(t *testing.T) {
 			jsonBody := []byte(`{"email":"codiumOfficial@lekas.tech","password":"` + cfg.AdminCfg.Password + `"}`)
 
-			type params struct {
-				User         database.User `json:"user"`
-				Token        string        `json:"auth_token"`
-				RefreshToken string        `json:"refresh_token"`
-			}
-
-			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, params{}).WithPath("/api/login").Build()
+			resp, cookies, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/api/login").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			var translated = resp.(params)
+			var translated = resp.(database.User)
 
-			if translated.User.IsAdmin != true {
-				t.Fatalf("Expected isAdmin %t, got %t", true, translated.User.IsAdmin)
+			if len(cookies) < 2 {
+				t.Fatal("Expected to get at least session and refresh tokens, got: ", len(cookies))
 			}
-			if translated.Token == "" {
-				t.Fatal("Expected non-empty token")
+
+			if !UserHasPermission(translated, PermissionAdmin) {
+				t.Fatalf("Expected user to have admin permissions, got %v", translated.Permissions)
 			}
-			if translated.RefreshToken == "" {
-				t.Fatal("Expected non-empty refresh token")
+
+			for _, cookie := range cookies {
+				if cookie.Name == "session_token" {
+					adminToken = cookie.Value
+				}
+				if cookie.Name == "refresh_token" {
+					adminRefreshToken = cookie.Value
+				}
 			}
-			adminToken = translated.Token
-			adminRefreshToken = translated.RefreshToken
-			adminID = translated.User.ID
+			adminID = translated.ID
+
+			assertNonNilID(t, translated.ID, "default admin login response")
 		})
 
 		var averageUserEmail = "testing@nthing.com"
@@ -327,7 +373,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestCreateUser", func(t *testing.T) {
 			var averageUserUsername = "TestUser"
 			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `","username":"` + averageUserUsername + `"}`)
-			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusCreated, database.User{}).WithPath("/api/users").Build()
+			resp, _, err := NewRequestBuilder("POST", jsonBody, http.StatusCreated, database.User{}).WithPath("/api/users").Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
 
 			var user database.User
 			if user = resp.(database.User); err != nil {
@@ -340,41 +389,44 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != averageUserUsername {
 				t.Fatalf("Expected username %s, got %s", averageUserUsername, user.Username)
 			}
-			if user.IsAdmin != false {
-				t.Fatalf("Expected isAdmin %t, got %t", false, user.IsAdmin)
+			if UserHasPermission(user, PermissionAdmin) {
+				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "created user")
 		})
 
 		var averageUserToken string
 		t.Run("TestLoginUser", func(t *testing.T) {
 			jsonBody := []byte(`{"email":"` + averageUserEmail + `","password":"` + averageUserPassword + `"}`)
-			type params struct {
-				User         database.User `json:"user"`
-				Token        string        `json:"auth_token"`
-				RefreshToken string        `json:"refresh_token"`
-			}
 
-			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, params{}).WithPath("/api/login").Build()
+			resp, cookies, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/api/login").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			var translated = resp.(params)
+			var translated = resp.(database.User)
 
-			if translated.User.Email != averageUserEmail {
-				t.Fatalf("Expected email %s, got %s", averageUserEmail, translated.User.Email)
+			if len(cookies) < 2 {
+				t.Fatal("Expected to get at least session and refresh tokens, got: ", len(cookies))
 			}
-			if translated.Token == "" {
-				t.Fatal("Expected non-empty token")
+
+			if translated.Email != averageUserEmail {
+				t.Fatalf("Expected email %s, got %s", averageUserEmail, translated.Email)
 			}
-			if translated.RefreshToken == "" {
-				t.Fatal("Expected non-empty refresh token")
+
+			for _, cookie := range cookies {
+				if cookie.Name == "session_token" {
+					averageUserToken = cookie.Value
+				}
 			}
-			averageUserToken = translated.Token
-			averageUserID = translated.User.ID
+
+			averageUserID = translated.ID
+
+			assertNonNilID(t, translated.ID, "average user login response")
 		})
 
 		t.Run("TestUnauthorizedReset", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusUnauthorized).WithPath("/api/admin/reset").BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusUnauthorized).WithPath("/admin/reset").BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -382,7 +434,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdatingProfileBeforeTokenRefresh", func(t *testing.T) {
 			jsonBody := []byte(`{"username":"UpdatedAdminUser"}`)
-			resp, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -394,30 +446,30 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != "UpdatedAdminUser" {
 				t.Fatalf("Expected username %s, got %s", "UpdatedAdminUser", user.Username)
 			}
+
+			assertNonNilID(t, user.ID, "updated admin profile before refresh")
 		})
 
 		t.Run("TestRefreshToken", func(t *testing.T) {
-			jsonBody := []byte(`{"refresh_token":"` + adminRefreshToken + `"}`)
-			type params struct {
-				Token string `json:"auth_token"`
-			}
-
-			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, params{}).WithPath("/api/refresh").Build()
+			_, cookies, err := NewRequestBuilder("POST", nil, http.StatusOK, database.User{}).WithPath("/api/refresh").WithRefreshToken(adminRefreshToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
-			var translated = resp.(params)
 
-			if translated.Token == "" {
-				t.Fatal("Expected non-empty token")
+			if len(cookies) == 0 {
+				t.Fatal("Expected to get at least one cookie, got: ", len(cookies))
 			}
-			adminToken = translated.Token
+			for _, cookie := range cookies {
+				if cookie.Name == "session_token" {
+					adminToken = cookie.Value
+				}
+			}
 		})
 
 		t.Run("TestUpdatingProfileAfterTokenRefresh", func(t *testing.T) {
 			jsonBody := []byte(`{"username":"RefreshedAdminUser"}`)
 
-			resp, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonBody, http.StatusOK, database.User{}).WithPath("/api/users").WithQueryParam("target_field", "username").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -429,10 +481,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if user.Username != "RefreshedAdminUser" {
 				t.Fatalf("Expected username %s, got %s", "RefreshedAdminUser", user.Username)
 			}
+
+			assertNonNilID(t, user.ID, "updated admin profile after refresh")
 		})
 
 		t.Run("TestGetUsers", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -449,6 +503,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if user.PasswordHash != "" {
 					t.Fatalf("Expected password hash to be omitted, got %s", user.PasswordHash)
 				}
+
+				assertNonNilID(t, user.ID, "user in users list")
 			}
 		})
 
@@ -459,7 +515,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			var secondAverageUsername = "SecondAverageUser"
 			var secondAveragePassword = "AnotherPassword123!"
 			jsonBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `","username":"` + secondAverageUsername + `"}`)
-			resp, err := NewRequestBuilder("POST", jsonBody, http.StatusCreated, database.User{}).WithPath("/api/users").Build()
+			resp, _, err := NewRequestBuilder("POST", jsonBody, http.StatusCreated, database.User{}).WithPath("/api/users").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -475,24 +531,30 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			// Now log in the second average user to get their token
 			loginBody := []byte(`{"email":"` + secondAverageUserEmail + `","password":"` + secondAveragePassword + `"}`)
-			type loginParams struct {
-				User         database.User `json:"user"`
-				Token        string        `json:"auth_token"`
-				RefreshToken string        `json:"refresh_token"`
-			}
 
-			loginResp, err := NewRequestBuilder("POST", loginBody, http.StatusOK, loginParams{}).WithPath("/api/login").Build()
+			loginResp, cookies, err := NewRequestBuilder("POST", loginBody, http.StatusOK, database.User{}).WithPath("/api/login").Build()
 			if err != nil {
 				t.Fatal("Error logging in second average user: ", err)
 			}
-			var translated = loginResp.(loginParams)
+			var translated = loginResp.(database.User)
 
-			secondAverageToken = translated.Token
+			if len(cookies) < 2 {
+				t.Fatal("Expected to get at least session and refresh tokens, got: ", len(cookies))
+			}
+
+			for _, cookie := range cookies {
+				if cookie.Name == "session_token" {
+					secondAverageToken = cookie.Value
+				}
+			}
+
+			assertNonNilID(t, user.ID, "second created user")
+			assertNonNilID(t, translated.ID, "second average user login response")
 		})
 
 		t.Run("TestUpdateSecondUserToAdminAsAverageUser", func(t *testing.T) {
 			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
-			_, err := NewRequestBuilderNoTarget("POST", jsonBody, http.StatusForbidden).WithPath("/admin/users/account_status").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", jsonBody, http.StatusForbidden).WithPath("/admin/users/account_status").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -500,7 +562,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateSecondUserToAdminAsAdmin", func(t *testing.T) {
 			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "admin"}`)
-			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			res, _, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -511,11 +573,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if UserPermissions(user.Permissions)&PermissionAdmin == 0 {
 				t.Fatalf("Expected user to have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "promoted second user to admin")
 		})
 
 		t.Run("TestUpdateSecondUserToBasic", func(t *testing.T) {
 			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "basic"}`)
-			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			res, _, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -526,6 +590,25 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if UserPermissions(user.Permissions)&PermissionAdmin != 0 {
 				t.Fatalf("Expected user to not have admin permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "demoted second user to basic")
+		})
+
+		t.Run("TestMakeSecondUserTeacher", func(t *testing.T) {
+			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "teacher"}`)
+			res, _, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			if err != nil {
+				t.Fatal("Error making request: ", err)
+			}
+			var user database.User
+			if user = res.(database.User); err != nil {
+				t.Fatal("Error decoding response: ", err)
+			}
+			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
+				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
+			}
+
+			assertNonNilID(t, user.ID, "updated second user to teacher")
 		})
 
 		//Test files
@@ -536,7 +619,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				FilePath string    `json:"file_path"`
 			}
 
-			resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile([]byte("This is a test file."), "file", "testfile.txt").Build()
+			resp, _, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile([]byte("This is a test file."), "file", "testfile.txt").Build()
 			var responseParams params
 			if responseParams = resp.(params); err != nil {
 				t.Fatal("Error decoding response: ", err)
@@ -561,7 +644,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		*/
 		t.Run("TestUploadLessonWithoutAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
-			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/lessons").BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/lessons").BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -569,13 +652,14 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		uploadedLessonID := uuid.Nil
 		t.Run("TestUploadLessonWithAuth", func(t *testing.T) {
-			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
+			jsonData := []byte(`{"title":"Test Lesson","description":"This is a test lesson.","content_id":"` + uploadedFileID.String() + `","class": 9, "module": 1, "section": 1, "language":"ro"}`)
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson flags")
 
 			if lesson.Lesson.Title != "Test Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Test Lesson", lesson.Lesson.Title)
@@ -583,17 +667,23 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.FlagTranslation.Class != 9 || lesson.FlagTranslation.Module != 1 || lesson.FlagTranslation.Section != 1 {
 				t.Fatalf("Expected lesson flags class %d, module %d, section %d; got class %d, module %d, section %d", 9, 1, 1, lesson.FlagTranslation.Class, lesson.FlagTranslation.Module, lesson.FlagTranslation.Section)
 			}
+			if lesson.Lesson.Language != "ro" {
+				t.Fatalf("Expected lesson language %s, got %s", "ro", lesson.Lesson.Language)
+			}
 			uploadedLessonID = lesson.Lesson.ID
+
+			assertNonNilID(t, lesson.Lesson.ID, "uploaded lesson")
 		})
 
 		t.Run("TestUpdateLessonDetailsWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Test Lesson","description":"This is an updated test lesson."}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "linked lesson creation response")
 
 			if lesson.Lesson.Title != "Updated Test Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Updated Test Lesson", lesson.Lesson.Title)
@@ -601,11 +691,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Description.String != "This is an updated test lesson." {
 				t.Fatalf("Expected lesson description %s, got %s", "This is an updated test lesson.", lesson.Lesson.Description.String)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson details")
 		})
 
 		t.Run("TestUpdateLessonFlagsWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"class":10,"module":2,"section":3}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "flags").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "flags").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -619,7 +711,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateLessonSectionStarterWithAuth", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+uploadedLessonID.String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -629,6 +721,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated lesson section starter")
 		})
 
 		var fileIds []uuid.UUID
@@ -641,7 +735,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 				fileContent := []byte("This is test file number " + strconv.Itoa(i) + " for upload.")
 				fileName := "file_upload_" + strconv.Itoa(i) + ".txt"
-				resp, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile(fileContent, "file", fileName).Build()
+				resp, _, err := NewRequestBuilder("POST", nil, http.StatusOK, params{}).WithPath("/api/upload?location=lessons").WithAuthToken(adminToken).WithGeneratedFile(fileContent, "file", fileName).Build()
 
 				var responseParams params
 				if responseParams = resp.(params); err != nil {
@@ -661,7 +755,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestMakeSecondUserTeacher", func(t *testing.T) {
 			jsonBody := []byte(`{"userID":"` + secondAverageUserID.String() + `","title": "teacher"}`)
-			res, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
+			res, _, err := NewRequestBuilder("POST", jsonBody, http.StatusOK, database.User{}).WithPath("/admin/users/account_status").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -672,11 +766,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if !(UserHasPermission(user, PermissionCanSuggestLessons) && user.Title == "teacher") {
 				t.Fatalf("Expected user to have teacher permissions, got %v", user.Permissions)
 			}
+
+			assertNonNilID(t, user.ID, "updated second user to teacher")
 		})
 
 		t.Run("TestSuggestLessonAsAverageUserForbidden", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Forbidden Suggested Lesson","description":"This is a forbidden suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
-			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/lessons").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/lessons").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -685,7 +781,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var suggestedLessonID uuid.UUID
 		t.Run("TestSuggestLessonAsTeacher", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Suggested Lesson","description":"This is a suggested lesson.","content_id":"` + fileIds[25].String() + `","class": 8, "module": 1, "section": 1}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(secondAverageToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -699,11 +795,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected lesson suggested %t, got %t", true, lesson.Lesson.Suggested)
 			}
 			suggestedLessonID = lesson.Lesson.ID
+
+			assertNonNilID(t, lesson.Lesson.ID, "suggested lesson")
 		})
 
 		t.Run("TestUpdateLessonSuggestedForbidden", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
-			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusUnauthorized).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -711,7 +809,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateLessonSuggestedAsAdmin", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Suggested Lesson"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -721,11 +819,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Title != "Updated Suggested Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Updated Suggested Lesson", lesson.Lesson.Title)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated suggested lesson as admin")
 		})
 
 		t.Run("TestUpdateLessonSuggestedAsAuthor", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Author Updated Suggested Lesson"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+suggestedLessonID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -735,10 +835,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Title != "Author Updated Suggested Lesson" {
 				t.Fatalf("Expected lesson title %s, got %s", "Author Updated Suggested Lesson", lesson.Lesson.Title)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated suggested lesson as author")
 		})
 
 		t.Run("TestGetSuggestedLessons", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -751,10 +853,14 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if len(lessons) < 1 {
 				t.Fatal("No suggested lessons found")
 			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "suggested lesson in admin list")
+			}
 		})
 
 		t.Run("TestGetSuggestedLessonsByTeacher", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithQueryParam("author_id", secondAverageUserID.String()).WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/admin/lessons/suggested").WithQueryParam("author_id", secondAverageUserID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -767,24 +873,28 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if len(lessons) < 1 {
 				t.Fatal("No suggested lessons found for the teacher")
 			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "suggested lesson in teacher-filtered list")
+			}
 		})
 
 		t.Run("TestApproveSuggestedLessonWithoutAuth", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestApproveLessonWithoutAuth", func(t *testing.T) {
-			res, err := NewRequestBuilder("POST", nil, http.StatusOK, LessonWithFlags{}).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(adminToken).Build()
+			res, _, err := NewRequestBuilder("POST", nil, http.StatusOK, LessonWithFlags{}).WithPath("/admin/lessons/suggested/" + suggestedLessonID.String() + "/approve").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -797,6 +907,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.Suggested != false {
 				t.Fatalf("Lesson is suggested, expected to not be suggested")
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "approved suggested lesson")
 		})
 
 		var lessonIds []uuid.UUID
@@ -804,8 +916,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("CreateMultipleLessonsForLinkingTest", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				//t.Log("PrevLessonID: ", lessonIds[len(lessonIds)-1].String())
-				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `"}`)
-				resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
+				jsonData := []byte(`{"title":"Linked Lesson ` + strconv.Itoa(i) + `","description":"This is linked lesson.","content_id":"` + fileIds[i].String() + `","class": 11, "module": 1, "section": ` + strconv.Itoa(69) + `,"previous": "` + lessonIds[len(lessonIds)-1].String() + `", "language": "en"}`)
+				resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, LessonWithFlags{}).WithPath("/api/lessons").WithAuthToken(adminToken).Build()
 
 				var lesson LessonWithFlags
 				if lesson = resp.(LessonWithFlags); err != nil {
@@ -834,7 +946,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestGetRequestsForLinkedLessons", func(t *testing.T) {
 			for i := 0; i < 23; i++ {
-				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+1].String()).Build()
+				resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+1].String()).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
@@ -843,6 +955,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, lesson.Lesson.ID, "linked lesson fetch response")
 
 				if lesson.Lesson.PrevLessonID.Valid != true || lesson.Lesson.PrevLessonID.UUID != lessonIds[i] {
 					t.Fatalf("Expected lesson prev lesson ID %s, got %s", lessonIds[i].String(), lesson.Lesson.PrevLessonID.UUID.String())
@@ -854,7 +967,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetLessonsInSection69", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "flags").WithQueryParam("section", "69").Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "flags").WithQueryParam("section", "69").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -867,11 +980,15 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if len(lessons) != 25 {
 				t.Logf("Expected %d lessons in section 69, got %d", 25, len(lessons))
 			}
+
+			for _, lesson := range lessons {
+				assertNonNilID(t, lesson.Lesson.ID, "lesson in section search response")
+			}
 		})
 
 		t.Run("UpdateLinkedLessonsSectionStarter", func(t *testing.T) {
 			jsonData := []byte(`{"section_starter": true}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[2].String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[2].String()).WithQueryParam("target_field", "section_starter").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
@@ -881,6 +998,8 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
 			}
+
+			assertNonNilID(t, lesson.Lesson.ID, "updated linked lesson section starter")
 		})
 
 		//t.Log(lessonIds)
@@ -889,12 +1008,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				//t.Log(lessonIds[i], lessonIds[i+1])
 				jsonData := []byte(`{"next":"` + lessonIds[i+1].String() + `"}`)
-				resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[i].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
+				resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[i].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
 
 				var lesson LessonWithFlags
 				if lesson = resp.(LessonWithFlags); err != nil {
 					t.Fatal("Error making request: ", err)
 				}
+				assertNonNilID(t, lesson.Lesson.ID, "updated linked lesson next pointer")
 
 				if lesson.Lesson.NextLessonID.Valid != true || lesson.Lesson.NextLessonID.UUID != lessonIds[i+1] {
 					t.Fatalf("Expected lesson next lesson ID %s, got %s", lessonIds[i+1].String(), lesson.Lesson.NextLessonID.UUID.String())
@@ -904,12 +1024,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("UnlinkFirstLesson", func(t *testing.T) {
 			jsonData := []byte(`{"next":"00000000-0000-0000-0000-000000000000"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[0].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons/"+lessonIds[0].String()).WithQueryParam("target_field", "next").WithAuthToken(adminToken).Build()
 
 			var lesson LessonWithFlags
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error making request: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "unlinked first lesson response")
 
 			if lesson.Lesson.NextLessonID.Valid != false {
 				t.Fatalf("Expected lesson next lesson ID to be null, got %v", lesson.Lesson.NextLessonID)
@@ -917,13 +1038,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteSectionStarterLesson", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + lessonIds[1].String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + lessonIds[1].String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 
 			//Verify that the next lesson no longer has a prev lesson ID
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[2].String()).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[2].String()).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -932,6 +1053,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if lesson = resp.(LessonWithFlags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, lesson.Lesson.ID, "lesson fetched after deleting section starter")
 
 			if lesson.Lesson.SectionStarter != true {
 				t.Fatalf("Expected lesson section starter %t, got %t", true, lesson.Lesson.SectionStarter)
@@ -942,14 +1064,14 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestDeleteNonExistentLesson", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusInternalServerError).WithPath("/api/lessons/00000000-0000-0000-0000-000000000000").WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusInternalServerError).WithPath("/api/lessons/00000000-0000-0000-0000-000000000000").WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestGetDeletedLesson", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[1].String()).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[1].String()).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -957,7 +1079,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestGetLessonsByAverageUser", func(t *testing.T) {
 			for i := 0; i < 3; i++ {
-				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+2].String()).WithAuthToken(secondAverageToken).Build()
+				resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, LessonWithFlags{}).WithPath("/api/lessons").WithQueryParam("search_type", "id").WithQueryParam("lesson_id", lessonIds[i+2].String()).WithAuthToken(secondAverageToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
@@ -970,18 +1092,20 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if lesson.Lesson.ID != lessonIds[i+2] {
 					t.Fatalf("Expected lesson ID %s, got %s", lessonIds[i+2].String(), lesson.Lesson.ID.String())
 				}
+
+				assertNonNilID(t, lesson.Lesson.ID, "problem in average user list")
 			}
 		})
 
 		t.Run("TestDeleteLessonAsAverageUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteLessonAsAdmin", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/lessons/" + uploadedLessonID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -996,7 +1120,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		*/
 		t.Run("TestCreateProblemTestWithoutAdmin", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
-			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/tests").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusForbidden).WithPath("/api/tests").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1004,7 +1128,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestCreateProblemTestWithoutAuth", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"","expected_output":"5\n"}`)
-			_, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/tests").BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", jsonData, http.StatusUnauthorized).WithPath("/api/tests").BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1013,7 +1137,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var testID uuid.UUID
 		t.Run("TestCreateProblemTest", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"2 3\n","expected_output":"5\n"}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1022,6 +1146,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "created problem test")
 
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
@@ -1036,7 +1161,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetProblemTestByID", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1045,6 +1170,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "fetched problem test by id")
 
 			if test.ID != testID {
 				t.Fatalf("Expected test ID %s, got %s", testID.String(), test.ID.String())
@@ -1053,7 +1179,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateProblemTestInput", func(t *testing.T) {
 			jsonData := []byte(`{"input_text":"10 20\n"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "input").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "input").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1062,6 +1188,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "updated problem test input")
 
 			if !test.TxtInput.Valid {
 				t.Fatal("Expected input text to be valid")
@@ -1073,7 +1200,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateProblemTestExpectedOutput", func(t *testing.T) {
 			jsonData := []byte(`{"expected_output":"10 20\n"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "expected_output").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/"+testID.String()).WithQueryParam("target_field", "expected_output").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1082,6 +1209,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if test = resp.(database.CodeTest); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, test.ID, "updated problem test expected output")
 
 			if test.ExpectedOutput != "10 20\n" {
 				t.Fatalf("Expected output %s, got %s", "10 20\n", test.ExpectedOutput)
@@ -1093,7 +1221,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		t.Run("TestCreateMultipleProblemTestsForLinking", func(t *testing.T) {
 			for i := 0; i < 25; i++ {
 				jsonData := []byte(`{"input_text":"Input ` + strconv.Itoa(i) + `\n","expected_output":"Output ` + strconv.Itoa(i) + `\n","previous_test_id":"` + testIds[i].String() + `"}`)
-				resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
+				resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.CodeTest{}).WithPath("/api/tests").WithAuthToken(adminToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
@@ -1102,6 +1230,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, test.ID, "created linked problem test")
 
 				if !test.TxtInput.Valid {
 					t.Fatal("Expected input text to be valid")
@@ -1122,7 +1251,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestGetTestsInSequence", func(t *testing.T) {
 			for i := 0; i < 23; i++ {
-				resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testIds[i+1].String()).WithAuthToken(adminToken).Build()
+				resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, database.CodeTest{}).WithPath("/api/tests/" + testIds[i+1].String()).WithAuthToken(adminToken).Build()
 				if err != nil {
 					t.Fatal("Error making request: ", err)
 				}
@@ -1131,6 +1260,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				if test = resp.(database.CodeTest); err != nil {
 					t.Fatal("Error decoding response: ", err)
 				}
+				assertNonNilID(t, test.ID, "fetched linked problem test")
 
 				if test.PreviousTestID.Valid != true || test.PreviousTestID.UUID != testIds[i] {
 					t.Fatalf("Expected previous test ID %s, got %s", testIds[i].String(), test.PreviousTestID.UUID.String())
@@ -1151,7 +1281,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var problemID uuid.UUID
 		t.Run("TestCreateProblem", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Sample Problem","description":"This is a test problem", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1160,6 +1290,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "fetched problem by id")
 
 			if problem.Problem.Title != "Sample Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Sample Problem", problem.Problem.Title)
@@ -1167,12 +1298,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem.Problem.FirstTest.Valid != true || problem.Problem.FirstTest.UUID != testID {
 				t.Fatalf("Expected problem first test ID %s, got %s", testID.String(), problem.Problem.FirstTest.UUID.String())
 			}
-
 			problemID = problem.Problem.ID
+
+			assertNonNilID(t, problem.Problem.ID, "created problem")
 		})
 
 		t.Run("TestDeleteProblemAsAverageUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/problems/" + problemID.String()).WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/problems/" + problemID.String()).WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1181,7 +1313,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var suggestedProblemID uuid.UUID
 		t.Run("TestCreateProblemAsTeacher", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Teacher Problem","description":"This is a test problem created by a teacher", "source":"ONI2025", "first_test_id":"` + testID.String() + `","difficulty":3, "module": 1, "section": 2}`)
-			res, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(secondAverageToken).Build()
+			res, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1194,11 +1326,13 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				t.Fatalf("Expected problem suggested %t, got %t", true, problem.Problem.Suggested)
 			}
 			suggestedProblemID = problem.Problem.ID
+
+			assertNonNilID(t, problem.Problem.ID, "created teacher problem")
 		})
 
 		t.Run("TestUpdateSuggestedProblemAsAverageUser", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Teacher Problem"}`)
-			_, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusForbidden).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("PUT", jsonData, http.StatusUnauthorized).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1206,30 +1340,29 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateSuggestedProblemAsTeacher", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Teacher Problem", "description":"This is an updated teacher test problem", "source":"ONI2026"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+suggestedProblemID.String()).WithQueryParam("target_field", "details").WithAuthToken(secondAverageToken).Build()
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
-				t.Fatal("Error decoding response: ", err)
+				t.Fatal("Error making request: ", err)
 			}
 
 			if problem.Problem.Title != "Updated Teacher Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Updated Teacher Problem", problem.Problem.Title)
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "updated suggested problem as teacher")
 		})
 
 		t.Run("TestApproveSuggestedProblemWithoutAuth", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusForbidden).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestApproveSuggestedProblemAsAdmin", func(t *testing.T) {
-			res, err := NewRequestBuilder("POST", nil, http.StatusOK, ProblemWithTags{}).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(adminToken).Build()
+			res, _, err := NewRequestBuilder("POST", nil, http.StatusOK, ProblemWithTags{}).WithPath("/admin/problems/suggested/" + suggestedProblemID.String() + "/approve").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1242,10 +1375,12 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if problem.Problem.Suggested != false {
 				t.Fatalf("Problem is suggested, expected to not be suggested")
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "approved suggested problem")
 		})
 
 		t.Run("TestGetProblemByID", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1261,7 +1396,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("GetProblemsByAverageUser", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(averageUserToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []ProblemWithTags{}).WithPath("/api/problems").WithAuthToken(averageUserToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1273,6 +1408,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 			found := false
 			for _, problem := range problems {
+				assertNonNilID(t, problem.Problem.ID, "problem in average user list")
 				if problem.Problem.ID == problemID {
 					found = true
 					break
@@ -1281,45 +1417,45 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if !found {
 				t.Fatalf("Expected to find problem with ID %s", problemID.String())
 			}
+
+			assertNonNilID(t, problemID, "problem in average user list")
 		})
 
 		t.Run("TestUpdateProblemDetails", func(t *testing.T) {
 			jsonData := []byte(`{"title":"Updated Sample Problem","description":"This is an updated test problem"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "details").WithAuthToken(adminToken).Build()
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "updated problem tags")
 
 			if problem.Problem.Title != "Updated Sample Problem" {
 				t.Fatalf("Expected problem title %s, got %s", "Updated Sample Problem", problem.Problem.Title)
 			}
+
+			assertNonNilID(t, problem.Problem.ID, "updated problem details")
 		})
 
 		t.Run("TestUpdateProblemTags", func(t *testing.T) {
 			jsonData := []byte(`{"difficulty":5,"module":3,"section":4}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "tags").WithAuthToken(adminToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "tags").WithAuthToken(adminToken).Build()
 
 			var problem ProblemWithTags
 			if problem = resp.(ProblemWithTags); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, problem.Problem.ID, "updated problem first test")
 
-			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.SectionType != 4 {
-				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.SectionType)
+			if problem.TagTranslation.Difficulty != 5 || problem.TagTranslation.Module != 3 || problem.TagTranslation.Section != 4 {
+				t.Fatalf("Expected problem tags difficulty %d, module %d, section %d; got difficulty %d, module %d, section %d", 5, 3, 4, problem.TagTranslation.Difficulty, problem.TagTranslation.Module, problem.TagTranslation.Section)
 			}
 		})
 
 		t.Run("TestUpdateProblemFirstTest", func(t *testing.T) {
 			jsonData := []byte(`{"first_test_id":"` + testIds[5].String() + `"}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "test").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, ProblemWithTags{}).WithPath("/api/problems/"+problemID.String()).WithQueryParam("target_field", "test").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1345,7 +1481,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		var solutionID uuid.UUID
 		t.Run("TestCreateSolutionAsUser", func(t *testing.T) {
 			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(input())","language":"python"}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1354,6 +1490,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "created solution")
 			if sol.ProblemID != problemID {
 				t.Fatalf("Expected solution problem ID %s, got %s", problemID.String(), sol.ProblemID.String())
 			}
@@ -1368,7 +1505,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestUpdateSolutionTestsAsUser", func(t *testing.T) {
 			jsonData := []byte(`{"tests_passed":3, "total_tests":5}`)
-			resp, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+solutionID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+solutionID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1377,6 +1514,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "updated solution tests")
 			if !sol.TestsPassed.Valid || sol.TestsPassed.Int32 != 3 {
 				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 3, sol.TestsPassed.Int32)
 			}
@@ -1386,7 +1524,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetSolutionByIDAsAdmin", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(adminToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(adminToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1395,6 +1533,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "fetched solution by id as admin")
 			if sol.Language != "python" {
 				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
 			}
@@ -1404,7 +1543,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetSolutionByIDAsUser", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1413,6 +1552,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "fetched solution by id as user")
 			if sol.Language != "python" {
 				t.Fatalf("Expected solution language %s, got %s", "python", sol.Language)
 			}
@@ -1422,28 +1562,28 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		})
 
 		t.Run("TestGetSolutionByIDAsOtherUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusForbidden).WithPath("/api/solutions").WithAuthToken(averageUserToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("GET", nil, http.StatusForbidden).WithPath("/api/solutions").WithAuthToken(averageUserToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestBookmarkProblemAsUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/bookmark").WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/api/problems/" + problemID.String() + "/bookmark").WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestLikeProblemAsUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String() + "/like").WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/api/problems/" + problemID.String() + "/like").WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestGetBookmarkedProblemsAsUser", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.UsersProblem{}).WithPath("/api/users/" + secondAverageUserID.String() + "/bookmarked_problems").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.UsersProblem{}).WithPath("/api/users/" + secondAverageUserID.String() + "/bookmarked_problems").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1467,7 +1607,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 
 		t.Run("TestCreateCorrectSolutionAndCheckAcceptance", func(t *testing.T) {
 			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(int(input()) + int(input()))","language":"python"}`)
-			resp, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
+			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1476,9 +1616,10 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if sol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, sol.ID, "created correct solution")
 
 			jsonData = []byte(`{"tests_passed":26, "total_tests":26}`)
-			resp, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
+			resp, _, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1487,6 +1628,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			if updatedSol = resp.(database.Solution); err != nil {
 				t.Fatal("Error decoding response: ", err)
 			}
+			assertNonNilID(t, updatedSol.ID, "updated correct solution test counts")
 			if !updatedSol.TestsPassed.Valid || updatedSol.TestsPassed.Int32 != 26 {
 				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 26, updatedSol.TestsPassed.Int32)
 			}
@@ -1499,7 +1641,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 				CountCorrect int `json:"count_correct"`
 				CountTotal   int `json:"count_total"`
 			}
-			resp, err = NewRequestBuilder("GET", nil, http.StatusOK, params{}).WithPath("/api/solutions/count").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "user").Build()
+			resp, _, err = NewRequestBuilder("GET", nil, http.StatusOK, params{}).WithPath("/api/solutions/count").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "user").Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1526,56 +1668,56 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 		*/
 
 		t.Run("TestDeleteProblemAsAdmin", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/problems/" + problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestGetDeletedProblem", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("GET", nil, http.StatusInternalServerError).WithPath("/api/problems").WithQueryParam("search_type", "id").WithQueryParam("problem_id", problemID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteProblemTest", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/tests/" + testID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteAdminAsAverageUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + adminID.String()).WithAuthToken(averageUserToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteUserAsOtherUser", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusForbidden).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteAverageUserAsAdmin", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + averageUserID.String()).WithAuthToken(adminToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestDeleteUserAsThemselves", func(t *testing.T) {
-			_, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + secondAverageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
+			_, _, err := NewRequestBuilderNoTarget("DELETE", nil, http.StatusNoContent).WithPath("/api/users/" + secondAverageUserID.String()).WithAuthToken(secondAverageToken).BuildRaw()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
 		})
 
 		t.Run("TestGetUsersAfterDeletions", func(t *testing.T) {
-			resp, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
+			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, []database.User{}).WithPath("/api/users").WithAuthToken(adminToken).Build()
 			if err != nil {
 				t.Fatal("Error making request: ", err)
 			}
@@ -1607,7 +1749,7 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			return
 		}
 
-		_, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/api/admin/reset").WithAuthToken(adminToken).BuildRaw()
+		_, _, err := NewRequestBuilderNoTarget("POST", nil, http.StatusOK).WithPath("/admin/reset").WithAuthToken(adminToken).BuildRaw()
 		if err != nil {
 			t.Fatal("Error making request: ", err)
 		}

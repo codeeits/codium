@@ -1,6 +1,157 @@
 {
+    "language": "Català",
     "app_name": "codium/",
     "welcome": "Aprènde/ Programa/ Competeix/",
+    "landing": {
+        "meta": {
+            "title": "Inici - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Aprèn",
+                "python": "Python",
+                "interactive": ". Interactiu,",
+                "simple": "simple",
+                "and-at": "i al",
+                "focus": "gra",
+                "end": "."
+            },
+            "description": {
+                "part-1": "La teva plataforma completa de programació, construïda i alineada al 100% amb el nou currículum del Ministeri d'Educació, actualitzat enguany. Aprèn",
+                "highlight": "exactament",
+                "part-2": "el que importa per a l'escola, les proves i el batxillerat."
+            },
+            "buttons": {
+                "curriculum": "Veure currículum",
+                "start": "Comença a programar",
+                "start_now": "Comença ara"
+            }
+        }
+    },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. Tots els drets reservats.",
+            "text-2": "Dissenyat i desenvolupat per un equip d'estudiants de secundària apassionats per la programació i l'educació."
+        },
+        "legal": "Legal",
+        "terms": "Condicions del servei",
+        "privacy": "Política de privadesa",
+        "cookies": "No utilitzem galetes ni cap tecnologia de seguiment.",
+        "external": "Extern",
+        "github": "Repositori de GitHub",
+        "instagram": "Instagram",
+        "home": "Inici",
+        "aboutUs": "Sobre nosaltres",
+        "faq": "Preguntes freqüents",
+        "contact": "Contacte",
+        "bornIn": "Construït a Romania 🇷🇴."
+    },
+
+    "misc": {
+        "code_example": {
+            "input": "ENTRADA: ",
+            "output": "Sortida: "
+        }
+    },
+
+    "tos-page": {
+        "meta": {
+            "title": "Condicions del servei - Codium"
+        },
+        "header": {
+            "last-updated": "Darrera actualització:",
+            "download-pdf": "Imprimeix"
+        },
+        "intro": "Benvingut a Codium! Aquestes Condicions del servei (\"Condicions\") regeixen l'ús del lloc web, la plataforma i els serveis relacionats de Codium (conjuntament, el \"Servei\"). En accedir o utilitzar el Servei, acceptes quedar vinculat per aquestes Condicions. Si no hi estàs d'acord, no facis servir el Servei.",
+        "section-1": "1. Descripció del servei",
+        "section-1-desc": "Codium és una plataforma educativa pensada per oferir lliçons de programació, visualització d'algoritmes, reptes de codi (\"Problemes\") i un entorn de compilació i proves de codi dins del navegador.",
+        "section-2-title": "2. Comptes d'usuari",
+        "section-2": {
+            "registration": "Registre: Per accedir a certes funcions (per exemple, desar el progrés, enviar solucions, afegir marcadors), has de crear un compte. Acceptes proporcionar informació precisa i completa (com ara una adreça electrònica vàlida).",
+            "security": "Seguretat: Ets responsable de mantenir la confidencialitat de les credencials del teu compte, incloent-hi les contrasenyes i l'autenticació en dos passos (TOTP/codis de còpia de seguretat), si està activada. Ets responsable de totes les activitats que es facin amb el teu compte.",
+            "termination": "Cancel·lació: Ens reservem el dret de suspendre o cancel·lar el teu compte en qualsevol moment, sense avís previ, per conductes que considerem que infringeixen aquestes Condicions o que són perjudicials per a altres usuaris, per a nosaltres o per a tercers, o per qualsevol altre motiu."
+        },
+        "section-3-title": "3. Ús acceptable",
+        "section-3-desc": "Acceptes no fer servir el Servei per a:",
+        "section-3": {
+            "prohibited-1": "Enviar, pujar o executar codi maliciós, virus o qualsevol programari destinat a interrompre, danyar o obtenir accés no autoritzat al compilador, servidors o bases de dades de Codium.",
+            "prohibited-2": "Intentar saltar-se mesures de seguretat, límits de peticions o límits d'execució establerts al compilador.",
+            "prohibited-3": "Raspar, rastrejar o descarregar en massa lliçons, problemes o altre contingut propietari sense el nostre permís escrit explícit.",
+            "prohibited-4": "Assetjar altres usuaris o enviar contingut inadequat, ofensiu o il·legal en les funcions de comunitat o en suggeriments de problemes."
+        },
+        "section-4": "4. Contingut generat per l'usuari",
+        "section-4-desc": "Conserves tots els drets sobre qualsevol contingut que enviïs, pugis o creïs mentre fas servir el Servei (\"Contingut generat per l'usuari\"). Tanmateix, en enviar Contingut generat per l'usuari, ens concedeixes un dret no exclusiu, lliure de royalties, perpetu, irrevocable i totalment sublicenciable d'usar, reproduir, modificar, adaptar, publicar, traduir, crear obres derivades, distribuir i mostrar aquest contingut en relació amb el Servei. Ets l'únic responsable del Contingut generat per l'usuari que creïs i enviïs, i acceptes no enviar contingut que infringeixi drets de tercers o vulneri cap llei. Ens reservem el dret d'eliminar o modificar qualsevol Contingut generat per l'usuari que, al nostre criteri, infringeixi aquestes Condicions o sigui inapropiat.",
+        "section-5": "5. Propietat intel·lectual",
+        "section-5-desc": "Tot el contingut creat per Codium, incloent-hi, entre d'altres, lliçons, disseny de la plataforma, algoritmes, text, gràfics i logotips, és propietat de Codium o dels seus llicenciants i està protegit per les lleis de drets d'autor i propietat intel·lectual. No pots distribuir, reproduir ni crear obres derivades del nostre contingut sense permís.",
+        "section-6": "6. Exempció de garanties",
+        "section-6-desc": "El Servei es proporciona \"TAL COM ESTÀ\" i \"SEGONS DISPONIBILITAT\". Codium no ofereix cap garantia, expressa o implícita, sobre la fiabilitat, exactitud o disponibilitat de la plataforma, del compilador o del contingut educatiu. No garantim que el Servei estigui lliure d'errors o sigui ininterromput, i no som responsables dels problemes derivats del teu ús del Servei, incloent-hi, entre d'altres, la pèrdua de dades, resultats incorrectes d'execució de codi o qualsevol altre dany.",
+        "section-7": "7. Limitació de responsabilitat",
+        "section-7-desc": "En la màxima mesura permesa per la llei, Codium no serà responsable de cap dany indirecte, incidental, especial o conseqüent derivat de l'ús o la impossibilitat d'usar el Servei, incloent-hi, entre d'altres, pèrdua de dades, pèrdua de progrés o temps d'inactivitat del servidor. En cap cas la responsabilitat total de Codium envers tu per tots els danys superarà l'import que hagis pagat, si n'hi ha, per accedir al Servei.",
+        "section-8": "8. Canvis a les Condicions",
+        "section-8-desc": "Ens reservem el dret de modificar aquestes Condicions en qualsevol moment. Si fem canvis importants, ho comunicarem a través del Servei o per altres mitjans. El teu ús continuat del Servei després de qualsevol canvi constitueix l'acceptació de les noves Condicions. Et recomanem revisar periòdicament aquestes Condicions per veure'n les actualitzacions.",
+        "section-9": "9. Contacta amb nosaltres",
+        "section-9-desc": "Si tens cap pregunta sobre aquestes Condicions, posa't en contacte amb nosaltres a legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat el"
+        }
+    },
+
+    "privacy-page": {
+        "meta": {
+            "title": "Política de Privadesa - Codium",
+            "heading": "Política de Privadesa de Codium"
+        },
+        "header": {
+            "effective-date": "Data d'entrada en vigor:",
+            "download-pdf": "Imprimeix"
+        },
+        "intro": "A Codium, estem compromesos a protegir la vostra privadesa. Aquesta Política de Privadesa explica com recopilem, utilitzem, divulguem i salvaguardem la vostra informació quan visiteu la nostra plataforma.",
+        "section-1-title": "1. Informació que recopilem",
+        "section-1-desc": "Recopilem informació que ens proporcioneu directament i dades recopilades automàticament quan utilitzeu el nostre Servei:",
+        "section-1": {
+            "personal-info": "Informació personal: Quan us registreu, recopilem la vostra adreça electrònica, nom d'usuari, contrasenya (emmagatzemada de manera segura com a hash) i, opcionalment, una foto de perfil.",
+            "usage-data": "Dades d'ús i progrés: Fem un seguiment de la vostra interacció amb el Servei, incloses les lliçons completades, les solucions als problemes de codi, els resultats de les proves, les adreces d'interès i els permisos/rols d'usuari (p. ex., estat d'administrador).",
+            "technical-data": "Dades tècniques: Recopilem automàticament informació tècnica estàndard, com ara la vostra adreça IP, tipus de navegador, informació del dispositiu i interaccions amb les nostres pàgines web."
+        },
+        "section-2-title": "2. Com utilitzem la vostra informació",
+        "section-2-desc": "Utilitzem la informació recopilada per a les finalitats següents:",
+        "section-2": {
+            "use-1": "Per proporcionar, operar i mantenir la plataforma Codium (p. ex., autenticar el vostre inici de sessió, executar els vostres enviaments de codi, fer un seguiment del vostre progrés).",
+            "use-2": "Per millorar el nostre contingut educatiu i la infraestructura del compilador.",
+            "use-3": "Per comunicar-nos amb vosaltres, inclòs l'enviament de correus electrònics de verificació de comptes, restabliments de contrasenyes i actualitzacions importants del servei.",
+            "use-4": "Per garantir la seguretat de la nostra plataforma i prevenir activitats fraudulentes o malicioses (p. ex., detecció de bots)."
+        },
+        "section-3": "3. Galetes i tecnologies de seguiment",
+        "section-3-desc": "Codium utilitza galetes i tecnologies de seguiment similars (com ara JSON Web Tokens/Refresh Tokens) per mantenir la vostra sessió, recordar les vostres preferències i mantenir-vos connectats de manera segura al vostre compte. Podeu controlar les preferències de galetes mitjançant la configuració del vostre navegador, però desactivar-les pot afectar la vostra capacitat d'utilitzar funcions autenticades.",
+        "section-4-title": "4. Intercanvi i divulgació de dades",
+        "section-4-desc": "No venem, intercanviem ni lloguem la vostra informació personal a tercers. Podem compartir la vostra informació només en les situacions següents:",
+        "section-4": {
+            "share-1": "Proveïdors de serveis: Amb serveis de tercers de confiança que ens ajuden a operar la nostra plataforma (p. ex., serveis de lliurament de correu electrònic per a correus de validació, proveïdors d'allotjament al núvol), sota estrictes acords de confidencialitat.",
+            "share-2": "Compliment legal: Si ho exigeix la llei, una citació o altres processos legals, o per protegir els drets, la propietat o la seguretat de Codium, els nostres usuaris o altres persones."
+        },
+        "section-5": "5. Seguretat de les dades",
+        "section-5-desc": "Implementem mesures de seguretat estàndard per protegir la vostra informació personal, inclòs l'encriptatge de contrasenyes i la protecció de l'accés a les bases de dades. Tanmateix, cap transmissió electrònica per Internet ni cap tecnologia d'emmagatzematge d'informació pot garantir-se que sigui 100% segura.",
+        "section-6-title": "6. Els vostres drets de dades",
+        "section-6-desc": "Depenent de la vostra ubicació, podeu tenir dret a:",
+        "section-6": {
+            "right-1": "Accedir a les dades personals que tenim sobre vosaltres.",
+            "right-2": "Sol·licitar la correcció de dades inexactes.",
+            "right-3": "Sol·licitar la supressió del vostre compte i de les dades associades (incloses les vostres solucions de codi i el vostre progrés).",
+            "right-4": "Donar-se de baixa de comunicacions no essencials."
+        },
+        "section-6-footer": "Per exercir aquests drets, poseu-vos en contacte amb nosaltres mitjançant la informació següent.",
+        "section-7": "7. Privadesa dels infants",
+        "section-7-desc": "Codium no està dirigit intencionadament a menors de 13 anys. No recopilem intencionadament informació personal de menors de 13 anys. Si ens adonem que hem recopilat aquestes dades, prendrem mesures per eliminar-les.",
+        "section-8": "8. Canvis en aquesta Política de Privadesa",
+        "section-8-desc": "Podem actualitzar aquesta Política de Privadesa de tant en tant. Qualsevol canvi es publicarà en aquesta pàgina amb una \"Data d'entrada en vigor\" actualitzada. Us animem a revisar aquesta política periòdicament.",
+        "section-9": "9. Contacteu amb nosaltres",
+        "section-9-desc": "Si teniu qualsevol pregunta o inquietud sobre aquesta Política de Privadesa o les nostres pràctiques de dades, poseu-vos en contacte amb nosaltres a: privacy@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat"
+        }
+    },
+
     "login": {
         "title": "inicia sessió",
         "email": "e-mail",
@@ -23,15 +174,189 @@
         "recent-activity": "activitat recent",
         "bookmarks": "marcadors"
     },
+
+    "settings-page": {
+        "title": "Configuració",
+        "privacy-section": {
+            "title": "Privacitat",
+            "options": {
+                "make-profile-private": "Fes que el meu compte sigui privat",
+                "download-my-data": "Descarrega les meves dades (RGPD)",
+                "delete-my-data": "Destrueix les meves dades",
+                "two-factor-authentication": "Autenticació de dos factors (TOTP/backup codes)"
+            },
+            "2fa-notes": {
+                "title": "Configuració de l'autenticació en dos passos (2FA)",
+                "note-1": "Configureu un codi d'autenticació basat en el temps (TOTP) per augmentar la seguretat.",
+                "note-2": "Podeu utilitzar una aplicació d'autenticació (per exemple, Google Authenticator o Authy) per escanejar el codi QR i generar codis 2FA.",
+                "note-3": "O bé feu servir l'URI següent (si la vostra aplicació no admet codis QR):",
+                "note-4": "Guardeu aquests codis de seguretat en un lloc segur. Cada codi es pot utilitzar una vegada. No tornaràs a veure aquests codis MAI més. Així que vés amb compte!"
+            }
+        },
+        "appearance-section": {
+            "title": "Aparença",
+            "options": {
+                "dark-mode": "Mode fosc",
+                "font-size": "Mida de la lletra",
+                "color-blind-mode": "Apte per a daltonisme",
+                "high-contrast-mode": "Alt contrast",
+                "hue-slider": "Matís"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Altres coses",
+            "options": {
+                "language": "Llengua",
+                "support": "Formulari de contacte"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. Tots els drets reservats.",
+            "opensource": "Codium és un projecte de codi obert.",
+            "contribute": "Contribueix al GitHub",
+            "made_with_love": "realitzat amb ♥ per andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lliçons",
+        "desc": "Els teus conceptes teoretics bàsics",
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics",
+            "section-yes": "Amb seccions",
+            "section-no": "Sense seccions"
+        },
+        "all-fliter": "Totes",
+        "right-bar": {
+            "content": "Contingut",
+            "keypoints": "Punts clau"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Comença la secció"
+            },
+            "stats": {
+                "title": "Estadístiques",
+                "total-progress": "Progrés total",
+                "finished-lessons": "Finalizades",
+                "in-progress-lessons": "En curs",
+                "remaining-lessons": "Pendents",
+                
+                "tips": {
+                    "tip-1": "La secció està completament finalitzada. Excel·lent!",
+                    "tip-2": "Has finalitzat gairebé tot. Només et queda acabar el que està en curs!",
+                    "tip-3": "Comença la primera activitat per començar el progrés.",
+                    "tip-4": "Continua la secció per augmentar el progrés."
+                }
+            }
+        }
+    },
+
+    "problems-page": {
+        "title": "Problemes",
+        "desc": "Aplica la teoria.",
+        "all-filter": "Totes",
+        "dropdown-1": {
+            "alfabetic": "Alfabètic",
+            "discovery": "Descobreix",
+            "random": "Aleatori",
+            "newest": "Més nous"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultat",
+            "easy": "Fàcil",
+            "medium": "Mitjà",
+            "hard": "Difícil"
+        },
+        "enable-feed-mode": "Activa el mode feed",
+        "disable-feed-mode": "Desactiva el mode feed",
+        "surprise-me": "Sorprèn-me",
+
+        "no-problems": {
+            "title": "No hi ha problemes per als filtres seleccionats.",
+            "desc": "Intenta modificar els filtres per veure més problemes."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitat",
+                "available_tests": "Tests disponibles",
+                "sent_solutions": "Solucions enviades",
+                "correct_solutions": "Solucions correctes"
+            },
+            "send-solution": {
+                "title": "Envia solució",
+                "desc": "Prem aquí per pujar o arrossegar i deixar anar."
+            },
+            "solutions": {
+                "title": "Solucions"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Marcadors",
+        "desc": "Noi, això és el que t'ha agradat més!",
+        "no-bookmarks": {
+            "title": "No tins cap element guardat.",
+            "desc": "Per començar, explora les lliçons disponibles i afegeix-les als marcadors."
+        },
+        "remove_bookmark": "Suprimeix el marcador",
+        "buttons": {
+            "all": "Totes",
+            "lessons": "Lliçons",
+            "problems": "Problemes",
+            "explore-lessons": "Explora les lliçons"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabètic",
+            "dificuly": "Dificultat",
+            "newest": "Més nous",
+            "oldest": "Més antics"
+        },
+        "badge-types": {
+            "lesson": "lliçó",
+            "problem": "problema"
+        }
+    },
+
     "log-out": "tanca la sessió",
     "top-menu": {
-        "teory": "> teoria",
-        "probleme": "> problemes",
-        "contact": "> contacte"
+        "teory": "Teoria",
+        "probleme": "Problemes",
+        "contact": "Contacte",
+        "curriculum": "Currículum",
+        "for_who": "Per a qui?",
+        "for_teachers": "Per a professors",
+        "for_students": "Per a estudiants",
+        "coin": "galetes"
+    },
+    "lowercase": {
+        "lessons": "lliçons",
+        "probleme": "problemes",
+        "tests": "tests"
+
+    },
+    "sidebar": {
+        "home": "Inici",
+        "bookmarks": "Marcadors",
+        "progress": "Progrés",
+        "learn": "Aprèn",
+        "lessons": "Lliçons",
+        "problems": "Problemes",
+        "tests": "Tests",
+        "other": "Altres",
+        "manage-lessons": "Gestiona lliçons",
+        "manage-problems": "Gestiona problemes",
+        "settings": "Configuració",
+        "about": "Sobre nosaltres"
     },
     "modal": {
         "edit_profile": {
-            "title": "edita el perfil",
+            "title": "Edita el perfil",
             "labels": {
                 "email": "Edita l'e-mail:",
                 "username": "Edita el nom d'usuari:",
@@ -43,6 +368,19 @@
             "current_password": "contrasenya actual",
             "new_password": "contrasenya nova",
             "note": "Deixa els camps buits si no vols canviar-los"
+        },
+        "2fa_modal": {
+            "enter_code": "Introduïu el codi generat"
+        },
+        "log-out": {
+            "desc": "Estàs segur que vols tancar la sessió?"
+        },
+        "notice": {
+            "title": "Avís"
+        },
+        "delete_account": {
+            "title": "Elimina el compte",
+            "desc": "Estàs segur que vols eliminar el teu compte? Aquesta acció és irreversible. Totes les teves dades, incloent el teu progrés i solucions, s'eliminaran permanentment. Si vols sol·licitar una còpia de les teves dades, fes-ho abans de confirmar l'eliminació del compte."
         }
     },
     "flags": {
@@ -59,13 +397,133 @@
     },
     "buttons": {
         "save": "desa",
-        "cancel": "anula",
-        "submit": "envia",
-        "edit": "edita el perfil",
-        "delete": "elimina",
-        "create": "crea",
-        "update": "actualitza",
-        "login": "autentifica't",
-        "register": "registra't"
+        "cancel": "Anula",
+        "verify": "Verifica",
+        "i_saved_them": "Sí, els he guardat",
+        "submit": "Envia",
+        "edit": "Edita el perfil",
+        "delete": "Elimina",
+        "create": "Crea",
+        "update": "Actualitza",
+        "login": "Autentifica't",
+        "register": "Registra't",
+        
+        "comment": "settings specific buttons",
+        "log-out": "Tanca la sessió",
+        "support-button": "Contacta’ns",
+        "download-data": "Descarrega",
+        "delete-data": "Borra'm",
+        "enable": "Activa",
+        "font-size-labels": {
+            "small": "Petit",
+            "medium": "Mitjà",
+            "large": "Gran",
+            "x-large": "Molt gran"
+        },
+
+        "next_lesson": "Seguent lliçó",
+        "feedback": "Feedback",
+
+        "next_problem": "Seguent problema"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat el",
+        "gdpr_notice": "Aquest document constitueix una sol·licitud formal d'accés a la totalitat de les dades de caràcter personal associades a aquest compte, emesa en virtut del Reglament General de Protecció de Dades (RGPD).",
+        "privacy_minimization_title": "El principi de minimització de dades",
+        "privacy_minimization_text": "D'acord amb el principi de minimització de dades (Article 5) del RGPD, Codium limita estrictament la recopilació de dades a la informació essencial necessària per a oferir els nostres serveis educatius i competitius. No rastregem intencionadament adreces IP, empremtes digitals del navegador o dades financeres.",    
+        
+        "email_unverified_warning": "Avís: L'adreça de correu electrònic associada a aquest compte no està verificada. Assegureu-vos de baixar aquest document de manera segura.",
+        "user_data_request": "Resultat de la sol·licitud de dades de l'usuari"
+
+    },
+
+    "difficulty": {
+        "easy": "Fàcil",
+        "medium": "Mitjà",
+        "hard": "Difícil"
+    },
+
+    "classe": {
+        "1": "1er curs",
+        "2": "2n curs",
+        "3": "3er curs",
+        "4": "4t curs",
+        "8": "8è curs",
+        "9": "9è curs",
+        "10": "10è curs",
+        "11": "11è curs",
+        "12": "12è curs",
+        "67": "67è curs"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informàtica",
+        "2": "Física",
+        "3": "Química",
+        "4": "Biologia",
+        "5": "Anglès",
+        "6": "Matemàtiques"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "Has completat la lliçó!"
+            },
+            "start": {
+                "placeholder": "Has començat la lliçó!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "Has completat la lliçó!" 
+            }
+        },
+        "toasts": {
+            "page-not-implemented": "La pàgina encara no s'ha implementat.",
+            "login-success": "Sessió iniciada amb èxit!",
+            "login-failed": "L'inici de sessió ha fallat: ",
+            "passwords-dont-match": "Les contrasenyes no coincideixen.",
+            "account-created": "Compte creat amb èxit!",
+            "account-creation-failed": "La creació del compte ha fallat: ",
+            "account-this-info-already-used": "Aquest correu electrònic o nom d'usuari ja s'està utilitzant.",
+            "logout-cancelled": "Tancament de sessió cancel·lat.",
+            "edit-profile-success": "Perfil actualitzat amb èxit!",
+            "edit-profile-failed": "L'actualització del perfil ha fallat: ",
+            "delete-account-success": "Compte suprimit amb èxit.",
+            "delete-account-failed": "La supressió del compte ha fallat: ",
+            "delete-account-cancelled": "S'ha cancel·lat la supressió del compte.",
+            "2fa-enabled": "Autenticació en dos passos activada.",
+            "2fa-disabled": "L'autenticació en dos passos s'ha desactivat.",
+            "2fa-enabling-failed": "L'activació de l'autenticació en dos passos ha fallat: ",
+
+            "lesson_": "Lliçó ",
+            "problem_": "Problema ",
+            "_bookmarked": "afegit als elements desats.",
+            "_unbookmarked": "eliminat dels elements desats.",
+            "bookmark-failed": "L'acció de desar ha fallat: ",
+            "_favorited": " afegit a preferits.",
+            "_unfavorited": " eliminat de preferits.",
+            "favorite-failed": "L'acció d'afegir a preferits ha fallat: ",
+            "_completed-in": " completat en ",
+            "_finished-section": "Has acabat la secció!",
+            "url_": "L'URL ",
+            "_lesson_": "de la lliçó ",
+            "_problem_": "del problema ",
+            "_copied-to-clipboard": " s'ha copiat al porta-retalls.",
+            "copy-failed": "La còpia al porta-retalls ha fallat: ",
+            "grading-solution": "Avaluant la solució...",
+
+            "passed-tests": "Proves superades: ",
+            "you-need-to-be-authenticated-to-do-that": "Has d'iniciar sessió per a fer això.",
+            "please-select-a-file": "Si us plau, selecciona un fitxer per enviar la teva solució.",
+            "file-too-large": "El fitxer seleccionat supera el límit de mida permès.",
+            "file-type-not-allowed": "Aquest tipus de fitxer no està permès. Si us plau, selecciona un fitxer amb l'extensió .py.",
+            "file-reading-error": "S'ha produït un error en llegir el fitxer. Si us plau, torna-ho a provar.",
+            "sending-error": "Error: ",
+            "problem-id-missing": "Falta l'ID del problema."
+            
+        }
     }
 }

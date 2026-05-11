@@ -1,6 +1,157 @@
 {
+    "language": "Română",
     "app_name": "codium/",
     "welcome": "Învăță/ Programează/ Concurează/",
+    "landing": {
+        "meta": {
+            "title": "Landing - Codium"
+        },
+        "hero": {
+            "title": {
+                "learn": "Învață",
+                "python": "Python",
+                "interactive": ". Interactiv,",
+                "simple": "simplu",
+                "and-at": "și la",
+                "focus": "obiect",
+                "end": "."
+            },
+            "description": {
+                "part-1": "Platforma ta completă de programare, construită și aliniată 100% cu noua programă a Ministerului Educației, actualizată anul acesta. Învață",
+                "highlight": "exact",
+                "part-2": "ce contează pentru școală, teste și bacalaureat."
+            },
+            "buttons": {
+                "curriculum": "Vezi curicula",
+                "start": "Începe să programezi",
+                "start_now": "Începe acum"
+            }
+        }
+    },
+
+    "footer": {
+        "description": {
+            "text-1": "© 2026 Codium. Toate drepturile rezervate.",
+            "text-2": "Proiectat și dezvoltat de o echipă de elevi de liceu pasionați de programare și educație."
+        },
+        "legal": "Legal",
+        "terms": "Termeni și condiții",
+        "privacy": "Politica de confidențialitate",
+        "cookies": "Nu folosim cookie-uri sau alte tehnologii de urmărire.",
+        "external": "Extern",
+        "github": "Repository GitHub",
+        "instagram": "Instagram",
+        "home": "Acasă",
+        "aboutUs": "Despre noi",
+        "faq": "Întrebări frecvente",
+        "contact": "Contact",
+        "bornIn": "Creat în România 🇷🇴."
+    },
+
+    "misc": {
+        "code_example": {
+            "input": "INTRARE: ",
+            "output": "IEȘIRE: "
+        }
+    },
+
+    "tos-page": {
+        "meta": {
+            "title": "Termeni și condiții - Codium"
+        },
+        "header": {
+            "last-updated": "Ultima actualizare:",
+            "download-pdf": "Imprimează"
+        },
+        "intro": "Bine ai venit la Codium! Acești Termeni și condiții (\"Termenii\") reglementează utilizarea site-ului, platformei și serviciilor asociate Codium (denumite împreună \"Serviciul\"). Prin accesarea sau utilizarea Serviciului, ești de acord să respecți acești Termeni. Dacă nu ești de acord cu ei, te rugăm să nu folosești Serviciul.",
+        "section-1": "1. Descrierea serviciului",
+        "section-1-desc": "Codium este o platformă educațională concepută pentru a oferi lecții de programare, vizualizări de algoritmi, provocări de cod (\"Probleme\") și un mediu de compilare și testare a codului direct în browser.",
+        "section-2-title": "2. Conturi de utilizator",
+        "section-2": {
+            "registration": "Înregistrare: Pentru a accesa anumite funcționalități (de exemplu salvarea progresului, trimiterea soluțiilor, bookmark-uri), trebuie să îți creezi un cont. Ești de acord să oferi informații corecte și complete (cum ar fi o adresă de e-mail validă).",
+            "security": "Securitate: Ești responsabil pentru păstrarea confidențialității datelor de autentificare ale contului tău, inclusiv parolele și autentificarea în doi pași (TOTP/coduri de rezervă), dacă este activată. Ești responsabil pentru toate activitățile realizate din contul tău.",
+            "termination": "Reziliere: Ne rezervăm dreptul de a suspenda sau închide contul tău în orice moment, fără notificare, pentru un comportament pe care îl considerăm că încalcă acești Termeni sau care este dăunător altor utilizatori, nouă sau terților, ori din orice alt motiv."
+        },
+        "section-3-title": "3. Utilizare acceptabilă",
+        "section-3-desc": "Ești de acord să nu folosești Serviciul pentru:",
+        "section-3": {
+            "prohibited-1": "A încărca, trimite sau executa cod malițios, viruși sau orice software menit să perturbe, să deterioreze ori să obțină acces neautorizat la compilerul, serverele sau bazele de date Codium.",
+            "prohibited-2": "A încerca să ocolești măsuri de securitate, limite de rată sau limite de execuție impuse compilerului.",
+            "prohibited-3": "A copia, indexa sau descărca în masă lecții, probleme sau alte conținuturi protejate fără permisiunea noastră scrisă explicită.",
+            "prohibited-4": "A hărțui alți utilizatori sau a trimite conținut nepotrivit, ofensator ori ilegal în funcționalitățile comunității sau în sugestiile de probleme."
+        },
+        "section-4": "4. Conținut generat de utilizatori",
+        "section-4-desc": "Păstrezi toate drepturile asupra oricărui conținut pe care îl trimiți, îl încarci sau îl creezi în timp ce folosești Serviciul (\"Conținut generat de utilizatori\"). Totuși, prin trimiterea acestui conținut, ne acorzi un drept neexclusiv, gratuit, perpetuu, irevocabil și complet sublicențiabil de a folosi, reproduce, modifica, adapta, publica, traduce, crea opere derivate, distribui și afișa conținutul respectiv în legătură cu Serviciul. Ești singurul responsabil pentru conținutul pe care îl creezi și îl trimiți și ești de acord să nu trimiți conținut care încalcă drepturile unor terți sau legile aplicabile. Ne rezervăm dreptul de a elimina sau modifica orice conținut generat de utilizatori pe care îl considerăm, la discreția noastră, ca încălcând acești Termeni sau fiind altfel nepotrivit.",
+        "section-5": "5. Proprietate intelectuală",
+        "section-5-desc": "Tot conținutul creat de Codium, incluzând fără a se limita la lecții, designul platformei, algoritmi, text, grafică și logo-uri, aparține Codium sau licențiatorilor săi și este protejat de legislația privind drepturile de autor și proprietatea intelectuală. Nu poți distribui, reproduce sau crea lucrări derivate din conținutul nostru fără permisiune.",
+        "section-6": "6. Exonerare de garanții",
+        "section-6-desc": "Serviciul este oferit \"AȘA CUM ESTE\" și \"AȘA CUM ESTE DISPONIBIL\". Codium nu oferă garanții, explicite sau implicite, privind fiabilitatea, acuratețea sau disponibilitatea platformei, a compilerului ori a conținutului educațional. Nu garantăm că Serviciul va fi fără erori sau neîntrerupt și nu suntem responsabili pentru problemele apărute din utilizarea Serviciului, inclusiv, dar fără a se limita la, pierderea datelor, rezultate incorecte de execuție a codului sau alte daune.",
+        "section-7": "7. Limitarea răspunderii",
+        "section-7-desc": "În măsura maximă permisă de lege, Codium nu va fi răspunzător pentru daune indirecte, accidentale, speciale sau pe cale de consecință rezultate din utilizarea sau imposibilitatea utilizării Serviciului, inclusiv, dar fără a se limita la, pierderea datelor, pierderea progresului sau indisponibilitatea serverelor. În nicio situație răspunderea totală a Codium față de tine pentru toate daunele nu va depăși suma plătită de tine, dacă există una, pentru accesarea Serviciului.",
+        "section-8": "8. Modificări ale Termenilor",
+        "section-8-desc": "Ne rezervăm dreptul de a modifica acești Termeni în orice moment. Dacă facem modificări importante, vom anunța acest lucru prin Serviciu sau prin alte mijloace. Continuarea utilizării Serviciului după orice modificare înseamnă acceptarea noilor Termeni. Te încurajăm să revizuiești periodic acești Termeni pentru actualizări.",
+        "section-9": "9. Contactează-ne",
+        "section-9-desc": "Dacă ai întrebări despre acești Termeni, te rugăm să ne contactezi la legal@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat "
+        }
+    },
+
+    "privacy-page": {
+        "meta": {
+            "title": "Politica de confidențialitate - Codium",
+            "heading": "Politica de confidențialitate pentru Codium"
+        },
+        "header": {
+            "effective-date": "Data intrării în vigoare:",
+            "download-pdf": "Imprimează"
+        },
+        "intro": "La Codium, ne angajăm să îți protejăm confidențialitatea. Această Politică de confidențialitate explică modul în care colectăm, utilizăm, divulgăm și protejăm informațiile tale atunci când vizitezi platforma noastră.",
+        "section-1-title": "1. Informațiile pe care le colectăm",
+        "section-1-desc": "Colectăm informații pe care ni le furnizezi direct și date colectate automat când folosești Serviciul:",
+        "section-1": {
+            "personal-info": "Informații personale: Când te înregistrezi, colectăm adresa de e-mail, numele de utilizator, parola (stocată în siguranță ca hash) și, opțional, o poză de profil.",
+            "usage-data": "Date de utilizare și progres: Urmărim interacțiunea ta cu Serviciul, inclusiv lecțiile finalizate, soluțiile la probleme de cod, rezultatele testelor, bookmark-urile și permisiunile/rolurile utilizatorului (de exemplu statutul de admin).",
+            "technical-data": "Date tehnice: Colectăm automat informații tehnice standard, precum adresa IP, tipul browserului, informații despre dispozitiv și interacțiunile cu paginile noastre web."
+        },
+        "section-2-title": "2. Cum folosim informațiile tale",
+        "section-2-desc": "Folosim informațiile colectate în următoarele scopuri:",
+        "section-2": {
+            "use-1": "Pentru a oferi, opera și menține platforma Codium (de exemplu autentificarea, rularea trimiterilor de cod, urmărirea progresului).",
+            "use-2": "Pentru a îmbunătăți conținutul educațional și infrastructura compilerului.",
+            "use-3": "Pentru a comunica cu tine, inclusiv trimiterea e-mailurilor de verificare a contului, resetări de parolă și actualizări importante ale serviciului.",
+            "use-4": "Pentru a asigura securitatea platformei și pentru a preveni activitatea frauduloasă sau malițioasă (de exemplu detectarea boților)."
+        },
+        "section-3": "3. Cookie-uri și tehnologii de urmărire",
+        "section-3-desc": "Codium utilizează cookie-uri și tehnologii similare de urmărire (precum JSON Web Tokens/Refresh Tokens) pentru a menține sesiunea, a reține preferințele și a te păstra autentificat în siguranță în contul tău. Poți controla preferințele de cookie din setările browserului, însă dezactivarea lor poate afecta folosirea funcțiilor care necesită autentificare.",
+        "section-4-title": "4. Partajarea și divulgarea datelor",
+        "section-4-desc": "Nu vindem, nu schimbăm și nu închiriem informațiile tale personale către terți. Putem partaja informațiile tale doar în următoarele situații:",
+        "section-4": {
+            "share-1": "Furnizori de servicii: Cu servicii terțe de încredere care ne ajută să operăm platforma (de exemplu servicii de e-mail pentru validare, furnizori cloud), sub acorduri stricte de confidențialitate.",
+            "share-2": "Conformitate legală: Dacă este necesar prin lege, citație sau alte proceduri legale, ori pentru a proteja drepturile, proprietatea sau siguranța Codium, a utilizatorilor noștri sau a altora."
+        },
+        "section-5": "5. Securitatea datelor",
+        "section-5-desc": "Implementăm măsuri standard de securitate pentru a proteja informațiile tale personale, inclusiv criptarea parolelor și securizarea accesului la baza de date. Totuși, nicio transmisie electronică pe internet sau tehnologie de stocare a informațiilor nu poate fi garantată 100% sigură.",
+        "section-6-title": "6. Drepturile tale asupra datelor",
+        "section-6-desc": "În funcție de locația ta, poți avea dreptul să:",
+        "section-6": {
+            "right-1": "Accesezi datele personale pe care le deținem despre tine.",
+            "right-2": "Soliciți corectarea datelor inexacte.",
+            "right-3": "Soliciți ștergerea contului și a datelor asociate (inclusiv soluțiile tale de cod și progresul).",
+            "right-4": "Renunți la comunicările non-esențiale."
+        },
+        "section-6-footer": "Pentru exercitarea acestor drepturi, contactează-ne folosind informațiile de mai jos.",
+        "section-7": "7. Confidențialitatea copiilor",
+        "section-7-desc": "Codium nu este destinat în mod intenționat copiilor sub 13 ani. Nu colectăm în mod conștient informații personale de la copii sub 13 ani. Dacă aflăm că am colectat astfel de date, vom lua măsuri pentru a le șterge.",
+        "section-8": "8. Modificări ale acestei politici de confidențialitate",
+        "section-8-desc": "Putem actualiza această Politică de confidențialitate periodic. Orice modificare va fi publicată pe această pagină cu o \"Dată a intrării în vigoare\" actualizată. Te încurajăm să revizuiești periodic această politică.",
+        "section-9": "9. Contactează-ne",
+        "section-9-desc": "Dacă ai întrebări sau nelămuriri despre această Politică de confidențialitate sau practicile noastre privind datele, contactează-ne la: privacy@codium.lol.",
+        "pdf": {
+            "generated-on": "Generat"
+        }
+    },
+
     "login": {
         "title": "autentificare",
         "email": "e-mail",
@@ -23,15 +174,189 @@
         "recent-activity": "activitate recentă",
         "bookmarks": "lecții salvate"
     },
+
+    "settings-page": {
+        "title": "Setări",
+        "privacy-section": {
+            "title": "Confidențialitate",
+            "options": {
+                "make-profile-private": "Fă-mi contul privat",
+                "download-my-data": "Descarcă datele tale",
+                "delete-my-data": "Șterge datele mele",
+                "two-factor-authentication": "Autentificare în doi pași (TOTP/coduri de rezervă)"
+            },
+            "2fa-notes": {
+                "title": "Configurarea autentificării în doi pași (2FA)",
+                "note-1": "Configurează un cod de autentificare bazat pe timp (TOTP) pentru o securitate sporită.",
+                "note-2": "Folosește o aplicație de autentificare (de exemplu, Google Authenticator, Authy) pentru a scana codul QR și a genera coduri 2FA.",
+                "note-3": "Sau folosește următorul uri (dacă aplicația ta nu suportă coduri QR):",
+                "note-4": "Salvează aceste coduri de rezervă într-un loc sigur. Fiecare cod poate fi folosit o singură dată. Nu veți mai vedea aceste coduri NICIODATĂ. Așa că fiți atenți!"
+            }
+        },
+        "appearance-section": {
+            "title": "Aspect",
+            "options": {
+                "dark-mode": "Mod întunecat",
+                "font-size": "Dimensiunea fontului",
+                "color-blind-mode": "Mod pentru daltonici",
+                "high-contrast-mode": "Mod de contrast ridicat",
+                "hue-slider": "Control de nuanță"
+            }
+        },
+        "other-stuff-section": {
+            "title": "Alte chestii",
+            "options": {
+                "language": "Limba de afișare",
+                "support": "Formular de contact"
+            }
+        },
+        "footer": {
+            "copyright": "© 2026 Codium. Toate drepturile rezervate.",
+            "opensource": "Codium este un proiect open source.",
+            "contribute": "Contribuie pe GitHub",
+            "made_with_love": "realizat cu ♥ de andrew & codeeits ^_^"
+        }
+    },
+
+    "lessons-page": {
+        "title": "Lecții",
+        "desc": "Bazele pregătirii tale teoretice.",
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi",
+            "section-yes": "Cu secțiuni",
+            "section-no": "Fără secțiuni"
+        },
+        "all-fliter": "Toate",
+        "right-bar": {
+            "content": "Cuprins",
+            "keypoints": "De reținut"
+        },
+        "section-starter": {
+            "buttons": {
+                "start-section": "Începe secțiunea"
+            },
+            "stats": {
+                "title": "Statistici",
+                "total-progress": "Progres total",
+                "finished-lessons": "Finalizate",
+                "in-progress-lessons": "În desfășurare",
+                "remaining-lessons": "Rămase",
+                
+                "tips": {
+                    "tip-1": "Secțiunea este complet finalizată. Excelent!",
+                    "tip-2": "Ai finalizat aproape tot. Mai rămâne să închei ce este în desfășurare!",
+                    "tip-3": "Porneste prima activitate pentru a incepe progresul.",
+                    "tip-4": "Continua sectiunea pentru a creste progresul."
+                }
+            }
+        }
+    },
+
+    "problems-page": {
+        "title": "Probleme",
+        "desc": "Aplică teoria.",
+        "all-filter": "Toate",
+        "dropdown-1": {
+            "alfabetic": "Alfabetic",
+            "discovery": "Descopera",
+            "random": "Aleatoriu",
+            "newest": "Cele mai noi"
+        },
+        "dropdown-2": {
+            "dificulty": "Dificultate",
+            "easy": "Ușoare",
+            "medium": "Medii",
+            "hard": "Dificile"
+        },
+        "enable-feed-mode": "Activează modul feed",
+        "disable-feed-mode": "Dezactivează modul feed",
+        "surprise-me": "Surprinde-mă",
+
+        "no-problems": {
+            "title": "Nu există probleme pentru filtrele selectate.",
+            "desc": "Încearcă să modifici filtrele pentru a vedea mai multe probleme."
+        },
+
+        "right-bar": {
+            "activity": {
+                "activity": "Activitate",
+                "available_tests": "Teste disponibile",
+                "sent_solutions": "Soluții trimise",
+                "correct_solutions": "Soluții corecte"
+            },
+            "send-solution": {
+                "title": "Trimite soluție",
+                "desc": "Apasă aici pentru a încărca sau trage și plasează."
+            },
+            "solutions": {
+                "title": "Soluții"
+            }
+        }
+    },
+
+    "bookmarks-page": {
+        "title": "Elemente salvate",
+        "desc": "Ce ai salvat tu mai!",
+        "no-bookmarks": {
+            "title": "Nu ai niciun element salvat.",
+            "desc": "Pentru a începe, explorează lecțiile disponibile și adaugă-le în bookmark-uri."
+        },
+        "remove_bookmark": "Elimină bookmark",
+        "buttons": {
+            "all": "Toate",
+            "lessons": "Lecții",
+            "problems": "Probleme",
+            "explore-lessons": "Explorează lecțiile"
+        },
+        "dropdown": {
+            "alfabetic": "Alfabetic",
+            "dificuly": "Dificultate",
+            "newest": "Cele mai noi",
+            "oldest": "Cele mai vechi"
+        },
+        "badge-types": {
+            "lesson": "lecție",
+            "problem": "problemă"
+        }
+    },
+
     "log-out": "deconectare",
     "top-menu": {
-        "teory": "> teorie",
-        "probleme": "> probleme",
-        "contact": "> contact"
+        "teory": "Teorie",
+        "probleme": "Probleme",
+        "contact": "Contact",
+        "curriculum": "Curriculum",
+        "for_who": "Pentru cine?",
+        "for_teachers": "Pentru profesori",
+        "for_students": "Pentru elevi",
+        "coin": "biscuiței"
+    },
+    "lowercase": {
+        "lessons": "lecții",
+        "probleme": "probleme",
+        "tests": "teste"
+
+    },
+    "sidebar": {
+        "home": "Acasă",
+        "bookmarks": "Elemente salvate",
+        "progress": "Progres",
+        "learn": "Învață",
+        "lessons": "Lecții",
+        "problems": "Probleme",
+        "tests": "Teste",
+        "other": "Altele",
+        "manage-lessons": "Gestionează lecții",
+        "manage-problems": "Gestionează probleme",
+        "settings": "Setări",
+        "about": "Despre noi"
     },
     "modal": {
         "edit_profile": {
-            "title": "editează profilul",
+            "title": "Editează profilul",
             "labels": {
                 "email": "Editează e-mailul:",
                 "username": "Editează numele de utilizator:",
@@ -43,6 +368,19 @@
             "current_password": "parolă curentă",
             "new_password": "parolă nouă",
             "note": "Lasă câmpurile goale dacă nu dorești să le schimbi"
+        },
+        "2fa_modal": {
+            "enter_code": "Introdu codul generat"
+        },
+        "log-out": {
+            "desc": "Ești sigur că vrei să te deconectezi?"
+        },
+        "notice": {
+            "title": "Notificare"
+        },
+        "delete_account": {
+            "title": "Șterge contul",
+            "desc": "Ești sigur că vrei să ștergi contul? Această acțiune este ireversibilă. Toate datele tale, inclusiv progresul și soluțiile, vor fi șterse permanent. Dacă dorești să solicitai o copie a datelor tale, te rugăm să faci acest lucru înainte de a confirma ștergerea contului."
         }
     },
     "flags": {
@@ -59,13 +397,133 @@
     },
     "buttons": {
         "save": "salvează",
-        "cancel": "anulează",
-        "submit": "trimite",
-        "edit": "editează profil",
-        "delete": "șterge",
-        "create": "creează",
-        "update": "actualizează",
-        "login": "autentifică-te",
-        "register": "înregistrează-te"
+        "cancel": "Anulează",
+        "verify": "Verifică",
+        "i_saved_them": "Le-am salvat",
+        "submit": "Trimite",
+        "edit": "Editează profil",
+        "delete": "Șterge",
+        "create": "Creează",
+        "update": "Actualizează",
+        "login": "Autentifică-te",
+        "register": "Înregistrează-te",
+
+        "comment": "settings specific buttons",
+        "log-out": "Deconectare",
+        "support-button": "Contactează-ne",
+        "download-data": "Descarcă datele",
+        "delete-data": "Șterge-mă",
+        "enable": "Activează",
+        "font-size-labels": {
+            "small": "Mic",
+            "medium": "Mediu",
+            "large": "Mare",
+            "x-large": "Foarte mare"
+        },
+
+        "next_lesson": "Următoarea lecție",
+        "feedback": "Feedback",
+
+        "next_problem": "Următoarea problemă"
+    },
+    "pdf_transl": {
+        "generated_on": "Generat ",
+        "gdpr_notice": "Prezenta reprezintă o cerere de acces la datele cu caracter personal asociate acestui cont, formulată în temeiul Regulamentului General privind Protecția Datelor (GDPR).",
+        "privacy_minimization_title": "Principiul Minimizării Datelor",
+        "privacy_minimization_text": "În conformitate cu principiul minimizării datelor (Articolul 5) din GDPR, Codium limitează strict colectarea datelor la informațiile esențiale necesare pentru a furniza serviciile noastre educaționale și competiționale. Nu urmărim în mod intenționat adresele IP, amprentele de browser (browser fingerprints) sau datele financiare." ,  
+    
+        "email_unverified_warning": "Avertisment: Adresa de email asociată acestui cont nu este verificată. Vă rugăm să vă asigurați că descărcați acest document într-un mod sigur.",
+        "user_data_request": "Rezultatul cererii de acces la datele cu caracter personal"
+
+    },
+
+    "difficulty": {
+        "easy": "Ușor",
+        "medium": "Mediu",
+        "hard": "Dificil"
+    },
+
+    "classe": {
+        "1": "Clasa a I-a",
+        "2": "Clasa a II-a",
+        "3": "Clasa a III-a",
+        "4": "Clasa a IV-a",
+        "8": "Clasa a VIII-a",
+        "9": "Clasa a IX-a",
+        "10": "Clasa a X-a",
+        "11": "Clasa a XI-a",
+        "12": "Clasa a XII-a",
+        "67": "Clasa a 67-a"
+    },
+
+    "modules": {
+        "0": "N/A",
+        "1": "Informatică",
+        "2": "Fizică",
+        "3": "Chimie",
+        "4": "Biologie",
+        "5": "Engleză",
+        "6": "Matematică"
+    },
+
+    "server_events": {
+        "lessons": {
+            "complete": {
+                "placeholder": "Ai finalizat lecția!"
+            },
+            "start": {
+                "placeholder": "Ai început lecția!"
+            }
+        },
+        "problems": {
+            "complete": {
+                "placeholder": "Ai finalizat lecția!"
+            }
+        },
+        "toasts": {
+            "page-not-implemented": "Pagina nu a fost încă implementată.",
+            "login-success": "Autentificare reușită!",
+            "login-failed": "Autentificare eșuată: ",
+            "passwords-dont-match": "Parolele nu se potrivesc.",
+            "account-created": "Cont creat cu succes!",
+            "account-creation-failed": "Crearea contului a eșuat: ",
+            "account-this-info-already-used": "Acest e-mail sau nume de utilizator este deja folosit.",
+            "logout-cancelled": "Deconectare anulată.",
+            "edit-profile-success": "Profil actualizat cu succes!",
+            "edit-profile-failed": "Actualizarea profilului a eșuat: ",
+            "delete-account-success": "Cont șters cu succes.",
+            "delete-account-failed": "Ștergerea contului a eșuat: ",
+            "delete-account-cancelled": "Ștergerea contului a fost anulată.",
+            "2fa-enabled": "Autentificare în doi pași activată.",
+            "2fa-disabled": "Autentificare în doi pași a fost dezactivată.",
+            "2fa-enabling-failed": "Activarea autentificării în doi pași a eșuat: ",
+
+            "lesson_": "Lecție ",
+            "problem_": "Problemă ",
+            "_bookmarked": "adăugată la elemente salvate.",
+            "_unbookmarked": "eliminată din elemente salvate.",
+            "bookmark-failed": "Acțiunea de bookmark a eșuat: ",
+            "_favorited": " adăugată la favorite.",
+            "_unfavorited": " eliminată din favorite.",
+            "favorite-failed": "Acțiunea de favorite a eșuat: ",
+            "_completed-in": " finalizată în ",
+            "_finished-section": "Ai terminat secțiunea!",
+            "url_": "URL-ul ",
+            "_lesson_": "lecției ",
+            "_problem_": "problemei ",
+            "_copied-to-clipboard": " a fost copiat în clipboard.",
+            "copy-failed": "Copierea în clipboard a eșuat: ",
+            "grading-solution": "Se evaluează soluția...",
+
+            "passed-tests": "Teste trecute: ",
+            "you-need-to-be-authenticated-to-do-that": "Trebuie să fii autentificat pentru a face asta.",
+            "please-select-a-file": "Te rugăm să selectezi un fișier pentru a trimite soluția ta.",
+            "file-too-large": "Fișierul selectat depășește limita de dimensiune permisă.",
+            "file-type-not-allowed": "Tipul de fișier selectat nu este permis. Te rugăm să selectezi un fișier cu extensia .py.",
+            "file-reading-error": "A apărut o eroare la citirea fișierului. Te rugăm să încerci din nou.",
+            "sending-error": "Eroare: ",
+            "problem-id-missing": "ID-ul problemei lipsește."
+
+        }
     }
 }

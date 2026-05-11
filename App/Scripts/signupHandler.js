@@ -7,13 +7,13 @@
 same thing as loginHandler.js but for signup functionality
 */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
 
     const form = document.getElementById('signupForm');
     const submitButton = form.querySelector('input[type="submit"]');
 
     // Redirect daca e auth
-    if (window.apiService.isAuthenticated()) {
+    if (await window.apiService.checkAuthentication(false)) {
         window.location.href = 'user.html';
         return;
     }
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSignupSuccess() {
         submitButton.value = 'Success!';
         submitButton.style.background = 'var(--purple-accent)';
-        toastsLoader.showToast('Signup successful, redirecting...', 'confirm');
+        toastsLoader.showToast('{{server_events.toasts.account-created}}', 'confirm');
         // Redirect to login after a short delay
         setTimeout(() => {
             window.location.href = 'login.html';
@@ -86,14 +86,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 password: password
             };
             
-            const result = await window.apiService.signup(userData);
+            const result = await window.apiService.users.signup(userData);
 
             handleSignupSuccess();
 
         } catch (error) {
             if (error.message.includes('Failed to create user') && error.status === 500) {
                 //alert('This username or email is already taken. Please try different credentials.');
-                toastsLoader.showToast('This username or email is already taken. Please try different credentials.', 'danger', 4000);
+                toastsLoader.showToast('{{server_events.toasts.account-this-info-already-used}}', 'danger', 4000);
                 return;
             }
             setLoadingState(false);

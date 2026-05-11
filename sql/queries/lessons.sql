@@ -1,11 +1,17 @@
 -- name: AddLesson :one
-INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, suggested)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO lessons (id, title, description, author_id, content_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, suggested, thumbnail_id, language)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 RETURNING *;
 
 -- name: GetLessonByID :one
 SELECT * FROM lessons
 WHERE id = $1;
+
+-- name: GetLessonsByLanguage :many
+SELECT * FROM lessons
+WHERE language = $1 and suggested = FALSE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
 
 -- name: GetLessons :many
 SELECT * FROM lessons
@@ -104,5 +110,17 @@ SELECT COUNT(*) FROM (
 -- name: UpdateLessonSuggested :one
 UPDATE lessons
 SET suggested = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonThumbnail :one
+UPDATE lessons
+SET thumbnail_id = $2, updated_at = $3
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateLessonLanguage :one
+UPDATE lessons
+SET language = $2, updated_at = $3
 WHERE id = $1
 RETURNING *;

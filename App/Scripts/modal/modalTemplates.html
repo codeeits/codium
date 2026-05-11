@@ -1,0 +1,185 @@
+<template id="modal-base-template">
+    <div class="modal">
+        <div class="modal-header">
+            <i class="modal-icon fa-solid" aria-hidden="true"></i>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <button type="button" class="modal-icon close-button" aria-label="Close modal">
+                <i class="fa-solid fa-x" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer"></div>
+    </div>
+</template>
+
+<template id="modal-tpl-info">
+    <p class="modal-message">This is an informational modal.</p>
+    <div class="modal-actions" style="margin-top: var(--gap-lg);">
+        <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+        <button type="button" class="btn danger flex-1" id="modal-confirm-button">Delete</button>
+    </div>
+</template>
+
+<template id="modal-tpl-danger-confirmation">
+    <p class="modal-message">{{modal.log-out.desc}}</p>
+    <div class="modal-actions" style="margin-top: var(--gap-lg);">
+        <button type="button" class="btn secondary flex-1" id="modal-cancel-button">{{buttons.cancel}}</button>
+        <button type="button" class="btn danger flex-1" id="modal-confirm-button">{{buttons.log-out}}</button>
+    </div>
+</template>
+
+<template id="modal-tpl-edit-profile">
+    <form action="" id="editProfileForm">
+        <div class="modal-field">
+            <label for="editEmail" class="input-label" data-i18n="modal.edit_profile.labels.email">Edit email:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="email" name="email" id="editEmail" placeholder="e-mail" data-i18n-placeholder="modal.edit_profile.email" minlength="3" maxlength="254" autocomplete="email">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Edit username:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" name="username" id="editUsername" placeholder="username" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20" autocomplete="off" value="">
+                <i class="fa-solid fa-signature input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="oldPassword" class="input-label" data-i18n="modal.edit_profile.labels.password">Edit password:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="password" id="oldPassword" placeholder="actual password" data-i18n-placeholder="modal.edit_profile.current_password" minlength="6" autocomplete="current-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="newPassword" id="newPassword" placeholder="new password" data-i18n-placeholder="modal.edit_profile.new_password" minlength="6" autocomplete="new-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <p class="input-label" data-i18n="modal.edit_profile.labels.image">Upload profile picture:</p>
+
+            <label for="editProfilePicture" class="dropzone input-field" style="cursor: pointer; display: block;">
+                <input class="input-text" type="file" name="profilePicture" id="editProfilePicture" accept="image/*" hidden>
+
+                <i class="fa-solid fa-image input-icon"></i>
+                <span style="margin-left: 10px;" data-i18n="modal.edit_profile.image_upload_hint">Click to select an image</span>
+            </label>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.save">Save</button>
+        </div>
+    </form>
+</template>
+
+<template id="modal-tpl-login">
+    <form action="" id="loginForm">
+        <div class="modal-field">
+            <label for="inputEmail" class="input-label" data-i18n="login.email">E-mail:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="email" name="email" id="inputEmail" placeholder="e-mail" data-i18n-placeholder="login.email" minlength="3" maxlength="254" autocomplete="email">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="inputPassword" class="input-label" data-i18n="login.password">Password:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="password" id="inputPassword" placeholder="password" data-i18n-placeholder="login.password" minlength="6" autocomplete="current-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.save">Login</button>
+        </div>
+    </form>
+</template>
+
+<template id="modal-tpl-signup">
+    <form action="" id="signupForm">
+        <div class="modal-field">
+            <label for="inputEmail" class="input-label" data-i18n="signup.email">E-mail:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="email" name="email" id="inputEmail" placeholder="e-mail" data-i18n-placeholder="signup.email" minlength="3" maxlength="254" autocomplete="email">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="inputUsername" class="input-label" data-i18n="signup.username">Username:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" name="username" id="inputUsername" placeholder="username" data-i18n-placeholder="signup.username" minlength="3" maxlength="254" autocomplete="username">
+                <i class="fa-solid fa-signature"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="inputPassword" class="input-label" data-i18n="signup.password">Password:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="password" id="inputPassword" placeholder="password" data-i18n-placeholder="signup.password" minlength="6" autocomplete="input-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="confirmPassword" class="input-label" data-i18n="signup.confirm_password">Password:</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="password" name="confirmPassword" id="confirmPassword" placeholder="password" data-i18n-placeholder="signup.confirm_password" minlength="6" autocomplete="confirm-password">
+                <i class="fa-solid fa-key input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="saveEditBtn" data-i18n="buttons.register">Sign-up</button>
+        </div>
+    </form>
+</template>
+
+<template id="modal-tpl-totp-auth">
+    <form action="" id="totpAuthForm">
+        <p class="modal-message">Enter the code from your authenticator app or one of your backup codes.</p>
+        <div class="modal-field" style="margin-top: var(--gap-md);">
+            <label for="totpAuthCode" class="input-label">2FA code</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="text" name="totpCode" id="totpAuthCode" placeholder="123456" minlength="6" maxlength="64" autocomplete="one-time-code" autofocus>
+                <i class="fa-solid fa-shield-halved input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="modal-confirm-button">Verify</button>
+        </div>
+    </form>
+</template>
+
+<template id="modal-tpl-totp-setup">
+    <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-1">Set up Time-based One-Time Password (TOTP) for enhanced security.</p>
+    <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-2">Scan the QR code below with your authenticator app, then enter the generated code to verify.</p>
+    <div class="totp-setup-container" style="display: flex; flex-direction: column; align-items: center; gap: var(--gap-lg); margin-top: var(--gap-lg);">
+        <img id="totpQrCode" src="" alt="TOTP QR Code" style="width: 200px; height: 200px; border: 1px solid var(--color-border); border-radius: var(--border-radius-sm); padding: var(--gap-md); background: white;">
+        <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.note-3">Or use the following uri (if your app doesn't support QR codes): </p>
+        <p id="totpUri" class="modal-message" style="word-break: break-all; text-align: center;"></p>
+        
+        <div class="text-container input-field" style="width: 100%; max-width: 300px;">
+            <input class="input-text" type="text" name="totpCode" id="totpCodeInput" placeholder="Enter TOTP code" data-i18n-placeholder="modal.2fa_modal.enter_code" minlength="6" maxlength="6" autocomplete="one-time-code">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+        </div>
+        <div class="modal-actions" style="width: 100%; max-width: 300px; display: flex; gap: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+            <button type="button" class="btn primary flex-1" id="modal-confirm-button" data-i18n="buttons.verify">Verify</button>
+        </div>
+    </div>
+</template>
+
+<template id="modal-tpl-totp-remove-confirmation">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: var(--gap-lg); margin-top: var(--gap-lg);">
+        <p class="modal-message" data-i18n="settings-page.privacy-section.2fa-notes.remove_note">Are you sure you want to disable 2FA? This will remove all your existing backup codes and require you to set up 2FA again if you want to re-enable it.</p>
+        <div class="text-container input-field" style="width: 100%; max-width: 300px;">
+            <input class="input-text" type="text" name="totpCode" id="totpCodeInput" placeholder="Enter TOTP code" data-i18n-placeholder="modal.2fa_modal.enter_code" minlength="6" maxlength="6" autocomplete="one-time-code">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+        </div>
+    </div>
+    <div class="modal-actions" style="margin-top: var(--gap-lg);">
+        <button type="button" class="btn secondary flex-1" id="modal-cancel-button" data-i18n="buttons.cancel">Cancel</button>
+        <button type="button" class="btn danger flex-1" id="modal-confirm-button" data-i18n="settings-page.privacy-section.2fa-notes.disable_button">Disable 2FA</button>
+    </div>
+</template>

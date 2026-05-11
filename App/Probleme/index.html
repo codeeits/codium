@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Codium - Probleme</title>
+    <title>Problems - Codium</title>
     
     <!-- External Resources -->
     <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
@@ -11,75 +11,179 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/app/Styles/main.css">
-    <link rel="stylesheet" href="/app/Styles/elements.css">
-    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+    <link rel="stylesheet" href="/app/Styles/lessons.css">
+    <link rel="stylesheet" href="/app/Styles/problems.css">
+
     <!-- Scripts -->
-    <script src="/app/Scripts/main.js" defer></script>
-    <script src="/app/Scripts/apiHandlers.js"></script>
-    <script src="/app/Scripts/problemsInterface.js"></script>
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+    <script type="module" src="/app/Scripts/problems/problemsPage.js" defer></script>
 
-    <meta name="menu-variant" content="problem">
+    <meta name="menu-variant" content="new">
+    <meta name="sidebar-active" content="problems">
 </head>
-<body>
-    <!-- Navigation Menu Container -->
-    <div id="top-menu-container"></div>
+<body class="is-loading">
+    <canvas id="confetti-canvas"></canvas>
     
-    <div class="problems-page">
-        <!-- Search Bar -->
-        <div class="problems-search-container">
-            <div class="text-container problems-search">
-                <input type="text" id="problemSearch" placeholder="Caută problema">
-            </div>
-            <button class="btn secondary problems-icon-btn" id="filterBtn">
-                <i class="fas fa-filter"></i>
-            </button>
-            <button class="btn secondary problems-icon-btn" id="menuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
+    <div id="top-menu-container"></div>
 
-        <!-- Tabs -->
-        <div class="problems-tabs">
-            <button class="btn primary problems-tab active" data-tab="discover">Descoperă</button>
-            <button class="btn secondary problems-tab" data-tab="following">Following</button>
-        </div>
+    <div class="main-layout">
+        <div id="sidebar-container"></div>
 
-        <!-- Problems List -->
-        <div id="problems-list" class="problems-list">
-            <!-- Second Example Problem Card -->
-            <div class="card problem-card" id="problemsTemplate" style="display: none;">
-                <div class="problem-header">
-                    <div class="problem-title-row">
-                        <h2 class="problem-title" id="problem-title">Titlu problemă</h2>
-                        <span class="problem-tag" id="problem-tags">#ONI</span>
+        <main class="content-area">
+                <h1 data-i18n="problems-page.title">Probleme</h1>
+                <div class="subtitle section">
+                    <h2 class="page-description" data-i18n="problems-page.desc">Aplică teoria.</h2>
+                    <button type="button" class="btn primary" id="surprise-btn"><i class="fa-solid fa-wand-sparkles"></i> <span data-i18n="problems-page.surprise-me" class="no-style">Surprinde-mă</span></button>
+                </div>
+                <div class="filters-list">
+                    <div class="filters-list-left" id="filters-list-left">
+                        <button type="button" class="btn primary active" data-i18n="problems-page.all-filter">Toate</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.9">Clasa a IX-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.10">Clasa a X-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.11">Clasa a XI-a</button>
+                        <button type="button" class="btn secondary" data-i18n="classe.12">Clasa a XII-a</button>
                     </div>
-                    <div class="problem-author">
-                        <span class="problem-author-name">codeeitsbutlonger</span>
-                        <div class="problem-avatar">
-                            <i class="fas fa-user"></i>
+                    <div class="buttons-list-right">
+                        <div class="dropdown" id="sort-dropdown">
+                            <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
+                                <span data-i18n="problems-page.dropdown-1.discovery" class="no-style">Descoperă</span><i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="discover" data-i18n="problems-page.dropdown-1.discovery">Descoperă</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="random" data-i18n="problems-page.dropdown-1.random">Aleatoriu</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="alpha" data-i18n="problems-page.dropdown-1.alfabetic">Alfabetic</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="newest" data-i18n="problems-page.dropdown-1.newest">Cele mai noi</div>
+                            </div>
+                        </div>
+                        <div class="dropdown" id="difficulty-dropdown">
+                            <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
+                                <span class="no-style" data-i18n="problems-page.dropdown-2.dificulty">Dificultate</span><i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-item active" role="menuitem" tabindex="0" data-value="all" data-i18n="problems-page.dropdown-2.dificulty">Dificultate</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="easy" data-i18n="difficulty.easy">Ușoare</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="medium" data-i18n="difficulty.medium">Medii</div>
+                                <div class="dropdown-item" role="menuitem" tabindex="0" data-value="hard" data-i18n="difficulty.hard">Grele</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn confirm" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span class="no-style" data-i18n="problems-page.enable-feed-mode">Activează mod feed</span></button>
+                    </div>
+                </div>
+                <div class="separator"></div>
+                <div class="problems-grid-container" id="problems-grid-container">
+                    <div class="no-problems hidden" id="noResultsMessage">
+                        <i class="fa-solid fa-code"></i>
+                        <h2 class="no-bookmarks-message" data-i18n="problems-page.no-problems.title">Nu există probleme pentru filtrele selectate.</h2>
+                        <p data-i18n="problems-page.no-problems.desc">Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
+                    </div>
+                    <div class="card content-card hidden" id="grid-template-card">
+                        <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="problem-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Problema 1</h3>
+                            <p class="content-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text" data-i18n="difficulty.easy">Ușoare</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="problem-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Problema 1</h3>
+                            <p class="content-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="problem-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Problema 1</h3>
+                            <p class="content-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card content-card">
+                        <img src="https://placehold.co/600x400/png" alt="Problem Image" class="content-card-image">
+                        <div class="content-card-body">
+                            <span class="problem-class-badge">Clasa a IX-a</span>
+                            <h3 class="content-card-title">Problema 1</h3>
+                            <p class="content-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>
+                            <div class="difficulty">
+                                <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                                <span class="difficulty-text">Easy</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="problem-difficulty">
-                    <span class="difficulty-dot">1</span>
-                    <span class="difficulty-dot">1</span>
-                    <span class="difficulty-dot">1</span>
-                </div>
-                
-                <div class="problem-description">
-                    <img src="http://localhost:6767/api/files/e2d10036-54e9-45b2-abbb-d99f723eb1fe" class="problem-image" alt="Sample Image">
-                    <p>La o centrală solară se monitorizează stocul zilnic de energie produsă și stocul total calculat pentru fiecare perioadă. Zilele de monitorizare sunt numerotate cu valori naturale consecutive, în ordine cronologică, începând cu ziua 1. O perioadă este formată din cel puțin două zile de monitorizare, consecutive, iar stocul total calculat pentru ea este suma stocurilor zilnice corespunzătoare...</p>
-                </div>
-                
-                <div class="problem-expand">
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-        </div>
+                <!-- Infinite scroll mode -->
+                <div class="problems-feed-container" id="problems-feed-container" hidden>
+                    <div class="no-problems hidden" id="noResultsMessage2">
+                        <i class="fa-solid fa-code"></i>
+                        <h2 class="no-bookmarks-message" data-i18n="problems-page.no-problems.title">Nu există probleme pentru filtrele selectate.</h2>
+                        <p data-i18n="problems-page.no-problems.desc">Încearcă să modifici filtrele pentru a vedea mai multe probleme.</p>
+                    </div>
+                    <div class="main-problem-container hidden" id="feed-template-card">
+                        <div class="card feed-card">
+                            <div class="header-feed-card">
+                                <div class="header-feed-card-left">
+                                    <h2 class="feed-card-title">Eureni</h2>
+                                    <div class="feed-card-hashtags">
+                                        <a href="#" class="hashtag">#ONIA</a>
+                                        <a href="#" class="hashtag">#olimp</a>
+                                    </div>
+                                </div>
+                                <div class="header-feed-card-right">
+                                    <span class="feed-card-section-pill pill">Secțiunea 1</span>
+                                    <span class="feed-card-class-pill pill">Clasa a XI-a</span>
+                                    <span class="feed-card-difficulty-pill warning pill">Dificultate: 2</span>
+                                </div>
+                            </div>
+                            <div class="feed-card-body">
+                                <p class="feed-card-description">O problemă introductivă pentru clasa a IX-a. Bun început pentru învățare.</p>  
+                                <h3>Exemplu</h3>
+                                <div class="example-block">
+                                    <div class="example-input">
+                                        <p>Intrare:</p>
+                                        <pre><code>5
+    3 -1 4 -2 5</code></pre>
+                                    </div>
+                                    <div class="example-output">
+                                        <p>Ieșire:</p>
+                                        <pre><code>2</code></pre>
+                                    </div>
+                                </div>
+                                <h3>Rezolvare:</h3>
+                                <div class="input-field dropzone" role="button" tabindex="0" aria-label="Selectează un fișier pentru încărcare">
+                                    <input type="file" class="file-input" name="solution-file" accept=".cpp,.py" hidden="">
+                                    <i class="fa-solid fa-upload"></i>
+                                    <span class="input-text placeholder" data-i18n="problems-page.right-bar.send-solution.desc">Prem aquí per pujar o arrossegar i deixar anar.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="right-buttons">
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-up"></i></button>
+                            <div class="center-buttons">
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-heart"></i></button>
+                                <button type="button" class="btn secondary"><i class="fa-solid fa-bookmark"></i></button>
+                            </div>
+                            <button type="button" class="btn secondary"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                </div>    
+        </main>
     </div>
-
 </body>
 </html>

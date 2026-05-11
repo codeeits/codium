@@ -6,6 +6,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,14 @@ type CodeTest struct {
 	PreviousTestID uuid.NullUUID
 }
 
+type Event struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Type      string
+	Payload   json.RawMessage
+	CreatedAt time.Time
+}
+
 type File struct {
 	ID         uuid.UUID
 	UserID     uuid.UUID
@@ -29,6 +38,14 @@ type File struct {
 	Filepath   string
 	Filesize   int64
 	UploadedAt sql.NullTime
+}
+
+type Leaderboard struct {
+	ID        int32
+	UserID    uuid.UUID
+	Score     int32
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Lesson struct {
@@ -44,6 +61,8 @@ type Lesson struct {
 	PrevLessonID   uuid.NullUUID
 	SectionStarter bool
 	Suggested      bool
+	ThumbnailID    uuid.NullUUID
+	Language       string
 }
 
 type LessonsUser struct {
@@ -70,6 +89,7 @@ type Problem struct {
 	ThumbnailFileID uuid.NullUUID
 	AuthorID        uuid.UUID
 	Suggested       bool
+	TotalTests      int32
 }
 
 type RefreshToken struct {
@@ -89,7 +109,6 @@ type Solution struct {
 	SentCode            string
 	Language            string
 	TestsPassed         sql.NullInt32
-	TotalTests          sql.NullInt32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
 }
@@ -108,18 +127,29 @@ type SolutionsTest struct {
 }
 
 type User struct {
-	ID             uuid.UUID
-	Username       string
-	Email          string
-	PasswordHash   string
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
-	IsAdmin        bool
-	ProfilePicID   uuid.NullUUID
-	EmailValidated bool
-	CuredEmail     sql.NullString
-	Permissions    int16
-	Title          string
+	ID               uuid.UUID
+	Username         string
+	Email            string
+	PasswordHash     string
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	ProfilePicID     uuid.NullUUID
+	EmailValidated   bool
+	CuredEmail       sql.NullString
+	Permissions      int16
+	Title            string
+	TotpSecret       sql.NullString
+	Backupcodesecret sql.NullString
+	CurrentStreak    int32
+}
+
+type UsersActivity struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	XpGained     int32
+	ActivityType string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type UsersProblem struct {

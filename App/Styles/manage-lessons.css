@@ -1,0 +1,202 @@
+.content-area .main-content {
+    min-width: 600px;
+}
+
+.content-card-body {
+
+    justify-content: flex-start;
+    gap: var(--gap-15px);
+    padding: 0 var(--gap-md) var(--gap-md) var(--gap-md);
+
+}
+
+.content-area > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+main, .content-area {
+    gap: var(--gap-lg);
+    display: grid;
+    grid-template-rows: min-content auto max-content;
+    grid-template-columns: 2fr 4fr;
+}
+
+.content-area .page-description {
+    font-weight: var(--h2-alt-font-weight);
+}
+
+.filters-list {
+    justify-content: space-between;
+    align-items: start;
+}
+
+.filters-list-left {
+    display: flex;
+    gap: var(--gap-md);
+}
+
+.content-area .separator {
+    height: 1px;
+    background: var(--border-subtle);
+}
+
+.lessons-grid-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(323px, 1fr));
+    gap: var(--gap-lg);
+}
+
+.lessons-grid-container .content-card {
+    flex-direction: column;
+}
+
+.lessons-grid-container .content-card > div {
+    min-height: 0;
+    gap: var(--gap-md);
+}
+
+.lessons-grid-container .content-card img {
+    width: 100%;
+    height: auto;
+}
+
+.lessons-grid-container .content-card .lesson-class-badge {
+    text-transform: uppercase;
+    font-size: var(--small-font-size);
+    color: var(--disabled-text);
+}
+
+.filters-select-container {
+    grid-row: 1 / 2;
+    grid-column: 1 / 3;
+    z-index: 10;
+}
+
+.filters-select {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-15px);
+    width: 100%;
+}
+
+.filters-select > div{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: var(--gap-sm);
+}
+
+.filters-select .dropdown,
+.filters-select .dropdown .dropdown-toggle {
+    width: 100%;
+}
+
+.filters-select .dropdown-menu {
+    left: 0;
+    right: auto;
+}
+
+.m-lesson {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.m-lesson:active {
+    cursor: grabbing;
+}
+
+.m-lesson.dragging {
+    opacity: 0.5;
+    background-color: var(--primary);
+}
+
+.m-lesson .fa-grip-vertical {
+    color: var(--disabled-text);
+    cursor: grab;
+}
+
+.m-lessons-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    border: 1px dashed var(--border-subtle);
+    padding: var(--gap-md);
+    border-radius: var(--border-radius-lg);
+}
+
+.m-lesson-left-icons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-md);
+}
+
+.preview-lesson-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-md);
+}
+
+.file-placeholder {
+    height: 100%;
+}
+
+.drag-drop-container {
+    grid-row: 2 / 4;
+    grid-column: 1 / 2;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    main, .content-area {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    main, .content-area {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .filters-select-container {
+        grid-column: 1 / 2;
+    }
+
+    .drag-drop-container {
+        grid-row: auto;
+        grid-column: 1 / 2;
+    }
+
+    .filters-select {
+        flex-direction: column;
+    }
+
+    .preview-lesson-buttons {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .m-lesson {
+        padding: var(--gap-sm);
+    }
+
+    .m-lesson-left-icons {
+        gap: var(--gap-sm);
+    }
+
+    .preview-lesson-buttons {
+        flex-direction: column;
+    }
+
+    .preview-lesson-buttons .btn {
+        width: 100%;
+    }
+}

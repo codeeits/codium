@@ -1,0 +1,488 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elements 2</title>
+
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="Styles/elements2.css">
+
+</head>
+<body>
+    <h1>Elements Preview</h1>
+
+    <!-- Buttons -->
+    <section class="section">
+        <h2>Buttons</h2>
+        <div class="buttons-row">
+            <button type="button" class="btn primary">Editează profilul</button>
+            <button type="button" class="btn secondary">Log-out</button>
+            <button type="button" class="btn primary full-width">Continue</button>
+        </div>
+    </section>
+
+    <!-- Switches -->
+    <section class="section">
+        <h2>Switches</h2>
+        <div class="setting-item">
+            <label for="profile-visibility">Make my account private</label>
+            <!-- Toggle switch -->
+            <label class="switch">
+                <input type="checkbox" id="profile-visibility">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </section>
+
+    <!-- Dropdown -->
+    <section class="section">
+        <h2>Dropdown</h2>
+        <div class="buttons-row">
+            <div class="dropdown" id="sort-dropdown">
+                <button type="button" class="btn primary dropdown-toggle" aria-expanded="false">
+                    Alfabetic <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-item active" role="menuitem" tabindex="0">Alfabetic</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Dificultate</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Cele mai noi</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0">Cele mai vechi</div>
+                </div>
+            </div>
+            <div class="dropdown" id="filter-dropdown">
+                <button type="button" class="btn secondary dropdown-toggle" aria-expanded="false">
+                    Filtrează <i class="fa-solid fa-filter"></i>
+                </button>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a IX-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a X-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a XI-a</div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-graduation-cap"></i> Clasa a XII-a</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" role="menuitem" tabindex="0"><i class="fa-solid fa-rotate-left"></i> Resetează</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile Card -->
+    <section class="section">
+        <h2>Profile Card</h2>
+        <div class="card profile-card">
+            <div class="profile-info">
+                <img class="avatar" src="https://placehold.co/80/png" alt="Profile Picture">
+                <div class="profile-text">
+                    <h3 class="profile-name">Codeeitsbutlonger</h3>
+                    <p class="profile-email">mail@its-codee.com</p>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button type="button" class="btn secondary">Log-out</button>
+                <button type="button" class="btn primary">Editează profilul</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Card Horizontal -->
+    <section class="section">
+        <h2>Content Card (Horizontal)</h2>
+        <div class="card content-card">
+            <div class="content-card-image"></div>
+            <div class="content-card-body">
+                <div class="content-card-text">
+                    <span class="content-card-category">CLASA A IX-A</span>
+                    <h3 class="content-card-title">Problema 1</h3>
+                    <p class="content-card-description">Demonstrate your understanding and application of inclusive design principle and by design and It is a design desi gg ffd.f</p>
+                </div>
+                <div class="content-card-footer">
+                    <div class="difficulty">
+                        <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                        <span class="difficulty-text">Easy</span>
+                    </div>
+                    <button type="button" class="btn primary full-width">Continue</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lesson Card (horizontal or vertical)-->
+    <section class="section">
+        <h2>Lesson Card (Horizontal)</h2>
+        <div class="card content-card">
+            <div class="content-card-image"></div>
+            <div class="content-card-body">
+                <div class="content-card-text">
+                    <span class="content-card-category">CLASA A IX-A</span>
+                    <h3 class="content-card-title">Introducere în programare</h3>
+                    <p class="content-card-description">Learn the basics of programming including variables, control structures, and functions.</p>
+                </div>
+                <div class="content-card-footer">
+                    <div class="difficulty">
+                        <i class="difficulty-icon fa-solid fa-chart-simple"></i>
+                        <span class="difficulty-text">Easy</span>
+                    </div>
+                    <button type="button" class="btn primary full-width">Continue</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Header with Navigation -->
+    <section class="section">
+        <h2>Section Header with Navigation</h2>
+        <div class="section-header">
+            <h1 class="section-title">Continue learning</h1>
+            <div class="nav-arrows">
+                <button class="nav-arrow" aria-label="Previous">
+                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1L1 7L7 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="nav-arrow" aria-label="Next">
+                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 1L7 7L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Card -->
+    <section class="section">
+        <h2>Progress Card</h2>
+        <div class="card stats-card">
+            <h2 class="stats-title">Progress</h2>
+            <div class="progress-chart">
+                <!-- Placeholder for the spider/radar chart -->
+                <div class="chart-placeholder">
+                    <p>Radar Chart Placeholder</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day Streak Card -->
+    <section class="section">
+        <h2>Day Streak Card</h2>
+        <div class="card stats-card">
+            <h2 class="stats-title">Day streak</h2>
+            <p class="stats-description">Complete a problem today to start a new streak.</p>
+            <div class="streak-days">
+                <div class="streak-day active">
+                    <span class="day-label">M</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">T</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">W</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">T</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">F</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">S</span>
+                    <div class="day-circle"></div>
+                </div>
+                <div class="streak-day">
+                    <span class="day-label">S</span>
+                    <div class="day-circle"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Achievements Card -->
+    <section class="section">
+        <h2>Achievements Card</h2>
+        <div class="card stats-card">
+            <h2 class="stats-title">Achievements</h2>
+            <div class="achievements-list">
+                <div class="achievement">
+                    <p class="achievement-name">Rezolvator expert</p>
+                    <div class="achievement-progress">
+                        <div class="progress-bar" style="width: 33%;"></div>
+                    </div>
+                    <p class="achievement-status">30/90 probleme de clasa a XII-a</p>
+                </div>
+                <div class="achievement">
+                    <p class="achievement-name">Strateg suprem</p>
+                    <div class="achievement-progress">
+                        <div class="progress-bar" style="width: 50%;"></div>
+                    </div>
+                    <p class="achievement-status">50/100 probleme tip Divide Et Impera</p>
+                </div>
+                <div class="achievement">
+                    <p class="achievement-name">Altceva...</p>
+                    <div class="achievement-progress">
+                        <div class="progress-bar" style="width: 50%;"></div>
+                    </div>
+                    <p class="achievement-status">50%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sidebar Menu Items -->
+    <section class="section">
+        <h2>Sidebar Menu Items</h2>
+        <div class="sidebar-preview">
+            <div class="sidebar-item active">
+                <i class="sidebar-icon fa-solid fa-house"></i>
+                <span class="sidebar-text">Home</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="sidebar-icon fa-solid fa-bookmark"></i>
+                <span class="sidebar-text">Bookmarks</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="sidebar-icon fa-solid fa-chart-line"></i>
+                <span class="sidebar-text">Progress</span>
+            </div>
+            <div class="sidebar-divider">
+                <span class="divider-text">LEARN</span>
+                <div class="divider-line"></div>
+            </div>
+            <div class="sidebar-item">
+                <i class="sidebar-icon fa-solid fa-lines-leaning"></i>
+                <span class="sidebar-text">Lessons</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="sidebar-icon fa-solid fa-dumbbell"></i>
+                <span class="sidebar-text">Problems</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fa-solid fa-list-check"></i>
+                <span class="sidebar-text">Tests</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Notifications -->
+    <section class="section">
+        <h2>Toast Notifications</h2>
+        <div class="toasts-preview">
+            <div class="toast toast-info">
+                <span class="toast-message">Info: New update available</span>
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <div class="toast toast-error">
+                <span class="toast-message">Error: Not found (something)</span>
+                <i class="fa-solid fa-exclamation-triangle"></i>
+            </div>
+            <div class="toast toast-success">
+                <span class="toast-message">Success: Operation completed</span>
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div class="toast toast-warning">
+                <span class="toast-message">Warning: Check your input</span>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Message Modal -->
+    <section class="section">
+        <h2>System Message Modal</h2>
+        <button type="button" class="btn primary" onclick="document.getElementById('system-modal').classList.add('active')">Open System Modal</button>
+    </section>
+
+    <!-- Edit Profile Modal -->
+    <section class="section">
+        <h2>Edit Profile Modal</h2>
+        <button type="button" class="btn primary" onclick="document.getElementById('edit-modal').classList.add('active')">Open Edit Profile Modal</button>
+    </section>
+
+    <!-- Modal Overlays -->
+    <!-- System Message Modal -->
+    <div class="modal-overlay" id="system-modal" onclick="if(event.target === this) this.classList.remove('active')">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <i class="modal-icon fa-solid fa-gears"></i>
+                <h2 class="modal-title">System message</h2>
+            </div>
+            <p class="modal-message">Something happened that involves the user to take an action. Here are some options he can choose from:</p>
+            <div class="modal-actions">
+                <button type="button" class="btn secondary flex-1" onclick="document.getElementById('system-modal').classList.remove('active')">Exit without saving</button>
+                <button type="button" class="btn primary flex-1" onclick="document.getElementById('system-modal').classList.remove('active')">Save changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="edit-modal" onclick="if(event.target === this) this.classList.remove('active')">
+        <div class="modal">
+            <div class="modal-header">
+                <i class="modal-icon fa-solid fa-pencil"></i>
+                <h2 class="modal-title">Edit profile</h2>
+            </div>
+            
+            <label class="input-label">Current email:</label>
+            <div class="input-field disabled">
+                <span class="input-text disabled">test_mail@its-codee.com</span>
+                <svg class="input-icon" width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L8 6L15 1M1 11H15V1H1V11Z" stroke="#808080" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <label class="input-label">New email:</label>
+            <div class="input-field">
+                <input type="email" class="input-text" placeholder="Enter new email">
+                <svg class="input-icon" width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L8 6L15 1M1 11H15V1H1V11Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <label class="input-label">Current password:</label>
+            <div class="input-field">
+                <input type="password" class="input-text" value="********">
+                <svg class="input-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="7" width="14" height="8" rx="2" stroke="white" stroke-width="1.5"/>
+                    <path d="M4 7V4C4 2.34315 5.79086 1 8 1C10.2091 1 12 2.34315 12 4V7" stroke="white" stroke-width="1.5"/>
+                </svg>
+            </div>
+
+            <label class="input-label">New password:</label>
+            <div class="input-field">
+                <input type="password" class="input-text" placeholder="Enter new password">
+                <svg class="input-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="7" width="14" height="8" rx="2" stroke="white" stroke-width="1.5"/>
+                    <path d="M4 7V4C4 2.34315 5.79086 1 8 1C10.2091 1 12 2.34315 12 4V7" stroke="white" stroke-width="1.5"/>
+                </svg>
+            </div>
+
+            <label class="input-label">Username:</label>
+            <div class="input-field">
+                <input type="text" class="input-text" value="codeeits">
+                <svg class="input-icon" width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="3" r="3" stroke="white" stroke-width="1.5"/>
+                    <path d="M1 11C1 8.79086 4.13401 7 8 7C11.866 7 15 8.79086 15 11" stroke="white" stroke-width="1.5"/>
+                </svg>
+            </div>
+
+            <label class="input-label">Profile image:</label>
+            <div class="input-field dropzone">
+                <span class="input-text placeholder">drag and drop your picture here</span>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn secondary flex-1" onclick="document.getElementById('edit-modal').classList.remove('active')">Exit without saving</button>
+                <button type="button" class="btn primary flex-1" onclick="document.getElementById('edit-modal').classList.remove('active')">Save changes</button>
+            </div>
+            <p class="modal-hint">Leave fields empty if you don't want to change them.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    // Select ALL dropdowns, not just the first one
+    const dropdowns = document.querySelectorAll('.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        const toggleBtn = dropdown.querySelector('.dropdown-toggle');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const items = dropdown.querySelectorAll('.dropdown-item');
+
+        // 1. Toggle Menu (Click)
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent document click from immediately closing it
+            const isOpen = dropdown.classList.contains('open');
+            
+            // Close all other dropdowns first (optional, but good UX)
+            document.querySelectorAll('.dropdown.open').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('open');
+                    d.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        // 2. Open/Close Helpers
+        function openDropdown() {
+            dropdown.classList.add('open');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            
+            // Wait for CSS to render, then focus the first item
+            setTimeout(() => {
+                if(items.length > 0) items[0].focus();
+            }, 50);
+        }
+
+        function closeDropdown() {
+            dropdown.classList.remove('open');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        // 3. Item Interaction (Click + Enter Key)
+        items.forEach(item => {
+            // Helper to handle selection
+            const handleSelect = (e) => {
+                e.stopPropagation(); // Stop bubbling
+                e.preventDefault();  // Stop scrolling if spacebar
+
+                // Update Visuals
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                // Update Button Text (Preserving the Icon)
+                const icon = toggleBtn.querySelector('i');
+                // We create a temp clone to save the icon before wiping text
+                const iconClone = icon ? icon.cloneNode(true) : null;
+                
+                toggleBtn.textContent = item.textContent.trim() + ' ';
+                if (iconClone) toggleBtn.appendChild(iconClone);
+
+                closeDropdown();
+                toggleBtn.focus(); // Return focus to main button
+            };
+
+            item.addEventListener('click', handleSelect);
+            
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    handleSelect(e);
+                }
+                // Allow ESC to close
+                if (e.key === 'Escape') {
+                    closeDropdown();
+                    toggleBtn.focus();
+                }
+            });
+        });
+    });
+
+    // 4. Global Click Outside
+    document.addEventListener('click', (e) => {
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+                const btn = dropdown.querySelector('.dropdown-toggle');
+                if(btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+});
+    </script>
+
+</body>
+</html>

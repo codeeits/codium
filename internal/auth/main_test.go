@@ -1,11 +1,12 @@
 package auth
 
 import (
-	"github.com/google/uuid"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func TestHashPassword(t *testing.T) {
@@ -49,12 +50,12 @@ func TestHashPassword3(t *testing.T) {
 
 func TestMakeJWT(t *testing.T) {
 	id := uuid.New()
-	token, err := MakeJWT(id, "secret", time.Minute)
+	token, err := MakeUUIDJWT(id, "secret", time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	result, err := ValidateJWT(token, "secret")
+	result, err := ValidateUUIDJWT(token, "secret")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,13 +67,13 @@ func TestMakeJWT(t *testing.T) {
 
 func TestExpireJWT(t *testing.T) {
 	id := uuid.New()
-	token, err := MakeJWT(id, "secret", time.Second)
+	token, err := MakeUUIDJWT(id, "secret", time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	time.Sleep(2 * time.Second)
-	_, err = ValidateJWT(token, "secret")
+	_, err = ValidateUUIDJWT(token, "secret")
 	if err == nil {
 		t.Error("expired jwt should have failed")
 	}
@@ -80,11 +81,11 @@ func TestExpireJWT(t *testing.T) {
 
 func TestValidateJWT(t *testing.T) {
 	id := uuid.New()
-	token, err := MakeJWT(id, "secret", time.Minute)
+	token, err := MakeUUIDJWT(id, "secret", time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ValidateJWT(token, "notthesecret")
+	_, err = ValidateUUIDJWT(token, "notthesecret")
 	if err == nil {
 		t.Error("invalid jwt should have failed")
 	}
@@ -110,4 +111,20 @@ func TestMakeRefreshToken(t *testing.T) {
 	}
 
 	println(token)
+}
+
+func TestMakeGeneralJWT(t *testing.T) {
+	token, err := MakeGeneralJWT([]byte("payload"), "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := ValidateGeneralJWT(token, "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(res) != "payload" {
+		t.Errorf("got %v want %v", string(res), "payload")
+	}
 }

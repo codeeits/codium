@@ -3,6 +3,14 @@ app/[Ii]mages/
 app/Lessons/
 .env
 /certs/
+.DS_Store
 App/.DS_Store
 internal/.DS_Store
-.gitignore
+sql/.DS_Store
+.DS_Store
+.DS_Store
+.DS_Store
+.DS_Store
+.github/copilot-instructions.md
+.impeccable.md
+.vscode/settings.json

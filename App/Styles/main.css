@@ -282,6 +282,29 @@ body {
     font-family: 'Bitcount Grid Double', sans-serif;
 }
 
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--primary-dark);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10000;
+    gap: 2rem;
+}
+
+.version-selection {
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+}
+
 /* ========================================
    BOTTOM CONTENT AREA
    ======================================== */
