@@ -24,14 +24,17 @@
     background: var(--primary);
     overflow: hidden;
     text-align: center;
+    color: var(--text-colour-primary-button);
 }
 
 .auth-nav.right h2 {
     font-size: var(--h1-landing-size);
+    color: inherit;
 }
 
 .auth-nav.right p {
     font-size: var(--h2-font-size);
+    color: inherit;
 }
 
 .auth-form {

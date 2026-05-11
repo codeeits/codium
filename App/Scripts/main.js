@@ -65,9 +65,15 @@ const StateEngine = {
     
     init(initialData = {}) {
         this.compileStatePlaceholders(document.body);
-        this.state = this._createDeepProxy(initialData, '');
 
-        this.updateAllBoundElements(initialData);
+        if (!this.state) {
+            this.state = this._createDeepProxy(initialData, '');
+            this.updateAllBoundElements(initialData);
+        } else {
+            for (const key in initialData) {
+                this.state[key] = initialData[key];
+            }
+        }
     },
 
     _createDeepProxy(target, pathPrefix) {
@@ -909,6 +915,21 @@ async function initApp() {
     openLoginModal();
     openSignupModal();
 
+    if (window.StateEngine) {
+        window.StateEngine.init({
+            user: { xp: 0 }
+        });
+        
+        try {
+            if (window.apiService) {
+                console.log('Fetching initial XP for authenticated user...');
+                window.StateEngine.state.user.xp = await window.apiService.game.getScore();
+            }
+        } catch (err) {
+            console.warn('Could not fetch initial XP, user likely not logged in.');
+        }
+    }
+
     document.addEventListener('codium:request-translation', (e) => {
         if (e.detail && e.detail.element) {
             applyTranslations(e.detail.element);
@@ -929,6 +950,9 @@ async function initApp() {
 
         if (xpGained) {
             message += ` (+${xpGained} XP)`;
+            if (window.StateEngine) {
+                window.StateEngine.state.user.xp += xpGained;
+            }
         }
 
         window.toastsLoader.showToast(message, type || 'info', 4000); 
