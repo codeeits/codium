@@ -242,6 +242,7 @@ func (cfg *ApiCfg) ResetAll() error {
 
 	cfg.Logger.Print("[!!!] Default admin user created successfully.")
 
+	/* Time to put this to rest
 	cwd, err := os.Getwd()
 	if err != nil {
 		cfg.Logger.Printf("Failed to get current working directory: %v", err)
@@ -295,6 +296,7 @@ func (cfg *ApiCfg) ResetAll() error {
 	}
 
 	cfg.Logger.Println("[!!!] Test lesson created successfully.")
+	*/
 
 	cfg.Logger.Println("[!!!] Database reset completed successfully.")
 	return nil
