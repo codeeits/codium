@@ -659,7 +659,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             const d = await window.apiService.lessons.getCompletionTime(state.lessonId);
             if (debugMode) console.log("Completion time:", d);
-            toastsLoader.showToast(`{{server_events.toasts.lesson_}}{{server_events.toasts._completed-in}}${d}`, "confirm");
+            // toastsLoader.showToast(`{{server_events.toasts.lesson_}}{{server_events.toasts._completed-in}}${d}`, "confirm");
             
             // FOLLOWING IS FOR DEBUG! SHOULD BE REMOVED LATER!
             await new Promise(resolve => setTimeout(resolve, 3000));

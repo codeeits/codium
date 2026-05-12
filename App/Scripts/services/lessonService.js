@@ -262,8 +262,8 @@ export class LessonService {
         const startRaw = data?.StartedAt?.Time || data?.StartedAt;
         const finishRaw = data?.CompletedAt?.Time || data?.CompletedAt;
 
-        const startTime = new Date(startRaw);
-        const finishTime = new Date(finishRaw);
+        const startTime = new Date(startRaw.replace(' ', 'T'));
+        const finishTime = new Date(finishRaw.replace(' ', 'T'));
 
         if (!Number.isFinite(startTime.getTime()) || !Number.isFinite(finishTime.getTime())) {
             return "0 minute(s) and 0 second(s)";
