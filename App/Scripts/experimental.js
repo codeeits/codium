@@ -104,6 +104,13 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'test'
             },
             {
+                title: 'Upload lessons from xlsx',
+                description: 'Tool for bulk uploading lessons from specially formatted Excel files.',
+                href: '/app/Scripts/lessonExcel.html',
+                icon: 'fa-table',
+                tag: 'test'
+            },
+            {
                 title: 'Admin panel',
                 description: 'Manage users, approve content. Currently limited to a few functions.',
                 href: '/app/admin.html',
