@@ -1,3 +1,9 @@
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const debugMode = true;
@@ -193,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderLessons();
+            reAnimateCards();
         });
         filters.class.appendChild(allBtn);
 
@@ -224,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } 
 
                 renderLessons();
+                reAnimateCards();
             });
             filters.class.appendChild(btn);
         });
@@ -267,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentFilters.sortBy = selectedValue;
             renderLessons();
+            reAnimateCards();
         });
     }
 
@@ -291,7 +300,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             renderLessons();
+            reAnimateCards();
         });
+    }
+
+    function playAllAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const headers = document.querySelectorAll('.content-area h1, .content-area .page-description');
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+
+        const filters = document.querySelectorAll('.filters-list button, .filters-list .dropdown, #section-starter-dropdown');
+        applyStaggeredAnimation(filters, 'scaleIn', { staggerDelay: 40, baseDelay: 250 });
+
+        const cardsContainer = document.getElementById('lessons-container');
+        if (cardsContainer) {
+            const cards = cardsContainer.querySelectorAll('.content-card:not(.hidden)');
+            cascadeEntrance(cards, 'fade', { staggerDelay: 60, baseDelay: 400 });
+        }
+    }
+
+    function reAnimateCards() {
+        if (prefersReducedMotion()) return;
+        
+        const newCards = lessonsContainer.querySelectorAll('.content-card:not(#template-card)');
+        
+        newCards.forEach(card => card.style.animation = 'none');
+        
+        void document.body.offsetHeight; 
+        
+        cascadeEntrance(newCards, 'fade', { staggerDelay: 40, baseDelay: 50 });
     }
 
     // --- INITIALIZATION ---
@@ -305,6 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         populateClassFilters();
         renderLessons();
+
+        document.body.classList.remove('is-loading');
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+        playAllAnimations();
     }
 
     initApp();

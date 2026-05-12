@@ -491,6 +491,14 @@
                 "placeholder": "You completed the lesson!"
             }
         },
+        "streaks": {
+            "updated": {
+                "placeholder": "You're keeping your streak!"
+            },
+            "lost": {
+                "placeholder": "You lost your streak!"
+            }
+        },
         "toasts": {
             "page-not-implemented": "Page not yet implemented.",
             "login-success": "Login successful!",

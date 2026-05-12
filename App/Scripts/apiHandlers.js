@@ -316,6 +316,7 @@ class ApiService {
                         const payload = toastEvent.msg;
 
                         const textKey = payload.text;
+                        console.log(`Received toast from server: "${textKey}"`, payload);
                         const toastType = payload.type;
                         const xpGained = payload.xpGained;
 
@@ -403,6 +404,7 @@ class ApiService {
                 xpGained
             }
         });
+        console.log('Dispatching toast event:', toastEvent);
         window.dispatchEvent(toastEvent);
     }
 
@@ -419,6 +421,22 @@ class ApiService {
         
         const toHex = (v) => v.toString(16).padStart(2, '0');
         return `${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    resolveTranslation(key, element = null) {
+        if (window.currentTranslations && Object.keys(window.currentTranslations).length > 0) {
+            const translatedText = key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations);
+            
+            if (element && translatedText) {
+                element.textContent = translatedText;
+            } else if (translatedText) {
+                return translatedText;
+            } else {
+                return key; // fallback to key if translation missing
+            }
+        } else {
+            return key; // fallback to key if translations not loaded 
+        }
     }
 
     getPatternUrl(seed, type = 'shapes') {

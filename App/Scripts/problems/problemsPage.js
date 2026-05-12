@@ -1,6 +1,11 @@
 import { extractCustomBlock } from '/app/Scripts/markdownRenderer.js';
 import { getHashtagsFromContent } from '../helper/helper.js';
 import { setupDragAndDrop } from './problemPage.js';
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -419,6 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentFilters.class = 'all';
             updateAllButtonStyles();
             renderProblems();
+            reAnimateCards();
         });
         filters.class.appendChild(allBtn);
 
@@ -445,6 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log("Selected class filter:", currentFilters.class);
                 updateAllButtonStyles();
                 renderProblems();
+                reAnimateCards();
             });
             filters.class.appendChild(btn);
         });
@@ -519,6 +526,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filters.sortDropdown.addEventListener('dropdown-selected', (event) => {
                 currentFilters.sortBy = event.detail.value;
                 renderProblems();
+                reAnimateCards();
             });
         }
 
@@ -527,6 +535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filters.diffDropdown.addEventListener('dropdown-selected', (event) => {
                 currentFilters.difficulty = event.detail.value;
                 renderProblems();
+                reAnimateCards();
             });
         }
     }
@@ -720,6 +729,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function playAllAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const headers = document.querySelectorAll('.content-area h1, .content-area .page-description');
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+
+        const filters = document.querySelectorAll('.filters-list button, .filters-list .dropdown, #toggle-view-btn, #surprise-btn');
+        applyStaggeredAnimation(filters, 'scaleIn', { staggerDelay: 40, baseDelay: 250 });
+
+        const gridCardsContainer = document.querySelector('.problems-grid-container');
+        if (gridCardsContainer) {
+            const gridCards = gridCardsContainer.querySelectorAll('.content-card:not(.hidden)');
+            cascadeEntrance(gridCards, 'fade', { staggerDelay: 60, baseDelay: 400 });
+        }
+    }
+
+    function reAnimateCards() {
+        if (prefersReducedMotion()) return;
+        
+        const activeContainer = isFeedMode ? problemsFeedContainer : problemsGridContainer;
+        const cardSelector = isFeedMode ? '.main-problem-container:not(#feed-template-card)' : '.content-card:not(#grid-template-card)';
+        
+        const newCards = activeContainer.querySelectorAll(cardSelector);
+        
+        newCards.forEach(card => card.style.animation = 'none');
+        
+        void document.body.offsetHeight; 
+        
+        cascadeEntrance(newCards, 'fade', { staggerDelay: 40, baseDelay: 50 });
+    }
+
     applyDisplayMode(isFeedMode);
 
     toggleViewBtn.addEventListener('click', function() {
@@ -745,6 +785,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderProblems();
 
             window.applyTranslations(document.body);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            document.body.classList.remove('is-loading');
+            playAllAnimations();
 
         } catch (error) {
             console.error("Error during initialization:", error);

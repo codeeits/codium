@@ -939,14 +939,7 @@ async function initApp() {
     window.addEventListener('codium:server-toast', (event) => { 
         const { textKey, type, xpGained } = event.detail || {};
 
-        /* We might not need following function now that we transitioned to automatically translate toasts, but I am keeping it in case
-        */
-        const getVal = (key) => {
-            if (!key) return null;
-            return key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations);
-        };
-
-        let message = getVal(textKey) || textKey;
+        let message = `{{${textKey}}}`;
 
         if (xpGained) {
             message += ` (+${xpGained} XP)`;

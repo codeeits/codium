@@ -491,6 +491,14 @@
                 "placeholder": "Has completat la lliçó!" 
             }
         },
+        "streaks": {
+            "updated": {
+                "placeholder": "Estàs mantenint el teu streak!"
+            },
+            "lost": {
+                "placeholder": "Has perdut el teu streak!"
+            }
+        },
         "toasts": {
             "page-not-implemented": "La pàgina encara no s'ha implementat.",
             "login-success": "Sessió iniciada amb èxit!",

@@ -23,6 +23,7 @@ export class ToastsLoader {
     }
 
     showToast(message, type = 'info', duration = 3000) {
+        console.log(`Request to show toast: "${message}" (type: ${type}, duration: ${duration}ms)`);
         // Backward compatibility: many callers still use "error".
         if (type === 'error') {
             type = 'danger';

@@ -586,3 +586,33 @@ export class ModalHelpers {
 }
 
 /* USAGE: */
+/*
+ModalHelpers.EditProfile.openModal({
+    engine, 
+    user: {
+        Email: '',
+        Username: '',
+    },
+    onConfirm: (formElement) => {
+        const formData = new FormData(formElement);
+        const data = {
+            email: formData.get('email'),
+            username: formData.get('username'),
+            oldPassword: formData.get('oldPassword'),
+            newPassword: formData.get('newPassword'),
+            profilePicture: formData.get('profilePicture') // Assuming the file input has name="profilePicture"
+        };
+
+        ModalHelpers.EditProfile.updateProfileData(data)
+            .then(result => {
+                if (result.success) {
+                    alert('Profile updated successfully!');
+                }
+            })
+            .catch(error => {
+                alert(`Error updating profile: ${error.message}`);
+            });
+    }
+    on
+});
+*/

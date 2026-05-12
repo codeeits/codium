@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modals play</title>
+
+    <!-- External Resources -->
+    <script src="https://kit.fontawesome.com/8279017fe2.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/app/Styles/elements2.css">
+
+    <!-- Scripts -->
+    <script type="module" src="/app/Scripts/main.js" defer></script>
+    <script type="module" src="/app/Scripts/apiHandlers.js"></script>
+</head>
+<body style="display: flex; flex-direction: column; align-items: center; gap: 2rem; padding: 2rem;">
+    <div class="select-type" style="display: flex; gap: 1rem; padding: 2rem;">
+        
+        <div class="dropdown" id="modal-type-dropdown">
+            <button class="dropdown-toggle btn secondary" type="button" aria-expanded="false">
+                <span class="no-style">Select a modal type...</span>
+                <i class="fas fa-chevron-down"></i> </button>
+            <div class="dropdown-menu" id="modal-type-menu">
+            </div>
+        </div>
+
+        <button id="open-modal-btn" class="btn primary">Open Modal</button>
+    </div>
+    <textarea id="modal-content" rows="10" cols="50" placeholder="Enter json here..."></textarea>
+
+    <script type="module">
+        import { ModalEngine } from "/app/Scripts/modal/modalMain.js";
+        
+        const engine = new ModalEngine();
+        const dropdownMenu = document.getElementById("modal-type-menu");
+        const dropdownContainer = document.getElementById("modal-type-dropdown");
+        const openBtn = document.getElementById("open-modal-btn");
+        const contentInput = document.getElementById("modal-content");
+        
+        let selectedModalType = null;
+
+        const types = await engine.modalTypes();
+        console.log("Available types:", types);
+
+        if (types && types.length > 0) {
+            types.forEach(type => {
+                const item = document.createElement("div");
+                item.className = "dropdown-item";
+                item.dataset.value = type;
+                
+                item.textContent = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+                
+                dropdownMenu.appendChild(item);
+            });
+        } else {
+            console.warn("No modal types found in the templates document.");
+        }
+
+        dropdownContainer.addEventListener("dropdown-selected", (e) => {
+            selectedModalType = e.detail.value;
+            console.log("User selected:", selectedModalType);
+        });
+
+        openBtn.addEventListener("click", () => {
+            if (!selectedModalType) {
+                alert("Please select a modal type first!");
+                return;
+            }
+
+            console.log(`Attempting to open modal: ${selectedModalType}`);
+            
+            engine.openModal({
+                type: selectedModalType,
+                title: `Testing ${selectedModalType}`,
+                onCancel: () => console.log(`${selectedModalType} modal closed.`)
+            });
+        });
+    </script>
+</body>
+</html>

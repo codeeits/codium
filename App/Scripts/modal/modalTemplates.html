@@ -287,3 +287,26 @@
         </div>
     </form>
 </template>
+
+<template id="modal-tpl-feedback">
+    <form id="feedbackForm">
+        <div class="modal-field">
+            <label for="feedbackEmail" class="input-label">Your email (optional):</label>
+            <div class="text-container input-field">
+                <input class="input-text" type="email" name="email" id="feedbackEmail" placeholder="e-mail" data-i18n-placeholder="feedback_modal.email_placeholder" maxlength="254" autocomplete="email">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-field">
+            <label for="feedbackMessage" class="input-label">Your feedback:</label>
+            <div class="text-container input-field">
+                <textarea class="input-text" name="message" id="feedbackMessage" placeholder="Enter your feedback here..." data-i18n-placeholder="feedback_modal.message_placeholder" rows="5" maxlength="2000" required></textarea>
+                <i class="fa-solid fa-comment-dots input-icon"></i>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: var(--gap-lg);">
+            <button type="button" class="btn secondary flex-1" id="modal-cancel-button">Cancel</button>
+            <button type="submit" class="btn primary flex-1" id="submitFeedbackBtn">Submit Feedback</button>
+        </div>
+    </form>
+</template>

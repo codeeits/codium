@@ -323,15 +323,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (elements.statsHint) {
+            let tipKey = '';
+
             if (pending === 0 && progress === 0) {
-                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-1}}';
+                tipKey = 'lessons-page.section-starter.stats.tips.tip-1';
             } else if (pending === 0) {
-                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-2}}';
+                tipKey = 'lessons-page.section-starter.stats.tips.tip-2';
             } else if (done === 0 && progress === 0) {
-                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-3}}';
+                tipKey = 'lessons-page.section-starter.stats.tips.tip-3';
             } else {
-                elements.statsHint.textContent = '{{lessons-page.section-starter.stats.tips.tip-4}}';
+                tipKey = 'lessons-page.section-starter.stats.tips.tip-4';
             }
+
+            elements.statsHint.setAttribute('data-i18n', tipKey);
+
+            window.apiService.resolveTranslation(tipKey, elements.statsHint);
         }
     }
 

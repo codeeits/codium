@@ -174,6 +174,19 @@ export class ModalEngine {
         }
     }
 
+    async modalTypes() {
+        await this.initPromise;
+
+        if (!this.templatesDoc) {
+            console.error('Modal templates not loaded!');
+            return [];
+        }
+
+        const typeElements = this.templatesDoc.querySelectorAll('[id^="modal-tpl-"]');
+        const types = Array.from(typeElements).map((el) => el.id.replace('modal-tpl-', ''));
+        return types;
+    }
+
     async openModal(config) {
 
         let finalConfig = { ...config };

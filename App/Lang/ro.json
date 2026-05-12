@@ -491,6 +491,14 @@
                 "placeholder": "Ai finalizat lecția!"
             }
         },
+        "streaks": {
+            "updated": {
+                "placeholder": "Iți păstrezi streak-ul!"
+            },
+            "lost": {
+                "placeholder": "Ai pierdut streak-ul!"
+            }
+        },
         "toasts": {
             "page-not-implemented": "Pagina nu a fost încă implementată.",
             "login-success": "Autentificare reușită!",
