@@ -393,3 +393,50 @@
         }
     });
 }());
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize Scroll Reveal
+    const revealElements = document.querySelectorAll('.reveal-on-scroll');
+    
+    const revealOptions = {
+        threshold: 0.15, // Trigger when 15% of the element is visible
+        rootMargin: "0px 0px -50px 0px" // Trigger slightly before the element fully enters the viewport
+    };
+
+    const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) {
+                return;
+            } else {
+                entry.target.classList.add('is-visible');
+                // Stop observing once it's visible so the animation only happens once
+                observer.unobserve(entry.target);
+            }
+        });
+    }, revealOptions);
+
+    revealElements.forEach(el => {
+        revealOnScroll.observe(el);
+    });
+
+    // 2. Add offset for fixed top-bar smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href').split('#')[1];
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                e.preventDefault();
+                // Get the height of the sticky top bar
+                const topBarHeight = document.getElementById('top-menu-container').offsetHeight || 60;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - topBarHeight - 20; // 20px extra breathing room
+  
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        });
+    });
+});

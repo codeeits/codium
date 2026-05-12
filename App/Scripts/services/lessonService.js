@@ -18,6 +18,21 @@ export class LessonService {
         return this.api.post('/api/lessons', lessonData, true);
     }
 
+    async deleteLesson(lessonId) {
+        return this.api.delete(`/api/lessons/${lessonId}`, true);
+    }
+
+    async deleteAllLessons() {
+        const lessons = await this.getLessons();
+        for (const lesson of lessons) {
+            await this.deleteLesson(lesson.lesson.ID);
+            // delete files too
+            if (lesson.lesson.ContentID) {
+                await this.api.fileManager.deleteFile(lesson.lesson.ContentID);
+            }
+        }
+    }
+
     async getLessons(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const url = queryString ? `/api/lessons?${queryString}` : '/api/lessons';

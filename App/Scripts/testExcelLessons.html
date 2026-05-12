@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to Lessons (Bulk Upload)</title>
+    
+    <script src="./external/sheetJS/xlsx.full.min.js"></script>
+    <script type="module" src="./apiHandlers.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; color: #333; padding: 40px 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .upload-section { margin-bottom: 20px; padding: 20px; border: 2px dashed #cbd5e1; border-radius: 8px; text-align: center; }
+        input[type="file"] { margin-top: 10px; }
+        .preview-box { background: #1e293b; color: #10b981; padding: 15px; border-radius: 6px; height: 250px; overflow-y: auto; font-family: monospace; font-size: 14px; white-space: pre-wrap; margin-bottom: 20px; }
+        button { width: 100%; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; margin-bottom: 10px; }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        #progressText { text-align: center; font-size: 14px; font-weight: bold; color: #475569; margin-top: 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Upload Lessons Bulk Data</h2>
+        <p>1. Select your <b>.xlsx</b> or <b>.csv</b> metadata file.</p>
+        <p>Download sample from <a href="sampleLesson.xlsx" download>here</a>.</p>
+        <div class="upload-section">
+            <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" required />
+        </div>
+        
+        <p>2. Select the corresponding <b>.md</b> files. <br><small>(Ensure the names match the 'Numele fisierului' column in your Excel)</small></p>
+        <div class="upload-section">
+            <input type="file" id="mdFileInput" accept=".md" multiple required/>
+        </div>
+        
+        <h3>JSON Preview (First Sheet)</h3>
+        <div id="jsonPreview" class="preview-box">Awaiting Excel file...</div>
+        
+        <button id="sendBtn" disabled>Send to API</button>
+        <div id="progressText"></div>
+    </div>
+
+    <script type="module">
+        import { excelToJson } from './helper/helper.js';
+
+        let apiPayload = null;
+
+        // 1. Process Excel
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                apiPayload = await excelToJson(file);
+                const sheets = Object.keys(apiPayload);
+                if (sheets.length === 0) throw new Error("Excel is empty.");
+                
+                const firstSheetData = apiPayload[sheets[0]];
+                document.getElementById('jsonPreview').textContent = JSON.stringify(firstSheetData, null, 2);
+                
+                const mdFiles = document.getElementById('mdFileInput').files;
+                validateState(firstSheetData.length, mdFiles.length);
+            } catch (error) {
+                console.error("Failed to parse Excel file:", error);
+                document.getElementById('jsonPreview').textContent = "Error reading file.";
+            }
+        });
+
+        // 2. Process MD Files
+        document.getElementById('mdFileInput').addEventListener('change', () => {
+            if (apiPayload) {
+                const sheets = Object.keys(apiPayload);
+                const firstSheetData = sheets.length > 0 ? apiPayload[sheets[0]] : [];
+                validateState(firstSheetData.length, document.getElementById('mdFileInput').files.length);
+            }
+        });
+
+        function validateState(excelRows, mdCount) {
+            const sendBtn = document.getElementById('sendBtn');
+            if (excelRows > 0 && mdCount > 0) {
+                sendBtn.disabled = false;
+                sendBtn.textContent = `Upload ${excelRows} Lessons`;
+            } else {
+                sendBtn.disabled = true;
+            }
+        }
+
+        // 3. Simple, Direct Upload Logic
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            if (!apiPayload) return;
+            
+            const btn = document.getElementById('sendBtn');
+            const progressText = document.getElementById('progressText');
+            
+            btn.textContent = "Uploading...";
+            btn.disabled = true;
+
+            const mdFiles = Array.from(document.getElementById('mdFileInput').files);
+            const sheetName = Object.keys(apiPayload)[0];
+            const rows = apiPayload[sheetName];
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            try {
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    
+                    // Normalize keys to lowercase for safe reading
+                    const normalizedRow = {};
+                    for (let key in row) {
+                        normalizedRow[key.trim().toLowerCase()] = row[key];
+                    }
+
+                    const lessonTitle = normalizedRow['numele lectiei'] || 'Untitled';
+                    const targetFilename = normalizedRow['numele fisierului (unique key)'];
+                    
+                    progressText.textContent = `Processing ${i + 1}/${rows.length}: ${lessonTitle}`;
+
+                    if (!targetFilename) {
+                        console.warn("Row missing filename:", row);
+                        errorCount++;
+                        continue;
+                    }
+
+                    console.log(mdFiles);
+
+                    const matchedMdFile = mdFiles.find(f => { 
+                        console.log(`Comparing: ${f.name} === ${targetFilename}`);
+                        if (f.name === targetFilename) {
+                            console.log("Match found:", f.name);
+                        }
+                        return f.name === targetFilename; 
+                    });
+                    
+                    if (!matchedMdFile) {
+                        console.warn(`Missing markdown file: ${targetFilename}`);
+                        errorCount++;
+                        continue;
+                    }
+
+                    const lessonData = {};
+                    lessonData.title = lessonTitle;
+                    lessonData.description = normalizedRow['descriere'] || '';
+                    lessonData.class = parseInt(normalizedRow['clasa']) || 9;
+                    lessonData.section = parseInt(normalizedRow['sectiune']) || 1;
+                    lessonData.module = parseInt(normalizedRow['modul']) || 1;
+                    lessonData.number = 1;
+
+                    try {
+                        // 1. --- LINKED LIST PRE-CHECK ---
+                        let lastLessonID = null;
+                        let isFirstInSection = false;
+
+                        try {
+                            const existingLessons = await window.apiService.lessons.getLessonsByFlags(
+                                lessonData.class, 
+                                lessonData.section, 
+                                lessonData.module
+                            );
+                            
+                            if (existingLessons && existingLessons.length > 0) {
+                                // Get the very last lesson in this specific class/section/module
+                                const lastLesson = existingLessons[existingLessons.length - 1];
+                                lastLessonID = lastLesson.lesson ? lastLesson.lesson.ID : lastLesson.ID;
+                            } else {
+                                isFirstInSection = true;
+                            }
+                        } catch (err) {
+                            console.warn(`Could not fetch previous lessons for ${lessonTitle}:`, err);
+                        }
+
+                        // 2. --- UPLOAD THE LESSON ---
+                        const response = await window.apiService.lessons.uploadLesson(lessonData, matchedMdFile);
+                        
+                        if (response && response.ok === false) {
+                            console.error(`Failed to upload ${lessonTitle}`);
+                            errorCount++;
+                        } else {
+                            successCount++;
+                            
+                            // 3. --- BUILD THE LINKED LIST ---
+                            const newLessonID = response.lesson ? response.lesson.ID : (response.ID || null);
+                            
+                            if (newLessonID) {
+                                try {
+                                    if (isFirstInSection) {
+                                        console.log(`Setting ${newLessonID} as starter for section ${lessonData.section}`);
+                                        await window.apiService.lessons.updateLessonSectionStarter(newLessonID, lessonData.section);
+                                    } else if (lastLessonID) {
+                                        console.log(`Linking ${newLessonID} after ${lastLessonID}`);
+                                        await window.apiService.lessons.updateLessonOrder(newLessonID, lastLessonID, null);
+                                    }
+                                } catch (linkErr) {
+                                    console.error(`Error linking lesson ${lessonTitle}:`, linkErr);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error(`Error uploading ${lessonTitle}:`, err);
+                        errorCount++;
+                    }
+                    
+                }
+
+                // Finish
+                if (window.toastsLoader) {
+                    window.toastsLoader.showToast(`Upload complet: ${successCount} reușite, ${errorCount} erori.`, successCount > 0 ? "confirm" : "warning", 5000);
+                } else {
+                    alert(`Bulk upload completed!\nSuccessfully uploaded: ${successCount}\nFailed: ${errorCount}`);
+                }
+                
+                btn.textContent = "Upload Completed!";
+                btn.style.backgroundColor = "#10b981";
+                progressText.textContent = "All processing finished.";
+
+            } catch (error) {
+                console.error("Upload Error:", error);
+                if (window.toastsLoader) window.toastsLoader.showToast("A apărut o eroare critică la upload.", "danger", 4000);
+                btn.textContent = "Try Again";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

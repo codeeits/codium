@@ -60,6 +60,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: var(--gap-lg);
+    padding: var(--gap-md) 0;
     
     /* The gradient mask for the fade effect */
     -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
@@ -83,12 +84,11 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: var(--gap-md);
-    background-color: var(--border2-solid);
-    border: 2px solid var(--border-subtle);
     border-radius: var(--border-radius-lg);
-    transition: all 0.3s ease-in-out;
+    transition: transform var(--anim-duration-fast) var(--anim-ease-in-out), box-shadow var(--anim-duration-fast) var(--anim-ease-in-out), border-color var(--anim-duration-fast) var(--anim-ease-in-out);
     width: 380px;
     flex-shrink: 0;
+    background-color: color-mix(in oklch, var(--contrast) 50%, transparent);
 }
 
 .why-codium-card:hover {
@@ -102,8 +102,17 @@ h2 {
 }
 
 .why-codium-cards i {
-    font-size: 40px;
-    color: var(--text-colour-primary-button);
+    font-size: 25px;
+    color: var(--primary);
+    padding: var(--gap-md);
+    width: max-content;
+    background-color: var(--border-subtle);
+    /* height: max-content; */
+    aspect-ratio: 1 /1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
 }
 
 .contact-us {
@@ -190,8 +199,8 @@ h2 {
 }
 
 .landing-title {
-    /*font-size: clamp(44px, 5.6vw, 60px);*/
-    font-size: var(--h1-landing-size);
+    /* Fluid display scale for hero */
+    font-size: clamp(44px, 5.6vw, 72px);
     font-weight: 700;
     line-height: 1.03;
     margin: 0;
@@ -306,6 +315,9 @@ h2 {
     line-height: 1.18;
     color: #f9f9f9;
     margin: 18px 0 0;
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
     animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
@@ -359,8 +371,14 @@ h2 {
 }
 
 .cta-btn:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
+    outline: none;
+}
+
+/* Accessible visible focus for keyboard users */
+.cta-btn:focus-visible {
+    outline: 3px solid color-mix(in oklch, var(--primary) 60%, white);
+    outline-offset: 4px;
+    box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 12%, transparent);
 }
 
 .cta-btn:active {
@@ -611,4 +629,271 @@ h2 {
     .landing-secret-popup__panel {
         transition: none;
     }
+
+    /* Reduce decorative motion on hero layers for accessibility */
+    .binary-stream,
+    .particle-canvas,
+    .landing-hero::before {
+        animation: none !important;
+        transition: none !important;
+        opacity: 0.35 !important;
+    }
 }
+
+/* Enable smooth scrolling for anchor links on the landing page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Base landing section spacings (Chrome-inspired: large whitespaces) */
+.landing-section {
+    width: 100%;
+    padding: 120px 0;
+    position: relative;
+}
+
+.landing-section-inner {
+    width: min(1200px, calc(100% - 2 * var(--padding-left-right)));
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xxl);
+}
+
+.landing-section-inner-compact {
+    text-align: center;
+    align-items: center;
+}
+
+.landing-section-header {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.landing-section-header h2 {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.landing-section-header p {
+    font-size: 20px;
+    color: var(--disabled-text);
+    line-height: 1.5;
+}
+
+/* =========================================
+   Curriculum Module Grid (Soft Hover Cards)
+   ========================================= */
+.module-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--gap-lg);
+}
+
+.module-item {
+    background: color-mix(in oklch, var(--contrast) 50%, transparent);
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    padding: 32px;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.module-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px color-mix(in oklch, var(--primary) 15%, transparent);
+    border-color: color-mix(in oklch, var(--primary) 40%, var(--border-subtle));
+}
+
+.module-tag {
+    display: inline-flex;
+    width: fit-content;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid color-mix(in oklch, var(--primary) 30%, transparent);
+    color: var(--primary);
+    background: color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+/* =========================================
+   For Who (Feature Cards Split 50/50)
+   ========================================= */
+.feature-grid.split-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap-lg);
+}
+
+.feature-card {
+    background: linear-gradient(145deg, var(--contrast), color-mix(in oklch, var(--contrast) 90%, var(--primary)));
+    border: 1px solid var(--border-subtle);
+    border-radius: 32px;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-lg);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    background: color-mix(in oklch, var(--primary) 15%, transparent);
+    color: var(--primary);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 auto 0; /* push button to bottom */
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.feature-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md);
+    font-size: 18px;
+    color: var(--text-colour);
+}
+
+.text-confirm {
+    color: var(--confirm);
+}
+
+/* =========================================
+   Refined Contact Us (Overwrite existing)
+   ========================================= */
+.contact-us {
+    background: radial-gradient(circle at center top, color-mix(in oklch, var(--primary) 10%, transparent) 0%, transparent 60%);
+    padding-bottom: 160px;
+}
+
+.contact-card-row-container {
+    display: flex;
+    gap: var(--gap-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.contact-card-row-element {
+    background: var(--contrast);
+    border: 1px solid var(--border-subtle);
+    padding: 40px;
+    border-radius: 24px;
+    min-width: 320px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-md);
+    transition: transform 0.4s ease, border-color 0.3s ease;
+    text-align: left;
+}
+
+.contact-card-row-element:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklch, var(--primary) 40%, var(--border-subtle));
+}
+
+.feature-icon-small {
+    width: 48px;
+    height: 48px;
+    background: color-mix(in oklch, var(--text-colour) 10%, transparent);
+    color: var(--text-colour);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.contact-card-title {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.contact-card-description {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.contact-card-description .sub-text {
+    color: var(--disabled-text);
+    font-size: 16px;
+}
+
+.why-codium-card,
+.module-item,
+.feature-card,
+.contact-card-row-element {
+    background-color: color-mix(in oklch, var(--contrast) 50%, transparent);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    padding: var(--padding-card);
+    transition: transform var(--anim-duration-fast) var(--anim-ease-in-out), box-shadow var(--anim-duration-fast) var(--anim-ease-in-out), border-color var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+.why-codium-card:hover,
+.module-item:hover,
+.feature-card:hover,
+.contact-card-row-element:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px color-mix(in oklch, var(--primary) 60%, transparent);
+    transform: translateY(-4px);
+}
+
+@media (max-width: 900px) {
+    .landing-section {
+        padding: 80px 0;
+    }
+    
+    .landing-section-header h2 {
+        font-size: clamp(30px, 8vw, 40px);
+    }
+    
+    .feature-grid.split-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .feature-card {
+        padding: 32px;
+    }
+
+    .module-item,
+    .contact-card-row-element {
+        padding: 32px;
+    }
+}
+
+

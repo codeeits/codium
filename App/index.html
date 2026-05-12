@@ -40,8 +40,8 @@
                         <span data-i18n="landing.hero.description.part-2">ce contează pentru școală, teste și bacalaureat.</span>
                     </p>
                     <div class="cta-btns">
-                        <button type="button" class="cta-btn btn secondary" data-i18n="landing.hero.buttons.curriculum">Vezi curicula</button>
-                        <button class="cta-btn btn primary" onclick="window.location.href='/app/user.html'">
+                        <a href="#curriculum" class="cta-btn btn secondary" aria-label="Vezi curriculum" data-i18n="landing.hero.buttons.curriculum">Vezi curicula</a>
+                        <button class="cta-btn btn primary" onclick="window.location.href='/app/signup.html'" aria-label="Începe să programezi">
                             <span class="no-style" data-i18n="landing.hero.buttons.start">Începe să programezi</span> <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -56,9 +56,12 @@
                     <canvas class="particle-canvas" id="particle-canvas" aria-hidden="true"></canvas>
                 </div>
             </section>
+            
             <section class="why-codium">
-                <h2>De ce codium?</h2>
-                <h3>Tot ceea ce ai nevoie pentru a lua 10 la info.</h3>
+                <div class="landing-section-header">
+                    <h2>De ce codium?</h2>
+                    <p>Tot ceea ce ai nevoie pentru a lua 10 la info.</p>
+                </div>
                 <div class="cards-viewport">
                     <div class="why-codium-cards row-1">
                         <div class="why-codium-card card">
@@ -72,21 +75,6 @@
                             <p>Primiți feedback imediat și adaptat nevoilor dvs., astfel încât să puteți învăța din greșeli și să progresați rapid.</p>
                         </div>
                         <div class="why-codium-card card">
-                            <i class="fa-solid fa-users"></i>
-                            <h4>Comunitate de învățare</h4>
-                            <p>Alăturați-vă unei comunități de elevi și profesori, unde puteți colabora, împărtăși resurse și primi sprijin în călătoria dvs. de învățare.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
-                            <i class="fa-solid fa-chalkboard-user"></i>
-                            <h4>Conținut aliniat cu programa școlară</h4>
-                            <p>Fiecare lecție, exercițiu și test este creat pentru a acoperi exact ceea ce este necesar pentru școală, teste și bacalaureat.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
-                            <i class="fa-solid fa-robot"></i>
-                            <h4>Feedback instant și personalizat</h4>
-                            <p>Primiți feedback imediat și adaptat nevoilor dvs., astfel încât să puteți învăța din greșeli și să progresați rapid.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
                             <i class="fa-solid fa-users"></i>
                             <h4>Comunitate de învățare</h4>
                             <p>Alăturați-vă unei comunități de elevi și profesori, unde puteți colabora, împărtăși resurse și primi sprijin în călătoria dvs. de învățare.</p>
@@ -123,22 +111,7 @@
                             <h4>Comunitate de învățare</h4>
                             <p>Alăturați-vă unei comunități de elevi și profesori, unde puteți colabora, împărtăși resurse și primi sprijin în călătoria dvs. de învățare.</p>
                         </div>
-                        <div class="why-codium-card card" aria-hidden="true">
-                            <i class="fa-solid fa-chalkboard-user"></i>
-                            <h4>Conținut aliniat cu programa școlară</h4>
-                            <p>Fiecare lecție, exercițiu și test este creat pentru a acoperi exact ceea ce este necesar pentru școală, teste și bacalaureat.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
-                            <i class="fa-solid fa-robot"></i>
-                            <h4>Feedback instant și personalizat</h4>
-                            <p>Primiți feedback imediat și adaptat nevoilor dvs., astfel încât să puteți învăța din greșeli și să progresați rapid.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
-                            <i class="fa-solid fa-users"></i>
-                            <h4>Comunitate de învățare</h4>
-                            <p>Alăturați-vă unei comunități de elevi și profesori, unde puteți colabora, împărtăși resurse și primi sprijin în călătoria dvs. de învățare.</p>
-                        </div>
-                        <div class="why-codium-card card" aria-hidden="true">
+                         <div class="why-codium-card card" aria-hidden="true">
                             <i class="fa-solid fa-chalkboard-user"></i>
                             <h4>Conținut aliniat cu programa școlară</h4>
                             <p>Fiecare lecție, exercițiu și test este creat pentru a acoperi exact ceea ce este necesar pentru școală, teste și bacalaureat.</p>
@@ -156,27 +129,96 @@
                     </div>
                 </div>
             </section>
-            <section class="contact-us" id="contact-us">
-                <div class="contact-content">
-                    <h1 class="contact-content-title"><span class="no-style" data-i18n="contact.title">Reach out to </span><span class="no-style" data-i18n="app_name">Codium/</span></h1>
-                    <p data-i18n="contact.description">Connect with us directly. We believe in personal connection.</p>
-                </div>
-                <div class="contact-card-row-container">
-                    <div class="contact-card-row-element">
-                        <div class="contact-card-title"><i class="fa-solid fa-envelope"></i> Email</div>
-                        <div class="contact-card-description">
-                            <a href="mailto:mail@codium.lol" class="contact-link" data-i18n="contact.email.link">mail@codium.lol</a>
-                            <p data-i18n="contact.email.description">Shoot us an email and we'll get back to you as soon as possible.</p>
+
+            <section class="landing-section" id="curriculum">
+                <div class="landing-section-inner">
+                    <div class="landing-section-header">
+                        <h2 data-i18n="landing.curriculum.title">Curriculum complet și structurat.</h2>
+                        <p data-i18n="landing.curriculum.desc">Urmărim pas cu pas programa școlară pentru a te pregăti de nota maximă, de la concepte de bază la algoritmi complecși.</p>
+                    </div>
+                    <div class="module-list">
+                        <div class="module-item">
+                            <span class="module-tag">Clasa a IX-a</span>
+                            <h3>Fundamentele programării</h3>
+                            <p>Variabile, structuri decizionale, bucle și algoritmi elementari în Python sau C++.</p>
+                        </div>
+                        <div class="module-item">
+                            <span class="module-tag">Clasa a X-a</span>
+                            <h3>Tablouri și Șiruri</h3>
+                            <p>Vectori, matrice, prelucrarea șirurilor de caractere și subprograme (funcții).</p>
+                        </div>
+                        <div class="module-item">
+                            <span class="module-tag">Clasa a XI-a</span>
+                            <h3>Structuri dinamice & Grafuri</h3>
+                            <p>Grafuri orientate și neorientate, arbori și elemente de alocare dinamică.</p>
+                        </div>
+                        <div class="module-item">
+                            <span class="module-tag">Bacalaureat</span>
+                            <h3>Pregătire intensivă Bac</h3>
+                            <p>Modele de subiecte, recapitulare structurată prin probleme rezolvate și simulări interactive.</p>
                         </div>
                     </div>
-                    <div class="contact-card-row-element">
-                        <div class="contact-card-title"><i class="fa-solid fa-users"></i> Team</div>
-                        <div class="contact-card-description">
-                            <div class="team-member">
-                                <div class="team-member-name">Robert Ciobanu</div>
+                </div>
+            </section>
+
+            <section class="landing-section" id="for-who">
+                <div class="landing-section-inner">
+                    <div class="landing-section-header">
+                        <h2 data-i18n="landing.for_who.title">Gândit pentru tine.</h2>
+                        <p data-i18n="landing.for_who.desc">Fie că predai sau înveți, Codium îți oferă uneltele digitale interactive necesare pentru a excela.</p>
+                    </div>
+                    
+                    <div class="feature-grid split-2">
+                        <div class="feature-card" id="for-students">
+                            <div class="feature-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                            <h3 data-i18n="landing.for_students.title">Pentru Elevi</h3>
+                            <ul class="feature-list">
+                                <li><i class="fa-solid fa-check text-confirm"></i> Mediu de programare integrat rapid</li>
+                                <li><i class="fa-solid fa-check text-confirm"></i> Corectare automată inteligentă și indicii</li>
+                                <li><i class="fa-solid fa-check text-confirm"></i> Gamificare, progres vizual și statistici</li>
+                            </ul>
+                            <button class="btn secondary" onclick="window.location.href='/app/signup.html'">Începe să înveți <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                        
+                        <div class="feature-card" id="for-teachers">
+                            <div class="feature-icon"><i class="fa-solid fa-chalkboard-teacher"></i></div>
+                            <h3 data-i18n="landing.for_teachers.title">Pentru Profesori</h3>
+                            <ul class="feature-list">
+                                <li><i class="fa-solid fa-check text-confirm"></i> Management facil al claselor și temelor</li>
+                                <li><i class="fa-solid fa-check text-confirm"></i> Statistici detaliate de performanță pe elev</li>
+                                <li><i class="fa-solid fa-check text-confirm"></i> Posibilitatea creării de conținut personalizat</li>
+                            </ul>
+                            <button class="btn secondary" onclick="window.location.href='/app/signup.html'">Creează cont de profesor <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="landing-section contact-us" id="contact-us">
+                <div class="landing-section-inner landing-section-inner-compact">
+                    <div class="landing-section-header">
+                        <h2 data-i18n="contact.title">Reach out to <span class="title-accent-focus">Codium/</span></h2>
+                        <p data-i18n="contact.description">Ai o întrebare sau vrei să colaborăm? Dă-ne un mesaj și îți răspundem rapid.</p>
+                    </div>
+                    <div class="contact-card-row-container">
+                        <div class="contact-card-row-element">
+                            <div class="feature-icon-small"><i class="fa-solid fa-envelope"></i></div>
+                            <div class="contact-card-title">Email</div>
+                            <div class="contact-card-description">
+                                <a href="mailto:mail@codium.lol" class="contact-link" data-i18n="contact.email.link">mail@codium.lol</a>
+                                <p data-i18n="contact.email.description" class="sub-text">Cea mai rapidă cale de a ne contacta.</p>
                             </div>
-                            <div class="team-member">
-                                <div class="team-member-name">Paul Andrei</div>
+                        </div>
+                        <div class="contact-card-row-element">
+                            <div class="feature-icon-small"><i class="fa-solid fa-users"></i></div>
+                            <div class="contact-card-title">Team</div>
+                            <div class="contact-card-description">
+                                <div class="team-member">
+                                    <div class="team-member-name">Robert Ciobanu</div>
+                                </div>
+                                <div class="team-member">
+                                    <div class="team-member-name">Paul Andrei</div>
+                                </div>
                             </div>
                         </div>
                     </div>
