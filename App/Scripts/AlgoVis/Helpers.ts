@@ -1,5 +1,6 @@
-import {Container, Viewport} from "./Container.js"
+import {Container, RootContainer, Viewport} from "./Container.js"
 import { AnimationHandler, COMMON_ANIMATIONS, COMMON_ANIMATION_EASING_FUNCTIONS } from "./AnimationHandler.js"
+import PrefabAnimations, {Settings} from "./Animations.js";
 
 export default class AnimHelpers {
     static animator: AnimationHandler | null = null;
@@ -151,6 +152,8 @@ export default class AnimHelpers {
 }
 
 export class InitHelpers {
+    static scheduleRender:() => void = null;
+    static animator: AnimationHandler = null;
     /*
     * This function sets up the necessary event handlers on the specified viewport element to enable interactive movement based on user input.
     * @param view - A viewport element (extension of the Container class) that will handle rendering and movement based on user interactions.
@@ -230,6 +233,7 @@ export class InitHelpers {
         viewPortElement.addEventListener("pointerup", stopDrag);
         viewPortElement.addEventListener("pointercancel", stopDrag);
 
+        this.scheduleRender = scheduleRender;
         return scheduleRender
     }
 
@@ -277,5 +281,76 @@ export class InitHelpers {
             returnedArray.push({container: container, value: rand});
         }
         return returnedArray;
+    }
+
+    static InitAnimator(framerateCap: number = 60): AnimationHandler {
+        let animator = new AnimationHandler()
+        AnimHelpers.SetAnimator(animator)
+        this.animator = animator
+        return animator;
+    }
+
+    /*
+    * Initializes and starts an animation based on animType with the starting data provided.
+    * @expects (InitAnimator and InitViewport) or Init to have been called beforehand to set up the necessary environment for the animations to run correctly.
+     * @param animType - A string that specifies the type of animation to initialize (e.g., "bubble", "quick", "insertion", "merge").
+     * @param startingData - The initial data required for the specified animation type, such as an array of values to sort.
+        * @param settings - An object containing any additional settings or parameters needed for the animation.
+        * @throws An error if InitAnimator or InitViewport have not been called prior to this function, as they are necessary for the animations to function properly.
+        * @returns void
+     */
+    static InitAndStartAnimation(animType: string, startingData: any, settings: Settings) {
+        function compare(a:any, b:any) {
+            return a.value > b.value
+        }
+
+        switch (animType) {
+            case "bubble":
+                PrefabAnimations.BUBBLE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+                break;
+            case "quick":
+                PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+                break;
+            case "insertion":
+                PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+                break;
+            case "merge":
+                PrefabAnimations.MERGE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+                break;
+        }
+
+        this.animator.Start();
+    }
+
+    static InitViewAndRootFromElement(): {view: Viewport, root: RootContainer} {
+        let providedElement = document.getElementById("AlgoVis-Viewport") as HTMLDivElement;
+        if (!providedElement) {
+            throw new Error(`Element with id AlgoVis-Viewport not found`);
+        }
+
+        let view = new Viewport(providedElement.clientWidth, providedElement.clientHeight, 0, 0, providedElement);
+        let root = new RootContainer(providedElement.clientWidth, providedElement.clientHeight, view);
+        return {view, root};
+    }
+
+    /*
+    * Makes the necessary initializations for the animation environment.
+    * @expects to be called after the DOM has fully loaded, as it relies on the presence of an element with the id "AlgoVis-Viewport" to set up the viewport and root container correctly.
+     * @returns The initialized root container that serves as the base for all animations and elements in the scene.
+     * @throws An error if the required element with id "AlgoVis-Viewport" is not found in the DOM, as it is essential for setting up the viewport and root container.
+     */
+    static Init() {
+        let res = this.InitViewAndRootFromElement()
+        let view = res.view;
+        let root = res.root;
+
+        this.InitAnimator();
+        this.InitViewport(view);
+
+        return root;
+    }
+
+    static BaseSettings(speed: number = 1) {
+        return new Settings("", "", "", speed);
     }
 }
