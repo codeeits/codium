@@ -277,7 +277,7 @@ export class LessonService {
     }
 
     async getInteractions(userId = null, max_results = 3) {
-
+        // max_results of -1 means no limit, return all interactions
         if (!userId) {
             const currentUser = await this.api.users.getCurrentUser();
             const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
@@ -291,57 +291,118 @@ export class LessonService {
             const dateB = new Date(b.UpdatedAt.Time);
             return dateB - dateA;
         });
-        response = response.slice(0, max_results);
+        if (max_results !== -1) {
+            response = response.slice(0, max_results);
+        }
         //console.log("User interactions:", response);
         return response;
 
     }
 
+    // func. bellow shall be rewritten in the future
+
     async getInteractionsSection(lessonId, section = null, clasa = null, userId = null) {
-    const userPromise = userId ? Promise.resolve(userId) : this.api.users.getCurrentUser().then(user => {
-        const userData = typeof user === 'string' ? JSON.parse(user) : user;
-        return userData?.ID || null;
-    });
+        const userPromise = userId ? Promise.resolve(userId) : this.api.users.getCurrentUser().then(user => {
+            const userData = typeof user === 'string' ? JSON.parse(user) : user;
+            return userData?.ID || null;
+        });
 
-    const chainPromise = this.getSectionLessonChain(lessonId);
+        const chainPromise = this.getSectionLessonChain(lessonId);
 
-    const [resolvedUserId, lessonChain] = await Promise.all([userPromise, chainPromise]);
+        const [resolvedUserId, lessonChain] = await Promise.all([userPromise, chainPromise]);
 
-    if (!resolvedUserId) {
-        console.warn('User not authenticated or user data is invalid');
-        return [];
-    }
+        if (!resolvedUserId) {
+            console.warn('User not authenticated or user data is invalid');
+            return [];
+        }
 
-    if (!lessonChain || lessonChain.length === 0) {
-        return [];
-    }
+        if (!lessonChain || lessonChain.length === 0) {
+            return [];
+        }
 
-    const validLessonIds = new Set(lessonChain.map(lesson => lesson.ID || lesson.id || lesson));
+        const validLessonIds = new Set(lessonChain.map(lesson => lesson.ID || lesson.id || lesson));
 
-    const interactions = await this.api.get(`/api/users/${resolvedUserId}/interactions`);
+        const interactions = await this.api.get(`/api/users/${resolvedUserId}/interactions`);
 
-    const filteredInteractions = [];
+        const filteredInteractions = [];
 
-    for (const interaction of interactions) {
-        if (validLessonIds.has(interaction.LessonID)) {
-            
-            const isCompleted = interaction.CompletedAt?.Valid;
-            const isStarted = interaction.StartedAt?.Valid;
+        for (const interaction of interactions) {
+            if (validLessonIds.has(interaction.LessonID)) {
+                
+                const isCompleted = interaction.CompletedAt?.Valid;
+                const isStarted = interaction.StartedAt?.Valid;
 
-            if (isCompleted) {
-                interaction.ParsedStatus = 'Completed';
-            } else if (isStarted) {
-                interaction.ParsedStatus = 'Started';
-            } else {
-                interaction.ParsedStatus = 'Not Started';
+                if (isCompleted) {
+                    interaction.ParsedStatus = 'Completed';
+                } else if (isStarted) {
+                    interaction.ParsedStatus = 'Started';
+                } else {
+                    interaction.ParsedStatus = 'Not Started';
+                }
+                
+                filteredInteractions.push(interaction);
             }
-            
-            filteredInteractions.push(interaction);
+        }
+
+        return filteredInteractions;
+    }
+
+    //
+
+    async getCompletedLessonsForMostActiveClass() {
+        // Utilitary function to get the number of completed lessons for the most active class of the user, used in the profile page
+        // Not optimal
+
+        const userID = await this.api.users.getCurrentUserID();
+        const interactions = await this.getInteractions(userID, -1); // get all interactions for the user
+        const classStats = {};
+
+        const lessonPromises = interactions.map(interaction => this.getLessonById(interaction.LessonID));
+        const lessons = await Promise.all(lessonPromises);
+
+        for (let i = 0; i < interactions.length; i++) {
+            const interaction = interactions[i];
+            const lesson = lessons[i];
+            const lessonData = typeof lesson === 'string' ? JSON.parse(lesson) : lesson;
+            const classNum = lessonData?.flag_translation?.class || 'Unknown';
+
+            if (!classStats[classNum]) {
+                classStats[classNum] = { completed: 0, total: 0 };
+            }
+
+            if (interaction.CompletedAt?.Valid) {
+                classStats[classNum].completed += 1;
+            }
+            classStats[classNum].total += 1;
+        }
+
+        let mostActiveClass = null;
+        let maxInteractions = 0;
+
+        for (const [classNum, stats] of Object.entries(classStats)) {
+            if (stats.total > maxInteractions) {
+                maxInteractions = stats.total;
+                mostActiveClass = classNum;
+            }
+        }
+
+        let trueTotalLessons = 0;
+
+        if (mostActiveClass) {
+            const allLessonsInClass = await this.getLessonsByFlags(mostActiveClass);
+            trueTotalLessons = allLessonsInClass.length;
+
+            if (trueTotalLessons === 0) {
+                console.warn(`Most active class ${mostActiveClass} has no lessons. Data inconsistency.`);
+                mostActiveClass = null; 
+            }
+        }
+        return {
+            numLessons: mostActiveClass ? classStats[mostActiveClass].completed : 0,
+            class: mostActiveClass,
+            totalLessonsInClass: trueTotalLessons
         }
     }
-
-    return filteredInteractions;
-}
 
     async updateLessonOrder(lessonId, prev = null, next = null) {
         // Validate lesson ID

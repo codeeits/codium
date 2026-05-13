@@ -81,4 +81,45 @@ export class GameService {
             throw error;
         }
     }
+
+    getLevel(score) {
+        const formula = (score) => {
+            return Math.floor(Math.sqrt(score/50)) + 1;
+        };
+
+        const dict = {
+            1: 'Novice',
+            2: 'Apprentice',
+            3: 'Adept',
+            4: 'Expert',
+            5: 'Master',
+            6: 'Grandmaster',
+            7: 'Legendary',
+            8: 'Mythic',
+            9: 'Immortal',
+            10: 'Ascended',
+            11: 'Eternal',
+            12: 'Transcendent',
+            13: 'Divine',
+            14: 'Celestial',
+            15: 'Cosmic',
+            16: 'Infinite',
+            17: 'Omnipotent',
+            18: 'Godlike',
+            19: 'Supreme',
+            20: 'Ultimate'
+        };
+
+        const level = formula(score);
+        return dict[level] || `Level ${level}`;
+    }
+
+    async getAccScore() {
+        const data = await this.api.problems.getSolutions({ search_type: 'user' });
+        // get only 'data.status' for each solution, and count how many are 'passed'
+        const totalSolutions = data.length;
+        const passedSolutions = data.filter(solution => solution.status === 'passed').length;
+        const accuracy = totalSolutions > 0 ? (passedSolutions / totalSolutions) * 100 : 0;
+        return accuracy.toFixed(2);
+    }
 }
