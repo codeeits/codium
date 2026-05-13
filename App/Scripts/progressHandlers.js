@@ -47,12 +47,14 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
-function updateSummaryCards(progressData) {
+async function updateSummaryCards(progressData) {
     if (window.StateEngine?.state) {
-        window.StateEngine.state.userLevel = progressData.userLevel;
-        window.StateEngine.state.userCookies = new Intl.NumberFormat('ro-RO').format(progressData.userCookies);
-        window.StateEngine.state.lessonsCompleted = new Intl.NumberFormat('ro-RO').format(progressData.lessonsCompleted);
-        window.StateEngine.state.userAccuracy = progressData.userAccuracy;
+        window.StateEngine.state.userLevel = window.apiService.game.getLevel(window.StateEngine.state.user.xp);
+        // window.StateEngine.state.userCookies = new Intl.NumberFormat('ro-RO').format(progressData.userCookies);
+        const dataNoLessons = await window.apiService.lessons.getCompletedLessonsForMostActiveClass();
+        window.StateEngine.state.lessonsCompleted = `${dataNoLessons.numLessons} / ${dataNoLessons.totalLessonsInClass}`;
+        window.StateEngine.state.topClass = dataNoLessons.class;
+        window.StateEngine.state.userAccuracy = await window.apiService.game.getAccScore();
     }
 }
 
@@ -91,7 +93,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         userLevel: '0',
         userCookies: '0',
         lessonsCompleted: '0',
-        userAccuracy: '0'
+        allLessons: '0',
+        topClass: "-",
+        userAccuracy: '0.00'
     };
 
     if (window.StateEngine) {
@@ -115,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const progressData = { ...exampleResponse };
 
-    updateSummaryCards(progressData);
+    await updateSummaryCards(progressData);
 
     const fontReady = document.fonts?.ready ?? Promise.resolve();
     await fontReady;

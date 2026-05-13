@@ -84,11 +84,10 @@ export class ProblemService {
         }
 
         if (firstTestId == null && problemId) {
-            console.log('jere');
             const problemResponse = await this.getProblemById(problemId);
             const problemData = typeof problemResponse === 'string' ? JSON.parse(problemResponse) : problemResponse;
             firstTestId = problemData.problem.FirstTest;
-            console.log('Derived First Test ID:', firstTestId);
+            // console.log('Derived First Test ID:', firstTestId);
         }
 
         let tests = [];
@@ -211,18 +210,86 @@ export class ProblemService {
         return this.api.delete(`/api/solutions/${solutionId}`, true);
     }
 
+    async getSolutions(data) {
+        /*
+            data: {
+                search_type: 'id' | 'user' | 'problem',
+                id: number,      // used if search_type is 'id'
+                user: number,    // used if search_type is 'user'
+                problem: number, // used if search_type is 'problem'
+            }
+        */
+        if (!data || !data.search_type) {
+            throw new Error('Data object with search_type is required to fetch solutions');
+        }
+
+        let queryParam = '';
+        let queryValue = '';
+
+        switch (data.search_type) {
+            case 'id':
+                queryParam = 'solution_id';
+                queryValue = data.id;
+                break;
+            case 'user':
+                queryParam = 'user_id';
+                queryValue = data.user || await this.api.users.getCurrentUserID();
+                break;
+            case 'problem':
+                queryParam = 'problem_id';
+                queryValue = data.problem;
+                break;
+            default:
+                throw new Error(`Unsupported search_type: ${data.search_type}`);
+        }
+
+        if (!queryValue) {
+             throw new Error(`A valid ID is required for search_type: ${data.search_type}`);
+        }
+
+        const response = await this.api.get(`/api/solutions?search_type=${data.search_type}&${queryParam}=${queryValue}`, true);
+
+        const solutionsArray = Array.isArray(response) ? response : (response.solutions || []);
+
+        for (const solution of solutionsArray) {
+            if (solution.ID) {
+                try {
+                    const testsResponse = await this.getTestChainForFirstTest(null, solution.ProblemID);
+                                        
+                    solution.total_tests = testsResponse.length;
+
+                    if (solution.total_tests === solution.TestsPassed?.Int32) {
+                        solution.status = 'passed';
+                    } else if (solution.TestsPassed?.Int32 > 0) {
+                        solution.status = 'partial';
+                    } else {
+                        solution.status = 'failed';
+                    }
+
+                } catch (error) {
+                    console.error(`Failed to fetch tests for solution ID ${solution.ID}:`, error);
+                    solution.total_tests = 0;
+                    solution.status = 'unknown';
+                }
+            } else {
+                solution.total_tests = 0;
+                solution.status = 'unknown';
+            }
+        }
+        
+        return response;
+    }
+
     async getSolutionById(solutionId) {
-        // if admin or owner
-        return this.api.get(`/api/solutions?search_type=id&solution_id=${solutionId}`, true);
+        return this.getSolutions({ search_type: 'id', id: solutionId });
     }
 
     async getSolutionsByUser(userId) {
-        return this.api.get(`/api/solutions?search_type=user&user_id=${userId}`, true);
+        return this.getSolutions({ search_type: 'user', user: userId });
     }
 
     async getSolutionsByProblem(problemId) {
-        // owned or admin
-        return this.api.get(`/api/solutions?search_type=problem&problem_id=${problemId}`, true);
+        return this.getSolutions({ search_type: 'problem', problem: problemId });
     }
 
     async countSolutionsForProblem(problemId, debug = true) {
