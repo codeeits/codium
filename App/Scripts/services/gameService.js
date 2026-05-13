@@ -81,7 +81,7 @@ export class GameService {
         }
     }
 
-    async getHeatmap(endDate = new Date(Date.now()), startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)) {
+    async getHeatmap(endDate = new Date(Date.now() + 24 * 60 * 60 * 1000), startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)) {
         try {
             const response = await this.api.get(`/api/users/heatmap?startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`);
             return response;
@@ -91,27 +91,32 @@ export class GameService {
         }
     }
 
-    async getLineChartData(endDate = new Date(), startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)) {
+    async getLineChartData(endDate = new Date(Date.now() + 24 * 60 * 60 * 1000), startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
         try {
             const response = await this.api.get(`/api/users/heatmap?startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`);
-            
             const entries = response.cells || response;
 
-            const monthlyAggregates = {};
+            if (!Array.isArray(entries)) {
+                console.warn("Unexpected API response format:", response);
+                return null; 
+            }
+
+            const dailyAggregates = {};
             
             entries.forEach(entry => {
                 const date = new Date(entry.Day);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 
-                monthlyAggregates[monthKey] = (monthlyAggregates[monthKey] || 0) + entry.ActivityCount; 
+                const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                
+                dailyAggregates[dayKey] = (dailyAggregates[dayKey] || 0) + entry.TotalXp; 
             });
 
-            const sortedMonths = Object.keys(monthlyAggregates).sort();
-            const chartData = sortedMonths.map(month => monthlyAggregates[month]);
+            const sortedDays = Object.keys(dailyAggregates).sort();
+            const chartData = sortedDays.map(day => dailyAggregates[day]);
 
             return {
                 title: 'Cookie Evolution',
-                labels: sortedMonths, 
+                labels: sortedDays, 
                 series: [{
                     name: 'Cookies',
                     data: chartData

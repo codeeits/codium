@@ -123,7 +123,7 @@ export class ChartMaker {
 
     createCalendarHeatmap(data) {
         const maxVal = Math.max(...data.cells.map(v => v.ActivityCount || 0));
-        const heatmapMax = Math.max(15, maxVal);
+        const heatmapMax = Math.ceil(maxVal / 5) * 5 || 5;
 
         const start = data.startDate ? data.startDate.split('T')[0] : '2024-01-01';
         const end = data.endDate ? data.endDate.split('T')[0] : '2024-12-31';
@@ -137,9 +137,8 @@ export class ChartMaker {
         const paddingRight = 20;
         const requiredWidth = (weeks * cellWidth) + paddingLeft + paddingRight;
 
-        // 2. Set min-width to force scroll, max-width is handled by the parent CSS
         this.container.style.minWidth = `${requiredWidth}px`; 
-        this.container.style.width = '100%'; // Ensure it fills the scrollable area
+        this.container.style.width = '100%';
         this.chart.resize();
         // ------------------------------------------------
 
@@ -154,7 +153,7 @@ export class ChartMaker {
             },
             tooltip: {
                 position: 'bottom',
-                confine: true, // IMPORTANT: Prevents the tooltip from being cut off by the scroll boundaries
+                confine: true,
                 formatter: function (params) {
                     return `<strong>${params.value[0]}</strong><br/>Commits: ${params.value[1]}`;
                 }
@@ -164,8 +163,15 @@ export class ChartMaker {
                 max: heatmapMax,
                 type: 'piecewise',
                 orient: 'horizontal',
-                left: paddingLeft, // Aligned to the left so it doesn't get lost inside a wide scroll
-                bottom: '0%', // Pushed slightly further down to avoid overlapping the new scrollbar
+                left: paddingLeft,
+                bottom: '0%',
+                pieces: [
+                    { min: heatmapMax, label: `> ${heatmapMax}` },
+                    { min: Math.ceil(heatmapMax * 0.75), max: heatmapMax -1 },
+                    { min: Math.ceil(heatmapMax * 0.5), max: Math.ceil(heatmapMax * 0.75) -1 },
+                    { min: 1, max: Math.ceil(heatmapMax * 0.25) - 1 },
+                    { value: 0, label: 'No Activity' }
+                ],
                 inRange: {
                     color: [this.stepColors[4], this.stepColors[3], this.stepColors[2], this.stepColors[1], this.stepColors[0]]
                 },
@@ -174,9 +180,9 @@ export class ChartMaker {
                 }
             },
             calendar: {
-                top: 30, // Clearance for titles
-                left: paddingLeft, // Matched with our variable
-                cellSize: [cellWidth, 20], // IMPORTANT: Force [width, height] so ECharts doesn't shrink cells
+                top: 30,
+                left: paddingLeft,
+                cellSize: [cellWidth, 20],
                 range: [start, end],
 
                 splitLine: {
@@ -212,6 +218,11 @@ export class ChartMaker {
                     cell.Day.slice(0, 10),
                     cell.ActivityCount || 0
                 ]),
+                itemStyle: {
+                    borderRadius: 4, 
+                    borderColor: this.bgColor,
+                    borderWidth: 2
+                },
                 backgroundColor: this.contrastColor
             }]
         };

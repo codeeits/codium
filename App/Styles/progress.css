@@ -108,11 +108,12 @@
 
 .heatmap-problems-graph {
     grid-area: heatmap;
+    min-width: 0;
 }
 
 .heatmap-problems-graph .chart-wrapper {
     overflow-x: auto;
-    max-width: 592px; /* Adjust as needed for responsiveness */
+    max-width: 100%; /* Adjust as needed for responsiveness */
     width: 100%;
 }
 
@@ -163,7 +164,7 @@
 
 .chart-host--heatmap {
     position: relative;
-    height: 190px !important;
+    height: 230px !important;
     /* min-width: 450px; */
 }
 

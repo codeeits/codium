@@ -218,7 +218,15 @@ async function init() {
     let lineChartData = null;
     try {
         if (window.apiService && window.apiService.game) {
-            lineChartData = await window.apiService.game.getLineChartData();
+            const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 1);
+            
+            const fetchedData = await window.apiService.game.getLineChartData(endDate, startDate);
+            
+            if (fetchedData) {
+                lineChartData = fetchedData;
+            }
         }
     } catch (error) {
         console.error("Failed to fetch line chart data:", error);
