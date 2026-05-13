@@ -291,19 +291,19 @@ func (q *Queries) GetProblemsBySearchQuery(ctx context.Context, arg GetProblemsB
 
 const getProblemsBySource = `-- name: GetProblemsBySource :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
-WHERE source = $1 and suggested = FALSE
+WHERE (source ILIKE '%' || $1 || '%') and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
 
 type GetProblemsBySourceParams struct {
-	Source sql.NullString
-	Limit  int32
-	Offset int32
+	Column1 sql.NullString
+	Limit   int32
+	Offset  int32
 }
 
 func (q *Queries) GetProblemsBySource(ctx context.Context, arg GetProblemsBySourceParams) ([]Problem, error) {
-	rows, err := q.db.QueryContext(ctx, getProblemsBySource, arg.Source, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, getProblemsBySource, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -68,7 +68,7 @@ WHERE author_id = $1 and suggested = FALSE;
 
 -- name: GetProblemsBySource :many
 SELECT * FROM problems
-WHERE source = $1 and suggested = FALSE
+WHERE (source ILIKE '%' || $1 || '%') and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 

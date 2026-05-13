@@ -103,7 +103,7 @@ func (cfg *ApiCfg) CreateProblemHandler(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	tags, _ := BuildProblemTags(p.Difficulty, p.Module, p.SolveType, p.ResultType, p.VerificationType, p.Section)
+	tags, _ := BuildProblemTags(p.Module, p.Difficulty, p.SolveType, p.ResultType, p.VerificationType, p.Section)
 
 	res, err := cfg.Db.CreateProblem(r.Context(), database.CreateProblemParams{
 		ID:              uuid.New(),
@@ -315,9 +315,9 @@ func (cfg *ApiCfg) GetProblemsBySourceHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	problems, err := cfg.Db.GetProblemsBySource(r.Context(), database.GetProblemsBySourceParams{
-		Source: sql.NullString{Valid: true, String: source},
-		Limit:  1000,
-		Offset: 0,
+		Column1: sql.NullString{Valid: true, String: source},
+		Limit:   1000,
+		Offset:  0,
 	})
 	if err != nil {
 		cfg.Logger.Printf("Failed to retrieve problems by source: %v", err)
