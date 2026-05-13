@@ -449,9 +449,12 @@
     },
 
     "difficulty": {
+        "unknown": "Unknown",
         "easy": "Easy",
         "medium": "Medium",
-        "hard": "Hard"
+        "hard": "Hard",
+        "competition": "Competition",
+        "dark-souls": "As hard as Dark Souls"
     },
 
     "classe": {

@@ -449,9 +449,12 @@
     },
 
     "difficulty": {
+        "unknown": "Desconeguda",
         "easy": "Fàcil",
         "medium": "Mitjà",
-        "hard": "Difícil"
+        "hard": "Difícil",
+        "competition": "Concurs",
+        "dark-souls": "Tortura"
     },
 
     "classe": {

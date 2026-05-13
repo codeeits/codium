@@ -449,9 +449,12 @@
     },
 
     "difficulty": {
+        "unknown": "Necunoscut",
         "easy": "Ușor",
         "medium": "Mediu",
-        "hard": "Dificil"
+        "hard": "Dificil",
+        "competition": "Concurs",
+        "dark-souls": "Atât de greu încât să-ți pierzi speranța"
     },
 
     "classe": {

@@ -18,10 +18,12 @@ import {
 
 function getDifficultyLabel(difficulty) {
     const labels = {
-        0: "Neclasificat",
+        0: "difficulty.unknown",
         1: "difficulty.easy",
         2: "difficulty.medium",
-        3: "difficulty.hard"
+        3: "difficulty.hard",
+        4: "difficulty.competition",
+        5: "difficulty.dark-souls"
     };
     return labels[difficulty] || `Dificultate ${difficulty}`;
 }
@@ -328,6 +330,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
+        console.warn("Problem difficulty:", state.meta.difficulty);
         elements.difficulty.dataset.i18n = getDifficultyLabel(state.meta.difficulty);
 
         if (elements.module && state.meta.module) elements.module.textContent = `Modul ${state.meta.module}`;
