@@ -217,6 +217,7 @@ export class InitHelpers {
     * @param elementTemplate - An HTMLDivElement that will serve as the template for each individual element in the vector.
     * @param elementTextComponentTemplate - An optional HTMLSpanElement that will serve as the template for the text component of each element in the vector. If provided, each element will display its corresponding value from the values array as text.
     * @param parent - The Container to which the initialized vector will be added as a child.
+    * @param spacing - A number representing the number of pixels to keep as spacing between the elements of the vector. Default is 2 pixels.
      * @return An array of Containers representing the individual elements of the vector, which can be used in AnimHelpers animations.
      */
     static InitSortVector(values, vectorTemplate, elementTemplate, elementTextComponentTemplate, parent, spacing = 2) {
@@ -237,6 +238,16 @@ export class InitHelpers {
         }
         return containers.map((container, index) => ({ container: container, value: values[index] }));
     }
+
+    /*
+    * Initializes a vector with random values that can be used in any of the AnimHelpers animations.
+    * @param n - The number of elements in the vector, as well as the maximum value for the random heights of the elements.
+    * @param vectorTemplate - An HTMLDivElement that will serve as the template for the overall vector container.
+    * @param elementTemplate - An HTMLDivElement that will serve as the template for each individual element in the vector.
+    * @param elementTextComponentTemplate - An optional HTMLSpanElement that will serve as the template for the text component of each element in the vector. If provided, each element will display its corresponding random value as text.
+    * @param parent - The Container to which the initialized vector will be added as a child.
+     * @return An array of objects, each containing a Container representing an individual element of the vector and its corresponding random value, which can be used in AnimHelpers animations.
+     */
     static InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextComponentTemplate, parent) {
         let vector = AnimHelpers.NewBoxFromTemplate(vectorTemplate, parent, parent.width, parent.height, parent.rel_x, parent.rel_y);
         let returnedArray = [];

@@ -15,6 +15,6 @@ let vectorTemplate = document.createElement("div");
 vectorTemplate.style.backgroundColor = "white";
 
 let n = 30
-let vector = InitHelpers.InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextTemplate, root, 5)
+let vector = InitHelpers.InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextTemplate, root)
 
 InitHelpers.InitAndStartAnimation("merge", vector, InitHelpers.BaseSettings(2))
