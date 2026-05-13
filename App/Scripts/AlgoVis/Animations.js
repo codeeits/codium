@@ -1,4 +1,12 @@
-import ExtraHelpers from "./Helpers.js";
+import AnimHelpers from "./Helpers.js";
+export class Settings {
+    constructor(highlightColor = "oklch(0.7 0.1 225)", highlightBorderColor = "oklch(0.6765 0.1998 42.35)", doneColor = "oklch(0.6813 0.1915 132.7732)", speed = 1) {
+        this.highlightColor = highlightColor;
+        this.highlightBorderColor = highlightBorderColor;
+        this.doneColor = doneColor;
+        this.speed = speed;
+    }
+}
 const defaultHighlightColor = "oklch(0.7 0.1 225)";
 const defaultHighlightBorderColor = "oklch(0.6765 0.1998 42.35)";
 const defaultDoneColor = "oklch(0.6813 0.1915 132.7732)";
@@ -35,11 +43,11 @@ export default class PrefabAnimations {
     }
     static _swap(array, i, j, settings, renderer, comp, comparisonTrueHook) {
         let ogColor = array[i].container.template.style.backgroundColor;
-        ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
-        ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(20 / settings.speed), renderer);
-        ExtraHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
+        AnimHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
+        AnimHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(20 / settings.speed), renderer);
+        AnimHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
         if (comp(array[i], array[j])) {
-            ExtraHelpers.SwapContainers(array[i].container, array[j].container, () => {
+            AnimHelpers.SwapContainers(array[i].container, array[j].container, () => {
                 renderer();
             }, Math.floor(30 / settings.speed), renderer);
             [array[i].container.rel_x, array[j].container.rel_x] = [array[j].container.rel_x, array[i].container.rel_x];
@@ -63,7 +71,7 @@ export default class PrefabAnimations {
                     done = false;
                 });
             }
-            ExtraHelpers.ColorContainers([array[n - j - 1].container], settings.doneColor, () => { }, Math.floor(10 / settings.speed), renderer);
+            AnimHelpers.ColorContainers([array[n - j - 1].container], settings.doneColor, () => { }, Math.floor(10 / settings.speed), renderer);
             iterations++;
             j++;
         }
@@ -71,7 +79,7 @@ export default class PrefabAnimations {
             array[j].container.rel_x = array[j].originalPosX;
         }
         for (let item of array) {
-            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
+            AnimHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static INSERTION_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -88,7 +96,7 @@ export default class PrefabAnimations {
             array[j].container.rel_x = array[j].originalPosX;
         }
         for (let item of array) {
-            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
+            AnimHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static QUICK_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -103,9 +111,9 @@ export default class PrefabAnimations {
             let leftPos = array[left].container.rel_x;
             let rightPos = array[right].container.rel_x + array[right].container.width;
             let parent = array[left].container.parent;
-            ExtraHelpers.SchedulePersonalAnimation(() => { }, 1, renderer, () => {
+            AnimHelpers.SchedulePersonalAnimation(() => { }, 1, renderer, () => {
                 if (!bgElem) {
-                    bgElem = ExtraHelpers.NewBoxFromTemplate(bgElemTemplate, parent, rightPos - leftPos, parent.height - 2, leftPos, 2);
+                    bgElem = AnimHelpers.NewBoxFromTemplate(bgElemTemplate, parent, rightPos - leftPos, parent.height - 2, leftPos, 2);
                 }
             });
             let i = left;
@@ -114,7 +122,7 @@ export default class PrefabAnimations {
             let mode = -1;
             // Quicksort gets worse in a sorted list if you take the first or the last element, so we'll take the middle element instead
             if (i < j) {
-                ExtraHelpers.SwapContainers(array[i].container, array[mid].container, () => { }, Math.floor(20 / settings.speed), renderer);
+                AnimHelpers.SwapContainers(array[i].container, array[mid].container, () => { }, Math.floor(20 / settings.speed), renderer);
                 [array[i].container.rel_x, array[mid].container.rel_x] = [array[mid].container.rel_x, array[i].container.rel_x];
                 [array[i], array[mid]] = [array[mid], array[i]];
             }
@@ -129,7 +137,7 @@ export default class PrefabAnimations {
                     j--;
                 }
             }
-            ExtraHelpers.SchedulePersonalAnimation(() => { }, 1, renderer, () => {
+            AnimHelpers.SchedulePersonalAnimation(() => { }, 1, renderer, () => {
                 if (bgElem) {
                     bgElem.parent.removeChild(bgElem);
                     bgElem = null;
@@ -151,7 +159,7 @@ export default class PrefabAnimations {
             array[j].container.rel_x = array[j].originalPosX;
         }
         for (let item of array) {
-            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
+            AnimHelpers.ColorContainers([item.container], settings.doneColor, () => { }, 1, renderer);
         }
     }
     static MERGE_SORT_ANIMATION(vector, compFunction, renderer, settings) {
@@ -173,11 +181,11 @@ export default class PrefabAnimations {
             array[j].container.rel_y /= 2;
             let newTemplate = document.createElement("div");
             newTemplate.style = array[j].container.template.style.cssText;
-            let newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height + 20);
+            let newBox = AnimHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height + 20);
             array[j].container.parent.addChild(newBox);
             mergeVect.push(newBox);
             newTemplate.style.zIndex = "-2";
-            newBox = ExtraHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height);
+            newBox = AnimHelpers.NewBoxFromTemplate(newTemplate, array[j].container.parent, array[j].container.width, 0, array[j].container.rel_x, array[j].container.rel_y + array[j].container.height);
             array[j].container.parent.addChild(newBox);
             markerVect.push(newBox);
         }
@@ -189,12 +197,12 @@ export default class PrefabAnimations {
             console.log(`We got left and right: ${left} & ${right} | With a calculated middle of: ${mid}`);
             while (i <= mid && j <= right) {
                 console.log(`Current k: ${k} with element: ${mergeVect[k].toString()}`);
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(10 / settings.speed), renderer);
-                ExtraHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
+                AnimHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => { }, Math.floor(10 / settings.speed), renderer);
+                AnimHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => { }, Math.floor(10 / settings.speed), renderer);
+                AnimHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => { }, Math.floor(10 / settings.speed), renderer);
                 console.log(`Checking i - ${i}; j - ${j}... \n${array[i].container};\n${array[j].container};\n `);
                 if (compFunction(array[i], array[j])) {
-                    ExtraHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                    AnimHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
                     array[j].container.rel_x = mergeVect[k].rel_x;
                     array[j].container.rel_y = mergeVect[k].rel_y;
                     aux.push(array[j]);
@@ -202,7 +210,7 @@ export default class PrefabAnimations {
                     j++;
                 }
                 else {
-                    ExtraHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                    AnimHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
                     array[i].container.rel_x = mergeVect[k].rel_x;
                     array[i].container.rel_y = mergeVect[k].rel_y;
                     aux.push(array[i]);
@@ -212,7 +220,7 @@ export default class PrefabAnimations {
             }
             while (i <= mid) {
                 console.log(`Current k: ${k}`);
-                ExtraHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                AnimHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
                 array[i].container.rel_x = mergeVect[k].rel_x;
                 array[i].container.rel_y = mergeVect[k].rel_y;
                 aux.push(array[i]);
@@ -221,7 +229,7 @@ export default class PrefabAnimations {
             }
             while (j <= right) {
                 console.log(`Current k: ${k}`);
-                ExtraHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
+                AnimHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, () => { }, 10 / settings.speed, renderer);
                 array[j].container.rel_x = mergeVect[k].rel_x;
                 array[j].container.rel_y = mergeVect[k].rel_y;
                 aux.push(array[j]);
@@ -229,7 +237,7 @@ export default class PrefabAnimations {
                 j++;
             }
             for (let x = 0; x < k; x++) {
-                ExtraHelpers.MoveContainer(aux[x].container, markerVect[left + x].rel_x, markerVect[left + x].rel_y - aux[x].container.height, () => { }, 10 / settings.speed, renderer);
+                AnimHelpers.MoveContainer(aux[x].container, markerVect[left + x].rel_x, markerVect[left + x].rel_y - aux[x].container.height, () => { }, 10 / settings.speed, renderer);
                 array.splice(left + x, 1, aux[x]);
                 array[left + x].container.rel_x = markerVect[left + x].rel_x;
                 array[left + x].container.rel_y = markerVect[left + x].rel_y - aux[x].container.height;
@@ -252,7 +260,7 @@ export default class PrefabAnimations {
         }
         for (let item of array) {
             console.log(`Setting color of ${item.container} to done color... ${settings.doneColor}`);
-            ExtraHelpers.ColorContainers([item.container], settings.doneColor, () => {
+            AnimHelpers.ColorContainers([item.container], settings.doneColor, () => {
                 item.container.height *= 2;
                 item.container.rel_y *= 2;
             }, 1, renderer);
