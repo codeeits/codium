@@ -28,7 +28,8 @@ export default class AnimHelpers {
         let containers: Container[] = [];
         let individualWidth = width / n - 2 * spacing;
         for (let i = 0; i < n; i++) {
-            let container = new Container(individualWidth, height[i], start_x + (individualWidth + 2*spacing) * i, parent.height - height[i] + start_y, template);
+            let templateClone = template.cloneNode(true) as HTMLDivElement;
+            let container = new Container(individualWidth, height[i], start_x + (individualWidth + 2*spacing) * i, parent.height - height[i] + start_y, templateClone);
             parent.addChild(container);
             containers.push(container);
         }

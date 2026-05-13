@@ -10,7 +10,6 @@ let n = 30
 let scheduleRender = InitHelpers.InitViewport(view)
 
 let elementTemplate = document.createElement("div")
-
 elementTemplate.style.backgroundColor = "oklch(0.7559 0.185 335.65)"
 elementTemplate.style.border = "1px solid black";
 
@@ -24,9 +23,6 @@ let vectorTemplate = document.createElement("div");
 vectorTemplate.style.backgroundColor = "white";
 
 let vector = InitHelpers.InitSortVector([10, 2, 3, 4, 5, 6, 7, 8, 9], vectorTemplate, elementTemplate, elementTextTemplate, root, 5)
-
-view.render();
-
 let animator = new AnimationHandler()
 
 function compare(a, b) {
