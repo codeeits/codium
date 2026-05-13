@@ -240,6 +240,55 @@ func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAu
 	return items, nil
 }
 
+const getProblemsBySearchQuery = `-- name: GetProblemsBySearchQuery :many
+SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
+WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetProblemsBySearchQueryParams struct {
+	Column1 sql.NullString
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) GetProblemsBySearchQuery(ctx context.Context, arg GetProblemsBySearchQueryParams) ([]Problem, error) {
+	rows, err := q.db.QueryContext(ctx, getProblemsBySearchQuery, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Problem
+	for rows.Next() {
+		var i Problem
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Tags,
+			&i.Source,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.FirstTest,
+			&i.ThumbnailFileID,
+			&i.AuthorID,
+			&i.Suggested,
+			&i.TotalTests,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProblemsBySource = `-- name: GetProblemsBySource :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
 WHERE source = $1 and suggested = FALSE

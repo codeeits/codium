@@ -472,6 +472,57 @@ func (q *Queries) GetLessonsByLanguage(ctx context.Context, arg GetLessonsByLang
 	return items, nil
 }
 
+const getLessonsBySearchQuery = `-- name: GetLessonsBySearchQuery :many
+SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language FROM lessons
+WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetLessonsBySearchQueryParams struct {
+	Column1 sql.NullString
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) GetLessonsBySearchQuery(ctx context.Context, arg GetLessonsBySearchQueryParams) ([]Lesson, error) {
+	rows, err := q.db.QueryContext(ctx, getLessonsBySearchQuery, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Lesson
+	for rows.Next() {
+		var i Lesson
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.ContentID,
+			&i.AuthorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Flags,
+			&i.NextLessonID,
+			&i.PrevLessonID,
+			&i.SectionStarter,
+			&i.Suggested,
+			&i.ThumbnailID,
+			&i.Language,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSectionStarterLessons = `-- name: GetSectionStarterLessons :many
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language FROM lessons
 WHERE section_starter = TRUE

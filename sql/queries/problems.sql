@@ -83,3 +83,9 @@ SELECT * FROM problems
 WHERE suggested = TRUE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: GetProblemsBySearchQuery :many
+SELECT * FROM problems
+WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
