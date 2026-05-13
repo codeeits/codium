@@ -484,9 +484,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (raw == null) return null;
 
         if (typeof raw === 'number') {
+            if (raw <= 0) return 'unknown';
             if (raw <= 1) return 'easy';
             if (raw <= 2) return 'medium';
-            return 'hard';
+            if (raw <= 3) return 'hard';
+            if (raw <= 4) return 'competition';
+            return 'dark-souls';
         }
 
         if (typeof raw === 'string') {
