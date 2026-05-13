@@ -6,15 +6,14 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas: 
-    'progress progress'
-    'leaderboard leaderboard'
-    'spider heatmap'
-    'spider evolution'
-    'history history';
-    grid-template-rows: auto 1fr 1fr 1fr;
+        'progress progress'
+        'leaderboard leaderboard'
+        'spider heatmap'
+        'spider evolution'
+        'history history';
+    grid-template-rows: auto auto 1fr 1fr auto; 
     gap: var(--gap-lg);
-    flex-direction: column;
-    height: calc(100vh - var(--gap-lg) * 2);
+    min-height: calc(100vh - var(--top-bar-height) - var(--gap-lg) * 2);
 }
 
 .card {
@@ -111,6 +110,12 @@
     grid-area: heatmap;
 }
 
+.heatmap-problems-graph .chart-wrapper {
+    overflow-x: auto;
+    max-width: 592px; /* Adjust as needed for responsiveness */
+    width: 100%;
+}
+
 .evolution-cookies {
     grid-area: evolution;
     position: relative;
@@ -119,7 +124,11 @@
 }
 
 .chart-card {
+    display: flex;
+    flex-direction: column;
     gap: var(--gap-md);
+    height: 100%; 
+    /* min-height: 350px; */
 }
 
 .chart-header {
@@ -139,8 +148,9 @@
 
 .chart-wrapper {
     position: relative;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
 }
 
 .chart-host {
@@ -152,7 +162,9 @@
 }
 
 .chart-host--heatmap {
-    min-height: 320px;
+    position: relative;
+    height: 190px !important;
+    /* min-width: 450px; */
 }
 
 /* highlight */
@@ -182,4 +194,23 @@
     color: var(--disabled-text); 
     padding: var(--gap-sm) 0;
     border-bottom: none;
+}
+
+@media (max-width: 1024px) {
+    .content-area {
+        grid-template-columns: 1fr;
+        grid-template-areas: 
+            'progress'
+            'leaderboard'
+            'spider'
+            'heatmap'
+            'evolution'
+            'history';
+        grid-template-rows: auto;
+        height: auto;
+    }
+    
+    .chart-card {
+        min-height: 400px;
+    }
 }

@@ -15,6 +15,12 @@ export class ChartMaker {
 
         this.chart = echarts.init(this.container);
 
+        window.addEventListener('resize', () => {
+            if (this.chart) {
+                this.chart.resize();
+            }
+        });
+
         // COLOUR PALETTE
         const bodyStyle = window.getComputedStyle(document.body);
 
@@ -28,6 +34,7 @@ export class ChartMaker {
 
         this.textColor = this.#getHexFromVar(bodyStyle, '--text-colour-primary-button');
         this.contrastColor = this.#getHexFromVar(bodyStyle, '--contrast', '#ffffff');
+        this.bgColor = this.#getHexFromVar(bodyStyle, '--fundal', '#ffffff');
 
         this.stepColors = this.#generateColor('primary', 5);
 
@@ -92,15 +99,11 @@ export class ChartMaker {
                 fontFamily: this.fontFamily,
                 color: this.textColor
             },
-            title: {
-                text: data.title,
-                textStyle: {
-                    color: this.textColor
-                }
-            },
             tooltip: {},
             color: this.themeColors,
             radar: {
+                center: ['50%', '50%'],
+                radius: '75%',
                 indicator: data.labels.map(label => ({ name: label })),
                 axisName: {
                     color: this.textColor
@@ -119,46 +122,28 @@ export class ChartMaker {
     }
 
     createCalendarHeatmap(data) {
-        /* 
-        Structure of data:
-        {
-            "startDate": "2025-12-12T14:10:35.510423+02:00",
-            "endDate": "2026-05-07T15:46:55.117302+03:00",
-            "cells": [
-                {
-                    "Day": "2026-05-07T00:00:00Z",
-                    "ActivityCount": 15,
-                    "TotalXp": 196,
-                    "Intensity": 1
-                },
-                {
-                    "Day": "2026-05-06T00:00:00Z",
-                    "ActivityCount": 3,
-                    "TotalXp": 108,
-                    "Intensity": 0.3
-                },
-                {
-                    "Day": "2026-05-04T00:00:00Z",
-                    "ActivityCount": 1,
-                    "TotalXp": 104,
-                    "Intensity": 0.1
-                },
-                {
-                    "Day": "2026-05-03T00:00:00Z",
-                    "ActivityCount": 1,
-                    "TotalXp": 101,
-                    "Intensity": 0.1
-                }
-            ]
-        }
-        
-        */
-       
         const maxVal = Math.max(...data.cells.map(v => v.ActivityCount || 0));
         const heatmapMax = Math.max(15, maxVal);
 
+        const start = data.startDate ? data.startDate.split('T')[0] : '2024-01-01';
+        const end = data.endDate ? data.endDate.split('T')[0] : '2024-12-31';
+
+        const startDateObj = new Date(start);
+        const endDateObj = new Date(end);
+        const diffDays = Math.ceil(Math.abs(endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
+        const weeks = Math.ceil(diffDays / 7) + 1;
+        const cellWidth = 20; 
+        const paddingLeft = 35;
+        const paddingRight = 20;
+        const requiredWidth = (weeks * cellWidth) + paddingLeft + paddingRight;
+
+        // 2. Set min-width to force scroll, max-width is handled by the parent CSS
+        this.container.style.minWidth = `${requiredWidth}px`; 
+        this.container.style.width = '100%'; // Ensure it fills the scrollable area
+        this.chart.resize();
+        // ------------------------------------------------
+
         const calendarOption = {
-            backgroundColor: this.contrastColor,
             textStyle: {
                 fontFamily: this.fontFamily,
                 color: this.textColor
@@ -168,7 +153,8 @@ export class ChartMaker {
                 textStyle: { color: this.textColor }
             },
             tooltip: {
-                position: 'top',
+                position: 'bottom',
+                confine: true, // IMPORTANT: Prevents the tooltip from being cut off by the scroll boundaries
                 formatter: function (params) {
                     return `<strong>${params.value[0]}</strong><br/>Commits: ${params.value[1]}`;
                 }
@@ -178,10 +164,9 @@ export class ChartMaker {
                 max: heatmapMax,
                 type: 'piecewise',
                 orient: 'horizontal',
-                left: 'center',
-                bottom: '5%',
+                left: paddingLeft, // Aligned to the left so it doesn't get lost inside a wide scroll
+                bottom: '0%', // Pushed slightly further down to avoid overlapping the new scrollbar
                 inRange: {
-                    // GitHub Green Palette (Lightest to Darkest)
                     color: [this.stepColors[4], this.stepColors[3], this.stepColors[2], this.stepColors[1], this.stepColors[0]]
                 },
                 textStyle: {
@@ -189,20 +174,28 @@ export class ChartMaker {
                 }
             },
             calendar: {
-                top: 80,
-                bottom: 80,
-                left: 40,
-                right: 20,
-                cellSize: ['auto', 'auto'],
-                range: [data.startDate, data.endDate],
+                top: 30, // Clearance for titles
+                left: paddingLeft, // Matched with our variable
+                cellSize: [cellWidth, 20], // IMPORTANT: Force [width, height] so ECharts doesn't shrink cells
+                range: [start, end],
 
+                splitLine: {
+                    show: false, 
+                    lineStyle: {
+                        color: this.themeColors[0],
+                        width: 2,
+                        type: 'solid'
+                    }
+                },
                 itemStyle: {
-                    borderWidth: 3,
-                    borderColor: this.contrastColor
+                    borderWidth: 2,
+                    borderColor: this.bgColor,
+                    color: this.contrastColor,
+                    borderRadius: 4
                 },
                 yearLabel: { show: false },
                 dayLabel: {
-                    firstDay: 1, // Start with Monday
+                    firstDay: 1, 
                     nameMap: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
                     color: this.textColor
                 },
@@ -216,7 +209,7 @@ export class ChartMaker {
                 type: 'heatmap',
                 coordinateSystem: 'calendar',
                 data: data.cells.map(cell => [
-                    cell.Day.slice(0, 10), // Format as 'YYYY-MM-DD'
+                    cell.Day.slice(0, 10),
                     cell.ActivityCount || 0
                 ]),
                 backgroundColor: this.contrastColor
@@ -236,12 +229,19 @@ export class ChartMaker {
                 fontFamily: this.fontFamily,
                 color: this.textColor
             },
-            title: {
+            /*title: {
                 text: data.title,
                 textStyle: { color: this.textColor }
-            },
+            },*/
             tooltip: {},
             color: this.themeColors,
+            grid: {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 20,
+                containLabel: true
+            },
             xAxis: {
                 type: 'category',
                 data: data.labels,

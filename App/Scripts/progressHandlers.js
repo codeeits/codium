@@ -160,11 +160,11 @@ function populateLeaderboard(leaderboardData, currentUserId) {
     }
 }
 
-function initializeCharts(heatmapData) {
+function initializeCharts(heatmapData, lineChartData) {
     const charts = [
         ['spiderChart', 'createSpiderChart', skillData],
         ['heatmapChart', 'createCalendarHeatmap', heatmapData], 
-        ['evolutionChart', 'createLineChart', cookiesEvolutionData],
+        ['evolutionChart', 'createLineChart', lineChartData],
         ['historyChart', 'createLineChart', historyData]
     ];
 
@@ -215,6 +215,15 @@ async function init() {
         console.error("Failed to fetch heatmap data:", error);
     }
 
+    let lineChartData = null;
+    try {
+        if (window.apiService && window.apiService.game) {
+            lineChartData = await window.apiService.game.getLineChartData();
+        }
+    } catch (error) {
+        console.error("Failed to fetch line chart data:", error);
+    }
+
     await new Promise((resolve) => {
         setTimeout(resolve, 350);
     });
@@ -226,7 +235,7 @@ async function init() {
     const fontReady = document.fonts?.ready ?? Promise.resolve();
     await fontReady;
 
-    initializeCharts(heatmapData);
+    initializeCharts(heatmapData, lineChartData);
 
     const leaderboardData = await window.apiService.game.formatLeaderboard();
     const currentUserId = await window.apiService.users.getCurrentUserID();

@@ -81,12 +81,44 @@ export class GameService {
         }
     }
 
-    async getHeatmap() {
+    async getHeatmap(endDate = new Date(Date.now()), startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)) {
         try {
-            const response = await this.api.get(`/api/users/heatmap`);
+            const response = await this.api.get(`/api/users/heatmap?startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`);
             return response;
         } catch (error) {
             console.error('Error fetching leaderboard heatmap:', error);
+            throw error;
+        }
+    }
+
+    async getLineChartData(endDate = new Date(), startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)) {
+        try {
+            const response = await this.api.get(`/api/users/heatmap?startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`);
+            
+            const entries = response.cells || response;
+
+            const monthlyAggregates = {};
+            
+            entries.forEach(entry => {
+                const date = new Date(entry.Day);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                monthlyAggregates[monthKey] = (monthlyAggregates[monthKey] || 0) + entry.ActivityCount; 
+            });
+
+            const sortedMonths = Object.keys(monthlyAggregates).sort();
+            const chartData = sortedMonths.map(month => monthlyAggregates[month]);
+
+            return {
+                title: 'Cookie Evolution',
+                labels: sortedMonths, 
+                series: [{
+                    name: 'Cookies',
+                    data: chartData
+                }]
+            }
+        } catch (error) {
+            console.error('Error fetching leaderboard line chart:', error);
             throw error;
         }
     }
@@ -130,7 +162,7 @@ export class GameService {
         };
 
         const level = formula(score);
-        return dict[level] || `Level ${level}`;
+        return (dict[level] !== undefined) ? `${dict[level]} • Level ${level}` || `Level ${level}` : `Level ${level}`;
     }
 
     async getAccScore() {
