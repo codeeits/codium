@@ -474,7 +474,7 @@ func (q *Queries) GetLessonsByLanguage(ctx context.Context, arg GetLessonsByLang
 
 const getLessonsBySearchQuery = `-- name: GetLessonsBySearchQuery :many
 SELECT id, title, description, content_id, author_id, created_at, updated_at, flags, next_lesson_id, prev_lesson_id, section_starter, suggested, thumbnail_id, language FROM lessons
-WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+WHERE (title ILIKE '%' || $1 || '%') and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `

@@ -270,6 +270,11 @@ func (cfg *ApiCfg) GetProblemsDisambiguationHandler(w http.ResponseWriter, r *ht
 		cfg.GetProblemsByAuthorHandler(w, r)
 	case "source":
 		cfg.GetProblemsBySourceHandler(w, r)
+	case "search":
+		cfg.GetProblemsBySearchHandler(w, r)
+	default:
+		cfg.Logger.Printf("Invalid search_type: %v", searchType)
+		http.Error(w, "Invalid search_type", http.StatusBadRequest)
 	}
 }
 

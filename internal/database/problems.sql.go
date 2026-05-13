@@ -242,7 +242,7 @@ func (q *Queries) GetProblemsByAuthorID(ctx context.Context, arg GetProblemsByAu
 
 const getProblemsBySearchQuery = `-- name: GetProblemsBySearchQuery :many
 SELECT id, title, description, tags, source, created_at, updated_at, first_test, thumbnail_file_id, author_id, suggested, total_tests FROM problems
-WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+WHERE (title ILIKE '%' || $1 || '%') and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `

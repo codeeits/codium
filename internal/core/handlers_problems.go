@@ -328,6 +328,29 @@ func (cfg *ApiCfg) GetProblemsBySourceHandler(w http.ResponseWriter, r *http.Req
 	cfg.WriteListJsonOutput(w, http.StatusOK, problemsToAny(problems), PrintProblemToJson)
 }
 
+func (cfg *ApiCfg) GetProblemsBySearchHandler(w http.ResponseWriter, r *http.Request) {
+	cfg.Logger.Print("Received get problems by search request")
+	search := r.URL.Query().Get("search")
+	if search == "" {
+		cfg.Logger.Printf("Missing search parameter in request")
+		http.Error(w, "Missing search parameter", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.Db.GetProblemsBySearchQuery(r.Context(), database.GetProblemsBySearchQueryParams{
+		Column1: sql.NullString{Valid: true, String: search},
+		Limit:   30,
+		Offset:  0,
+	})
+	if err != nil {
+		cfg.Logger.Printf("Failed to retrieve problems by search: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, problemsToAny(res), PrintProblemToJson)
+}
+
 func (cfg *ApiCfg) UpdateProblemFirstTestHandler(w http.ResponseWriter, r *http.Request, targetProblem database.Problem) {
 	// database check is done in the disambiguation function
 

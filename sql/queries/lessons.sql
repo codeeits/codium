@@ -141,6 +141,6 @@ ORDER BY created_at ASC;
 
 -- name: GetLessonsBySearchQuery :many
 SELECT * FROM lessons
-WHERE (title ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%') and suggested = FALSE
+WHERE (title ILIKE '%' || $1 || '%') and suggested = FALSE
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
