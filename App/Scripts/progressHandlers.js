@@ -20,6 +20,19 @@ const skillData = {
     }]
 };
 
+const leaderboardData = [
+    { username: 'Alice', cookies: 13240 },
+    { username: 'Bob', cookies: 11720 },
+    { username: 'Charlie', cookies: 10100 },
+    { username: 'David', cookies: 8700 },
+    { username: 'Eve', cookies: 7800 },
+    { username: 'Frank', cookies: 6900 },
+    { username: 'Grace', cookies: 6200 },
+    { username: 'Heidi', cookies: 5100 },
+    { username: 'Ivan', cookies: 4200 },
+    { username: 'Judy', cookies: 3500 }
+];
+
 const monthlyLabels = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const cookiesEvolutionData = {
@@ -58,6 +71,51 @@ async function updateSummaryCards(progressData) {
     }
 }
 
+function populateLeaderboard(leaderboardData) {
+    const top3Template = document.querySelector('.card.top-3-user.template');
+    const top3Container = document.querySelector('.top-3');
+    
+    // clear existing entries except the template
+    top3Container.querySelectorAll('.card.top-3-user:not(.template)').forEach(card => card.remove());
+
+    for (let i = 0; i < 3; i++) {
+        const { username, cookies } = leaderboardData[i] || { username: 'N/A', cookies: 0 };
+        const userCard = top3Template.cloneNode(true);
+
+        userCard.classList.remove('template');
+        userCard.classList.remove('hidden');
+        userCard.querySelector('.top-3-user-username').textContent = username;
+        userCard.querySelector('.top-3-user-level').textContent = window.apiService.game.getLevel(cookies);
+
+        const positionClass = `position-${i + 1}`;
+        userCard.querySelector('.position-label').textContent = `#${i + 1}`;
+        userCard.classList.add(positionClass);
+
+        top3Container.appendChild(userCard);
+    }
+
+    // render the rest of the leaderboard as a table
+    const tableBody = document.querySelector('.leaderboard-table tbody');
+    tableBody.innerHTML = ''; // clear existing rows
+    
+    for (let i = 3; i < leaderboardData.length; i++) {
+        const { username, cookies } = leaderboardData[i];
+        const row = document.createElement('tr');
+        const positionCell = document.createElement('td');
+        const usernameCell = document.createElement('td');
+        const levelCell = document.createElement('td');
+
+        positionCell.textContent = i + 1;
+        usernameCell.textContent = username;
+        levelCell.textContent = window.apiService.game.getLevel(cookies);
+
+        row.appendChild(positionCell);
+        row.appendChild(usernameCell);
+        row.appendChild(levelCell);
+        tableBody.appendChild(row);
+    }
+}
+
 function initializeCharts(heatmapData) {
     const charts = [
         ['spiderChart', 'createSpiderChart', skillData],
@@ -88,7 +146,7 @@ function initializeCharts(heatmapData) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function init() {
     const stateDefaults = {
         userLevel: '0',
         userCookies: '0',
@@ -125,4 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fontReady;
 
     initializeCharts(heatmapData);
-});
+    populateLeaderboard(leaderboardData);
+}
+
+document.addEventListener('DOMContentLoaded', init);

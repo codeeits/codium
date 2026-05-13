@@ -24,6 +24,10 @@
     --base-warning-border:             #7A7438;
     --base-danger-border:              #341826;
 
+    --base-gold:                       #D4AF37;
+    --base-silver:                     #C0C0C0;
+    --base-bronze:                     #CD7F32;
+
     --base-text-cream:                 #FFFCEB;
     --base-border-subtle:              rgba(255, 255, 255, 0.1);
     --base-card-shadow:                0px 0px 5px 0px rgba(255, 255, 255, 0.25);
