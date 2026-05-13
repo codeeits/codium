@@ -26,9 +26,9 @@ export default class AnimHelpers {
 
     static NewVectorFromTemplateWithDifferentHeights(template: HTMLElement, parent: Container, width: number, height: number[], start_x: number, start_y: number, n: number, spacing: number = 0): Container[] {
         let containers: Container[] = [];
-        let individualWidth = width / n;
+        let individualWidth = width / n - 2 * spacing;
         for (let i = 0; i < n; i++) {
-            let container = new Container(individualWidth, height[i], start_x + (individualWidth + 2*spacing) * i, start_y, template);
+            let container = new Container(individualWidth, height[i], start_x + (individualWidth + 2*spacing) * i, parent.height - height[i] + start_y, template);
             parent.addChild(container);
             containers.push(container);
         }
@@ -241,9 +241,15 @@ export class InitHelpers {
     * @param parent - The Container to which the initialized vector will be added as a child.
      * @return An array of Containers representing the individual elements of the vector, which can be used in AnimHelpers animations.
      */
-    static InitSortVector(values: number[], vectorTemplate: HTMLDivElement, elementTemplate: HTMLDivElement, elementTextComponentTemplate: HTMLSpanElement | null, parent: Container): {container: Container, value: number}[] {
+    static InitSortVector(values: number[], vectorTemplate: HTMLDivElement, elementTemplate: HTMLDivElement, elementTextComponentTemplate: HTMLSpanElement | null, parent: Container, spacing :number = 2): {container: Container, value: number}[] {
+        let n = 0
+        for (let value of values) {
+            if (value > n) {
+                n = value
+            }
+        }
         let vector:Container = AnimHelpers.NewBoxFromTemplate(vectorTemplate, parent, parent.width, parent.height, parent.rel_x, parent.rel_y);
-        let containers = AnimHelpers.NewVectorFromTemplateWithDifferentHeights(elementTemplate, vector, vector.width, values, vector.rel_x, vector.rel_y, values.length, 2)
+        let containers = AnimHelpers.NewVectorFromTemplateWithDifferentHeights(elementTemplate, vector, vector.width, values.map(value => (value / n) * vector.height), vector.rel_x, vector.rel_y, values.length, spacing)
         if (elementTextComponentTemplate) {
             for (let container of containers) {
                 let textComponent = elementTextComponentTemplate.cloneNode(true) as HTMLSpanElement;

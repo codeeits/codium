@@ -23,7 +23,7 @@ elementTextTemplate.style.verticalAlign = "middle";
 let vectorTemplate = document.createElement("div");
 vectorTemplate.style.backgroundColor = "white";
 
-let vector = InitHelpers.InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextTemplate, root)
+let vector = InitHelpers.InitSortVector([10, 2, 3, 4, 5, 6, 7, 8, 9], vectorTemplate, elementTemplate, elementTextTemplate, root, 5)
 
 view.render();
 
@@ -35,6 +35,6 @@ function compare(a, b) {
 
 AnimHelpers.SetAnimator(animator);
 
-PrefabAnimations.MERGE_SORT_ANIMATION(vector, compare, scheduleRender, new Settings("", "", "", 10));
+PrefabAnimations.BUBBLE_SORT_ANIMATION(vector, compare, scheduleRender, new Settings("", "", "", 1));
 
 animator.Start();
