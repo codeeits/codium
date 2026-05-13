@@ -311,6 +311,41 @@ func (cfg *ApiCfg) GetSuggestedLessonsHandler(w http.ResponseWriter, r *http.Req
 	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(filteredLessons), PrintLessonToJson)
 }
 
+func (cfg *ApiCfg) GetLessonsBySearchHandler(w http.ResponseWriter, r *http.Request) {
+	// Database check done in disambiguation function
+	queries := r.URL.Query()
+	if len(queries) < 1 {
+		cfg.Logger.Printf("Missing query parameter 'search'")
+		http.Error(w, "Missing query parameter 'search'", http.StatusBadRequest)
+		return
+	}
+
+	search := queries.Get("search")
+	if search == "" {
+		cfg.Logger.Printf("Missing query parameter 'search'")
+		http.Error(w, "Missing query parameter 'search'", http.StatusBadRequest)
+		return
+	}
+
+	res, err := cfg.Db.GetLessonsBySearchQuery(r.Context(), database.GetLessonsBySearchQueryParams{
+		Column1: sql.NullString{String: search, Valid: true},
+		Limit:   30,
+		Offset:  0,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			cfg.Logger.Printf("Lesson not found with specified search")
+			http.Error(w, "Lesson not found", http.StatusNotFound)
+			return
+		}
+		cfg.Logger.Printf("Failed to retrieve lessons: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cfg.WriteListJsonOutput(w, http.StatusOK, lessonsToAny(res), PrintLessonToJson)
+}
+
 func (cfg *ApiCfg) DeleteLessonHandler(w http.ResponseWriter, r *http.Request, sendingUser database.User) {
 	// Check if database is connected
 	if !cfg.DatabaseCfg.Loaded {

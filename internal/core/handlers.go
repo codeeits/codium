@@ -97,6 +97,8 @@ func (cfg *ApiCfg) GetLessonDisambiguationHandler(w http.ResponseWriter, r *http
 		cfg.GetSectionStarterLessonsHandler(w, r)
 	case "language":
 		cfg.GetLessonsByLanguage(w, r)
+	case "search":
+		cfg.GetLessonsBySearchHandler(w, r)
 	default:
 		cfg.Logger.Printf("Invalid search_type: %v", searchType)
 	}
