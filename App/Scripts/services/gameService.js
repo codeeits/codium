@@ -24,6 +24,25 @@ export class GameService {
         }
     }
 
+    async formatLeaderboard() {
+        const leaderboard = await this.getLeaderboard();
+        for (const entry of leaderboard) {
+            // get username
+            try {
+                const userResponse = await this.api.users.getUserById(entry.UserID);
+                // console.log('User response:', userResponse);
+                entry.username = userResponse.Username || 'Unknown';
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+        return leaderboard.map(entry => ({
+            username: entry.username,
+            userid: entry.UserID,
+            cookies: entry.Score || entry.XP || 0 
+        }));
+    }
+
     async getCurrentUserEntry(userId = null) {
         if (!userId) {
             const currentUser = await this.api.users.getCurrentUser();

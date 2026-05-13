@@ -154,3 +154,32 @@
 .chart-host--heatmap {
     min-height: 320px;
 }
+
+/* highlight */
+
+.top-3-user.current-user {
+    background-color: var(--border-subtle);
+    outline: 2px solid var(--primary); 
+    border: none;
+}
+
+.leaderboard-table tbody tr.current-user {
+    background-color: var(--border-subtle);
+    font-weight: bold;
+    outline: 2px solid var(--primary);
+}
+
+.leaderboard-table tbody tr.ellipsis-row {
+    background-color: transparent !important;
+    pointer-events: none;
+    user-select: none;
+}
+
+.leaderboard-table tbody tr.ellipsis-row td {
+    text-align: center;
+    letter-spacing: 4px;
+    font-size: var(--h3-font-size);
+    color: var(--disabled-text); 
+    padding: var(--gap-sm) 0;
+    border-bottom: none;
+}

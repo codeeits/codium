@@ -20,18 +20,18 @@ const skillData = {
     }]
 };
 
-const leaderboardData = [
-    { username: 'Alice', cookies: 13240 },
-    { username: 'Bob', cookies: 11720 },
-    { username: 'Charlie', cookies: 10100 },
-    { username: 'David', cookies: 8700 },
-    { username: 'Eve', cookies: 7800 },
-    { username: 'Frank', cookies: 6900 },
-    { username: 'Grace', cookies: 6200 },
-    { username: 'Heidi', cookies: 5100 },
-    { username: 'Ivan', cookies: 4200 },
-    { username: 'Judy', cookies: 3500 }
-];
+/*const leaderboardData = [
+    { username: 'Alice', cookies: 13240, userId: 5656565 },
+    { username: 'Bob', cookies: 11720, userId: 5656565 },
+    { username: 'Charlie', cookies: 10100, userId: 5656565 },
+    { username: 'David', cookies: 8700, userId: 5656565 },
+    { username: 'Eve', cookies: 7800, userId: 5656565 },
+    { username: 'Frank', cookies: 6900, userId: 5656565 },
+    { username: 'Grace', cookies: 6200, userId: 5656565 },
+    { username: 'Heidi', cookies: 5100, userId: 5656565 },
+    { username: 'Ivan', cookies: 4200, userId: 5656565 },
+    { username: 'Judy', cookies: 3500, userId: 5656565 }
+];*/
 
 const monthlyLabels = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -71,48 +71,92 @@ async function updateSummaryCards(progressData) {
     }
 }
 
-function populateLeaderboard(leaderboardData) {
+function populateLeaderboard(leaderboardData, currentUserId) {
     const top3Template = document.querySelector('.card.top-3-user.template');
     const top3Container = document.querySelector('.top-3');
     
-    // clear existing entries except the template
     top3Container.querySelectorAll('.card.top-3-user:not(.template)').forEach(card => card.remove());
 
     for (let i = 0; i < 3; i++) {
-        const { username, cookies } = leaderboardData[i] || { username: 'N/A', cookies: 0 };
-        const userCard = top3Template.cloneNode(true);
+        const entry = leaderboardData[i];
+        if (!entry) continue;
 
+        const username = entry.username || 'N/A';
+        const score = entry.cookies !== undefined ? entry.cookies : entry.xp || 0;
+        const userId = entry.userId || entry.userid;
+
+        const userCard = top3Template.cloneNode(true);
         userCard.classList.remove('template');
         userCard.classList.remove('hidden');
         userCard.querySelector('.top-3-user-username').textContent = username;
-        userCard.querySelector('.top-3-user-level').textContent = window.apiService.game.getLevel(cookies);
+        userCard.querySelector('.top-3-user-level').textContent = window.apiService.game.getLevel(score);
+
+        userCard.dataset.userId = userId;
 
         const positionClass = `position-${i + 1}`;
         userCard.querySelector('.position-label').textContent = `#${i + 1}`;
         userCard.classList.add(positionClass);
 
+        if (userId === currentUserId) {
+            userCard.classList.add('current-user');
+        }
+
         top3Container.appendChild(userCard);
     }
 
-    // render the rest of the leaderboard as a table
     const tableBody = document.querySelector('.leaderboard-table tbody');
     tableBody.innerHTML = ''; // clear existing rows
     
-    for (let i = 3; i < leaderboardData.length; i++) {
-        const { username, cookies } = leaderboardData[i];
-        const row = document.createElement('tr');
-        const positionCell = document.createElement('td');
-        const usernameCell = document.createElement('td');
-        const levelCell = document.createElement('td');
+    const currentUserIndex = leaderboardData.findIndex(u => (u.userId || u.userid) === currentUserId);
+    
+    const maxStandardRows = Math.min(leaderboardData.length, 10);
 
-        positionCell.textContent = i + 1;
+    const createRow = (entry, index, isCurrentUser) => {
+        const username = entry.username || 'N/A';
+        const score = entry.cookies !== undefined ? entry.cookies : entry.xp || 0;
+        const userId = entry.userId || entry.userid;
+
+        const row = document.createElement('tr');
+        row.dataset.userId = userId;
+        if (isCurrentUser) {
+            row.classList.add('current-user');
+        }
+
+        const positionCell = document.createElement('td');
+        positionCell.textContent = index + 1;
+        
+        const usernameCell = document.createElement('td');
         usernameCell.textContent = username;
-        levelCell.textContent = window.apiService.game.getLevel(cookies);
+        
+        const levelCell = document.createElement('td');
+        levelCell.textContent = window.apiService.game.getLevel(score);
 
         row.appendChild(positionCell);
         row.appendChild(usernameCell);
         row.appendChild(levelCell);
-        tableBody.appendChild(row);
+        
+        return row;
+    };
+
+    // Render ranks 4 through 10
+    for (let i = 3; i < maxStandardRows; i++) {
+        const isCurrentUser = (i === currentUserIndex);
+        tableBody.appendChild(createRow(leaderboardData[i], i, isCurrentUser));
+    }
+
+    if (currentUserIndex >= 10) {
+        // Create the "..." separator row
+        const ellipsisRow = document.createElement('tr');
+        ellipsisRow.classList.add('ellipsis-row');
+        
+        const ellipsisCell = document.createElement('td');
+        ellipsisCell.colSpan = 3;
+        ellipsisCell.textContent = '...';
+        ellipsisRow.appendChild(ellipsisCell);
+        
+        tableBody.appendChild(ellipsisRow);
+
+        tableBody.appendChild(createRow(leaderboardData[currentUserIndex], currentUserIndex, true));
     }
 }
 
@@ -183,7 +227,11 @@ async function init() {
     await fontReady;
 
     initializeCharts(heatmapData);
-    populateLeaderboard(leaderboardData);
+
+    const leaderboardData = await window.apiService.game.formatLeaderboard();
+    const currentUserId = await window.apiService.users.getCurrentUserID();
+    
+    populateLeaderboard(leaderboardData, currentUserId);
 }
 
 document.addEventListener('DOMContentLoaded', init);
