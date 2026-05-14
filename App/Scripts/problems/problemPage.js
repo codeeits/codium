@@ -117,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         isNewUi: !!elements.sourceContainer,
         problemData: null,
         solutions: [],
+        noCorrectSolutions: 0,
         meta: {
             title: '',
             author: '67',
@@ -286,10 +287,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadSolutionStats() {
         try {
-            const countData = await window.apiService.problems.countSolutionsForProblem(state.problemId);
+            const countData = await window.apiService.problems.countSolutionsForProblem(state.problemId, true);
             if (countData) {
-                if (elements.solutionsCount) elements.solutionsCount.textContent = countData.count_total || 0;
-                if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = countData.count_correct || 0;
+                console.log("Solution stats:", countData);
+                if (elements.solutionsCount) elements.solutionsCount.textContent = countData || 0;
+                if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = state.noCorrectSolutions || 0;
             }
         } catch (e) {
             if (debugMode) console.warn("Could not load solution stats:", e);
@@ -298,8 +300,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadMySolutions() {
         try {
-            const solutions = await window.apiService.problems.getSolutionsByProblem(state.problemId);
+            const solutions = await window.apiService.problems.getSolutionsByUser(window.StateEngine.state.user.userId, state.problemId);
+            const correctSol = solutions.filter(sol => sol.status === 'passed');
             state.solutions = solutions || [];
+            state.noCorrectSolutions = correctSol.length || 0;
             renderMySolutions();
         } catch (e) {
             if (debugMode) console.warn("Could not load my solutions:", e);

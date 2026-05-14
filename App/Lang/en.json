@@ -491,7 +491,7 @@
         },
         "problems": {
             "complete": {
-                "placeholder": "You completed the lesson!"
+                "placeholder": "You solved the problem!"
             }
         },
         "streaks": {

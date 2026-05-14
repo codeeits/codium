@@ -491,7 +491,7 @@
         },
         "problems": {
             "complete": {
-                "placeholder": "Ai finalizat lecția!"
+                "placeholder": "Ai rezolvat problema!"
             }
         },
         "streaks": {

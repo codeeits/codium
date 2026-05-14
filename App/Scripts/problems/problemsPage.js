@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
                 const hasValidMimeType = validMimeTypes.includes(fileType);
 
-                if (!hasValidExtension || (fileType !== "" && !hasValidMimeType)) {
+                if (!hasValidExtension) {
                     toastsLoader.showToast("{{server_events.toasts.file-type-not-allowed}}", "danger");
                     throw new Error('Unsupported file type. Only PY and C++ files are allowed.');
                 }

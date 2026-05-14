@@ -247,9 +247,19 @@ export class ProblemService {
              throw new Error(`A valid ID is required for search_type: ${data.search_type}`);
         }
 
-        const response = await this.api.get(`/api/solutions?search_type=${data.search_type}&${queryParam}=${queryValue}`, true);
+        let response = await this.api.get(`/api/solutions?search_type=${data.search_type}&${queryParam}=${queryValue}`, true);
 
-        const solutionsArray = Array.isArray(response) ? response : (response.solutions || []);
+        let solutionsArray = Array.isArray(response) ? response : (response.solutions || []);
+
+        if (data.search_type === 'user' && data.problem) {
+            solutionsArray = solutionsArray.filter(solution => solution.ProblemID === data.problem);
+            
+            if (Array.isArray(response)) {
+                response = solutionsArray;
+            } else {
+                response.solutions = solutionsArray;
+            }
+        }
 
         for (const solution of solutionsArray) {
             if (solution.ID) {
@@ -284,8 +294,19 @@ export class ProblemService {
         return this.getSolutions({ search_type: 'id', id: solutionId });
     }
 
-    async getSolutionsByUser(userId) {
-        return this.getSolutions({ search_type: 'user', user: userId });
+    async getSolutionsByUser(userId, problemId = null) {
+        if (!userId) {
+            const currentUser = await this.api.users.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        
+        return this.getSolutions({ search_type: 'user', user: userId, problem: problemId });
+    }
+
+    async getCorrectSolutionsByUser(userId, problemId = null) {
+        const allSolutions = await this.getSolutionsByUser(userId, problemId);
+        return allSolutions.filter(solution => solution.status === 'passed');
     }
 
     async getSolutionsByProblem(problemId) {
@@ -307,6 +328,11 @@ export class ProblemService {
 
     async countSolutionsForUser(userId) {
         return this.api.get(`/api/solutions/count?search_type=user&user_id=${userId}`, true);
+    }
+
+    async countCorrectSolutionsForUser(userId, problemId = null) {
+        const correctSolutions = await this.getCorrectSolutionsByUser(userId, problemId);
+        return correctSolutions.length;
     }
 
     async modifyBookmarkProblem(problemId) {

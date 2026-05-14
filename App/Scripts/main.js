@@ -917,13 +917,17 @@ async function initApp() {
 
     if (window.StateEngine) {
         window.StateEngine.init({
-            user: { xp: 0 }
+            user: { 
+                xp: 0,
+                userId: null
+            }
         });
         
         try {
             if (window.apiService) {
                 console.log('Fetching initial XP for authenticated user...');
                 window.StateEngine.state.user.xp = await window.apiService.game.getScore();
+                window.StateEngine.state.user.userId = await window.apiService.users.getCurrentUserID();
             }
         } catch (err) {
             console.warn('Could not fetch initial XP, user likely not logged in.');
