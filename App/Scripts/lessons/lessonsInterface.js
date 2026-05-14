@@ -381,23 +381,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (debugMode) console.log("[DEBUG] Starting sidebar rendering...");
-        //console.log("[DEBUG] Rendering sidebar for class:", state.meta.class);
-        elements.sidebarTitle.textContent = `Clasa a ${toRoman(state.meta.class)}-a`;
-        elements.sidebarTitle.dataset.i18n = `classe.${state.meta.class}`;
+        
+        const classKey = `classe.${state.meta.class}`;
+        const getVal = (key) => key.split('.').reduce((obj, part) => obj?.[part], window.currentTranslations || {});
+        
+        if (getVal(classKey)) {
+            elements.sidebarTitle.dataset.i18n = classKey;
+            elements.sidebarTitle.textContent = getVal(classKey);
+        } else {
+            delete elements.sidebarTitle.dataset.i18n;
+            elements.sidebarTitle.textContent = `{{classe.ned_}}${state.meta.class}`;
+        }
+        
+        window.applyTranslations(elements.sidebarTitle);
 
         try {
             const sectionArray = await window.apiService.lessons.getSectionsForClass(state.meta.class);
             if (debugMode) console.log("[DEBUG] Sections array:", sectionArray);
             
-            // if elements.sidebar is the new section container, we only render the current section
             if (elements.sidebar.id === "lectii-sectiune") {
                 if (debugMode) console.log("[DEBUG] Detected section container, rendering only current section:", state.meta.section);
-                // remove all children first apart of first div
                 await renderSidebarSection(state.meta.section, false); // isLegacyUI = false -> no section headers, only links
                 return;
             }
 
-            // Otherwise, we render all sections in the sidebar
             for (const sectionNumber of sectionArray) {
                 await renderSidebarSection(sectionNumber);
             }

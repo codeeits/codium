@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const switchDisplayBtn = document.getElementById('toggle-view-btn');
     const supriseBtn = document.getElementById('surprise-btn');
+    const removeSourceBtn = document.getElementById('remove-source');
 
     const canvas = document.getElementById('confetti-canvas');
 
@@ -39,7 +40,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentFilters = {
         class: 'all',
         sortBy: 'discover',
-        difficulty: 'all'
+        difficulty: 'all',
+        source: null
     };
     let currentView = 'grid'; // or 'feed'
     let feedScrollInitialized = false;
@@ -64,20 +66,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- FETCH DATA ---
-    async function fetchProblems(classFilter = null, difficultyFilter = null) {
-        try {
-            const response = await window.apiService.problems.getProblems(); // no implementation for filtering yet
-            if (response) {
-                problemsData = response;
+    async function fetchProblems(classFilter = null, difficultyFilter = null, sourceFilter = null) {
+        if (!sourceFilter) {
+            try {
+                const response = await window.apiService.problems.getProblems(); // no implementation for filtering yet
+                if (response) {
+                    problemsData = response;
+                }
+            } catch (error) {
+                console.error('Error fetching problems:', error);
+                if (debugMode) {
+                    problemsData = [
+                        { id: 1, problem: { ID: 101, Title: "Eureni", Description: { String: "Problema eurenilor" }, imageUrl: "" }, tag_translation: { class: "9" }, difficulty: "Easy" },
+                        { id: 2, problem: { ID: 102, Title: "Arrays", Description: { String: "Lists" }, imageUrl: "" }, tag_translation: { class: "10" }, difficulty: "Medium" },
+                        { id: 3, problem: { ID: 103, Title: "Z-Index Guide", Description: { String: "CSS Styles" }, imageUrl: "" }, tag_translation: { class: "10" }, difficulty: "Hard" }
+                    ];
+                }
             }
-        } catch (error) {
-            console.error('Error fetching problems:', error);
-            if (debugMode) {
-                problemsData = [
-                    { id: 1, problem: { ID: 101, Title: "Eureni", Description: { String: "Problema eurenilor" }, imageUrl: "" }, tag_translation: { class: "9" }, difficulty: "Easy" },
-                    { id: 2, problem: { ID: 102, Title: "Arrays", Description: { String: "Lists" }, imageUrl: "" }, tag_translation: { class: "10" }, difficulty: "Medium" },
-                    { id: 3, problem: { ID: 103, Title: "Z-Index Guide", Description: { String: "CSS Styles" }, imageUrl: "" }, tag_translation: { class: "10" }, difficulty: "Hard" }
-                ];
+        } else {
+            try {
+                const response = await window.apiService.problems.getProblemsBySource(sourceFilter);
+                if (response) {
+                    problemsData = response;
+                    window.StateEngine.state.problemsIndex.source = sourceFilter; // Update state with the applied source filter
+                    document.querySelector('.source-info').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching problems with source filter:', error);
             }
         }
     }
@@ -770,6 +785,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         applyDisplayMode(isFeedMode);
     });
 
+    removeSourceBtn.addEventListener('click', function() {
+        const url = new URL(window.location);
+        url.searchParams.delete('source');
+        window.history.replaceState({}, '', url);
+        location.reload();
+    })
+
     // --- INITIALIZATION ---
     async function initApp() {
 
@@ -779,8 +801,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return false; // Treat as not authenticated on error
             });
 
-             initDropdownFilters();
-            await fetchProblems();
+            if (window.StateEngine) {
+                window.StateEngine.init({
+                    problemsIndex: {
+                        source: 'none'
+                    }
+                })
+            }
+
+            // GET '?source=xx' param to pre-filter by source
+            const urlParams = new URLSearchParams(window.location.search);
+            const sourceFilter = urlParams.get('source');
+            if (sourceFilter) {
+                currentFilters.source = sourceFilter;
+                await fetchProblems(null, null, sourceFilter);
+            } else {
+                await fetchProblems();
+            }
+
+            initDropdownFilters();
 
             initSurpriseButton();
 

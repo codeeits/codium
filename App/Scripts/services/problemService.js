@@ -90,6 +90,15 @@ export class ProblemService {
         return this.api.get(`/api/problems?search_type=id&problem_id=${problemId}`, false);
     }
 
+    async getProblemsBySource(source) {
+        const response = await this.api.get(`/api/problems?search_type=source&source=${encodeURIComponent(source)}`, false);
+        if (response) {
+            return response;
+        } else {
+            throw new Error('Problem not found with the specified source');
+        }
+    }
+
     async getTestById(testId) {
         return this.api.get(`/api/tests/${testId}`, false);
     }

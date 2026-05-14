@@ -52,7 +52,8 @@
         "code_example": {
             "input": "ENTRADA: ",
             "output": "Sortida: "
-        }
+        },
+        "current-fetched-label": "Actualment mostrant problemes amb font: "
     },
 
     "tos-page": {
@@ -418,6 +419,8 @@
         "update": "Actualitza",
         "login": "Autentifica't",
         "register": "Registra't",
+
+        "remove_source": "Elimina la font",
         
         "comment": "settings specific buttons",
         "log-out": "Tanca la sessió",
@@ -458,6 +461,7 @@
     },
 
     "classe": {
+        "ned_": "Curs: ",
         "1": "1er curs",
         "2": "2n curs",
         "3": "3er curs",

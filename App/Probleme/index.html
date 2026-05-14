@@ -72,6 +72,10 @@
                         <button type="button" class="btn confirm" id="toggle-view-btn"><i class="fa-solid fa-grip"></i> <span class="no-style" data-i18n="problems-page.enable-feed-mode">Activează mod feed</span></button>
                     </div>
                 </div>
+                <div class="source-info hidden">
+                    <p>{{misc.current-fetched-label}}{[problemsIndex.source]}</p>
+                    <button type="button" id="remove-source" class="secondary btn">{{buttons.remove_source}}</button>
+                </div>
                 <div class="separator"></div>
                 <div class="problems-grid-container" id="problems-grid-container">
                     <div class="no-problems hidden" id="noResultsMessage">

@@ -52,7 +52,8 @@
         "code_example": {
             "input": "INPUT: ",
             "output": "OUTPUT: "
-        }
+        },
+        "current-fetched-label": "Currently showing problems with source: "
     },
 
     "tos-page": {
@@ -419,6 +420,8 @@
         "login": "Log in",
         "register": "Sign up",
 
+        "remove_source": "Remove source",
+
         "comment": "settings specific buttons",
         "log-out": "Log out",
         "support-button": "Contact support",
@@ -458,6 +461,7 @@
     },
 
     "classe": {
+        "ned_": "Grade: ",
         "1": "1st grade",
         "2": "2nd grade",
         "3": "3rd grade",

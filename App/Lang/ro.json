@@ -52,7 +52,8 @@
         "code_example": {
             "input": "INTRARE: ",
             "output": "IEȘIRE: "
-        }
+        },
+        "current-fetched-label": "Afișând probleme cu sursa: "
     },
 
     "tos-page": {
@@ -419,6 +420,8 @@
         "login": "Autentifică-te",
         "register": "Înregistrează-te",
 
+        "remove_source": "Șterge sursa",
+
         "comment": "settings specific buttons",
         "log-out": "Deconectare",
         "support-button": "Contactează-ne",
@@ -458,6 +461,7 @@
     },
 
     "classe": {
+        "ned_": "Clasa: ",
         "1": "Clasa a I-a",
         "2": "Clasa a II-a",
         "3": "Clasa a III-a",
