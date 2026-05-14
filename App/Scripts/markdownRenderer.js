@@ -77,6 +77,7 @@ export function extractCustomBlock(content, tag, modifyContent = true) {
 export function tomarkdown(text, state = {}) {
     if (!text) return '';
 
+    text = text.replace(/^([ \t]*)[–—](\s)/gm, '$1-$2');
     text = text.replace(/<!--\s*\{\s*"fold"\s*:\s*(?:true|false)\s*\}\s*-->/g, '');
 
     // --- RENDERER CONFIGURATION ---
@@ -103,16 +104,45 @@ export function tomarkdown(text, state = {}) {
         name: 'legacySubscript',
         level: 'inline',
         start(src) { 
-            const idx = src.indexOf('``');
-            return idx !== -1 ? idx : undefined; 
+            const match = /`?\w+``\w+/.exec(src);
+            return match ? match.index : undefined; 
         },
         tokenizer(src) {
-            const match = /^``(\w+)/.exec(src);
+            // Captures: 
+            // 1: Optional starting backtick
+            // 2: Base (e.g., 'b')
+            // 3: Subscript (e.g., 'i1', '3i')
+            const match = /^(`?)(\w+)``(\w+)\1/.exec(src);
+            
             if (match) {
-                return { type: 'legacySubscript', raw: match[0], text: match[1] };
+                return { 
+                    type: 'legacySubscript', 
+                    raw: match[0],
+                    hasBackticks: !!match[1], // True if it was wrapped in single backticks
+                    base: match[2],
+                    sub: match[3]
+                };
+            }
+            
+            // Fallback just in case there's an opening backtick but no closing one
+            const fallback = /^(\w+)``(\w+)/.exec(src);
+            if (fallback) {
+                return {
+                    type: 'legacySubscript',
+                    raw: fallback[0],
+                    hasBackticks: false,
+                    base: fallback[1],
+                    sub: fallback[2]
+                };
             }
         },
-        renderer(token) { return `<sub>${token.text}</sub>`; }
+        renderer(token) { 
+            // Build the HTML using the captured base and subscript
+            const content = `${token.base}<sub>${token.sub}</sub>`;
+            
+            // If the user wrapped it in single backticks, preserve the code styling
+            return token.hasBackticks ? `<code>${content}</code>` : content;
+        }
     };
 
     const superscript = {
