@@ -98,8 +98,56 @@ export function tomarkdown(text, state = {}) {
         },
     };
 
-    // --- DATA EXTRACTION ---
+    // --- CUSTOM EXTENSIONS (SUB/SUPERSCRIPT) ---
+    const legacySubscript = {
+        name: 'legacySubscript',
+        level: 'inline',
+        start(src) { 
+            const idx = src.indexOf('``');
+            return idx !== -1 ? idx : undefined; 
+        },
+        tokenizer(src) {
+            const match = /^``(\w+)/.exec(src);
+            if (match) {
+                return { type: 'legacySubscript', raw: match[0], text: match[1] };
+            }
+        },
+        renderer(token) { return `<sub>${token.text}</sub>`; }
+    };
 
+    const superscript = {
+        name: 'superscript',
+        level: 'inline',
+        start(src) { 
+            const idx = src.indexOf('^');
+            return idx !== -1 ? idx : undefined; 
+        },
+        tokenizer(src) {
+            const match = /^\^([^\^]+)\^/.exec(src);
+            if (match) {
+                return { type: 'superscript', raw: match[0], text: match[1] };
+            }
+        },
+        renderer(token) { return `<sup>${token.text}</sup>`; }
+    };
+
+    const subscript = {
+        name: 'subscript',
+        level: 'inline',
+        start(src) { 
+            const idx = src.indexOf('~');
+            return idx !== -1 ? idx : undefined; 
+        },
+        tokenizer(src) {
+            const match = /^~([^~]+)~/.exec(src);
+            if (match) {
+                return { type: 'subscript', raw: match[0], text: match[1] };
+            }
+        },
+        renderer(token) { return `<sub>${token.text}</sub>`; }
+    };
+
+    // --- DATA EXTRACTION ---
     const inputData = extractCustomBlock(text, 'input');
     text = inputData.cleanedText;
 
@@ -122,8 +170,11 @@ export function tomarkdown(text, state = {}) {
         ioHtml += `</div>`;
     }
 
-    // --- MARKED CONFIGURATION ---
-    marked.use({ renderer });
+    marked.use({ 
+        renderer,
+        extensions: [legacySubscript, superscript, subscript]
+    });
+    
     marked.setOptions({
         highlight: (code, lang) => {
             if (lang && hljs.getLanguage(lang)) {

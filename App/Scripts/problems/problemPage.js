@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         classlabel: document.getElementById("problem-class"),
         thumbnail: document.getElementById("problem-thumbnail"),
         description: document.getElementById("problem-description"),
-        testsCount: document.getElementById("tests-count"),
+        // testsCount: document.getElementById("tests-count"),
         codeEditor: document.getElementById("code-editor"),
         submitBtn: document.getElementById("submit-code-btn"),
         resultsContainer: document.getElementById("results-container"),
@@ -264,12 +264,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (p.FirstTest) {
                 try {
                     const testChain = await window.apiService.problems.getTestChainForFirstTest(p.FirstTest, null);
-                    if (elements.testsCount) elements.testsCount.textContent = testChain.length;
+                    window.StateEngine.state.problemMeta.testsCount = testChain.length || 0;
                 } catch (e) {
-                    if (elements.testsCount) elements.testsCount.textContent = "?";
+                    window.StateEngine.state.problemMeta.testsCount = -1; // Indicate error with -1
+                    if (debugMode) console.warn("Failed to fetch test chain:", e);
                 }
             } else {
-                if (elements.testsCount) elements.testsCount.textContent = "0";
+                window.StateEngine.state.problemMeta.testsCount = 0;
             }
 
             // Stats
@@ -286,24 +287,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function loadSolutionStats() {
-        try {
-            const countData = await window.apiService.problems.countSolutionsForProblem(state.problemId, true);
-            if (countData) {
-                console.log("Solution stats:", countData);
-                if (elements.solutionsCount) elements.solutionsCount.textContent = countData || 0;
-                if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = state.noCorrectSolutions || 0;
-            }
-        } catch (e) {
-            if (debugMode) console.warn("Could not load solution stats:", e);
-        }
+        // try {
+        //     const countData = await window.apiService.problems.countSolutionsForProblem(state.problemId, true);
+        //     if (countData) {
+        //         console.log("Solution stats:", countData);
+        //         if (elements.solutionsCount) elements.solutionsCount.textContent = countData || 0;
+        //         if (elements.correctSolutionsCount) elements.correctSolutionsCount.textContent = state.noCorrectSolutions || 0;
+        //     }
+        // } catch (e) {
+        //     if (debugMode) console.warn("Could not load solution stats:", e);
+        // }
+        console.warn('Deprecated loadSolutionStats, using StateEngine for real-time updates instead (this function can be removed)');
     }
 
     async function loadMySolutions() {
         try {
             const solutions = await window.apiService.problems.getSolutionsByUser(window.StateEngine.state.user.userId, state.problemId);
             const correctSol = solutions.filter(sol => sol.status === 'passed');
+            const noTotalSol = solutions.length;
             state.solutions = solutions || [];
+
+            // left for legacy reasons
             state.noCorrectSolutions = correctSol.length || 0;
+
+            // using StateEngine
+            if (window.StateEngine) {
+                window.StateEngine.state.problemMeta = {
+                    noCorrectSolutions: correctSol.length || 0,
+                    noTotalSolutions: noTotalSol || 0
+                };
+            }
+
             renderMySolutions();
         } catch (e) {
             if (debugMode) console.warn("Could not load my solutions:", e);
@@ -557,6 +571,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (debugMode) console.log("Initializing Problem Page...");
             if (state.isNewUi) console.log("New UI detected");
+
+            if (window.StateEngine) {
+                window.StateEngine.init({
+                    problemMeta: {
+                        noCorrectSolutions: 0,
+                        noTotalSolutions: 0,
+                        testsCount: 0
+                    }
+                });
+            }
 
             bookmarkToggle(true); 
 
