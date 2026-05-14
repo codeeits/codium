@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noLessons: 0,
         noProblems: 0,
         noTests: 0,
+        noCookies: 0,
         summaryItems: []
     };
 
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         metaNoLessons: document.querySelector('.section-meta-lessons'),
         metaNoProblems: document.querySelector('.section-meta-probleme'),
         metaNoTests: document.querySelector('.section-meta-tests'),
+        metaNoCookies: document.querySelector('.section-meta-reward'),
 
         bookmarkButton: document.querySelector('.section-bookmark'),
         startButton: document.querySelector('.section-start-btn'),
@@ -152,6 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = document.querySelector('.resumee-teste');
             if (container) {
                 container.style.display = 'none';
+            }
+        }
+
+        if (elements.metaNoCookies && window.StateEngine.state.sectionStarterData.noCookies === 0) {
+            elements.metaNoCookies.style.display = 'none';
+            if(elements.metaNoCookies.previousElementSibling) {
+                elements.metaNoCookies.previousElementSibling.style.display = 'none';
             }
         }
 
@@ -523,6 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     noLessons: 0,
                     noProblems: 0,
                     noTests: 0, // Placeholder, as we don't have tests yet
+                    noCookies: 0, // since it is random, can't be defined
                     progressPercentage: 0,
                     completedValue: 0,
                     progressingValue: 0,
