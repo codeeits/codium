@@ -60,8 +60,24 @@ export class ProblemService {
             // const matchesDifficulty = data.difficulty ? problem.tag_translation.difficulty === data.difficulty : true; // not implemented yet
             return matchesClass && matchesSection;
         });
+
+        /* return format: 
+            {
+                filteredProblems: Array of problem objects AND status of each problem for the current user (e.g. solved, attempted, not attempted),
+                total: number (total number of problems after filtering, useful for pagination if needed)
+            }
+        */
+        const problemsWithStatus = await Promise.all(
+            filteredProblems.map(async (problem) => {
+                const status = await this.getProblemStatus(problem.problem.ID);
+                return {
+                    ...problem,
+                    status: status || 'not attempted'
+                }
+            }),
+        );
         return {
-            filteredProblems: filteredProblems,
+            filteredProblems: problemsWithStatus,
             total: filteredProblems.length
         }
     }
@@ -302,6 +318,23 @@ export class ProblemService {
         }
         
         return this.getSolutions({ search_type: 'user', user: userId, problem: problemId });
+    }
+
+    async getProblemStatus(problemId, userId = null) {
+        // returns 'attempted', 'not attempted', 'solved'
+        if (!userId) {
+            const currentUser = await this.api.users.getCurrentUser();
+            const userData = typeof currentUser === 'string' ? JSON.parse(currentUser) : currentUser;
+            userId = userData.ID;
+        }
+        const solutions = await this.getSolutionsByUser(userId, problemId);
+        if (solutions.length === 0) {
+            return 'not attempted';
+        } else if (solutions.some(solution => solution.status === 'passed')) {
+            return 'solved';
+        } else {
+            return 'attempted';
+        }
     }
 
     async getCorrectSolutionsByUser(userId, problemId = null) {

@@ -222,10 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     titleEl.textContent = problem.problem.Title;
                 }
 
+                const status = problem.status || 'not attempted';
+                const uiStatus = mapParsedStatusToUI(status);
+                console.log(`Problema ${problem.problem.ID} are statusul ${status} mapat la UI ca ${uiStatus}`);
+
                 clone.dataset.problemId = problem.problem.ID;
 
-                applyStatus(clone, 'pending'); 
-                setupItemNavigation(clone); 
+                applyStatus(clone, uiStatus); 
+                setupItemNavigation(clone);
                 
                 container.appendChild(clone);
             });
@@ -256,11 +260,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function mapParsedStatusToUI(parsedStatus) {
         switch (parsedStatus) {
             case 'Completed':
+            case 'solved':
                 return 'done';
+
             case 'In Progress':
-                return 'progress';
+            case 'attempted':
             case 'Started':
                 return 'progress';
+
             default:
                 return 'pending';
         }
