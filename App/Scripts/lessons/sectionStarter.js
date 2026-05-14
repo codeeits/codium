@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sectionTitle: document.querySelector('.section-title'),
         sectionDescription: document.querySelector('.section-description'),
         sectionImage: document.querySelector('.section-image'),
+        sectionBread: document.querySelector('.section-bread'),
 
         metaNoLessons: document.querySelector('.section-meta-lessons'),
         metaNoProblems: document.querySelector('.section-meta-probleme'),
@@ -105,6 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (elements.sectionTitle) {
             elements.sectionTitle.textContent = Title;
+        }
+
+        if (elements.sectionBread) {
+            const module = state.starterLessonData.flag_translation.module;
+            const className = state.starterLessonData.flag_translation.class;
+            elements.sectionBread.textContent = `{{modules.${module}}} / {{classe.${className}}} /`;
+            window.applyTranslations(elements.sectionBread);
         }
 
         if (elements.sectionDescription) {
