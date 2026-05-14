@@ -12,6 +12,13 @@
     min-width: 600px;
 }
 
+#remove-source {
+    padding: var(--gap-sm);
+    font-size: var(--small-font-size);
+    font-weight: var(--small-font-weight);
+    border-radius: var(--border-radius-sm);
+}
+
 .content-card-body {
 
     justify-content: flex-start;

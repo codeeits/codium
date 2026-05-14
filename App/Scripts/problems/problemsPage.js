@@ -283,7 +283,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const upBtn = card.querySelector('.right-buttons .fa-chevron-up')?.closest('button');
             const downBtn = card.querySelector('.right-buttons .fa-chevron-down')?.closest('button');
             const fileInput = card.querySelector('.file-input');
-            console.log("Setting up buttons for problem ID:", problem.problem.ID, { upBtn, downBtn, fileInput });
             
             if (upBtn) upBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -310,7 +309,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setupDragAndDrop(elements, updateFileLabel, () => {
                     handleSubmission(fileInput, problem.problem.ID);
                 });
-                console.log("Initialized drag-and-drop for problem ID:", problem.problem.ID);
             }
 
             if (typeof window.applyTranslations === 'function') {
@@ -417,8 +415,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- FILTER BUTTONS LOGIC ---
     function populateClassFilters() {
-        const templateBtn = document.createElement('button');
-        templateBtn.classList.add('btn', 'template', 'hidden');
+        const templateBtn = filters.class.querySelector('.template');
         if (!templateBtn) return;
 
         // Clear container
@@ -429,8 +426,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 1. Create "TOATE" Button
         const allBtn = templateBtn.cloneNode(true);
         allBtn.classList.remove('template', 'hidden');
-        allBtn.id = ""; // Remove ID to avoid duplicates
-        allBtn.dataset.i18n = "problems-page.all-filter";
+        allBtn.classList.add('anim-stagger'); // Tag for animation
+        allBtn.id = ""; 
         allBtn.dataset.class = "all";
         
         applyBtnStyle(allBtn, currentFilters.class === 'all');
@@ -447,15 +444,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         classes.forEach(cls => {
             const btn = templateBtn.cloneNode(true);
             btn.classList.remove('template', 'hidden');
+            btn.classList.add('anim-stagger');
             btn.id = ""; 
             btn.textContent = `Clasa a ${cls}`;
             if (parseInt(cls) == 67) {
                 btn.dataset.i18n = 'classe.67';
             } else if (parseInt(cls) > 12) {
-                btn.dataset.i18n = ''; // no set
+                btn.dataset.i18n = ''; 
                 btn.textContent = `Clasa ${cls}`;
             } else {
-                btn.dataset.i18n = `classe.${cls}`; // For translation
+                btn.dataset.i18n = `classe.${cls}`; 
             }
             btn.dataset.class = String(cls);
             
@@ -463,7 +461,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             btn.addEventListener('click', () => {
                 currentFilters.class = cls;
-                console.log("Selected class filter:", currentFilters.class);
                 updateAllButtonStyles();
                 renderProblems();
                 reAnimateCards();
@@ -733,13 +730,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             feedContainer.hidden = false;
             toggleBtnText.dataset.i18n = 'problems-page.disable-feed-mode';
             toggleBtnIcon.className = 'fa-solid fa-grip';
-            toggleViewBtn.className = 'btn secondary danger';
+            toggleViewBtn.className = 'btn secondary danger anim-stagger';
         } else {
             gridContainer.hidden = false;
             feedContainer.hidden = true;
             toggleBtnText.dataset.i18n = 'problems-page.enable-feed-mode';
             toggleBtnIcon.className = 'fa-solid fa-scroll';
-            toggleViewBtn.className = 'btn secondary confirm';
+            toggleViewBtn.className = 'btn secondary confirm anim-stagger';
         }
         
         if (typeof applyTranslations === 'function') {
@@ -753,11 +750,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const headers = document.querySelectorAll('.content-area h1, .content-area .page-description');
         cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
 
-        const filters = document.querySelectorAll('.filters-list button, .filters-list .dropdown, #toggle-view-btn, #surprise-btn');
-        applyStaggeredAnimation(filters, 'scaleIn', { staggerDelay: 40, baseDelay: 250 });
+        const filterElements = document.querySelectorAll('.anim-stagger');
+        applyStaggeredAnimation(filterElements, 'scaleIn', { staggerDelay: 40, baseDelay: 250 });
 
         const gridCardsContainer = document.querySelector('.problems-grid-container');
-        if (gridCardsContainer) {
+        if (gridCardsContainer && !gridCardsContainer.hidden) {
             const gridCards = gridCardsContainer.querySelectorAll('.content-card:not(.hidden)');
             cascadeEntrance(gridCards, 'fade', { staggerDelay: 60, baseDelay: 400 });
         }
