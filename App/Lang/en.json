@@ -194,6 +194,37 @@
         }
     },
 
+    "progress-page": {
+        "level": "Level",
+        "lectii_": "Lessons in ",
+        "accuracy": "Accuracy",
+        "table": {
+            "header": {
+                "position": "Position",
+                "user": "User",
+                "level": "Level"
+            }
+        },
+        "charts": {
+            "spider": {
+                "title": "Spider",
+                "description": "Distribution of your skills across the main chapters."
+            },
+            "heatmap": {
+                "title": "Heatmap",
+                "description": "Your progress over time, highlighting days with activity, throughout the last year."
+            },
+            "evolution": {
+                "title": "Evolution",
+                "description": "The increase in the number of cookies earned daily."
+            },
+            "solve-history": {
+                "title": "Solve History",
+                "description": "The history of all solved problems."
+            }
+        }
+    },
+
     "settings-page": {
         "title": "Settings",
         "privacy-section": {

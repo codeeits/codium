@@ -194,6 +194,37 @@
         }
     },
 
+    "progress-page": {
+        "level": "Nivell",
+        "lectii_": "Lliçons del ",
+        "accuracy": "Acurateça",
+        "table": {
+            "header": {
+                "position": "Posició",
+                "user": "Usuari",
+                "level": "Nivell"
+            }
+        },
+        "charts": {
+            "spider": {
+                "title": "Aranya",
+                "description": "Distribució de les teves competències en els diferents temes de programació."
+            },
+            "heatmap": {
+                "title": "Heatmap",
+                "description": "Activitat diària i ritme de resolució al llarg de l'any."
+            },
+            "evolution": {
+                "title": "Evolució",
+                "description": "Creixement del nombre de galetes guanyades mes a mes."
+            },
+            "solve-history": {
+                "title": "Històric de resolucions",
+                "description": "Volum de problemes resolts i tendència de consistència."
+            }
+        }
+    },
+
     "settings-page": {
         "title": "Configuració",
         "privacy-section": {

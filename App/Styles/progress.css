@@ -82,6 +82,18 @@
     gap: var(--gap-md);
 }
 
+.progress-top span:first-letter {
+    text-transform: uppercase;
+}
+
+.progress-top span span:nth-child(2) {
+    display: inline-block;
+}
+
+.progress-top span span:nth-child(2)::first-letter {
+    text-transform: lowercase;
+}
+
 .progress-type-container {
     display: grid;
     grid-template-columns: auto auto;

@@ -194,6 +194,37 @@
         }
     },
 
+    "progress-page": {
+        "level": "Nivel",
+        "lectii_": "Lecții în ",
+        "accuracy": "Acuratețe",
+        "table": {
+            "header": {
+                "position": "Poziție",
+                "user": "Utilizator",
+                "level": "Nivel"
+            }
+        },
+        "charts": {
+            "spider": {
+                "title": "Spider",
+                "description": "Distribuția competențelor pe subiectele principale."
+            },
+            "heatmap": {
+                "title": "Heatmap",
+                "description": "Progresul tău în timp, evidențiind zilele cu activitate, pe parcursul ultimului an."
+            },
+            "evolution": {
+                "title": "Evoluție",
+                "description": "Creșterea numărului de cookies câștigate zilnic."
+            },
+            "solve-history": {
+                "title": "Istoric rezolvări",
+                "description": "Istoricul tuturor problemelor rezolvate."
+            }
+        }
+    },
+
     "settings-page": {
         "title": "Setări",
         "privacy-section": {

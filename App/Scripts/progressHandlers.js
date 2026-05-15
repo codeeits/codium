@@ -69,6 +69,17 @@ async function updateSummaryCards(progressData) {
         window.StateEngine.state.topClass = dataNoLessons.class;
         window.StateEngine.state.userAccuracy = await window.apiService.game.getAccScore();
     }
+
+    const lessonsCompletedLabel = document.querySelector('#lessons-completed-label');
+
+    if (lessonsCompletedLabel) {
+        const topClass = window.StateEngine.state.topClass;
+
+        lessonsCompletedLabel.textContent =
+            `{{progress-page.lectii_}}{{classe.${topClass}}}`;
+
+        window.applyTranslations(lessonsCompletedLabel);
+    }
 }
 
 function populateLeaderboard(leaderboardData, currentUserId) {
