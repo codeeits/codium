@@ -181,10 +181,17 @@
         }
     },
     "user-page": {
-        "progress": "progres",
-        "achievements": "acomplimente",
-        "recent-activity": "activitate recentă",
-        "bookmarks": "lecții salvate"
+        "progress": "Progres",
+        "achievements": "Acomplimente",
+        "recent-activity": "Activitate recentă",
+        "bookmarks": "Lecții salvate",
+        "bookmarks-empty": "Nu ai nicio lecție salvată. Explorează lecțiile și adaugă-le în bookmark-uri pentru a le accesa rapid mai târziu!",
+        "continue-learning": "Continuă să înveți",
+        "streak": {
+            "title": "Streak zilnic",
+            "did-today": "Felicitări! Ai menținut streak-ul tău astăzi. Continuă așa!",
+            "not-did-today-yet": "Rezolvă o problemă astăzi pentru a nu-ți pierde streak-ul!"
+        }
     },
 
     "settings-page": {
@@ -408,13 +415,15 @@
         "earned": "Câștigat"
     },
     "buttons": {
-        "save": "salvează",
+        "save": "Salvează",
         "cancel": "Anulează",
         "verify": "Verifică",
         "i_saved_them": "Le-am salvat",
         "submit": "Trimite",
         "edit": "Editează profil",
         "delete": "Șterge",
+        "continue": "Continuă",
+        "open": "Deschide",
         "create": "Creează",
         "update": "Actualizează",
         "login": "Autentifică-te",

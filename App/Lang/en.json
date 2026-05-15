@@ -181,10 +181,17 @@
         }
     },
     "user-page": {
-        "progress": "progress",
-        "achievements": "achievements",
-        "recent-activity": "recent activity",
-        "bookmarks": "bookmarks"
+        "progress": "Progress",
+        "achievements": "Achievements",
+        "recent-activity": "Recent activity",
+        "bookmarks": "Bookmarks",
+        "bookmarks-empty": "No bookmarks found. Explore lessons and add them to your bookmarks for quick access later!",
+        "continue-learning": "Continue Learning",
+        "streak": {
+            "title": "Daily Streak",
+            "did-today": "Fantastic! You completed a problem today. Your streak continues!",
+            "not-did-today-yet": "Complete a problem today to start a new streak."
+        }
     },
 
     "settings-page": {
@@ -415,6 +422,8 @@
         "submit": "Submit",
         "edit": "Edit profile",
         "delete": "Delete",
+        "continue": "Continue",
+        "open": "Open",
         "create": "Create",
         "update": "Update",
         "login": "Log in",

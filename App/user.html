@@ -42,15 +42,15 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn secondary" id="logoutBtn">Log-out</button>
-                        <button type="button" class="btn primary" id="editProfileBtn">Editeaza profilul</button>
+                        <button type="button" class="btn secondary" id="logoutBtn" data-i18n="buttons.log-out">Log-out</button>
+                        <button type="button" class="btn primary" id="editProfileBtn" data-i18n="buttons.edit">Editeaza profilul</button>
                     </div>
                 </div>
 
                 <!-- continue -->
                 <section class="section">
                     <div class="section-header">
-                        <h1 class="section-title">Continue learning</h1>
+                        <h1 class="section-title" data-i18n="user-page.continue-learning"></h1>
                         <div class="nav-arrows">
                             <button class="nav-arrow" id="continuePrevBtn" aria-label="Previous">
                                 <i class="fa-solid fa-chevron-left"></i>
@@ -75,7 +75,7 @@
                                     <i class="difficulty-icon fa-solid fa-chart-simple"></i>
                                     <span class="difficulty-text" id="continueDifficulty">Easy</span>
                                 </div>
-                                <button type="button" class="btn primary full-width" id="continueButton">Continue</button>
+                                <button type="button" class="btn primary full-width" id="continueButton" data-i18n="buttons.continue">Continue</button>
                             </div>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                 <!-- bookmarks Section -->
                 <section class="section">
                     <div class="section-header">
-                        <h1 class="section-title">Bookmarks</h1>
+                        <h1 class="section-title" data-i18n="user-page.bookmarks"></h1>
                         <div class="nav-arrows">
                             <button class="nav-arrow" id="bookmarksPrevBtn" aria-label="Previous">
                                 <i class="fa-solid fa-chevron-left"></i>
@@ -96,7 +96,7 @@
                         </div>
                     </div>
 
-                    <p id="bookmarksEmptyState" style="display:none; margin: 0.5rem 0 0;">No bookmarks yet.</p>
+                    <p id="bookmarksEmptyState" style="display:none; margin: 0.5rem 0 0;" data-i18n="user-page.bookmarks-empty"></p>
                     <div id="bookmarksCards"></div>
 
                     <div class="card content-card" id="bookmarkTemplate" style="display:none;">
@@ -112,7 +112,7 @@
                                     <i class="difficulty-icon fa-solid fa-chart-simple"></i>
                                     <span class="difficulty-text bookmark-difficulty">Easy</span>
                                 </div>
-                                <button type="button" class="btn primary full-width bookmark-button">Open</button>
+                                <button type="button" class="btn primary full-width bookmark-button" data-i18n="buttons.open">Open</button>
                             </div>
                         </div>
                     </div>
@@ -124,7 +124,7 @@
                 <!-- Progress Card -->
                 <section class="section">
                     <div class="card stats-card">
-                        <h2 class="stats-title">Progress</h2>
+                        <h2 class="stats-title" data-i18n="user-page.progress"></h2>
                         <div class="progress-chart">
                             <!-- Placeholder for the spider/radar chart -->
                             <div class="chart-placeholder">
@@ -136,7 +136,7 @@
                 <!-- Day Streak Card -->
                 <section class="section">
                     <div class="card stats-card">
-                        <h2 class="stats-title">Day streak</h2>
+                        <h2 class="stats-title" data-i18n="user-page.streak.title"></h2>
                         <p class="stats-description">Complete a problem today to start a new streak.</p>
                         <div class="streak-days">
                             <div class="streak-day active">
@@ -174,7 +174,7 @@
                 <!-- Achievements Card -->
                 <section class="section">
                     <div class="card stats-card">
-                        <h2 class="stats-title">Achievements</h2>
+                        <h2 class="stats-title" data-i18n="user-page.achievements"></h2>
                         <div class="achievements-list">
                             <div class="achievement">
                                 <p class="achievement-name">Rezolvator expert</p>

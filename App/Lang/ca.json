@@ -181,10 +181,17 @@
         }
     },
     "user-page": {
-        "progress": "progrés",
-        "achievements": "aconseguiments",
-        "recent-activity": "activitat recent",
-        "bookmarks": "marcadors"
+        "progress": "Progrés",
+        "achievements": "Aconseguiments",
+        "recent-activity": "Activitat recent",
+        "bookmarks": "Marcadors",
+        "bookmarks-empty": "No tens cap lecció salvada. Explora les leccions i afegeix-les als marcadors per accedir-hi ràpidament més endavant!",
+        "continue-learning": "Continua aprenent",
+        "streak": {
+            "title": "Streak diari",
+            "did-today": "Fantàstic! Has completat un problema avui. El teu streak continua!",
+            "not-did-today-yet": "Completa un problema avui per començar un nou streak."
+        }
     },
 
     "settings-page": {
@@ -408,13 +415,15 @@
         "earned": "Guanyat"
     },
     "buttons": {
-        "save": "desa",
+        "save": "Desa",
         "cancel": "Anula",
         "verify": "Verifica",
         "i_saved_them": "Sí, els he guardat",
         "submit": "Envia",
         "edit": "Edita el perfil",
         "delete": "Elimina",
+        "continue": "Continua",
+        "open": "Obre",
         "create": "Crea",
         "update": "Actualitza",
         "login": "Autentifica't",

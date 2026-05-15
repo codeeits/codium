@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'lesson') {
                 await window.apiService.lessons.modifyBookmark(typeId);
             } else if (type === 'problem') {
-                await window.apiService.problems.modifyBookmark(typeId);
+                await window.apiService.problems.modifyBookmarkProblem(typeId);
             }
             
             card.remove();
