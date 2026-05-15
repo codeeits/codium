@@ -205,6 +205,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function extractNullableInt(value) {
+        if (value == null) return 0;
+        if (typeof value === 'number') return value;
+        if (typeof value.Int32 === 'number') return value.Int32;
+        if (typeof value.int32 === 'number') return value.int32;
+        return 0;
+    }
+
     // --- RENDER PROBLEMS (FEED) ---
     function renderProblemsFeed(receivedData) {
         receivedData.forEach(problem => {
@@ -380,22 +388,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const solution = await window.apiService.problems.createSolution(problemId, solutionData);
                     
                     const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests', {
-                        given_answers: runResult.given_answers,
-                        tests_passed: runResult.score,
-                        total_tests: runResult.total
+                        given_answers: runResult.response?.given_answers || [],
                     });
 
                     // Extract values directly since extractNullableInt isn't in this file
-                    const passed = gradedSolution?.TestsPassed?.Int32 ?? gradedSolution?.TestsPassed ?? runResult.score;
-                    const total = gradedSolution?.TotalTests?.Int32 ?? gradedSolution?.TotalTests ?? runResult.total;
+                    const score = extractNullableInt(gradedSolution?.TestsPassed);
+            const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.response.total;
 
                     // Display results via toast
-                    const percentage = total > 0 ? (passed / total) * 100 : 0;
+                    const percentage = total > 0 ? (score / total) * 100 : 0;
                     let scoreClass = "danger";
                     if (percentage === 100) scoreClass = "confirm";
                     else if (percentage >= 50) scoreClass = "warning";
 
-                    toastsLoader.showToast(`{{server_events.toasts.passed-tests}}${passed} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
+                    toastsLoader.showToast(`{{server_events.toasts.passed-tests}}${score} / ${total} (${percentage.toFixed(2)}%)`, scoreClass);
 
                 } catch (error) {
                     toastsLoader.showToast("{{server_events.toasts.sending-error}}" + (error.message || "A apărut o eroare la trimitere."), "danger");
