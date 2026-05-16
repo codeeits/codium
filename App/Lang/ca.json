@@ -2,6 +2,7 @@
     "language": "Català",
     "app_name": "codium/",
     "welcome": "Aprènde/ Programa/ Competeix/",
+    "select_language": "Tria un idioma",
     "landing": {
         "meta": {
             "title": "Inici - Codium"

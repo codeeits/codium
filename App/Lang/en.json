@@ -2,6 +2,7 @@
     "language": "English",
     "app_name": "codium/",
     "welcome": "Learn/ Code/ Compete/",
+    "select_language": "Select language",
     "landing": {
         "meta": {
             "title": "Landing - Codium"

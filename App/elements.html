@@ -51,7 +51,7 @@
     </div>
     
     <div class="nav-buttons">
-        <label for="language-dropdown" class="visually-hidden">Selectează limba</label>
+        <label for="language-dropdown" class="visually-hidden" data-i18n="select_language">{{select_language}}</label>
         <div class="language-selector">
             <select class="language-dropdown" id="language-dropdown">
                 <option value="ro">RO</option>
@@ -128,7 +128,7 @@
     </div>
     <div class="top-bar-right">
         <div class="language-toggle-container">
-            <label for="language-selector" class="visually-hidden">Selectează limba</label>
+            <label for="language-selector" class="visually-hidden">{{select_language}}</label>
             <select class="language-dropdown" id="language-selector">
                 <option value="ro" class="lang-toggle">RO</option>
                 <option value="en" class="lang-toggle">EN</option>
@@ -204,7 +204,7 @@
             <i class="sidebar-icon fa-solid fa-bookmark"></i>
             <span class="sidebar-text" data-i18n="sidebar.bookmarks">Bookmarks</span>
         </a>
-        <a href="#" class="sidebar-item" data-sidebar="progress">
+        <a href="/app/progress.html" class="sidebar-item" data-sidebar="progress">
             <i class="sidebar-icon fa-solid fa-chart-simple"></i>
             <span class="sidebar-text" data-i18n="sidebar.progress">Progress</span>
         </a>

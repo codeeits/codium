@@ -2,6 +2,7 @@
     "language": "Română",
     "app_name": "codium/",
     "welcome": "Învăță/ Programează/ Concurează/",
+    "select_language": "Selectează limba",
     "landing": {
         "meta": {
             "title": "Landing - Codium"
