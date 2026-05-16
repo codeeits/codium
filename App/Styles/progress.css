@@ -96,10 +96,10 @@
 
 .progress-type-container {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: max-content max-content;
     grid-template-rows: auto auto;
     gap: var(--gap-sm);
-    flex: 1 1 160px;
+    /* flex: 1 1 160px; */
 }
 
 .progress-type-container i,
