@@ -940,6 +940,17 @@ async function initApp() {
         }
     });
 
+    window.addEventListener('codium:login-success', async (event) => { 
+        console.warn('Login success event received:', event.detail);
+        if (window.StateEngine) {
+            try {
+                window.StateEngine.state.user.xp = await window.apiService.game.getScore();
+            } catch (err) {
+                console.error('Error fetching score on login success:', err);
+            }
+        }
+    });
+
     window.addEventListener('codium:server-toast', (event) => { 
         const { textKey, type, xpGained } = event.detail || {};
 
