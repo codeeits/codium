@@ -1,4 +1,9 @@
 import { extractCustomBlock } from './markdownRenderer.js';
+import { 
+    applyStaggeredAnimation, 
+    cascadeEntrance,
+    prefersReducedMotion
+} from '/app/Scripts/animations/animationUtils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -374,6 +379,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function playAllAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const headers = document.querySelectorAll('.content-area h1, .content-area .page-description');
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+
+        const filters = document.querySelectorAll('.filters-list button, .filters-list .dropdown');
+        applyStaggeredAnimation(filters, 'scaleIn', { staggerDelay: 40, baseDelay: 250 });
+
+        const cardsContainer = document.getElementById('bookmarks-container');
+        if (cardsContainer) {
+            const cards = cardsContainer.querySelectorAll('.content-card:not(.hidden)');
+            cascadeEntrance(cards, 'fade', { staggerDelay: 60, baseDelay: 400 });
+        }
+    }
+
+    function reAnimateCards() {
+        if (prefersReducedMotion()) return;
+        
+        const newCards = bookmarksGridContainer.querySelectorAll('.content-card:not(#bookmarkTemplate)');
+        
+        newCards.forEach(card => card.style.animation = 'none');
+        
+        void document.body.offsetHeight; 
+        
+        cascadeEntrance(newCards, 'fade', { staggerDelay: 40, baseDelay: 50 });
+    }
+
     // --- INIT ---
     async function initApp() {
         if (!(await window.apiService.checkAuthentication(true))) {
@@ -387,6 +420,9 @@ document.addEventListener('DOMContentLoaded', () => {
             initDropdown();
             initFilterButtons();
             await fetchBookmarks();
+
+            document.body.classList.remove('is-loading');
+            playAllAnimations();
 
         } catch (err) {
             console.error('Failed to get current user:', err);
