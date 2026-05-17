@@ -269,6 +269,22 @@
         }
     },
 
+    "experimental-page": {
+        "title": "Experimental features",
+        "desc": "Contains new features currently in development that are not yet ready for release. These may be unstable and could contain bugs, so use them with caution!",
+        "back-btn": "Back to user page",
+        "shared-shell-btn": "Shared shell (main.js)",
+        "sandbox": {
+            "title": "Sandbox"
+        },
+        "ui": {
+            "title": "New UI implementations"
+        },
+        "extra": {
+            "title": "Extras"
+        }
+    },
+
     "lessons-page": {
         "title": "Lessons",
         "desc": "Your base knowledge concepts",

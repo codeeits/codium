@@ -269,6 +269,22 @@
         }
     },
 
+    "experimental-page": {
+        "title": "Experimentale",
+        "desc": "Conține funcționalități noi, în curs de dezvoltare, care nu sunt încă gata pentru lansare. Acestea pot fi instabile și pot conține erori, așa că folosește-le cu precauție!",
+        "back-btn": "Înapoi la pagina de utilizator",
+        "shared-shell-btn": "Shell partajat (main.js)",
+        "sandbox": {
+            "title": "Sandbox"
+        },
+        "ui": {
+            "title": "Implementări UI noi"
+        },
+        "extra": {
+            "title": "Altele"
+        }
+    },
+
     "lessons-page": {
         "title": "Lecții",
         "desc": "Bazele pregătirii tale teoretice.",

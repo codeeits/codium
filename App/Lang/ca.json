@@ -269,6 +269,22 @@
         }
     },
 
+    "experimental-page": {
+        "title": "Experimental",
+        "desc": "Aquí és on provem les funcions més noves i trencadores abans de portar-les a la resta de la plataforma. Aquestes funcions poden ser inestables, així que tingues-ho en compte abans d'utilitzar-les.",
+        "back-btn": "Torna a la pagina d'usuari",
+        "shared-shell-btn": "Shell compartit (main.js)",
+        "sandbox": {
+            "title": "Sandbox"
+        },
+        "ui": {
+            "title": "Implementació de UI nova"
+        },
+        "extra": {
+            "title": "Extras"
+        }
+    },
+
     "lessons-page": {
         "title": "Lliçons",
         "desc": "Els teus conceptes teoretics bàsics",

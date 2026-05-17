@@ -89,6 +89,11 @@ body.experimental-page .content-area {
     color: inherit;
 }
 
+.experiment-card.new {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
 .experiment-card:hover {
     border-color: var(--primary);
     cursor: pointer;
