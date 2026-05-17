@@ -65,29 +65,51 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
+
 async function updateSummaryCards(progressData) {
     if (window.StateEngine?.state) {
-        window.StateEngine.state.userLevel = window.apiService.game.getLevel(window.StateEngine.state.user.xp);
-        // window.StateEngine.state.userCookies = new Intl.NumberFormat('ro-RO').format(progressData.userCookies);
-        const dataNoLessons = await window.apiService.lessons.getCompletedLessonsForMostActiveClass();
-        window.StateEngine.state.lessonsCompleted = `${dataNoLessons.numLessons} / ${dataNoLessons.totalLessonsInClass}`;
-        window.StateEngine.state.topClass = dataNoLessons.class;
-        window.StateEngine.state.userAccuracy = await window.apiService.game.getAccScore();
+
+        const userXp = window.StateEngine.state.user?.xp || 0;
+        window.StateEngine.state.userLevel = window.apiService.game.getLevel(userXp);
+        
+
+        try {
+            const dataNoLessons = await window.apiService.lessons.getCompletedLessonsForMostActiveClass();
+            if (dataNoLessons) {
+                window.StateEngine.state.lessonsCompleted = `${dataNoLessons.numLessons || 0} / ${dataNoLessons.totalLessonsInClass || 0}`;
+                window.StateEngine.state.topClass = dataNoLessons.class || "-";
+            }
+        } catch (error) {
+            console.warn("Empty state: Could not fetch completed lessons.");
+            window.StateEngine.state.lessonsCompleted = "0 / 0";
+            window.StateEngine.state.topClass = "-";
+        }
+
+
+        try {
+            window.StateEngine.state.userAccuracy = await window.apiService.game.getAccScore();
+        } catch (error) {
+            console.warn("Empty state: Could not fetch accuracy score.");
+            window.StateEngine.state.userAccuracy = 0;
+        }
     }
 
     const lessonsCompletedLabel = document.querySelector('#lessons-completed-label');
 
-    if (lessonsCompletedLabel) {
+    if (lessonsCompletedLabel && window.StateEngine?.state?.topClass) {
         const topClass = window.StateEngine.state.topClass;
-
-        lessonsCompletedLabel.textContent =
-            `{{progress-page.lectii_}}{{classe.${topClass}}}`;
-
+        lessonsCompletedLabel.textContent = `{{progress-page.lectii_}}{{classe.${topClass}}}`;
         window.applyTranslations(lessonsCompletedLabel);
     }
 }
 
 function populateLeaderboard(leaderboardData, currentUserId) {
+
+    if (!leaderboardData || !Array.isArray(leaderboardData)) {
+        console.warn('Leaderboard data is invalid or unavailable. Skipping render.');
+        return;
+    }
+
     const top3Template = document.querySelector('.card.top-3-user.template');
     const top3Container = document.querySelector('.top-3');
     
@@ -186,19 +208,27 @@ function initializeCharts(heatmapData, lineChartData) {
 
     for (const [containerId, methodName, data] of charts) {
         const container = document.getElementById(containerId);
-        if (!container) {
+        if (!container) continue;
+
+        if (!data) continue;
+
+        if (containerId === 'heatmapChart' && !data.cells) {
+            console.warn('Heatmap data cells missing, skipping chart.');
             continue;
         }
-
-        if (!data && containerId === 'heatmapChart') {
-            console.warn('Heatmap data is empty, skipping chart rendering.');
+        if (containerId === 'evolutionChart' && (!data.series || !data.labels)) {
+            console.warn('Evolution chart data malformed, skipping chart.');
             continue;
         }
 
         try {
             const chart = new ChartMaker(containerId);
             if (chart && typeof chart[methodName] === 'function') {
-                chart[methodName](data);
+                const result = chart[methodName](data);
+                
+                if (result instanceof Promise) {
+                    result.catch(err => console.error(`Async chart error for ${containerId}:`, err));
+                }
             }
         } catch (error) {
             console.error(`Failed to initialize chart ${containerId}:`, error);
@@ -285,10 +315,13 @@ async function init() {
 
     initializeCharts(heatmapData, lineChartData);
 
-    const leaderboardData = await window.apiService.game.formatLeaderboard();
-    const currentUserId = await window.apiService.users.getCurrentUserID();
-    
-    populateLeaderboard(leaderboardData, currentUserId);
+    try {
+        const leaderboardData = await window.apiService.game.formatLeaderboard();
+        const currentUserId = await window.apiService.users.getCurrentUserID();
+        populateLeaderboard(leaderboardData, currentUserId);
+    } catch (error) {
+        console.error("Failed to load leaderboard data:", error);
+    }
 
     document.body.classList.remove('is-loading');
     
