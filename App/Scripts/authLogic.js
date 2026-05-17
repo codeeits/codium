@@ -4,6 +4,11 @@ combines signup and login logic, as they are very similar
 
 import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
 import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion,
+    cascadeEntrance
+} from '/app/Scripts/animations/animationUtils.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     const baseurl = window.location.href;
@@ -18,6 +23,34 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     const engine = new ModalEngine();
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const activeForm = loginForm || signupForm;
+
+    function playAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const mainCards = document.querySelectorAll('.main-content-auth > *');
+        if (mainCards.length > 0) {
+            cascadeEntrance(mainCards, 'fadeInUp', { staggerDelay: 200, baseDelay: 100 });
+        }
+
+        const headers = document.querySelectorAll('.auth-header');
+        if (headers.length > 0) {
+            cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 120 });
+        }
+
+        if (activeForm) {
+            const elementsToAnimate = activeForm.querySelectorAll('.auth-form *');
+            if (elementsToAnimate.length > 0) {
+                applyStaggeredAnimation(elementsToAnimate, 'fadeInUp', { staggerDelay: 10, baseDelay: 130 });
+            }
+        }
+    }
+
+    document.body.classList.remove('is-loading');
+    playAnimations();
+    console.log('Auth page loaded, animations initialized');
 
     function validateForm(formType) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,10 +104,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.refreshAuthButton();
         }
     }
-
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    const activeForm = loginForm || signupForm;
 
     // --- LOGIN LOGIC ---
     if (loginForm) {
