@@ -1,3 +1,9 @@
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion,
+    cascadeEntrance
+} from '/app/Scripts/animations/animationUtils.js';
+
 const EXPERIMENTAL_SECTIONS = [
     {
         containerId: 'experimental-ui-grid',
@@ -245,6 +251,20 @@ async function ensureAccess() {
     return true;
 }
 
+function playAllAnimations() {
+    if (prefersReducedMotion()) return;
+
+    const headers = document.querySelectorAll('h1, h2');
+    if (headers.length > 0) {
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+    }
+
+    const cards = document.querySelectorAll('.experiment-card');
+    if (cards.length > 0) {
+        applyStaggeredAnimation(cards, 'fadeInUp', { staggerDelay: 50, baseDelay: 250 });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     document.title = 'Experimental Hub - Codium';
 
@@ -254,4 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderSections();
+    
+    document.body.classList.remove('is-loading');
+    playAllAnimations();
 });

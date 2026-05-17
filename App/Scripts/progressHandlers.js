@@ -3,6 +3,11 @@ Progress Page Handlers - Initialize charts and state
 */
 
 import { ChartMaker } from './ui/chartMaker.js';
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion,
+    cascadeEntrance
+} from '/app/Scripts/animations/animationUtils.js';
 
 const exampleResponse = {
     userLevel: 'Expert',
@@ -201,6 +206,30 @@ function initializeCharts(heatmapData, lineChartData) {
     }
 }
 
+function playAllAnimations() {
+    if (prefersReducedMotion()) return;
+
+    const mainCards = document.querySelectorAll('.content-area > .card');
+    if (mainCards.length > 0) {
+        cascadeEntrance(mainCards, 'fade', { staggerDelay: 150, baseDelay: 100 });
+    }
+
+    const summaryStats = document.querySelectorAll('.progress-type-container');
+    if (summaryStats.length > 0) {
+        applyStaggeredAnimation(summaryStats, 'scaleIn', { staggerDelay: 100, baseDelay: 400 });
+    }
+
+    const top3Users = document.querySelectorAll('.top-3-user:not(.template)');
+    if (top3Users.length > 0) {
+        applyStaggeredAnimation(top3Users, 'scaleInBounce', { staggerDelay: 150, baseDelay: 700 });
+    }
+
+    const tableRows = document.querySelectorAll('.leaderboard-table tbody tr');
+    if (tableRows.length > 0) {
+        applyStaggeredAnimation(tableRows, 'fadeInUp', { staggerDelay: 50, baseDelay: 1000 });
+    }
+}
+
 async function init() {
     const stateDefaults = {
         userLevel: '0',
@@ -260,6 +289,10 @@ async function init() {
     const currentUserId = await window.apiService.users.getCurrentUserID();
     
     populateLeaderboard(leaderboardData, currentUserId);
+
+    document.body.classList.remove('is-loading');
+    
+    playAllAnimations();
 }
 
 document.addEventListener('DOMContentLoaded', init);
