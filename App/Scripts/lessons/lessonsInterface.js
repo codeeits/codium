@@ -39,7 +39,7 @@ function toRoman(n) {
 // 2 down 1 up
 document.addEventListener("DOMContentLoaded", async () => {
 
-    const debugMode = false; // SET THIS TO ENABLE LOGS!
+    const debugMode = true; // SET THIS TO ENABLE LOGS!
     const baseurl = window.location.href;
     let isAuthenticated = false;
 
@@ -254,10 +254,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if(state.AlgoVis) {
             const algovisViewport = document.createElement("div");
-            algovisViewport.id = "AlgoVis-Viewport";
+            const elementTemplateDiv = document.createElement("div");
+            elementTemplateDiv.id = "algovisTemplate";
 
-            let root = AlgoVis.Main.Init();
+            algovisViewport.id = "AlgoVis-Viewport";
+            algovisViewport.style.width = "500px";
+            algovisViewport.style.height = "400px";
+            algovisViewport.style.display = "block";
+
+            algovisViewport.style.position = "relative";
+
+            elements.container.appendChild(algovisViewport);
+            elements.container.appendChild(elementTemplateDiv);
+
+            let rootDiv = AlgoVis.Main.Init();
             let elementTemplate = document.getElementById("algovisTemplate");
+            elementTemplate.style.backgroundColor = 'gray';
             
             let elementTextTemplate = document.createElement("span");
             elementTextTemplate.style.color = "white";
@@ -268,7 +280,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             vectorTemplate.style.backgroundColor = "white";
 
             const algovisData = JSON.parse(state.AlgoVis);
-            let vector = AlgoVis.Main.InitRandSortVector(algovisData.size, vectorTemplate, elementTemplate, elementTextTemplate, root);
+            let vector = AlgoVis.Main.InitRandSortVector(algovisData.size, vectorTemplate, elementTemplate, elementTextTemplate, rootDiv);
             AlgoVis.Main.InitAndStartAnimation(algovisData.algorithm, vector, AlgoVis.Main.BaseSettings(1));
 
             /* structure of algovisData:
@@ -279,7 +291,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             /////
             */
-            elements.container.appendChild(algovisViewport);
         }
 
         await renderExternalLibraries(elements.container);
@@ -697,7 +708,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (prefersReducedMotion()) return;
 
         if (elements.container) {
-            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table');
+            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table, #AlgoVis-Viewport');
             cascadeEntrance(contentBlocks, 'fade', { staggerDelay: 60, baseDelay: 200 });
         }
 
