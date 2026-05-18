@@ -41,7 +41,7 @@
 }
 
 .input-text {
-    flex: unset;
+    /* flex: unset; */
 }
 
 .problems-grid-container {

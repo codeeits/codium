@@ -1,3 +1,9 @@
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion,
+    cascadeEntrance
+} from '/app/Scripts/animations/animationUtils.js';
+
 const EXPERIMENTAL_SECTIONS = [
     {
         containerId: 'experimental-ui-grid',
@@ -97,6 +103,13 @@ const EXPERIMENTAL_SECTIONS = [
         containerId: 'experimental-tools-grid',
         items: [
             {
+                title: 'Modal playground',
+                description: 'Test the modal system and templates.',
+                href: '/app/experiments/modals.html',
+                icon: 'fa-window-restore',
+                tag: 'new'
+            },
+            {
                 title: 'Upload problems from xlsx',
                 description: 'Tool for bulk uploading problems from specially formatted Excel files.',
                 href: '/app/Scripts/testExcel.html',
@@ -118,7 +131,7 @@ const EXPERIMENTAL_SECTIONS = [
                 tag: 'admin'
             },
             {
-                title: 'Upload lesson (v1)',
+                title: 'Upload lesson (v1ish logic v2 interface)',
                 description: 'Admin interface for uploading new lessons. Currently in use until next major iteration is ready.',
                 href: '/app/Lectii/lesson-upload.html',
                 icon: 'fa-file-upload',
@@ -171,6 +184,8 @@ function createExperimentCard(item) {
     const tag = document.createElement('span');
     tag.className = 'experiment-card-tag';
     tag.textContent = item.tag;
+    link.classList.add(`${item.tag.replace(/\s+/g, '-').toLowerCase()}`);
+    
 
     header.appendChild(iconWrap);
     header.appendChild(tag);
@@ -236,6 +251,20 @@ async function ensureAccess() {
     return true;
 }
 
+function playAllAnimations() {
+    if (prefersReducedMotion()) return;
+
+    const headers = document.querySelectorAll('h1, h2');
+    if (headers.length > 0) {
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+    }
+
+    const cards = document.querySelectorAll('.experiment-card');
+    if (cards.length > 0) {
+        applyStaggeredAnimation(cards, 'fadeInUp', { staggerDelay: 50, baseDelay: 250 });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     document.title = 'Experimental Hub - Codium';
 
@@ -245,4 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderSections();
+    
+    document.body.classList.remove('is-loading');
+    playAllAnimations();
 });

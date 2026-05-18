@@ -5,12 +5,19 @@ Settings page
 import { textToPDF } from './helper/pdfBuilder.js';
 import { ModalEngine } from '/app/Scripts/modal/modalMain.js';
 import { ModalHelpers } from '/app/Scripts/modal/modalHelpers.js';
+import { 
+    applyStaggeredAnimation, 
+    prefersReducedMotion,
+    cascadeEntrance
+} from '/app/Scripts/animations/animationUtils.js';
 
 const engine = new ModalEngine();
 
 document.addEventListener("DOMContentLoaded", () => {
 
     const elements = {
+
+        contentContainer: document.getElementById('contentContainer'),
         // profile card
         profileCard: document.getElementById('profileCard'),
         profileAvatar: document.querySelector('.profile-avatar'),
@@ -790,6 +797,16 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchUserData();
     });
 
+    function playAllAnimations() {
+        if (prefersReducedMotion()) return;
+
+        const headers = elements.contentContainer.querySelectorAll('h1');
+        cascadeEntrance(headers, 'fade', { staggerDelay: 100, baseDelay: 100 });
+
+        const cards = elements.contentContainer.querySelectorAll('.card, .settings-footer');
+        applyStaggeredAnimation(cards, 'fadeInUp', { staggerDelay: 150, baseDelay: 300 });
+    }
+    
     // --- innit mate ---
     async function initApp() {
         if (!(await window.apiService.checkAuthentication(true))) {
@@ -812,6 +829,9 @@ document.addEventListener("DOMContentLoaded", () => {
             setFontSize();
             requestData();
             deleteAccount();
+
+            document.body.classList.remove('is-loading');
+            playAllAnimations();
 
         } catch (err) {
             console.error('Failed to get current user:', err);

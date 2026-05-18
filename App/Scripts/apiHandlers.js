@@ -16,9 +16,6 @@ import { LessonService } from "./services/lessonService.js";
 import { ProblemService } from "./services/problemService.js";
 import { CompilerService } from "./services/compilerService.js";
 
-import { createAvatar } from "./external/dicebear/core/lib/index.js";
-import * as shapes from "./external/dicebear/shapes/lib/index.js";
-
 import { ToastsLoader } from "./ui/toastsLoader.js";
 import { ApiError } from "./core/apiError.js";
 

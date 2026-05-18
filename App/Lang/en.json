@@ -2,6 +2,7 @@
     "language": "English",
     "app_name": "codium/",
     "welcome": "Learn/ Code/ Compete/",
+    "select_language": "Select language",
     "landing": {
         "meta": {
             "title": "Landing - Codium"
@@ -181,10 +182,48 @@
         }
     },
     "user-page": {
-        "progress": "progress",
-        "achievements": "achievements",
-        "recent-activity": "recent activity",
-        "bookmarks": "bookmarks"
+        "progress": "Progress",
+        "achievements": "Achievements",
+        "recent-activity": "Recent activity",
+        "bookmarks": "Bookmarks",
+        "bookmarks-empty": "No bookmarks found. Explore lessons and add them to your bookmarks for quick access later!",
+        "continue-learning": "Continue Learning",
+        "streak": {
+            "title": "Daily Streak",
+            "did-today": "Fantastic! You completed a problem today. Your streak continues!",
+            "not-did-today-yet": "Complete a problem today to start a new streak."
+        }
+    },
+
+    "progress-page": {
+        "level": "Level",
+        "lectii_": "Lessons in ",
+        "accuracy": "Accuracy",
+        "table": {
+            "header": {
+                "position": "Position",
+                "user": "User",
+                "level": "Level"
+            }
+        },
+        "charts": {
+            "spider": {
+                "title": "Spider",
+                "description": "Distribution of your skills across the main chapters."
+            },
+            "heatmap": {
+                "title": "Heatmap",
+                "description": "Your progress over time, highlighting days with activity, throughout the last year."
+            },
+            "evolution": {
+                "title": "Evolution",
+                "description": "The increase in the number of cookies earned daily."
+            },
+            "solve-history": {
+                "title": "Solve History",
+                "description": "The history of all solved problems."
+            }
+        }
     },
 
     "settings-page": {
@@ -227,6 +266,22 @@
             "opensource": "Codium is an open source project.",
             "contribute": "Contribute on GitHub",
             "made_with_love": "made with ♥ by andrew & codeeits ^_^"
+        }
+    },
+
+    "experimental-page": {
+        "title": "Experimental features",
+        "desc": "Contains new features currently in development that are not yet ready for release. These may be unstable and could contain bugs, so use them with caution!",
+        "back-btn": "Back to user page",
+        "shared-shell-btn": "Shared shell (main.js)",
+        "sandbox": {
+            "title": "Sandbox"
+        },
+        "ui": {
+            "title": "New UI implementations"
+        },
+        "extra": {
+            "title": "Extras"
         }
     },
 
@@ -415,6 +470,8 @@
         "submit": "Submit",
         "edit": "Edit profile",
         "delete": "Delete",
+        "continue": "Continue",
+        "open": "Open",
         "create": "Create",
         "update": "Update",
         "login": "Log in",

@@ -21,9 +21,9 @@
     <script type="module" src="/app/Scripts/progressHandlers.js"></script>
 
     <meta name="menu-variant" content="new">
-    <meta name="sidebar-active" content="home">
+    <meta name="sidebar-active" content="progress">
 </head>
-<body>
+<body class="is-loading">
     <div id="top-menu-container"></div>
 
     <div class="main-layout">
@@ -33,22 +33,22 @@
             <div class="card progress-top">
                 <div class="progress-type-container">
                     <i class="fa-solid fa-trophy"></i>
-                    <span>Nivel</span>
+                    <span data-i18n="progress-page.level"></span>
                     <h1>{[userLevel]}</h1>
                 </div>
                 <div class="progress-type-container">
                     <i class="fa-solid fa-coins"></i>
-                    <span>Cookie</span>
+                    <span data-i18n="top-menu.coin">Cookie</span>
                     <h1>{[user.xp]}</h1>
                 </div>
                 <div class="progress-type-container">
                     <i class="fa-solid fa-graduation-cap"></i>
-                    <span>Lecții clasa {[topClass]}</span>
+                    <span id="lessons-completed-label">{{progress-page.lectii_}} {[topClass]}</span>
                     <h1>{[lessonsCompleted]}</h1>
                 </div>
                 <div class="progress-type-container">
                     <i class="fa-solid fa-bullseye"></i>
-                    <span>Acuratețe</span>
+                    <span>{{progress-page.accuracy}}</span>
                     <h1>{[userAccuracy]}%</h1>
                 </div>
             </div>
@@ -83,9 +83,9 @@
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
-                            <th>Poziție</th>
-                            <th>Utilizator</th>
-                            <th>Nivel</th>
+                            <th>{{progress-page.table.header.position}}</th>
+                            <th>{{progress-page.table.header.user}}</th>
+                            <th>{{progress-page.table.header.level}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,8 +95,8 @@
             </div>
             <div class="card progress-spider chart-card">
                 <div class="chart-header">
-                    <h2>Spider</h2>
-                    <p>Distribuția competențelor pe subiectele principale</p>
+                    <h2>{{progress-page.charts.spider.title}}</h2>
+                    <p>{{progress-page.charts.spider.description}}</p>
                 </div>
                 <div class="chart-wrapper">
                     <div id="spiderChart" class="chart-host" aria-label="Radar chart"></div>
@@ -104,8 +104,8 @@
             </div>
             <div class="card heatmap-problems-graph chart-card">
                 <div class="chart-header">
-                    <h2>Heatmap problems</h2>
-                    <p>Activitate zilnică și ritm de rezolvare pe parcursul anului</p>
+                    <h2>{{progress-page.charts.heatmap.title}}</h2>
+                    <p>{{progress-page.charts.heatmap.description}}</p>
                 </div>
                 <div class="chart-wrapper">
                     <div id="heatmapChart" class="chart-host chart-host--heatmap" aria-label="Calendar heatmap"></div>
@@ -113,8 +113,8 @@
             </div>
             <div class="card evolution-cookies chart-card">
                 <div class="chart-header">
-                    <h2>Evoluție</h2>
-                    <p>Creșterea numărului de cookies câștigate lună de lună</p>
+                    <h2>{{progress-page.charts.evolution.title}}</h2>
+                    <p>{{progress-page.charts.evolution.description}}</p>
                 </div>
                 <div class="chart-wrapper">
                     <div id="evolutionChart" class="chart-host" aria-label="Line chart"></div>
@@ -122,8 +122,8 @@
             </div>
             <div class="card history-solutions chart-card">
                 <div class="chart-header">
-                    <h2>Istoric rezolvări</h2>
-                    <p>Volumul de probleme rezolvate și tendința de consistență</p>
+                    <h2>{{progress-page.charts.solve-history.title}}</h2>
+                    <p>{{progress-page.charts.solve-history.description}}</p>
                 </div>
                 <div class="chart-wrapper">
                     <div id="historyChart" class="chart-host" aria-label="History line chart"></div>

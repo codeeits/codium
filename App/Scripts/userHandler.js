@@ -135,8 +135,10 @@ async function loadStreakWidget() {
 
         if (isDoneToday) {
             elements.streakDescription.textContent = `Great job! Problem completed today. Streak continues!`;
+            elements.streakDescription.dataset.i18n = 'user-page.streak.did-today';
         } else {
             elements.streakDescription.textContent = `Complete a problem today to start a new streak.`;
+            elements.streakDescription.dataset.i18n = 'user-page.streak.not-did-today-yet';
         }
 
         if (!prefersReducedMotion()) {

@@ -2,6 +2,7 @@
     "language": "Română",
     "app_name": "codium/",
     "welcome": "Învăță/ Programează/ Concurează/",
+    "select_language": "Selectează limba",
     "landing": {
         "meta": {
             "title": "Landing - Codium"
@@ -181,10 +182,48 @@
         }
     },
     "user-page": {
-        "progress": "progres",
-        "achievements": "acomplimente",
-        "recent-activity": "activitate recentă",
-        "bookmarks": "lecții salvate"
+        "progress": "Progres",
+        "achievements": "Acomplimente",
+        "recent-activity": "Activitate recentă",
+        "bookmarks": "Lecții salvate",
+        "bookmarks-empty": "Nu ai nicio lecție salvată. Explorează lecțiile și adaugă-le în bookmark-uri pentru a le accesa rapid mai târziu!",
+        "continue-learning": "Continuă să înveți",
+        "streak": {
+            "title": "Streak zilnic",
+            "did-today": "Felicitări! Ai menținut streak-ul tău astăzi. Continuă așa!",
+            "not-did-today-yet": "Rezolvă o problemă astăzi pentru a nu-ți pierde streak-ul!"
+        }
+    },
+
+    "progress-page": {
+        "level": "Nivel",
+        "lectii_": "Lecții în ",
+        "accuracy": "Acuratețe",
+        "table": {
+            "header": {
+                "position": "Poziție",
+                "user": "Utilizator",
+                "level": "Nivel"
+            }
+        },
+        "charts": {
+            "spider": {
+                "title": "Spider",
+                "description": "Distribuția competențelor pe subiectele principale."
+            },
+            "heatmap": {
+                "title": "Heatmap",
+                "description": "Progresul tău în timp, evidențiind zilele cu activitate, pe parcursul ultimului an."
+            },
+            "evolution": {
+                "title": "Evoluție",
+                "description": "Creșterea numărului de cookies câștigate zilnic."
+            },
+            "solve-history": {
+                "title": "Istoric rezolvări",
+                "description": "Istoricul tuturor problemelor rezolvate."
+            }
+        }
     },
 
     "settings-page": {
@@ -227,6 +266,22 @@
             "opensource": "Codium este un proiect open source.",
             "contribute": "Contribuie pe GitHub",
             "made_with_love": "realizat cu ♥ de andrew & codeeits ^_^"
+        }
+    },
+
+    "experimental-page": {
+        "title": "Experimentale",
+        "desc": "Conține funcționalități noi, în curs de dezvoltare, care nu sunt încă gata pentru lansare. Acestea pot fi instabile și pot conține erori, așa că folosește-le cu precauție!",
+        "back-btn": "Înapoi la pagina de utilizator",
+        "shared-shell-btn": "Shell partajat (main.js)",
+        "sandbox": {
+            "title": "Sandbox"
+        },
+        "ui": {
+            "title": "Implementări UI noi"
+        },
+        "extra": {
+            "title": "Altele"
         }
     },
 
@@ -408,13 +463,15 @@
         "earned": "Câștigat"
     },
     "buttons": {
-        "save": "salvează",
+        "save": "Salvează",
         "cancel": "Anulează",
         "verify": "Verifică",
         "i_saved_them": "Le-am salvat",
         "submit": "Trimite",
         "edit": "Editează profil",
         "delete": "Șterge",
+        "continue": "Continuă",
+        "open": "Deschide",
         "create": "Creează",
         "update": "Actualizează",
         "login": "Autentifică-te",

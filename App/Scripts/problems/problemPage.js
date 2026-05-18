@@ -80,7 +80,7 @@ export function setupDragAndDrop(elements, updateFileLabel, onFileAdded) {
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    const debugMode = true; 
+    const debugMode = true;
     const baseurl = window.location.href;
     let isAuthenticated = false;
 
@@ -108,6 +108,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         dropzone: document.querySelector('.input-field.dropzone'),
         fileInput: document.getElementById('file-input'),
         bookmarkBtn: document.getElementById("bookmark-btn"),
+        shareBtn: document.getElementById("share-btn"),
+        
+        sideContent: document.getElementById("side-content")
 
     };
 
@@ -521,6 +524,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         await processCodeSubmission(code);
     }
 
+    function setupShareButton() {
+        if (!elements.shareBtn) return;
+
+        elements.shareBtn.addEventListener("click", () => {
+            const shareData = {
+                title: state.meta.title,
+                text: `Check out this lesson: ${state.meta.title}`,
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).catch(error => {
+                    if (debugMode) console.error("Share failed:", error);
+                    // we can get false negatives from navigator.share,
+                    // so we won't show a toast in this case
+                    // toastsLoader.showToast("Failed to share the lesson", "danger");
+                });
+            } else {
+                // Fallback: copy URL to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    toastsLoader.showToast("{{server_events.toasts.url_}}{{server_events.toasts._lesson_}}{{server_events.toasts._copied-to-clipboard}}", "confirm");
+                }).catch(error => {
+                    if (debugMode) console.error("Clipboard copy failed:", error);
+                    toastsLoader.showToast("{{server_events.toasts.copy-failed}}", "danger");
+                });
+            }
+        });
+    }
+
     async function processCodeSubmission(code) {
         elements.submitBtn.disabled = true;
         elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Se trimite...';
@@ -531,13 +563,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             const solutionData = { code: code, language: 'py' };
             const solution = await window.apiService.problems.createSolution(state.problemId, solutionData);
             
-            const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests',
-                {
-                    given_answers: runResult.response.given_answers || [],
-                }
-            );
+            const gradedSolution = await window.apiService.problems.updateSolution(solution.ID, 'tests', {
+                given_answers: runResult.response.given_answers || [],
+            });
 
-            console.log('Graded Solution:', gradedSolution);
+            // console.log('Graded Solution:', gradedSolution);
             const score = extractNullableInt(gradedSolution?.TestsPassed);
             const total = extractNullableInt(gradedSolution?.TotalTests) || runResult.response.total;
 
@@ -564,12 +594,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function initApp() {
         try {
-            isAuthenticated = await window.apiService.checkAuthentication(false).catch(err => {
-                if (debugMode) console.warn("Authentication check failed:", err);
+            isAuthenticated = await window.apiService.checkAuthentication(false);
+            if (isAuthenticated !== true) {
+                if (debugMode) console.warn("Authentication check failed:");
+                if (elements.sideContent) {
+                    elements.sideContent.style.display = "none";
+                    elements.bookmarkBtn.style.display = "none";
+                }
                 return false;
-            })
+            }
 
-            if (debugMode) console.log("Initializing Problem Page...");
+            if (debugMode) console.log("Initializing Problem Page (logged in)...");
             if (state.isNewUi) console.log("New UI detected");
 
             if (window.StateEngine) {
@@ -583,16 +618,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             bookmarkToggle(true); 
-
-            setupEventListeners();
-            await fetchProblemData();
-            renderProblemUI();
-            window.applyTranslations?.();
             
         } catch (error) {
             if (debugMode) console.error("Initialization error:", error);
             toastsLoader.showToast("{{server_events.toasts.initialization-error}}" + (error.message || "A apărut o eroare la inițializare."), "danger");
         } finally {
+            setupEventListeners();
+            await fetchProblemData();
+            renderProblemUI();
+            setupShareButton();
+            window.applyTranslations?.();
+
             document.body.classList.remove('is-loading');
         }
     }
