@@ -238,14 +238,14 @@ export default class PrefabAnimations {
             let j = mid + 1;
             let k = 0
 
-            console.log(`We got left and right: ${left} & ${right} | With a calculated middle of: ${mid}`)
+            //console.log(`We got left and right: ${left} & ${right} | With a calculated middle of: ${mid}`)
             while (i <= mid && j <= right) {
-                console.log(`Current k: ${k} with element: ${mergeVect[k].toString()}`)
+                //console.log(`Current k: ${k} with element: ${mergeVect[k].toString()}`)
                 AnimHelpers.ColorContainers([array[i].container, array[j].container], settings.highlightColor, () => {}, Math.floor(10 / settings.speed), renderer);
                 AnimHelpers.HighlightContainers([array[i].container, array[j].container], settings.highlightBorderColor, () => {}, Math.floor(10 / settings.speed), renderer);
                 AnimHelpers.ColorContainers([array[i].container, array[j].container], ogColor, () => {}, Math.floor(10 / settings.speed), renderer);
 
-                console.log(`Checking i - ${i}; j - ${j}... \n${array[i].container};\n${array[j].container};\n `)
+                //console.log(`Checking i - ${i}; j - ${j}... \n${array[i].container};\n${array[j].container};\n `)
                 if (compFunction(array[i], array[j])) {
                     AnimHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, ()=>{}, 10 / settings.speed, renderer)
 
@@ -264,7 +264,7 @@ export default class PrefabAnimations {
             }
 
             while (i <= mid) {
-                console.log(`Current k: ${k}`)
+                //console.log(`Current k: ${k}`)
                 AnimHelpers.MoveContainer(array[i].container, mergeVect[k].rel_x, mergeVect[k].rel_y, ()=>{}, 10 / settings.speed, renderer)
 
                 array[i].container.rel_x = mergeVect[k].rel_x
@@ -273,7 +273,7 @@ export default class PrefabAnimations {
                 k++; i++;
             }
             while (j <= right) {
-                console.log(`Current k: ${k}`)
+                //console.log(`Current k: ${k}`)
                 AnimHelpers.MoveContainer(array[j].container, mergeVect[k].rel_x, mergeVect[k].rel_y, ()=>{}, 10 / settings.speed, renderer)
 
                 array[j].container.rel_x = mergeVect[k].rel_x
@@ -310,7 +310,7 @@ export default class PrefabAnimations {
         }
 
         for (let item of array) {
-            console.log(`Setting color of ${item.container} to done color... ${settings.doneColor}`)
+            //console.log(`Setting color of ${item.container} to done color... ${settings.doneColor}`)
             AnimHelpers.ColorContainers([item.container], settings.doneColor, () => {
                 item.container.height *= 2;
                 item.container.rel_y *= 2;

@@ -112,8 +112,8 @@ export class Container {
          let output = document.createElement("div");
          if (this.element) {
              this.element.style.display = "block";
-             //console.log("DEBUG: Found element in container:");
-             //console.log(this.element);
+             ////console.log("DEBUG: Found element in container:");
+             ////console.log(this.element);
              output.appendChild(this.element);
          }
          output.style = this.template ? this.template.style.cssText : "";
@@ -241,11 +241,11 @@ export class Viewport extends Container {
         output.innerHTML = "";
 
         for (let child of root.children) {
-            //console.log("This is the currently targeted child:")
-            //console.log(child.render());
+            ////console.log("This is the currently targeted child:")
+            ////console.log(child.render());
             if (child === this) throw new Error("Viewport should not be part of the root container's children"); // Skip the viewport itself
             if (!this.intersects(child)) {
-                //console.log("Viewport doesn't intersect current child: " + child)
+                ////console.log("Viewport doesn't intersect current child: " + child)
                 continue;
             } // Skip non-intersecting children
 
@@ -329,21 +329,21 @@ export class Connection extends Container {
         result.style = style;
         result.ending = ending;
 
-        console.log("Created connection between ")
-        console.log(from)
-        console.log(to)
+        //console.log("Created connection between ")
+        //console.log(from)
+        //console.log(to)
 
-        console.log("Having length " + length + "and direction vector: X - " + direction.x + "; Y - " + direction.y);
+        //console.log("Having length " + length + "and direction vector: X - " + direction.x + "; Y - " + direction.y);
         return result
     }
 
     update() {
-        console.log(this)
-        console.log("Updating connection between ")
-        console.log(this.from)
-        console.log(this.to)
+        //console.log(this)
+        //console.log("Updating connection between ")
+        //console.log(this.from)
+        //console.log(this.to)
         if (!this.from || !this.to) {
-            console.log("Connection doesn't seem to have valid endpoints. Skipping update.");
+            //console.log("Connection doesn't seem to have valid endpoints. Skipping update.");
             return;
         }
 
