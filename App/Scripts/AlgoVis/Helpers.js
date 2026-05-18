@@ -255,9 +255,11 @@ export class Main {
             let size_y = (rand / n) * vector.height;
             let size_X = (vector.width / n) * 0.8;
             let container = AnimHelpers.NewBoxFromTemplate(elementTemplate, vector, size_X, size_y, i * (vector.width / n), vector.height - size_y);
-            let textComponent = elementTextComponentTemplate.cloneNode(true);
-            textComponent.innerText = rand.toString();
-            container.setElement(textComponent);
+            if (elementTextComponentTemplate) {
+                let textComponent = elementTextComponentTemplate.cloneNode(true);
+                textComponent.innerText = rand.toString();
+                container.setElement(textComponent);
+            }
             returnedArray.push({ container: container, value: rand });
         }
         return returnedArray;
