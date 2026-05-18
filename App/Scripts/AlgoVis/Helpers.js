@@ -7,12 +7,22 @@ class AnimHelpers {
     }
     static NewBoxFromTemplate(template, parent, width, height, start_x, start_y) {
         let templateCopy = template.cloneNode(true);
+        templateCopy.style.display = "unset";
         let container = new Container(width, height, start_x, start_y, templateCopy);
+        if (templateCopy.children.length > 0) {
+            for (let i = 0; i < templateCopy.children.length; i++) {
+                let child = templateCopy.children[i];
+                let childElement = this.NewBoxFromTemplate(child, container, child.clientWidth, child.clientHeight, child.offsetLeft, child.offsetTop);
+                container.addChild(childElement);
+            }
+        }
         parent.addChild(container);
         return container;
     }
     static NewCircleFromTemplate(template, parent, width, start_x, start_y) {
-        template.style.borderRadius = "50%";
+        let templateCopy = template.cloneNode(true);
+        templateCopy.style.borderRadius = "50%";
+        templateCopy.style.display = "unset";
         let container = new Container(width, width, start_x, start_y, template);
         parent.addChild(container);
         return container;
@@ -131,7 +141,7 @@ AnimHelpers.animator = null;
 AnimHelpers.COMMON_ANIMATIONS = COMMON_ANIMATIONS;
 AnimHelpers.COMMON_ANIMATION_EASING_FUNCTIONS = COMMON_ANIMATION_EASING_FUNCTIONS;
 export default AnimHelpers;
-export class InitHelpers {
+export class Main {
     /*
     * This function sets up the necessary event handlers on the specified viewport element to enable interactive movement based on user input.
     * @param view - A viewport element (extension of the Container class) that will handle rendering and movement based on user interactions.
@@ -217,7 +227,6 @@ export class InitHelpers {
     * @param elementTemplate - An HTMLDivElement that will serve as the template for each individual element in the vector.
     * @param elementTextComponentTemplate - An optional HTMLSpanElement that will serve as the template for the text component of each element in the vector. If provided, each element will display its corresponding value from the values array as text.
     * @param parent - The Container to which the initialized vector will be added as a child.
-    * @param spacing - A number representing the number of pixels to keep as spacing between the elements of the vector. Default is 2 pixels.
      * @return An array of Containers representing the individual elements of the vector, which can be used in AnimHelpers animations.
      */
     static InitSortVector(values, vectorTemplate, elementTemplate, elementTextComponentTemplate, parent, spacing = 2) {
@@ -238,16 +247,6 @@ export class InitHelpers {
         }
         return containers.map((container, index) => ({ container: container, value: values[index] }));
     }
-
-    /*
-    * Initializes a vector with random values that can be used in any of the AnimHelpers animations.
-    * @param n - The number of elements in the vector, as well as the maximum value for the random heights of the elements.
-    * @param vectorTemplate - An HTMLDivElement that will serve as the template for the overall vector container.
-    * @param elementTemplate - An HTMLDivElement that will serve as the template for each individual element in the vector.
-    * @param elementTextComponentTemplate - An optional HTMLSpanElement that will serve as the template for the text component of each element in the vector. If provided, each element will display its corresponding random value as text.
-    * @param parent - The Container to which the initialized vector will be added as a child.
-     * @return An array of objects, each containing a Container representing an individual element of the vector and its corresponding random value, which can be used in AnimHelpers animations.
-     */
     static InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextComponentTemplate, parent) {
         let vector = AnimHelpers.NewBoxFromTemplate(vectorTemplate, parent, parent.width, parent.height, parent.rel_x, parent.rel_y);
         let returnedArray = [];
@@ -283,16 +282,16 @@ export class InitHelpers {
             return a.value > b.value;
         }
         switch (animType) {
-            case "bubble":
+            case AnimationType.BUBBLE_SORT:
                 PrefabAnimations.BUBBLE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "quick":
+            case AnimationType.QUICK_SORT:
                 PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "insertion":
-                PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+            case AnimationType.INSERTION_SORT:
+                PrefabAnimations.INSERTION_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "merge":
+            case AnimationType.MERGE_SORT:
                 PrefabAnimations.MERGE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
         }
@@ -325,5 +324,12 @@ export class InitHelpers {
         return new Settings("", "", "", speed);
     }
 }
-InitHelpers.scheduleRender = null;
-InitHelpers.animator = null;
+Main.scheduleRender = null;
+Main.animator = null;
+export var AnimationType;
+(function (AnimationType) {
+    AnimationType["BUBBLE_SORT"] = "bubble";
+    AnimationType["QUICK_SORT"] = "quick";
+    AnimationType["INSERTION_SORT"] = "insertion";
+    AnimationType["MERGE_SORT"] = "merge";
+})(AnimationType || (AnimationType = {}));

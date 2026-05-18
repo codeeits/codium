@@ -1,9 +1,7 @@
-import { InitHelpers } from "./Helpers.js";
+import * as AlgoVis from "./Helpers.js";
 
-let root = InitHelpers.Init()
-let elementTemplate = document.createElement("div")
-elementTemplate.style.backgroundColor = "oklch(0.7559 0.185 335.65)"
-elementTemplate.style.border = "1px solid black";
+let root = AlgoVis.Main.Init()
+let elementTemplate = document.getElementById("algovisTemplate")
 
 let elementTextTemplate = document.createElement("span");
 elementTextTemplate.style.color = "white";
@@ -15,6 +13,6 @@ let vectorTemplate = document.createElement("div");
 vectorTemplate.style.backgroundColor = "white";
 
 let n = 30
-let vector = InitHelpers.InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextTemplate, root)
+let vector = AlgoVis.Main.InitRandSortVector(n, vectorTemplate, elementTemplate, elementTextTemplate, root)
 
-InitHelpers.InitAndStartAnimation("merge", vector, InitHelpers.BaseSettings(2))
+AlgoVis.Main.InitAndStartAnimation(AlgoVis.AnimationType.MERGE_SORT, vector, AlgoVis.Main.BaseSettings(1))
