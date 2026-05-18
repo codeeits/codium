@@ -255,122 +255,183 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        if(state.AlgoVis) {
-            const masterAlgoVisParent = document.createElement("div");
-            masterAlgoVisParent.id = "algovis-master-container";
-            masterAlgoVisParent.style.width = "100%";
+        if (state.AlgoVis) {
+            try {
+                const masterAlgoVisParent = document.createElement("div");
+                masterAlgoVisParent.id = "algovis-master-container";
+                masterAlgoVisParent.style.width = "100%";
 
-            const definitiveDiv = document.createElement("div");
-            definitiveDiv.id = "definitive-algovis-container";
+                const definitiveDiv = document.createElement("div");
+                definitiveDiv.id = "definitive-algovis-container";
 
-            const algovisViewport = document.createElement("div");
-            algovisViewport.id = "AlgoVis-Viewport";
-            algovisViewport.style.width = "100%";
-            algovisViewport.style.height = "400px";
-            algovisViewport.style.display = "block";
-            algovisViewport.style.position = "relative";
+                const algovisViewport = document.createElement("div");
+                algovisViewport.id = "AlgoVis-Viewport";
+                algovisViewport.style.width = "100%";
+                algovisViewport.style.height = "400px";
+                algovisViewport.style.display = "block";
+                algovisViewport.style.position = "relative";
 
-            const elementTemplateDiv = document.createElement("div");
-            elementTemplateDiv.id = "algovisTemplate";
-            elementTemplateDiv.style.backgroundColor = getCSSVar('--primary');
-            elementTemplateDiv.style.display = "none";
+                const elementTemplateDiv = document.createElement("div");
+                elementTemplateDiv.id = "algovisTemplate";
+                elementTemplateDiv.style.backgroundColor = getCSSVar('--primary');
+                elementTemplateDiv.style.display = "none";
 
-            const controlsContainer = document.createElement("div");
-            controlsContainer.id = "algovis-controls";
-            controlsContainer.style.display = "flex";
-            controlsContainer.style.justifyContent = "center";
-            controlsContainer.style.alignItems = "center";
-            controlsContainer.style.gap = "15px";
-            controlsContainer.style.marginTop = "15px";
-            controlsContainer.style.padding = "10px";
+                const controlsContainer = document.createElement("div");
+                controlsContainer.id = "algovis-controls";
+                controlsContainer.style.display = "flex";
+                controlsContainer.style.justifyContent = "center";
+                controlsContainer.style.alignItems = "center";
+                controlsContainer.style.gap = "15px";
+                controlsContainer.style.marginTop = "15px";
+                controlsContainer.style.padding = "10px";
 
-            const sizeLabel = document.createElement("label");
-            sizeLabel.textContent = "Array Size:";
-            sizeLabel.style.fontWeight = "bold";
+                const sizeLabel = document.createElement("label");
+                sizeLabel.textContent = "Random Size:";
+                sizeLabel.style.fontWeight = "bold";
 
-            const sizeInput = document.createElement("input");
-            sizeInput.type = "number";
-            sizeInput.id = "algovis-size-input";
-            sizeInput.min = "5";
-            sizeInput.max = "100";
-            sizeInput.style.width = "60px";
-            sizeInput.style.padding = "5px";
+                const sizeInput = document.createElement("input");
+                sizeInput.type = "number";
+                sizeInput.id = "algovis-size-input";
+                sizeInput.min = "5";
+                sizeInput.max = "100";
+                sizeInput.style.width = "60px";
+                sizeInput.style.padding = "5px";
 
-            const playButton = document.createElement("button");
-            playButton.textContent = "▶ Play Animation";
-            playButton.className = "btn primary"; // Adjust classes to match your site's CSS
-            playButton.style.padding = "5px 15px";
-            playButton.style.cursor = "pointer";
+                // --- Custom Array Controls ---
+                const customLabel = document.createElement("label");
+                customLabel.textContent = "Or Custom Array:";
+                customLabel.style.fontWeight = "bold";
 
-            // Append controls to their container
-            controlsContainer.appendChild(sizeLabel);
-            controlsContainer.appendChild(sizeInput);
-            controlsContainer.appendChild(playButton);
+                const customInput = document.createElement("input");
+                customInput.type = "text";
+                customInput.id = "algovis-custom-input";
+                customInput.placeholder = "e.g. 10, 5, 20";
+                customInput.style.width = "140px";
+                customInput.style.padding = "5px";
 
-            // Put the viewport inside your definitive wrapper
-            definitiveDiv.appendChild(algovisViewport);
+                const playButton = document.createElement("button");
+                playButton.textContent = '▶ Play';
+                playButton.className = "btn primary";
+                playButton.style.padding = "5px 15px";
+                playButton.style.cursor = "pointer";
 
-            // Put the definitive wrapper AND the template inside the new Master Parent
-            masterAlgoVisParent.appendChild(definitiveDiv);
-            masterAlgoVisParent.appendChild(elementTemplateDiv);
-            masterAlgoVisParent.appendChild(controlsContainer);
+                controlsContainer.appendChild(sizeLabel);
+                controlsContainer.appendChild(sizeInput);
+                controlsContainer.appendChild(customLabel);
+                controlsContainer.appendChild(customInput);
+                controlsContainer.appendChild(playButton);
 
-            // Finally, put the Master Parent onto the page
-            const mountPoint = document.getElementById("algovis-markdown-mount");
-            if (mountPoint) {
-                mountPoint.appendChild(masterAlgoVisParent);
-            } else {
-                elements.container.appendChild(masterAlgoVisParent);
-            }
+                definitiveDiv.appendChild(algovisViewport);
+                masterAlgoVisParent.appendChild(definitiveDiv);
+                masterAlgoVisParent.appendChild(elementTemplateDiv);
+                masterAlgoVisParent.appendChild(controlsContainer);
 
-            let rootDiv = AlgoVis.Main.Init();
-            let activeBarTemplate = document.getElementById("algovisTemplate");
-
-            let elementTextTemplate = document.createElement("span");
-            elementTextTemplate.style.color = "white";
-            elementTextTemplate.style.fontWeight = "bold";
-            elementTextTemplate.style.verticalAlign = "middle";
-
-            let vectorTemplate = document.createElement("div");
-            vectorTemplate.id = "vectorTemplate";
-
-            // Parse data and start
-            const algovisData = JSON.parse(state.AlgoVis);
-
-            sizeInput.value = algovisData.size || 20;
-
-            let currentVectorContainer = null;
-            playButton.addEventListener("click", () => {
-                // 1. Get the latest size from the input field
-                const selectedSize = parseInt(sizeInput.value, 10);
-
-                // 3. Cleanup: If a sorting array is already on screen, remove it
-                if (currentVectorContainer) {
-                    rootDiv.removeChild(currentVectorContainer);
-                    currentVectorContainer = null;
+                const mountPoint = document.getElementById("algovis-markdown-mount");
+                if (mountPoint) {
+                    mountPoint.appendChild(masterAlgoVisParent);
+                } else {
+                    elements.container.appendChild(masterAlgoVisParent);
                 }
 
-                // 4. Generate the new random array
-                let vectorData = AlgoVis.Main.InitRandSortVector(
-                    selectedSize, 
-                    vectorTemplate, 
-                    activeBarTemplate, 
-                    elementTextTemplate, 
-                    rootDiv
-                );
+                let rootDiv = AlgoVis.Main.Init();
+                let activeBarTemplate = document.getElementById("algovisTemplate");
 
-                // Update our reference to the newly created wrapper (it's the last child added to rootDiv)
-                currentVectorContainer = rootDiv.children[rootDiv.children.length - 1];
+                let elementTextTemplate = document.createElement("span");
+                elementTextTemplate.style.color = "white";
+                elementTextTemplate.style.fontWeight = "bold";
+                elementTextTemplate.style.verticalAlign = "middle";
 
-                // 5. Start the animation!
-                AlgoVis.Main.InitAndStartAnimation(
-                    algovisData.algorithm, 
-                    vectorData, 
-                    new AlgoVisSettings(undefined, undefined, getCSSVar('--confirm'), 1)
-                );
-            });
+                let vectorTemplate = document.createElement("div");
+                vectorTemplate.id = "vectorTemplate";
 
-            playButton.click(); // Auto-start animation on load
+                const algovisData = JSON.parse(state.AlgoVis);
+                sizeInput.value = algovisData.size || 20;
+
+                let currentVectorContainer = null;
+                
+                playButton.addEventListener("click", () => {
+                    try {
+                        if (AlgoVis.Main.animator) {
+                            AlgoVis.Main.animator.Stop();
+                            AlgoVis.Main.animator.animations = [];
+                        }
+
+                        if (currentVectorContainer) {
+                            try {
+                                rootDiv.removeChild(currentVectorContainer);
+                            } catch(e) {}
+                            currentVectorContainer = null;
+                        }
+
+                        let vectorData = [];
+                        const customArrayText = customInput.value.trim();
+
+                        if (customArrayText !== "") {
+                            const stringArray = customArrayText.split(",");
+                            const numberArray = [];
+                            
+                            for (let str of stringArray) {
+                                const parsedNum = parseInt(str.trim(), 10);
+                                if (!isNaN(parsedNum)) {
+                                    numberArray.push(parsedNum);
+                                }
+                            }
+
+                            if (numberArray.length === 0) {
+                                alert("Introdu o lista valida de numere, despartite prin virgula.");
+                                return;
+                            }
+
+                            activeBarTemplate.style.display = "unset";
+                            vectorData = AlgoVis.Main.InitSortVector(
+                                numberArray, 
+                                vectorTemplate, 
+                                activeBarTemplate, 
+                                elementTextTemplate, 
+                                rootDiv
+                            );
+                            activeBarTemplate.style.display = "none";
+
+                        } else {
+                            const selectedSize = parseInt(sizeInput.value, 10);
+                            
+                            vectorData = AlgoVis.Main.InitRandSortVector(
+                                selectedSize, 
+                                vectorTemplate, 
+                                activeBarTemplate, 
+                                elementTextTemplate, 
+                                rootDiv
+                            );
+                        }
+
+                        if (!vectorData || vectorData.length === 0) {
+                            console.warn("[AlgoVis] Nu au putut fi generate datele pentru sortare.");
+                            return; 
+                        }
+
+                        currentVectorContainer = rootDiv.children[rootDiv.children.length - 1];
+
+                        let confirmColor = getCSSVar('--confirm');
+                        AlgoVis.Main.InitAndStartAnimation(
+                            algovisData.algorithm, 
+                            vectorData, 
+                            new AlgoVisSettings(undefined, undefined, confirmColor, 1)
+                        );
+
+                        if (AlgoVis.Main.scheduleRender) {
+                            AlgoVis.Main.scheduleRender();
+                        }
+                        
+                    } catch (err) {
+                        console.error("[AlgoVis] Eroare la pornirea animatiei:", err);
+                    }
+                });
+
+                setTimeout(() => playButton.click(), 100);
+
+            } catch (error) {
+                console.error("[AlgoVis] Eroare la initializarea viewport-ului:", error);
+            }
         }
 
         await renderExternalLibraries(elements.container);
