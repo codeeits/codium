@@ -13,13 +13,23 @@ export default class AnimHelpers {
 
     static NewBoxFromTemplate(template: HTMLElement, parent: Container, width: number, height: number, start_x:number, start_y:number): Container {
         let templateCopy = template.cloneNode(true) as HTMLDivElement;
+        templateCopy.style.display = "unset";
         let container = new Container(width, height, start_x, start_y, templateCopy);
+        if (templateCopy.children.length > 0 ){
+            for (let i = 0; i < templateCopy.children.length; i++) {
+                let child = templateCopy.children[i] as HTMLDivElement;
+                let childElement = this.NewBoxFromTemplate(child as HTMLElement, container, child.clientWidth, child.clientHeight, child.offsetLeft, child.offsetTop);
+                container.addChild(childElement);
+            }
+        }
         parent.addChild(container);
         return container;
     }
 
     static NewCircleFromTemplate(template: HTMLElement, parent: Container, width: number, start_x: number, start_y: number): Container {
-        template.style.borderRadius = "50%";
+        let templateCopy = template.cloneNode(true) as HTMLDivElement;
+        templateCopy.style.borderRadius = "50%";
+        templateCopy.style.display = "unset";
         let container = new Container(width, width, start_x, start_y, template);
         parent.addChild(container);
         return container;
@@ -151,7 +161,7 @@ export default class AnimHelpers {
     }
 }
 
-export class InitHelpers {
+export class Main {
     static scheduleRender:() => void = null;
     static animator: AnimationHandler = null;
     /*
@@ -305,16 +315,16 @@ export class InitHelpers {
         }
 
         switch (animType) {
-            case "bubble":
+            case AnimationType.BUBBLE_SORT:
                 PrefabAnimations.BUBBLE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "quick":
+            case AnimationType.QUICK_SORT:
                 PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "insertion":
-                PrefabAnimations.QUICK_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
+            case AnimationType.INSERTION_SORT:
+                PrefabAnimations.INSERTION_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
-            case "merge":
+            case AnimationType.MERGE_SORT:
                 PrefabAnimations.MERGE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
                 break;
         }
@@ -353,4 +363,11 @@ export class InitHelpers {
     static BaseSettings(speed: number = 1) {
         return new Settings("", "", "", speed);
     }
+}
+
+export enum AnimationType {
+    BUBBLE_SORT = "bubble",
+    QUICK_SORT = "quick",
+    INSERTION_SORT = "insertion",
+    MERGE_SORT = "merge",
 }
