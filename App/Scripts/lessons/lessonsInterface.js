@@ -17,7 +17,7 @@ import {
     getCSSVar,
     prefersReducedMotion
 } from '/app/Scripts/animations/animationUtils.js';
-import * as AlgoVis from '/app/Scripts/AlgoVis/'
+import * as AlgoVis from '/app/Scripts/AlgoVis/Helpers.js';
 
 function toRoman(n) {
     if (n === 0) return "All";
@@ -253,7 +253,33 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if(state.AlgoVis) {
+            const algovisViewport = document.createElement("div");
+            algovisViewport.id = "AlgoVis-Viewport";
 
+            let root = AlgoVis.Main.Init();
+            let elementTemplate = document.getElementById("algovisTemplate");
+            
+            let elementTextTemplate = document.createElement("span");
+            elementTextTemplate.style.color = "white";
+            elementTextTemplate.style.fontWeight = "bold";
+            elementTextTemplate.style.verticalAlign = "middle";
+
+            let vectorTemplate = document.createElement("div");
+            vectorTemplate.style.backgroundColor = "white";
+
+            const algovisData = JSON.parse(state.AlgoVis);
+            let vector = AlgoVis.Main.InitRandSortVector(algovisData.size, vectorTemplate, elementTemplate, elementTextTemplate, root);
+            AlgoVis.Main.InitAndStartAnimation(algovisData.algorithm, vector, AlgoVis.Main.BaseSettings(1));
+
+            /* structure of algovisData:
+            ////algovis
+                {
+                    "algorithm": "merge",
+                    "size": 20
+                }
+            /////
+            */
+            elements.container.appendChild(algovisViewport);
         }
 
         await renderExternalLibraries(elements.container);
