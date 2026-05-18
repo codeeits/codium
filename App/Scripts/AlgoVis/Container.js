@@ -205,12 +205,6 @@ export class Viewport extends Container {
         output.style.width = this.width + "px";
         output.style.height = this.height + "px";
         output.style.overflow = "hidden";
-        output.style.position = "fixed";
-        output.style.borderColor = "black";
-        output.style.borderWidth = "1px";
-        output.style.borderStyle = "solid";
-        output.style.top = "15px";
-        output.style.left = "15px";
         output.draggable = false;
         // Clear existing content
         output.innerHTML = "";
