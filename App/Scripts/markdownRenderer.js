@@ -195,10 +195,15 @@ export function tomarkdown(text, state = {}) {
             : [];
     }
 
-    const AlgoVisData = extractCustomBlock(text, 'algovis');
-    text = AlgoVisData.cleanedText;
-    if (state) {
-        state.AlgoVis = AlgoVisData.match ? AlgoVisData.match.trim() : null;
+    const AlgoVisData = extractCustomBlock(text, 'algovis', false); 
+    
+    if (AlgoVisData.match) {
+        if (state) {
+            state.AlgoVis = AlgoVisData.match.trim();
+        }
+        text = text.replace(regex('algovis'), '\n<div id="algovis-markdown-mount"></div>\n');
+    } else {
+        text = AlgoVisData.cleanedText;
     }
 
     // --- VIRTUAL ui construction ---

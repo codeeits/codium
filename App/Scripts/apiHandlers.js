@@ -441,7 +441,7 @@ class ApiService {
         
         // 1. Get the raw variable strings
         const color1 = bodyStyle.getPropertyValue('--primary').trim() || 
-                        bodyStyle.getPropertyValue('--base-primary').trim();
+                       bodyStyle.getPropertyValue('--base-primary').trim();
         const color2 = bodyStyle.getPropertyValue('--contrast').trim() || "#ffffff";
         const color3 = bodyStyle.getPropertyValue('--fundal').trim() || "#ffffff";
         const color4 = bodyStyle.getPropertyValue('--confirm').trim() || "#ffffff";

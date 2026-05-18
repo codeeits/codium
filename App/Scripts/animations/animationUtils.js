@@ -15,11 +15,33 @@
  */
 export function getCSSVar(varName) {
     const cleanName = varName.startsWith('--') ? varName : `--${varName}`;
-    return getComputedStyle(document.documentElement).getPropertyValue(cleanName).trim();
+    const bodyStyle = getComputedStyle(document.body);
+    // console.log(`CSS Variable ${cleanName}:`, bodyStyle.getPropertyValue(cleanName).trim());
+    return bodyStyle.getPropertyValue(cleanName).trim();
 }
 
 /**
- * Get color palette from CSS variables
+ * Resolves any valid CSS color (rgb, hsl, named, etc.) to a hex string
+ * @param {string} cssColor - The CSS color string to convert
+ * @returns {string} Hex color string (without the #)
+ */
+export function getResolvedHex(cssColor) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = cssColor;
+    ctx.fillRect(0, 0, 1, 1);
+    
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    
+    const toHex = (v) => v.toString(16).padStart(2, '0');
+    return `${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+/**
+ * Get color palette from CSS variables (raw values)
  * @returns {string[]} Array of color values
  */
 export function getColorPalette() {
@@ -31,6 +53,14 @@ export function getColorPalette() {
         getCSSVar('--contrast'),
         getCSSVar('--fundal'),
     ];
+}
+
+/**
+ * Get color palette from CSS variables, converted to resolved Hex strings
+ * @returns {string[]} Array of Hex color values
+ */
+export function getHexColorPalette() {
+    return getColorPalette().map(color => getResolvedHex(color));
 }
 
 /**

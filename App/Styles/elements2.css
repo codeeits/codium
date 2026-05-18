@@ -1223,7 +1223,7 @@ footer a:hover {
     letter-spacing: 0.5px;
 }
 
-.example-block pre {
+.example-block pre, #definitive-algovis-container {
     position: relative; 
     background: var(--contrast);
     border: 1px solid var(--border-subtle);
@@ -1234,6 +1234,14 @@ footer a:hover {
     height: 100%;
     cursor: pointer;
     transition: border-color var(--anim-duration-fast) var(--anim-ease-in-out);
+}
+
+#definitive-algovis-container {
+    height: unset !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 

@@ -15,9 +15,12 @@ import {
     applyStaggeredAnimation, 
     cascadeEntrance,
     getCSSVar,
+    getResolvedHex,
     prefersReducedMotion
 } from '/app/Scripts/animations/animationUtils.js';
+
 import * as AlgoVis from '/app/Scripts/AlgoVis/Helpers.js';
+import { Settings as AlgoVisSettings } from '/app/Scripts/AlgoVis/Animations.js';
 
 function toRoman(n) {
     if (n === 0) return "All";
@@ -253,44 +256,121 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if(state.AlgoVis) {
-            const algovisViewport = document.createElement("div");
-            const elementTemplateDiv = document.createElement("div");
-            elementTemplateDiv.id = "algovisTemplate";
+            const masterAlgoVisParent = document.createElement("div");
+            masterAlgoVisParent.id = "algovis-master-container";
+            masterAlgoVisParent.style.width = "100%";
 
+            const definitiveDiv = document.createElement("div");
+            definitiveDiv.id = "definitive-algovis-container";
+
+            const algovisViewport = document.createElement("div");
             algovisViewport.id = "AlgoVis-Viewport";
-            algovisViewport.style.width = "500px";
+            algovisViewport.style.width = "100%";
             algovisViewport.style.height = "400px";
             algovisViewport.style.display = "block";
-
             algovisViewport.style.position = "relative";
 
-            elements.container.appendChild(algovisViewport);
-            elements.container.appendChild(elementTemplateDiv);
+            const elementTemplateDiv = document.createElement("div");
+            elementTemplateDiv.id = "algovisTemplate";
+            elementTemplateDiv.style.backgroundColor = getCSSVar('--primary');
+            elementTemplateDiv.style.display = "none";
+
+            const controlsContainer = document.createElement("div");
+            controlsContainer.id = "algovis-controls";
+            controlsContainer.style.display = "flex";
+            controlsContainer.style.justifyContent = "center";
+            controlsContainer.style.alignItems = "center";
+            controlsContainer.style.gap = "15px";
+            controlsContainer.style.marginTop = "15px";
+            controlsContainer.style.padding = "10px";
+
+            const sizeLabel = document.createElement("label");
+            sizeLabel.textContent = "Array Size:";
+            sizeLabel.style.fontWeight = "bold";
+
+            const sizeInput = document.createElement("input");
+            sizeInput.type = "number";
+            sizeInput.id = "algovis-size-input";
+            sizeInput.min = "5";
+            sizeInput.max = "100";
+            sizeInput.style.width = "60px";
+            sizeInput.style.padding = "5px";
+
+            const playButton = document.createElement("button");
+            playButton.textContent = "▶ Play Animation";
+            playButton.className = "btn primary"; // Adjust classes to match your site's CSS
+            playButton.style.padding = "5px 15px";
+            playButton.style.cursor = "pointer";
+
+            // Append controls to their container
+            controlsContainer.appendChild(sizeLabel);
+            controlsContainer.appendChild(sizeInput);
+            controlsContainer.appendChild(playButton);
+
+            // Put the viewport inside your definitive wrapper
+            definitiveDiv.appendChild(algovisViewport);
+
+            // Put the definitive wrapper AND the template inside the new Master Parent
+            masterAlgoVisParent.appendChild(definitiveDiv);
+            masterAlgoVisParent.appendChild(elementTemplateDiv);
+            masterAlgoVisParent.appendChild(controlsContainer);
+
+            // Finally, put the Master Parent onto the page
+            const mountPoint = document.getElementById("algovis-markdown-mount");
+            if (mountPoint) {
+                mountPoint.appendChild(masterAlgoVisParent);
+            } else {
+                elements.container.appendChild(masterAlgoVisParent);
+            }
 
             let rootDiv = AlgoVis.Main.Init();
-            let elementTemplate = document.getElementById("algovisTemplate");
-            elementTemplate.style.backgroundColor = 'gray';
-            
+            let activeBarTemplate = document.getElementById("algovisTemplate");
+
             let elementTextTemplate = document.createElement("span");
             elementTextTemplate.style.color = "white";
             elementTextTemplate.style.fontWeight = "bold";
             elementTextTemplate.style.verticalAlign = "middle";
 
             let vectorTemplate = document.createElement("div");
-            vectorTemplate.style.backgroundColor = "white";
+            vectorTemplate.id = "vectorTemplate";
 
+            // Parse data and start
             const algovisData = JSON.parse(state.AlgoVis);
-            let vector = AlgoVis.Main.InitRandSortVector(algovisData.size, vectorTemplate, elementTemplate, elementTextTemplate, rootDiv);
-            AlgoVis.Main.InitAndStartAnimation(algovisData.algorithm, vector, AlgoVis.Main.BaseSettings(1));
 
-            /* structure of algovisData:
-            ////algovis
-                {
-                    "algorithm": "merge",
-                    "size": 20
+            sizeInput.value = algovisData.size || 20;
+
+            let currentVectorContainer = null;
+            playButton.addEventListener("click", () => {
+                // 1. Get the latest size from the input field
+                const selectedSize = parseInt(sizeInput.value, 10);
+
+                // 3. Cleanup: If a sorting array is already on screen, remove it
+                if (currentVectorContainer) {
+                    rootDiv.removeChild(currentVectorContainer);
+                    currentVectorContainer = null;
                 }
-            /////
-            */
+
+                // 4. Generate the new random array
+                let vectorData = AlgoVis.Main.InitRandSortVector(
+                    selectedSize, 
+                    vectorTemplate, 
+                    activeBarTemplate, 
+                    elementTextTemplate, 
+                    rootDiv
+                );
+
+                // Update our reference to the newly created wrapper (it's the last child added to rootDiv)
+                currentVectorContainer = rootDiv.children[rootDiv.children.length - 1];
+
+                // 5. Start the animation!
+                AlgoVis.Main.InitAndStartAnimation(
+                    algovisData.algorithm, 
+                    vectorData, 
+                    new AlgoVisSettings(undefined, undefined, getCSSVar('--confirm'), 1)
+                );
+            });
+
+            playButton.click(); // Auto-start animation on load
         }
 
         await renderExternalLibraries(elements.container);
@@ -708,7 +788,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (prefersReducedMotion()) return;
 
         if (elements.container) {
-            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table, #AlgoVis-Viewport');
+            const contentBlocks = elements.container.querySelectorAll('h2, h3, h4, p, pre, ul, ol, blockquote, img, table, div:not(#algovis-master-container):not(#algovis-master-container *)');
             cascadeEntrance(contentBlocks, 'fade', { staggerDelay: 60, baseDelay: 200 });
         }
 
