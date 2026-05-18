@@ -9,6 +9,7 @@ Pentru highlight, highlight.js; MathJax pentru formule matematice iar Mermaid pe
 
 Phoenix - Mugur de Fluier
 */
+import { renderExternalLibraries, tomarkdown } from '../markdownRenderer.js';
 import { triggerConfetti } from '/app/Scripts/animations/confetti.js';
 import { 
     applyStaggeredAnimation, 
@@ -16,6 +17,8 @@ import {
     getCSSVar,
     prefersReducedMotion
 } from '/app/Scripts/animations/animationUtils.js';
+import * as AlgoVis from '/app/Scripts/AlgoVis/Helpers.js';
+
 function toRoman(n) {
     if (n === 0) return "All";
     if (n >= 67) return "N/A"; // Neclasificat
@@ -226,33 +229,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        // Configure Marked
-        const renderer = {
-            heading(token) {
-                const plain = token.text || '';
-                const level = token.depth || 1;
-                const slug = plain
-                    .toLowerCase()
-                    .normalize("NFD").replace(/[\u0300-\u036f]/g, '') // remove accents
-                    .replace(/[^\w]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
-                
-                if (level === 2) {
-                    state.h2Array.push({ text: plain, slug });
-                }
-                return `<h${level} id="${slug}">${plain}</h${level}>`;
-            },
-        };
+        // Parse and render through the shared markdown renderer.
+        elements.container.innerHTML = tomarkdown(state.markdownContent || '', state);
+        hljs.highlightAll();
 
-        // Extract key points for the "De reținut" card, hiding the lines from the marked parser
-        const keyPointsRegex = /\n?\/\/\/\/\/key\s*([\s\S]*?)\s*\/\/\/\/\/\n?/;
-        const keyPointsMatch = state.markdownContent.match(keyPointsRegex);
-        if (keyPointsMatch && keyPointsMatch[1]) {
-            const keyPointsText = keyPointsMatch[1].trim();
-            const keyPointsArray = keyPointsText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            if (elements.keypointsCard) {
+        if (elements.keypointsCard) {
+            const keyPointsArray = state.keyPoints || [];
+            if (keyPointsArray.length > 0) {
+                elements.keypointsCard.style.display = "";
                 const ul = elements.keypointsCard.querySelector("ul") || document.createElement("ul");
-                ul.innerHTML = ''; // clear existing points
+                ul.innerHTML = '';
                 keyPointsArray.forEach(point => {
                     const li = document.createElement("li");
                     li.textContent = point;
@@ -261,80 +247,42 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (!ul.parentElement) {
                     elements.keypointsCard.appendChild(ul);
                 }
+            } else {
+                elements.keypointsCard.style.display = "none";
             }
-        } else {
-            if (elements.keypointsCard) elements.keypointsCard.style.display = "none";
         }
-        state.markdownContent = state.markdownContent.replace(keyPointsRegex, '');
 
-        marked.use({ renderer });
-        marked.setOptions({
-            highlight: function(code, lang) {
-                if (hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
+        if(state.AlgoVis) {
+            const algovisViewport = document.createElement("div");
+            algovisViewport.id = "AlgoVis-Viewport";
+
+            let root = AlgoVis.Main.Init();
+            let elementTemplate = document.getElementById("algovisTemplate");
+            
+            let elementTextTemplate = document.createElement("span");
+            elementTextTemplate.style.color = "white";
+            elementTextTemplate.style.fontWeight = "bold";
+            elementTextTemplate.style.verticalAlign = "middle";
+
+            let vectorTemplate = document.createElement("div");
+            vectorTemplate.style.backgroundColor = "white";
+
+            const algovisData = JSON.parse(state.AlgoVis);
+            let vector = AlgoVis.Main.InitRandSortVector(algovisData.size, vectorTemplate, elementTemplate, elementTextTemplate, root);
+            AlgoVis.Main.InitAndStartAnimation(algovisData.algorithm, vector, AlgoVis.Main.BaseSettings(1));
+
+            /* structure of algovisData:
+            ////algovis
+                {
+                    "algorithm": "merge",
+                    "size": 20
                 }
-            }
-        });
-
-        // Parse and Render
-        elements.container.innerHTML = marked.parse(state.markdownContent || '');
-        hljs.highlightAll();
-        
-
-        await renderExternalLibraries();
-    }
-
-    async function renderExternalLibraries() {
-        const promises = [];
-
-        if (window.MathJax) {
-            if (window.MathJax.typesetPromise) {
-                promises.push(
-                    MathJax.typesetPromise([elements.container]).then(() => {
-                        if (debugMode) console.log('[MATH] MathJax processing complete');
-                    }).catch((err) => {
-                        if (debugMode) console.error('[MATH] MathJax typeset failed:', err);
-                    })
-                );
-            } else if (window.MathJax.Hub) {
-                promises.push(
-                    new Promise(resolve => {
-                        MathJax.Hub.Queue(["Typeset", MathJax.Hub, elements.container]);
-                        MathJax.Hub.Queue(resolve);
-                    })
-                );
-            }
+            /////
+            */
+            elements.container.appendChild(algovisViewport);
         }
 
-        // Process Mermaid
-        if (window.mermaid) {
-            window.mermaid.initialize({
-                startOnLoad: false,
-                theme: 'dark',
-                themeVariables: {
-                    primaryColor: '#9B59BB',
-                    primaryTextColor: '#FFFFFF',
-                    primaryBorderColor: '#9B59BB',
-                    lineColor: '#B380CB',
-                    secondaryColor: '#B380CB',
-                    tertiaryColor: '#8E44AD',
-                }
-            });
-
-            promises.push(
-                new Promise(resolve => setTimeout(resolve, 50)).then(() => {
-                    return window.mermaid.run({
-                        querySelector: '#lesson-body .language-mermaid, #lesson-body code[class*="mermaid"]'
-                    }).then(() => {
-                        if (debugMode) console.log('[MERMAID] Mermaid diagrams rendered');
-                    }).catch((err) => {
-                        if (debugMode) console.error('[MERMAID] Mermaid rendering failed:', err);
-                    });
-                })
-            );
-        }
-
-        await Promise.all(promises);
+        await renderExternalLibraries(elements.container);
     }
 
     function renderCuprinsSidebar() {

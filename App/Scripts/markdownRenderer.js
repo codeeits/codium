@@ -187,6 +187,20 @@ export function tomarkdown(text, state = {}) {
     const shortDescriptionData = extractCustomBlock(text, 'short-desc');
     text = shortDescriptionData.cleanedText;
 
+    const keyPointsData = extractCustomBlock(text, 'key');
+    text = keyPointsData.cleanedText;
+    if (state) {
+        state.keyPoints = keyPointsData.match
+            ? keyPointsData.match.split('\n').map(line => line.trim()).filter(Boolean)
+            : [];
+    }
+
+    const AlgoVisData = extractCustomBlock(text, 'algovis');
+    text = AlgoVisData.cleanedText;
+    if (state) {
+        state.AlgoVis = AlgoVisData.match ? AlgoVisData.match.trim() : null;
+    }
+
     // --- VIRTUAL ui construction ---
     let ioHtml = '';
     if (inputData.match || outputData.match) {
