@@ -283,6 +283,7 @@ export class Main {
         function compare(a, b) {
             return a.value > b.value;
         }
+        this.Stop();
         switch (animType) {
             case AnimationType.BUBBLE_SORT:
                 PrefabAnimations.BUBBLE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
@@ -324,6 +325,9 @@ export class Main {
     }
     static BaseSettings(speed = 1) {
         return new Settings("", "", "", speed);
+    }
+    static Stop() {
+        this.animator.Stop();
     }
 }
 Main.scheduleRender = null;

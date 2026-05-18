@@ -316,6 +316,8 @@ export class Main {
             return a.value > b.value
         }
 
+        this.Stop()
+
         switch (animType) {
             case AnimationType.BUBBLE_SORT:
                 PrefabAnimations.BUBBLE_SORT_ANIMATION(startingData, compare, this.scheduleRender, settings);
@@ -364,6 +366,10 @@ export class Main {
 
     static BaseSettings(speed: number = 1) {
         return new Settings("", "", "", speed);
+    }
+
+    static Stop() {
+        this.animator.Stop();
     }
 }
 

@@ -101,6 +101,8 @@ export class AnimationHandler {
             window.clearInterval(this.timerId);
             this.timerId = null;
         }
+        this.animations = [];
+        this.lastFrame = 0;
     }
 
     /**
