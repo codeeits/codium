@@ -39,6 +39,7 @@ The interactive web based computer science learning app
      >>> yes
      ```
      A database reset will also automatically create an admin user with the email and password specified in the environment variables.
+     For a quick guide on the available commands, check [here](#quick-command-guide-for-the-server-console).
   5. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
   
 It is of importance to note that, if you're struggling with connecting to the application, check you have port forwarding set up and your firewall is allowing outside connection to ports 8443 and 6767 respectively for HTTPs and HTTP!
@@ -74,6 +75,9 @@ WEBSITE_STATE="development"
 - `reset`: Resets the entire database to its initial state, deleting all data and recreating the default admin user.
 - `help`: Displays a list of available commands and their descriptions.
 - `stop`: Gracefully stops the server, allowing it to finish processing any ongoing requests before shutting down.
+
+### One last thing
+Application logs can be viewed in the /logs/api.log file. 
 
 ### Contributing
 As this is a software made for a competition, we are not currently accepting contributions. However, if you have any suggestions or would like to contribute in the future, please feel free to reach out to us.
