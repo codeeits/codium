@@ -260,6 +260,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const masterAlgoVisParent = document.createElement("div");
                 masterAlgoVisParent.id = "algovis-master-container";
                 masterAlgoVisParent.style.width = "100%";
+                masterAlgoVisParent.style.display = "flex";
+                masterAlgoVisParent.style.gap = "var(--gap-md)";
+                masterAlgoVisParent.style.flexDirection = "column";
 
                 const definitiveDiv = document.createElement("div");
                 definitiveDiv.id = "definitive-algovis-container";
@@ -274,51 +277,85 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const elementTemplateDiv = document.createElement("div");
                 elementTemplateDiv.id = "algovisTemplate";
                 elementTemplateDiv.style.backgroundColor = getCSSVar('--primary');
+                elementTemplateDiv.style.borderRadius = "var(--border-radius-sm)";
                 elementTemplateDiv.style.display = "none";
 
                 const controlsContainer = document.createElement("div");
                 controlsContainer.id = "algovis-controls";
                 controlsContainer.style.display = "flex";
                 controlsContainer.style.justifyContent = "center";
-                controlsContainer.style.alignItems = "center";
-                controlsContainer.style.gap = "15px";
-                controlsContainer.style.marginTop = "15px";
-                controlsContainer.style.padding = "10px";
+                controlsContainer.style.alignItems = "end";
+                controlsContainer.style.gap = "var(--gap-md)";
 
-                const sizeLabel = document.createElement("label");
-                sizeLabel.textContent = "Random Size:";
-                sizeLabel.style.fontWeight = "bold";
+                // build the custom input for random number
+                /* <div class="modal-field">
+                        <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Editează numele de utilizator:</label>
+                        <div class="text-container input-field">
+                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="nume de utilizator" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20" autocomplete="off" value="">
+                            <i class="fa-solid fa-signature input-icon"></i>
+                        </div>
+                    </div> 
+                */
+                const sizeContainer = document.createElement("div");
+                sizeContainer.className = "modal-field";
+
+                const labelCont = document.createElement("label");
+                labelCont.setAttribute("for", "algovis-size-input");
+                labelCont.className = "input-label";
+                labelCont.textContent = "Random Size:";
+                sizeContainer.appendChild(labelCont);
+
+                const inputContainerD = document.createElement("div");
+                inputContainerD.className = "text-container input-field";
 
                 const sizeInput = document.createElement("input");
                 sizeInput.type = "number";
                 sizeInput.id = "algovis-size-input";
                 sizeInput.min = "5";
                 sizeInput.max = "100";
-                sizeInput.style.width = "60px";
-                sizeInput.style.padding = "5px";
+                sizeInput.className = "input-text";
 
-                // --- Custom Array Controls ---
-                const customLabel = document.createElement("label");
-                customLabel.textContent = "Or Custom Array:";
-                customLabel.style.fontWeight = "bold";
+                inputContainerD.appendChild(sizeInput);
+                sizeContainer.appendChild(inputContainerD);
 
+                // build the custom input
+                /* <div class="modal-field">
+                        <label for="editUsername" class="input-label" data-i18n="modal.edit_profile.labels.username">Editează numele de utilizator:</label>
+                        <div class="text-container input-field">
+                            <input class="input-text" type="text" name="username" id="editUsername" placeholder="nume de utilizator" data-i18n-placeholder="modal.edit_profile.username" minlength="3" maxlength="20" autocomplete="off" value="">
+                            <i class="fa-solid fa-signature input-icon"></i>
+                        </div>
+                    </div> 
+                */
+                //
+                const customFieldContainer = document.createElement("div");
+                customFieldContainer.className = "modal-field";
+                
+                const label = document.createElement("label");
+                label.setAttribute("for", "algovis-custom-input");
+                label.className = "input-label";
+                label.textContent = "Or Custom Array:";
+                customFieldContainer.appendChild(label);
+
+                const inputContainer = document.createElement("div");
+                inputContainer.className = "text-container input-field";
+                
                 const customInput = document.createElement("input");
                 customInput.type = "text";
                 customInput.id = "algovis-custom-input";
+                customInput.className = "input-text";
+                customInput.name = "customArray";
                 customInput.placeholder = "e.g. 10, 5, 20";
-                customInput.style.width = "140px";
-                customInput.style.padding = "5px";
+
+                inputContainer.appendChild(customInput);
+                customFieldContainer.appendChild(inputContainer);
 
                 const playButton = document.createElement("button");
                 playButton.textContent = '▶ Play';
                 playButton.className = "btn primary";
-                playButton.style.padding = "5px 15px";
-                playButton.style.cursor = "pointer";
 
-                controlsContainer.appendChild(sizeLabel);
-                controlsContainer.appendChild(sizeInput);
-                controlsContainer.appendChild(customLabel);
-                controlsContainer.appendChild(customInput);
+                controlsContainer.appendChild(sizeContainer);
+                controlsContainer.appendChild(customFieldContainer);
                 controlsContainer.appendChild(playButton);
 
                 definitiveDiv.appendChild(algovisViewport);

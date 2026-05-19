@@ -12,6 +12,10 @@
 
 }
 
+#algovis-controls > * {
+    width: 100%;
+}
+
 .content-area > div {
     display: flex;
     flex-direction: row;
