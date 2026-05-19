@@ -23,9 +23,14 @@ The interactive web based computer science learning app
   3. Set up the environment variables as described in the development note below.
   4. Run the application:
      ```bash
-     go run main.go
+     go run .
      ```
-     Your console will show a message indicating that the server is running and listening on the configured port (e.g., 6767 for local development).
+     Your console will show a message indicating that the server is starting up and then a prompt for a command
+     ```
+     Starting console...
+     >> 
+     ```
+
      From there, it is recommended unless you have active data to send the `reset` command to the server to initialize the database with default data and an admin user:
      ```bash
      >>> reset
@@ -34,7 +39,7 @@ The interactive web based computer science learning app
      >>> yes
      ```
      A database reset will also automatically create an admin user with the email and password specified in the environment variables.
-  5. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
+  6. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
   
 It is of importance to note that, if you're struggling with connecting to the application, check you have port forwarding set up and your firewall is allowing outside connection to ports 8443 and 6767 respectively for HTTPs and HTTP!
 If you wish your server to be automatically accessible without needing to mention port 8443, you can port forward outside connections to port 443 to the application port 8443.
