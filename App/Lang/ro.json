@@ -608,5 +608,12 @@
             "problem-id-missing": "ID-ul problemei lipsește."
 
         }
+    },
+
+    "algovis": {
+        "random-size": "Dimensiune aleatorie:",
+        "custom-array": "Șir personalizat:",
+        "custom-array-placeholder": "ex. 5,3,8,1,2",
+        "play": "Pornește vizualizarea"
     }
 }

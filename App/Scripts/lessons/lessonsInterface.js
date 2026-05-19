@@ -303,6 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 labelCont.setAttribute("for", "algovis-size-input");
                 labelCont.className = "input-label";
                 labelCont.textContent = "Random Size:";
+                labelCont.dataset.i18n = "algovis.random-size";
                 sizeContainer.appendChild(labelCont);
 
                 const inputContainerD = document.createElement("div");
@@ -335,6 +336,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 label.setAttribute("for", "algovis-custom-input");
                 label.className = "input-label";
                 label.textContent = "Or Custom Array:";
+                label.dataset.i18n = "algovis.custom-array";
                 customFieldContainer.appendChild(label);
 
                 const inputContainer = document.createElement("div");
@@ -346,12 +348,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 customInput.className = "input-text";
                 customInput.name = "customArray";
                 customInput.placeholder = "e.g. 10, 5, 20";
+                customInput.dataset.i18nPlaceholder = "algovis.custom-array-placeholder";
 
                 inputContainer.appendChild(customInput);
                 customFieldContainer.appendChild(inputContainer);
 
                 const playButton = document.createElement("button");
-                playButton.textContent = '▶ Play';
+                playButton.innerHTML = '<i class="fas fa-play"></i> {{algovis.play}}';
                 playButton.className = "btn primary";
 
                 controlsContainer.appendChild(sizeContainer);

@@ -608,5 +608,12 @@
             "problem-id-missing": "Problem ID is missing."
         }
 
+    },
+
+    "algovis": {
+        "random-size": "Random size:",
+        "custom-array": "Custom array:",
+        "custom-array-placeholder": "e.g. 5,3,8,1,2",
+        "play": "Play visualization"
     }
 }

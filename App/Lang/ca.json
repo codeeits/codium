@@ -608,5 +608,12 @@
             "problem-id-missing": "Falta l'ID del problema."
             
         }
+    },
+
+    "algovis": {
+        "random-size": "Mida aleatòria:",
+        "custom-array": "Matriu personalitzada:",
+        "custom-array-placeholder": "ex. 5,3,8,1,2",
+        "play": "Reprodueix la visualització"
     }
 }
