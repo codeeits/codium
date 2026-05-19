@@ -1,7 +1,44 @@
-# WORK IN PROGRESS
-This is a code learning / problem solving WebApp for a competition
+## Codium
+The interactive web based computer science learning app
 
-## Small development note:
+---
+
+## Instalation and utilization guide
+### Prerequisites
+- Go 1.20 or higher
+- A PostgreSQL database (or any other supported by GORM)
+- An SMTP server for sending emails (e.g., Mailgun, SendGrid, etc.)
+- SSL certificates for HTTPs
+- Port forwarding and firewall configuration to allow outside connections to the application ports (8443 for HTTPs and 6767 for HTTP)
+### Installation
+  1. Clone the repository:
+     ```bash
+     git clone https://github.com/codeeits/codium.git
+     cd codium
+     ```
+  2. Install dependencies:
+     ```bash
+     go mod tidy
+     ```
+  3. Set up the environment variables as described in the development note below.
+  4. Run the application:
+     ```bash
+     go run main.go
+     ```
+     Your console will show a message indicating that the server is running and listening on the configured port (e.g., 6767 for local development).
+     From there, it is recommended unless you have active data to send the `reset` command to the server to initialize the database with default data and an admin user:
+     ```bash
+     >>> reset
+     
+     ARE YOU SURE...
+     >>> yes
+     ```
+     A database reset will also automatically create an admin user with the email and password specified in the environment variables.
+  5. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
+  
+It is of importance to note that, if you're struggling with connecting to the application, check you have port forwarding set up and your firewall is allowing outside connection to ports 8443 and 6767 respectively for HTTPs and HTTP!
+If you wish your server to be automatically accessible without needing to mention port 8443, you can port forward outside connections to port 443 to the application port 8443.
+### Small development note:
 For the project to properly run locally, you need to have a `.env` file in the root directory with the following variables:
 
 ```
