@@ -884,7 +884,7 @@ func (cfg *ApiCfg) DeleteLesson(lessonID uuid.UUID) error {
 	}
 	err = cfg.DeleteFile(lesson.ContentID)
 	if err != nil {
-		return fmt.Errorf("failed to delete lesson content file: %v", err)
+		cfg.Logger.Printf("failed to delete lesson content file: %v", err)
 	}
 	err = cfg.Db.DeleteLessonByID(context.Background(), lessonID)
 	if err != nil {
@@ -1280,15 +1280,10 @@ func UserHasPermission(user database.User, permission UserPermissions) bool {
 
 func (cfg *ApiCfg) CacheSettingsMiddleware(handler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if cfg.WebsiteState == "development" {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-			w.Header().Set("Pragma", "no-cache")
-			w.Header().Set("Expires", "0")
-		} else {
-			w.Header().Set("Cache-Control", "public, max-age=60")
-			w.Header().Set("Pragma", "public")
-			w.Header().Set("Expires", time.Now().Add(time.Minute).Format(http.TimeFormat))
-		}
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+
 		handler.ServeHTTP(w, r)
 	}
 }
