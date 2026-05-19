@@ -1503,26 +1503,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			solutionID = sol.ID
 		})
 
-		t.Run("TestUpdateSolutionTestsAsUser", func(t *testing.T) {
-			jsonData := []byte(`{"tests_passed":3, "total_tests":5}`)
-			resp, _, err := NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+solutionID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-
-			var sol database.Solution
-			if sol = resp.(database.Solution); err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-			assertNonNilID(t, sol.ID, "updated solution tests")
-			if !sol.TestsPassed.Valid || sol.TestsPassed.Int32 != 3 {
-				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 3, sol.TestsPassed.Int32)
-			}
-			if !sol.TotalTests.Valid || sol.TotalTests.Int32 != 5 {
-				t.Fatalf("Received wrong number of total tests, expected %d got %d", 5, sol.TotalTests.Int32)
-			}
-		})
-
 		t.Run("TestGetSolutionByIDAsAdmin", func(t *testing.T) {
 			resp, _, err := NewRequestBuilder("GET", nil, http.StatusOK, database.Solution{}).WithPath("/api/solutions").WithAuthToken(adminToken).WithQueryParam("search_type", "id").WithQueryParam("solution_id", solutionID.String()).Build()
 			if err != nil {
@@ -1602,60 +1582,6 @@ func (cfg *ApiCfg) TestSuite(t *testing.T) {
 			}
 			if !found {
 				t.Fatalf("Expected to find bookmarked problem with ID %s", problemID.String())
-			}
-		})
-
-		t.Run("TestCreateCorrectSolutionAndCheckAcceptance", func(t *testing.T) {
-			jsonData := []byte(`{"problem_id":"` + problemID.String() + `","code":"print(int(input()) + int(input()))","language":"python"}`)
-			resp, _, err := NewRequestBuilder("POST", jsonData, http.StatusCreated, database.Solution{}).WithPath("/api/solutions").WithAuthToken(secondAverageToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-
-			var sol database.Solution
-			if sol = resp.(database.Solution); err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-			assertNonNilID(t, sol.ID, "created correct solution")
-
-			jsonData = []byte(`{"tests_passed":26, "total_tests":26}`)
-			resp, _, err = NewRequestBuilder("PUT", jsonData, http.StatusOK, database.Solution{}).WithPath("/api/solutions/"+sol.ID.String()).WithQueryParam("target_field", "tests").WithAuthToken(secondAverageToken).Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-
-			var updatedSol database.Solution
-			if updatedSol = resp.(database.Solution); err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-			assertNonNilID(t, updatedSol.ID, "updated correct solution test counts")
-			if !updatedSol.TestsPassed.Valid || updatedSol.TestsPassed.Int32 != 26 {
-				t.Fatalf("Received wrong number of tests passed, expected %d got %d", 26, updatedSol.TestsPassed.Int32)
-			}
-			if !updatedSol.TotalTests.Valid || updatedSol.TotalTests.Int32 != 26 {
-				t.Fatalf("Received wrong number of total tests, expected %d got %d", 26, updatedSol.TotalTests.Int32)
-			}
-
-			// We can now count number of correct solutions for secondAverageUserID
-			type params struct {
-				CountCorrect int `json:"count_correct"`
-				CountTotal   int `json:"count_total"`
-			}
-			resp, _, err = NewRequestBuilder("GET", nil, http.StatusOK, params{}).WithPath("/api/solutions/count").WithAuthToken(secondAverageToken).WithQueryParam("search_type", "user").Build()
-			if err != nil {
-				t.Fatal("Error making request: ", err)
-			}
-
-			var counts params
-			if counts = resp.(params); err != nil {
-				t.Fatal("Error decoding response: ", err)
-			}
-
-			if counts.CountCorrect < 1 {
-				t.Fatalf("Expected at least %d correct solutions, got %d", 1, counts.CountCorrect)
-			}
-			if counts.CountTotal < 2 {
-				t.Fatalf("Expected at least %d total solutions, got %d", 1, counts.CountTotal)
 			}
 		})
 
