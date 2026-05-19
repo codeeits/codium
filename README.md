@@ -39,7 +39,7 @@ The interactive web based computer science learning app
      >>> yes
      ```
      A database reset will also automatically create an admin user with the email and password specified in the environment variables.
-  6. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
+  5. Access the application in your web browser either on port 6767 for local development or the configured URL in production.
   
 It is of importance to note that, if you're struggling with connecting to the application, check you have port forwarding set up and your firewall is allowing outside connection to ports 8443 and 6767 respectively for HTTPs and HTTP!
 If you wish your server to be automatically accessible without needing to mention port 8443, you can port forward outside connections to port 443 to the application port 8443.
@@ -69,3 +69,11 @@ WEBSITE_STATE="development"
 # Possible values: development, production
 # If left as development, certain features like resetting the entire database will be enabled for easier testing
 ```
+
+### Quick command guide for the server console:
+- `reset`: Resets the entire database to its initial state, deleting all data and recreating the default admin user.
+- `help`: Displays a list of available commands and their descriptions.
+- `stop`: Gracefully stops the server, allowing it to finish processing any ongoing requests before shutting down.
+
+### Contributing
+As this is a software made for a competition, we are not currently accepting contributions. However, if you have any suggestions or would like to contribute in the future, please feel free to reach out to us.
