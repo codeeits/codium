@@ -10,8 +10,8 @@
     <a href="https://www.postgresql.org/">
       <img src="https://img.shields.io/badge/PostgreSQL-Supported-336791?style=flat-square&logo=postgresql" alt="PostgreSQL">
     </a>
-    <a href="#">
-      <img src="https://img.shields.io/badge/Platform-Web-blue?style=flat-square" alt="Web Platform">
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">
+      <img src="https://img.shields.io/badge/Vanilla_JS-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS">
     </a>
   </p>
 
