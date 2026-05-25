@@ -17,7 +17,7 @@
 
   <p>
     <a href="#-getting-started">Getting Started</a> •
-    <a href="#%EF%B8%8F-installation--setup">Installation</a> •
+    <a href="#installation">Installation</a> •
     <a href="#-server-console-commands">Commands</a>
   </p>
 </div>
