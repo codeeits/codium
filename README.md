@@ -1,5 +1,28 @@
-## Codium
-The interactive web based computer science learning app
+<div align="center">
+  <h1>Codium/</h1>
+  <p>
+    <strong>The interactive, web-based computer science learning app.</strong>
+  </p>
+  <p>
+    <a href="https://go.dev/">
+      <img src="https://img.shields.io/badge/Go-1.20+-00ADD8?style=flat-square&logo=go" alt="Go Version">
+    </a>
+    <a href="https://www.postgresql.org/">
+      <img src="https://img.shields.io/badge/PostgreSQL-Supported-336791?style=flat-square&logo=postgresql" alt="PostgreSQL">
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/Platform-Web-blue?style=flat-square" alt="Web Platform">
+    </a>
+  </p>
+
+  <p>
+    <a href="#-getting-started">Getting Started</a> •
+    <a href="#%EF%B8%8F-installation--setup">Installation</a> •
+    <a href="#-server-console-commands">Commands</a>
+  </p>
+</div>
+
+<br>
 
 ---
 
