@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Codium/</h1>
+  <img src="logo.svg" alt="Codium Logo" width="300"/>
   <p>
     <strong>The interactive, web-based computer science learning app.</strong>
   </p>
